@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Header } from '../components/Header';
+import { HeroSection } from '../components/HeroSection';
+import { FeatureSection } from '../components/FeatureSection';
+import { ProblemSection } from '../components/ProblemSection';
+import { FAQSection } from '../components/FAQSection';
+---
+
+<Layout title="Bitszone - Tu música sin conexión">
+  <Header client:load />
+  
+  <main>
+    <HeroSection client:load />
+    <FeatureSection client:visible />
+    <ProblemSection client:visible />
+    <FAQSection client:visible />
+  </main>
+</Layout>
