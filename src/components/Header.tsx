@@ -54,7 +54,7 @@ export const Header = () => {
         {/* Auth links */}
         <div className="hidden md:flex items-center ml-10 xl:ml-16 pl-10 xl:pl-16 gap-8 xl:gap-12 relative border-l border-white/5">
           <NavLink
-            label="Iniciar sesión JUANHP"
+            label="Iniciar sesión"
             isActive={activeAuth === "iniciar"}
             onClick={() => setActiveAuth("iniciar")}
           />
