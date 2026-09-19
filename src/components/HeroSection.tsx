@@ -1,10 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
 import LiquidEther from './ui/LiquidEther';
-import SpecularButton from './ui/SpecularButton';
-import GlassSurface from './ui/GlassSurface';
-import GradientText from './ui/GradientText';
 
 export const HeroSection = () => {
   return (
@@ -32,68 +28,18 @@ export const HeroSection = () => {
         />
       </div>
 
-      <div className="relative z-20 w-full max-w-[1920px] mx-auto mt-20 md:mt-10">
+      <div className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center text-center">
         
-        {/* Huge Typography */}
+        {/* Minimalist Typography */}
         <motion.h1 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          className="flex flex-col font-sora font-extrabold mb-10 md:mb-14 xl:mb-16 w-fit"
+          className="font-inter font-semibold text-[32px] sm:text-[40px] md:text-[56px] lg:text-[72px] tracking-tight leading-[1.1] max-w-4xl"
         >
-          <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[75px] xl:text-[85px] 2xl:text-[110px] tracking-tight leading-[1]">TU MÚSICA</span>
-          <GradientText
-            colors={['#FF9FFC', '#B497CF', '#5227FF']}
-            animationSpeed={5}
-            className="text-[14vw] sm:text-[10vw] lg:text-[115px] xl:text-[135px] 2xl:text-[170px] italic tracking-tight pr-4 leading-[0.85] !m-0"
-          >
-            <span style={{ fontFamily: '"DM Serif Display", serif' }}>SIN CONEXIÓN.</span>
-          </GradientText>
-          <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[75px] xl:text-[85px] 2xl:text-[110px] tracking-tight leading-[0.9]">DESCARGA</span>
-          <GradientText
-            colors={['#FF9FFC', '#B497CF', '#5227FF']}
-            animationSpeed={5}
-            className="text-[14vw] sm:text-[10vw] lg:text-[115px] xl:text-[135px] 2xl:text-[170px] italic tracking-tight pr-4 leading-[0.85] !m-0"
-          >
-            <span style={{ fontFamily: '"DM Serif Display", serif' }}>SIN LÍMITES.</span>
-          </GradientText>
+          <span className="text-white">Tu música sin conexión,</span><br/>
+          <span className="text-[#A0A3BD]">descarga sin límites</span>
         </motion.h1>
-
-        {/* CTA Button */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row items-start sm:items-center gap-4"
-        >
-          <GlassSurface
-             width="fit-content"
-             height="fit-content"
-             className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:shadow-[0_0_50px_rgba(85,16,141,0.5)]"
-             borderRadius={40}
-             borderWidth={0}
-             backgroundOpacity={0.05}
-             blur={16}
-             distortionScale={-30}
-          >
-            <SpecularButton
-              radius={40}
-              tint="transparent"
-              tintOpacity={0}
-              blur={0}
-              lineColor="#FF9FFC"
-              baseColor="#7012CE"
-              intensity={4.0}
-              thickness={2}
-              className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
-            >
-               <div className="flex items-center justify-center gap-3 text-white font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
-                 Explorar Catálogo 
-                 <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-[#A0A3BD] transition-all duration-300 ease-out group-hover:text-[#c084fc] group-hover:animate-bounce-x group-hover:drop-shadow-[0_0_12px_rgba(192,132,252,0.9)]" />
-               </div>
-            </SpecularButton>
-          </GlassSurface>
-        </motion.div>
 
       </div>
     </section>

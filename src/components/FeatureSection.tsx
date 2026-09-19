@@ -53,8 +53,8 @@ export const FeatureSection = () => {
           className="relative z-30 flex flex-col items-center pt-24 text-center px-6"
         >
           <p className="font-jetbrains text-xs tracking-widest text-[#deb7ff] uppercase mb-4">Descubrimiento Sonoro</p>
-          <h2 className="text-3xl md:text-5xl font-sora font-extrabold text-white tracking-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
-            EL QUE BUSCA, ENCUENTRA <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#deb7ff]">SU RITMO.</span>
+          <h2 className="text-3xl md:text-5xl font-sora font-extrabold text-white tracking-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] leading-tight py-1">
+            EL QUE BUSCA, ENCUENTRA <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#deb7ff] py-2 inline-block">SU RITMO.</span>
           </h2>
         </motion.div>
         
