@@ -35,24 +35,31 @@ export const FAQSection = () => {
 
   return (
     <section className="py-24 px-6 md:px-12 max-w-4xl mx-auto">
-      {/* CTA Box */}
-      <div className="flex flex-col items-center mb-32">
-        <Button className="mb-4 text-lg px-8 py-4">Probar Bitszone Gratis</Button>
-        <p className="text-sm font-inter text-[#A0A3BD]">30 días sin coste para nuevos usuarios. Cancela cuando quieras.</p>
-      </div>
-
-      <div className="mb-12">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="mb-12"
+      >
         <div className="inline-block px-3 py-1 mb-6 rounded-full border border-white/10 bg-white/5 font-jetbrains text-xs text-[#A0A3BD]">
           PREGUNTAS FRECUENTES
         </div>
         <h2 className="text-3xl md:text-5xl font-sora font-bold text-white leading-tight">
           Las respuestas a tus<br/>preguntas.
         </h2>
-      </div>
+      </motion.div>
 
       <div className="space-y-4">
         {faqs.map((faq, i) => (
-          <div key={i} className="border-b border-white/10">
+          <motion.div 
+            key={i} 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+            className="border-b border-white/10"
+          >
             <button 
               className="w-full flex items-center justify-between py-6 text-left"
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
@@ -77,7 +84,7 @@ export const FAQSection = () => {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>

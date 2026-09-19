@@ -52,6 +52,7 @@ export default {
         sora: ['Sora', 'sans-serif'],
         inter: ['Inter', 'sans-serif'],
         jetbrains: ['JetBrains Mono', 'monospace'],
+        playfair: ['"Playfair Display"', 'serif'],
       },
       spacing: {
         'gutter': '1.5rem',
@@ -61,6 +62,21 @@ export default {
         'space-md': '1rem',
         'space-lg': '1.5rem',
         'space-xl': '2.5rem',
+      },
+      keyframes: {
+        'bounce-x': {
+          '0%, 100%': {
+            transform: 'translateX(25%)',
+            animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)',
+          },
+          '50%': {
+            transform: 'translateX(0)',
+            animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
+          },
+        },
+      },
+      animation: {
+        'bounce-x': 'bounce-x 1s infinite',
       },
     },
   },
