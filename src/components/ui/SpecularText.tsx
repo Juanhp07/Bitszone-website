@@ -7,6 +7,7 @@ export interface SpecularTextProps {
   style?: React.CSSProperties;
   specularColor?: string;
   baseStrokeColor?: string;
+  fillColor?: string;
   strokeWidth?: number;
   glowSize?: number;
 }
@@ -17,6 +18,7 @@ export const SpecularText: React.FC<SpecularTextProps> = ({
   style = {},
   specularColor = "#FF9FFC",
   baseStrokeColor = "transparent",
+  fillColor = "white",
   strokeWidth = 1.5,
   glowSize = 60
 }) => {
@@ -41,10 +43,11 @@ export const SpecularText: React.FC<SpecularTextProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       style={style}
     >
-      {/* 1. Base Text (Solid with permanent border) */}
+      {/* 1. Base Text (Solid or Transparent with permanent border) */}
       <span 
-        className="relative z-20 text-white"
+        className="relative z-20"
         style={{
+          color: fillColor,
           WebkitTextStroke: `${strokeWidth}px ${baseStrokeColor}`,
         }}
       >
@@ -54,10 +57,12 @@ export const SpecularText: React.FC<SpecularTextProps> = ({
       {/* 2. The Specular Hover Outline Layer (z-30 so it draws over the base border) */}
       <motion.span
         aria-hidden="true"
-        className="absolute top-0 left-0 z-30 w-full h-full pointer-events-none select-none bg-clip-text text-transparent"
+        className="absolute top-0 left-0 z-30 w-full h-full pointer-events-none select-none"
         style={{
-          WebkitTextStroke: `${strokeWidth}px transparent`,
-          backgroundImage: useMotionTemplate`radial-gradient(${glowSize}px circle at ${mouseX}px ${mouseY}px, white 0%, ${specularColor} 25%, transparent 100%)`,
+          color: "transparent",
+          WebkitTextStroke: `${strokeWidth}px ${specularColor}`,
+          WebkitMaskImage: useMotionTemplate`radial-gradient(${glowSize}px circle at ${mouseX}px ${mouseY}px, black 0%, rgba(0,0,0,0.5) 50%, transparent 100%)`,
+          maskImage: useMotionTemplate`radial-gradient(${glowSize}px circle at ${mouseX}px ${mouseY}px, black 0%, rgba(0,0,0,0.5) 50%, transparent 100%)`,
           opacity: isHovered ? 1 : 0,
         }}
       >

@@ -5,6 +5,7 @@ import LiquidEther from './ui/LiquidEther';
 import SpecularButton from './ui/SpecularButton';
 import GlassSurface from './ui/GlassSurface';
 import GradientText from './ui/GradientText';
+import { SpecularText } from './ui/SpecularText';
 
 export const HeroSection = () => {
   return (
@@ -32,31 +33,30 @@ export const HeroSection = () => {
         />
       </div>
 
-      <div className="relative z-20 w-full max-w-[1920px] mx-auto mt-20 md:mt-10">
+      {/* Smooth Gradient Transition to Section 2 */}
+      <div className="absolute bottom-0 left-0 right-0 h-40 md:h-64 z-10 bg-gradient-to-t from-[#05050A] via-[#05050A]/80 to-transparent pointer-events-none"></div>
+
+      <div className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center mt-20 md:mt-0">
         
         {/* Huge Typography */}
         <motion.h1 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          className="flex flex-col font-sora font-extrabold mb-10 md:mb-14 xl:mb-16 w-fit"
+          className="flex flex-col items-center justify-center text-center w-full font-sans font-bold mb-10 md:mb-14 xl:mb-16"
         >
-          <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[75px] xl:text-[85px] 2xl:text-[110px] tracking-tight leading-[1]">TU MÚSICA</span>
-          <GradientText
-            colors={['#FF9FFC', '#B497CF', '#5227FF']}
-            animationSpeed={5}
-            className="text-[14vw] sm:text-[10vw] lg:text-[115px] xl:text-[135px] 2xl:text-[170px] italic tracking-tight pr-4 leading-[0.85] !m-0"
-          >
-            <span style={{ fontFamily: '"DM Serif Display", serif' }}>SIN CONEXIÓN.</span>
-          </GradientText>
-          <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[75px] xl:text-[85px] 2xl:text-[110px] tracking-tight leading-[0.9]">DESCARGA</span>
-          <GradientText
-            colors={['#FF9FFC', '#B497CF', '#5227FF']}
-            animationSpeed={5}
-            className="text-[14vw] sm:text-[10vw] lg:text-[115px] xl:text-[135px] 2xl:text-[170px] italic tracking-tight pr-4 leading-[0.85] !m-0"
-          >
-            <span style={{ fontFamily: '"DM Serif Display", serif' }}>SIN LÍMITES.</span>
-          </GradientText>
+          <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px] tracking-normal leading-[1.1]">
+            Tu música sin conexión
+          </span>
+          <SpecularText
+            text="descarga sin límites"
+            className="font-sans text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px] tracking-normal leading-[1.1]"
+            fillColor="transparent"
+            baseStrokeColor="rgba(255, 255, 255, 0.8)" // High visibility white glass border
+            specularColor="#ffffff" // Intense pure white laser glow
+            strokeWidth={2}
+            glowSize={180} // Large glow for massive text
+          />
         </motion.h1>
 
         {/* CTA Button */}
@@ -64,7 +64,7 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row items-start sm:items-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <GlassSurface
              width="fit-content"
