@@ -6,7 +6,7 @@ import SpecularButton from './ui/SpecularButton';
 import GlassSurface from './ui/GlassSurface';
 import GradientText from './ui/GradientText';
 import { SpecularText } from './ui/SpecularText';
-import { AnimatedOutlineText } from './ui/AnimatedOutlineText';
+import { LiquidMetalText } from './ui/LiquidMetalText';
 
 export const HeroSection = () => {
   return (
@@ -49,9 +49,9 @@ export const HeroSection = () => {
           <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px] tracking-normal leading-[1.1]">
             Tu música sin conexión
           </span>
-          <AnimatedOutlineText
+          <LiquidMetalText
             text="descarga sin límites"
-            className="w-full mt-2 md:mt-4 h-[15vw] sm:h-[12vw] lg:h-[100px] xl:h-[120px] 2xl:h-[140px]"
+            className="w-full mt-2 md:mt-4 h-[15vw] sm:h-[12vw] lg:h-[100px] xl:h-[120px] 2xl:h-[140px] text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px]"
             strokeWidth={3}
           />
         </motion.h1>
