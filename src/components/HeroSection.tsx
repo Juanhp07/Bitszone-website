@@ -37,26 +37,29 @@ export const HeroSection = () => {
       {/* Smooth Gradient Transition to Section 2 */}
       <div className="absolute -bottom-1 left-0 right-0 h-[300px] md:h-[500px] z-10 bg-gradient-to-t from-canvas via-canvas/90 to-transparent pointer-events-none"></div>
 
-      <div className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center mt-20 md:mt-0">
+      <div className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center flex-1 pt-24 md:pt-32 2xl:pt-48">
         
         {/* Huge Typography */}
         <motion.h1 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          className="flex flex-col items-center justify-center text-center w-full font-sans font-bold mb-10 md:mb-14 xl:mb-16"
+          className="flex flex-col items-center justify-center text-center w-full font-sans font-bold"
         >
-          <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px] tracking-normal leading-[1.1]">
+          <span className="text-white text-[11vw] sm:text-[9vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px] tracking-tight leading-[1.1]">
             Tu música sin conexión
           </span>
           <LiquidMetalText
             text="descarga sin límites"
-            className="w-full mt-2 md:mt-4 h-[15vw] sm:h-[12vw] lg:h-[100px] xl:h-[120px] 2xl:h-[140px] text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px]"
+            className="w-fit mt-4 md:mt-6 h-[16vw] sm:h-[14vw] lg:h-[130px] xl:h-[150px] 2xl:h-[180px] text-[11vw] sm:text-[9vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px]"
             strokeWidth={3}
           />
         </motion.h1>
 
-        {/* CTA Button */}
+      </div>
+
+      {/* CTA Button - Pushed to the bottom */}
+      <div className="relative z-20 w-full flex justify-center pb-24 md:pb-32 xl:pb-40">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -91,7 +94,6 @@ export const HeroSection = () => {
             </SpecularButton>
           </GlassSurface>
         </motion.div>
-
       </div>
     </section>
   );

@@ -1,109 +1,107 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { liquidMetalFragmentShader, ShaderMount } from "@paper-design/shaders";
-import { useMeasure } from 'react-use';
+"use client";
 
-export interface LiquidMetalTextProps {
+import React, { useId } from "react";
+import { useMeasure } from "react-use";
+
+interface LiquidMetalTextProps {
   text: string;
   className?: string;
-  style?: React.CSSProperties;
   strokeWidth?: number;
-  tintColor?: string; // Kept for interface compatibility but we don't use it anymore
+  tintColor?: string; // Kept for compatibility with HeroSection props
 }
 
-export const LiquidMetalText: React.FC<LiquidMetalTextProps> = ({ 
-  text, 
-  className = "", 
-  style = {},
-  strokeWidth = 3, 
-}) => {
-  const shaderRef = useRef<HTMLDivElement>(null);
-  const shaderMount = useRef<any>(null);
-  const [maskId] = useState(() => `mask-${Math.random().toString(36).substr(2, 9)}`);
-  
+export const LiquidMetalText = ({
+  text,
+  className = "",
+  strokeWidth = 3,
+}: LiquidMetalTextProps) => {
   const [ref, { width, height }] = useMeasure<HTMLDivElement>();
+  const instanceId = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const scope = `gleam-text-${instanceId}`;
 
-  useEffect(() => {
-    const styleId = "shader-canvas-text-style";
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement("style");
-      style.id = styleId;
-      style.textContent = `
-        .shader-container-text canvas {
-          width: 100% !important;
-          height: 100% !important;
-          display: block !important;
-          position: absolute !important;
-          top: 0 !important;
-          left: 0 !important;
-        }
-      `;
-      document.head.appendChild(style);
+  // Colors
+  const accentColor = "#FF9FFC"; // Bright Pink
+  const accentSoftColor = "#ffffff"; // Intense White core
+  const baseColor = "#5227FF"; // Deep Purple
+
+  const css = `
+    .${scope}-layer {
+      --gleam-accent: ${accentColor};
+      --gleam-accent-soft: ${accentSoftColor};
+      --gleam-base: ${baseColor};
+
+      position: absolute;
+      inset: -10%; 
+      
+      /* RGB Gamer Keyboard Horizontal Wave! */
+      background: linear-gradient(
+        95deg,
+        var(--gleam-base) 0%,
+        var(--gleam-accent) 25%,
+        var(--gleam-accent-soft) 50%,
+        var(--gleam-accent) 75%,
+        var(--gleam-base) 100%
+      );
+      background-size: 200% 100%;
+      animation: keyboard-wave-${instanceId} 4s linear infinite;
+      transition: opacity 0.8s ease;
     }
 
-    if (width > 0 && height > 0 && shaderRef.current) {
-      if (shaderMount.current?.destroy) {
-        shaderMount.current.destroy();
-      }
+    .${scope}-text {
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+      transition: color 0.4s ease, -webkit-text-stroke 0.4s ease, text-shadow 0.4s ease;
+    }
 
-      try {
-        shaderMount.current = new ShaderMount(
-          shaderRef.current,
-          liquidMetalFragmentShader,
-          {
-            u_repetition: 4,
-            u_softness: 0.5,
-            u_shiftRed: 0.3,
-            u_shiftBlue: 0.3,
-            u_distortion: 0,
-            u_contour: 0,
-            u_angle: 45,
-            u_scale: 8,
-            u_shape: 1,
-            u_offsetX: 0.1,
-            u_offsetY: -0.1,
-          },
-          undefined,
-          0.8 // Fluid continuous speed without stops
-        );
-      } catch (error) {
-        console.error("Failed to load text shader:", error);
+    /* Fill and Breathe Effect on Hover */
+    .${scope}-container:hover .${scope}-text {
+      /* Fills the inside of the letters with a soft glow */
+      color: rgba(255, 159, 252, 0.7); 
+      /* Removes the static white border so it doesn't clash with the fill! */
+      -webkit-text-stroke: 0px transparent;
+      animation: text-breathe-${instanceId} 2s ease-in-out infinite alternate;
+    }
+
+    .${scope}-container:hover .${scope}-layer {
+      /* Fades out the RGB border completely on hover! */
+      opacity: 0;
+    }
+
+    @keyframes keyboard-wave-${instanceId} {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: 0% 0;
       }
     }
 
-    return () => {
-      if (shaderMount.current?.destroy) {
-        shaderMount.current.destroy();
-        shaderMount.current = null;
+    @keyframes text-breathe-${instanceId} {
+      0% {
+        text-shadow: 0 0 15px rgba(255, 159, 252, 0.4), 0 0 30px rgba(82, 39, 255, 0.2);
       }
-    };
-  }, [width, height]);
-
-  const handleMouseEnter = () => {
-    shaderMount.current?.setSpeed?.(1.5);
-  };
-
-  const handleMouseLeave = () => {
-    shaderMount.current?.setSpeed?.(0.8); 
-  };
+      100% {
+        text-shadow: 0 0 25px rgba(255, 159, 252, 0.8), 0 0 50px rgba(82, 39, 255, 0.6);
+      }
+    }
+  `;
 
   return (
     <div 
       ref={ref}
-      className={`relative inline-flex items-center justify-center ${className}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      style={{ ...style, lineHeight: 1.1 }}
+      className={`relative inline-flex items-center justify-center ${scope}-container ${className}`}
+      style={{ lineHeight: 1.1 }}
     >
+      <style>{css}</style>
+
+      {/* 1. Base text that fills and breathes on hover */}
       <span 
-        className="whitespace-nowrap block"
-        style={{
-          color: "transparent",
-          WebkitTextStroke: "1px rgba(255, 255, 255, 0.2)", 
-        }}
+        className={`${scope}-text whitespace-nowrap block relative z-0`}
       >
         {text}
       </span>
 
+      {/* 2. SVG Mask Definition */}
       <svg 
         className="absolute pointer-events-none z-0 overflow-visible"
         style={{
@@ -115,7 +113,7 @@ export const LiquidMetalText: React.FC<LiquidMetalTextProps> = ({
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <mask id={maskId}>
+          <mask id={`mask-${instanceId}`}>
             <text 
               x="50%" 
               y="50%" 
@@ -123,7 +121,7 @@ export const LiquidMetalText: React.FC<LiquidMetalTextProps> = ({
               dominantBaseline="central" 
               fill="black" 
               stroke="white" 
-              strokeWidth={strokeWidth}
+              strokeWidth={strokeWidth * 1.5} // Thick stroke to let the gradient flow generously!
               className="font-sans font-bold"
             >
               {text}
@@ -132,6 +130,7 @@ export const LiquidMetalText: React.FC<LiquidMetalTextProps> = ({
         </defs>
       </svg>
 
+      {/* 3. The Spinning CSS Gradient Masked to the Text Stroke */}
       {width > 0 && height > 0 && (
         <div 
           className="absolute pointer-events-none z-10 mix-blend-screen"
@@ -140,14 +139,12 @@ export const LiquidMetalText: React.FC<LiquidMetalTextProps> = ({
             left: -40,
             width: width + 80,
             height: height + 80,
-            WebkitMaskImage: `url(#${maskId})`,
-            maskImage: `url(#${maskId})`,
+            WebkitMaskImage: `url(#mask-${instanceId})`,
+            maskImage: `url(#mask-${instanceId})`,
+            overflow: 'hidden',
           }}
         >
-          <div 
-            ref={shaderRef} 
-            className="w-full h-full shader-container-text relative" 
-          />
+          <div className={`${scope}-layer`} />
         </div>
       )}
     </div>
