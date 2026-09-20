@@ -35,7 +35,7 @@ export const HeroSection = () => {
       </div>
 
       {/* Smooth Gradient Transition to Section 2 */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 md:h-64 z-10 bg-gradient-to-t from-[#05050A] via-[#05050A]/80 to-transparent pointer-events-none"></div>
+      <div className="absolute -bottom-1 left-0 right-0 h-[300px] md:h-[500px] z-10 bg-gradient-to-t from-canvas via-canvas/90 to-transparent pointer-events-none"></div>
 
       <div className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center mt-20 md:mt-0">
         
