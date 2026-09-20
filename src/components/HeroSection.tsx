@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 import LiquidEther from './ui/LiquidEther';
 
 export const HeroSection = () => {
@@ -35,11 +36,24 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          className="font-inter font-semibold text-[32px] sm:text-[40px] md:text-[56px] lg:text-[72px] tracking-tight leading-[1.1] max-w-4xl"
+          className="font-inter font-semibold text-[48px] sm:text-[64px] md:text-[80px] lg:text-[96px] tracking-tight leading-[1.05] max-w-5xl"
         >
           <span className="text-white">Tu música sin conexión,</span><br/>
           <span className="text-[#A0A3BD]">descarga sin límites</span>
         </motion.h1>
+
+        {/* Floating Chevron */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{ 
+            opacity: { duration: 0.8, delay: 0.8 },
+            y: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+          }}
+          className="mt-16 text-[#A0A3BD]"
+        >
+          <ChevronDown className="w-10 h-10 opacity-70" />
+        </motion.div>
 
       </div>
     </section>
