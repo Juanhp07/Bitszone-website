@@ -144,7 +144,7 @@ export function ImageStreamHero({
                   } as React.CSSProperties}
                 >
                   {img ? (
-                    <div className="ish-hover-target w-full h-full relative rounded-[inherit] overflow-hidden border border-white/10 transition-all duration-200 ease-out group-hover/card:shadow-[0_0_40px_10px_var(--hover-color)] group-hover/card:border-2 group-hover/card:border-[color:var(--hover-color)]">
+                    <div className="ish-hover-target w-full h-full relative rounded-[inherit] overflow-hidden transition-all duration-200 ease-out group-hover/card:shadow-[0_0_40px_10px_var(--hover-color)]">
                       <img
                         src={img.src}
                         alt={img.alt ?? ""}

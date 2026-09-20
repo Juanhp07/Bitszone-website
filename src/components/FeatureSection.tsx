@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ImageStreamHero } from './ui/image-stream-hero';
+import { SpecularText } from './ui/SpecularText';
+import { LiquidMetalText } from './ui/LiquidMetalText';
 
 const albums = [
   {
@@ -53,8 +55,16 @@ export const FeatureSection = () => {
           className="relative z-30 flex flex-col items-center pt-24 text-center px-6"
         >
           <p className="font-jetbrains text-xs tracking-widest text-[#deb7ff] uppercase mb-4">Descubrimiento Sonoro</p>
-          <h2 className="text-3xl md:text-5xl font-sora font-extrabold text-white tracking-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] leading-tight py-1">
-            EL QUE BUSCA, ENCUENTRA <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#deb7ff] py-2 inline-block">SU RITMO.</span>
+          <h2 className="flex flex-col items-center justify-center font-sans font-bold text-center w-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+            <span className="text-white text-3xl md:text-5xl tracking-normal leading-[1.2]">
+              EL QUE BUSCA,
+            </span>
+            <LiquidMetalText
+              text="ENCUENTRA SU RITMO."
+              className="text-3xl md:text-5xl tracking-normal leading-[1.2]"
+              strokeWidth={2}
+              tintColor="#5C206B"
+            />
           </h2>
         </motion.div>
         
