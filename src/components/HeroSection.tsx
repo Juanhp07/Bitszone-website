@@ -6,6 +6,7 @@ import SpecularButton from './ui/SpecularButton';
 import GlassSurface from './ui/GlassSurface';
 import GradientText from './ui/GradientText';
 import { SpecularText } from './ui/SpecularText';
+import { LiquidMetalText } from './ui/LiquidMetalText';
 
 export const HeroSection = () => {
   return (
@@ -48,14 +49,11 @@ export const HeroSection = () => {
           <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px] tracking-normal leading-[1.1]">
             Tu música sin conexión
           </span>
-          <SpecularText
+          <LiquidMetalText
             text="descarga sin límites"
-            className="font-sans text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px] tracking-normal leading-[1.1]"
-            fillColor="transparent"
-            baseStrokeColor="rgba(255, 255, 255, 0.8)" // High visibility white glass border
-            specularColor="#ffffff" // Intense pure white laser glow
-            strokeWidth={2}
-            glowSize={180} // Large glow for massive text
+            className="font-sans text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px] tracking-normal leading-[1.1] mt-2 md:mt-4"
+            strokeWidth={2.5}
+            tintColor="#5C206B"
           />
         </motion.h1>
 

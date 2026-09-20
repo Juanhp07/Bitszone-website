@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ImageStreamHero } from './ui/image-stream-hero';
 import { SpecularText } from './ui/SpecularText';
+import { LiquidMetalText } from './ui/LiquidMetalText';
 
 const albums = [
   {
@@ -58,14 +59,11 @@ export const FeatureSection = () => {
             <span className="text-white text-3xl md:text-5xl tracking-normal leading-[1.2]">
               EL QUE BUSCA,
             </span>
-            <SpecularText
+            <LiquidMetalText
               text="ENCUENTRA SU RITMO."
               className="text-3xl md:text-5xl tracking-normal leading-[1.2]"
-              fillColor="transparent"
-              baseStrokeColor="rgba(255, 255, 255, 0.8)" // High visibility white glass border
-              specularColor="#ffffff" // Intense pure white laser glow
-              strokeWidth={1.5}
-              glowSize={100}
+              strokeWidth={2}
+              tintColor="#5C206B"
             />
           </h2>
         </motion.div>
