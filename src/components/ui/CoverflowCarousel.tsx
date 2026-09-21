@@ -42,8 +42,8 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   const animate = useCallback(() => {
     if (!isDragging.current) {
       if (!isHoveringCard.current) {
-        // Auto-scroll by decreasing target
-        targetProgress.current -= speed;
+        // Auto-scroll by increasing target (left to right)
+        targetProgress.current += speed;
       }
       
       // Smoothly interpolate current progress towards target progress (Spring physics)
@@ -135,17 +135,16 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     document.body.style.cursor = 'default';
   };
 
-  // Click to Center Handler
-  const handleCardClick = (index: number) => {
+  // Center Card Handler
+  const centerCard = (index: number) => {
     if (isDragging.current) return;
     
-    // Calculate how far this card is from the center, and adjust targetProgress to bring it there
+    // Calculate how far this card WILL BE from the center, and adjust targetProgress
     const itemBaseX = index * spacing;
-    const currentX = itemBaseX + progress.current - (totalWidth * 2);
+    const futureX = itemBaseX + targetProgress.current - (totalWidth * 2);
     const centerScreenX = containerWidth / 2;
-    const distanceToCenter = currentX - centerScreenX;
+    const distanceToCenter = futureX - centerScreenX;
     
-    // Subtract the distance from targetProgress to smoothly pull it to center
     targetProgress.current -= distanceToCenter;
   };
 
@@ -236,12 +235,13 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
           onMouseEnter={() => {
             isHoveringCard.current = true;
             setHoveredIndex(index);
+            centerCard(index);
           }}
           onMouseLeave={() => {
             isHoveringCard.current = false;
             setHoveredIndex(null);
           }}
-          onClick={() => handleCardClick(index)}
+          onClick={() => centerCard(index)}
         >
           <div className="coverflow-inner">
             <img src={item.src} alt={item.alt} draggable={false} />
