@@ -33,8 +33,8 @@ export const ProblemSection = () => {
   return (
     <section className="py-32 px-6 md:px-16 w-full max-w-[1440px] mx-auto relative z-10 flex flex-col items-center">
       
-      {/* Background glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#a855f7]/10 blur-[120px] rounded-[100%] pointer-events-none -z-10"></div>
+      {/* Background glow - pushed down so the blur doesn't get sliced by the section boundary above */}
+      <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#a855f7]/10 blur-[120px] rounded-[100%] pointer-events-none -z-10"></div>
 
       {/* Typography / Copywriting */}
       <motion.div 
