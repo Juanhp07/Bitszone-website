@@ -29,7 +29,7 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="absolute top-0 left-0 right-0 z-50 flex flex-col px-8 py-8 md:px-16 md:py-10 2xl:px-24 2xl:py-14 max-w-[1920px] mx-auto w-full">
+    <header className="absolute top-0 left-0 right-0 z-50 flex flex-col px-6 py-4 md:px-10 md:py-6 2xl:px-16 2xl:py-8 max-w-[1920px] mx-auto w-full">
       <TargetCursor
         targetSelector=".cursor-target"
         cursorColor="#ffffff"
@@ -39,7 +39,7 @@ export const Header = () => {
 
       <div className="flex items-center justify-between w-full">
         {/* Left: Logo */}
-        <div className="flex items-center cursor-pointer hover:scale-105 transition-transform duration-300 w-1/3 justify-start">
+        <div className="flex items-center cursor-pointer w-1/2 justify-start">
           <SpecularText
             text="Bitszone"
             className="text-[24px] xl:text-[28px] 2xl:text-[32px] tracking-normal leading-none pr-2 cursor-target"
@@ -54,20 +54,10 @@ export const Header = () => {
           />
         </div>
 
-        {/* Middle: Descargas Button */}
-        <div className="w-1/3 flex justify-center hidden sm:flex">
-          <button
-            className="cursor-target font-inter text-[14px] xl:text-[16px] 2xl:text-[18px] text-[#A0A3BD] hover:text-white transition-colors font-medium border border-white/10 rounded-full px-6 py-2 bg-[#05050A]/40 backdrop-blur-md hover:bg-white/10"
-            onClick={() => setActiveNav("descargas")}
-          >
-            Mis Descargas
-          </button>
-        </div>
-
         {/* Right: Menu Icon */}
-        <div className="w-1/3 flex justify-end">
+        <div className="w-1/2 flex justify-end">
           <button
-            className="cursor-target text-white hover:text-[#B497CF] transition-colors p-2 relative z-50"
+            className="cursor-target text-white p-2 relative z-50"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X size={32} /> : <Menu size={32} />}
@@ -83,7 +73,7 @@ export const Header = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-24 right-8 md:right-16 2xl:right-24 mt-2 flex flex-col bg-[#0a0a0f]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 min-w-[220px] gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-40"
+            className="absolute top-16 right-6 md:right-10 2xl:right-16 mt-2 flex flex-col bg-[#0a0a0f]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 min-w-[220px] gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-40"
           >
             <NavLink
               label="Inicio"

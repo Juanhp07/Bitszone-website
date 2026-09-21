@@ -121,7 +121,7 @@ export const LiquidMetalText = ({
               dominantBaseline="central" 
               fill="black" 
               stroke="white" 
-              strokeWidth={strokeWidth * 1.5} // Thick stroke to let the gradient flow generously!
+              strokeWidth={strokeWidth} 
               className="font-sans font-bold"
             >
               {text}
