@@ -213,19 +213,16 @@ const OptionWheel = ({
     (value: number, snap: boolean) => {
       const cfg = cfgRef.current;
       let v = value;
-      let outOfBounds = false;
       
       if (!cfg.loop) {
         if (v < 0) {
-          v = -0.5; // Efecto banda elástica al inicio
-          outOfBounds = true;
+          v = 0;
         } else if (v > cfg.count - 1) {
-          v = cfg.count - 1 + 0.5; // Efecto banda elástica al final
-          outOfBounds = true;
+          v = cfg.count - 1;
         }
       }
       
-      if (snap && !outOfBounds) v = Math.round(v);
+      if (snap) v = Math.round(v);
       targetRef.current = v;
       
       const clampIdx = Math.min(Math.max(Math.round(v), 0), cfg.count - 1);
@@ -235,14 +232,6 @@ const OptionWheel = ({
         onChangeRef.current?.(clampIdx, cfg.items[clampIdx]);
       }
       startLoop();
-
-      // Regresar suavemente (rebote) si se soltó fuera de los límites
-      if (outOfBounds && snap) {
-        setTimeout(() => {
-          targetRef.current = v < 0 ? 0 : cfg.count - 1;
-          startLoop();
-        }, 150);
-      }
     },
     [startLoop]
   );
@@ -425,25 +414,25 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         }
 
         @keyframes loadingPulse {
-          0% { transform: translateY(-50%) scale(0.4); opacity: 0.6; }
-          50% { transform: translateY(-50%) scale(0.6); opacity: 1; }
-          100% { transform: translateY(-50%) scale(0.4); opacity: 0.6; }
+          0% { transform: translateY(-50%) scale(0.3); opacity: 0.6; }
+          50% { transform: translateY(-50%) scale(0.5); opacity: 1; }
+          100% { transform: translateY(-50%) scale(0.3); opacity: 0.6; }
         }
         .loading-glow {
           animation: loadingPulse 1.5s infinite ease-in-out;
         }
         @keyframes expandGlow {
-          0% { transform: translateY(-50%) scale(0.6); }
-          100% { transform: translateY(-50%) scale(1) translateX(-30%); }
+          0% { transform: translateY(-50%) scale(0.5); }
+          100% { transform: translateY(-50%) scale(1.2); }
         }
         .loaded-glow {
           animation: expandGlow 1.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
         }
       `}</style>
 
-      {/* Fondo circular desenfocado (Usa un div redondeado y borroso real para evitar cortes por scaling) */}
+      {/* Fondo circular desenfocado con origen en el borde izquierdo (left-[-600px] centra el circulo en el borde lateral) */}
       <div 
-        className={`absolute top-1/2 left-0 w-[1200px] h-[1200px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none z-0 ${loading ? 'loading-glow' : 'loaded-glow'}`}
+        className={`absolute top-1/2 left-[-600px] w-[1200px] h-[1200px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none z-0 ${loading ? 'loading-glow' : 'loaded-glow'}`}
       />
 
       {/* Lista de Artistas (Izquierda) */}
