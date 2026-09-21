@@ -351,8 +351,8 @@ const OptionWheel = ({
           }}
           role="option"
           aria-selected={selectedIndex === index}
-          // Cambiado top-1/2 a top-[25%] para que las opciones empiecen desde arriba
-          className={`absolute top-[25%] cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] [color:color-mix(in_srgb,var(--ow-active-color)_calc(var(--ow-p,0)*100%),var(--ow-text-color))] left-[var(--ow-inset)] origin-left transition-all duration-300 ${
+          // Restaurado a top-1/2 como estaba antes (la rueda perfecta en el centro)
+          className={`absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] [color:color-mix(in_srgb,var(--ow-active-color)_calc(var(--ow-p,0)*100%),var(--ow-text-color))] left-[var(--ow-inset)] origin-left transition-all duration-300 ${
             selectedIndex === index ? 'font-bold drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]' : 'font-light'
           }`}
         >
@@ -449,6 +449,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             curve={1}      // Qué tanto se curvan
             tilt={5}       // Ángulo de inclinación del wheel
             inset={60}     // Padding desde la izquierda
+            blur={0}       // Quitar el blur que rompía la legibilidad al hacer scroll
           />
         )}
       </div>
