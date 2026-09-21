@@ -357,7 +357,7 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
           }}
           role="option"
           aria-selected={selectedIndex === index}
-          className={`group/item absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] left-[var(--ow-inset)] origin-left transition-[color,filter,font-weight,opacity] duration-150 ${
+          className={`group/item absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] left-[var(--ow-inset)] origin-left transition-[color,font-weight,opacity] duration-150 ${
             selectedIndex === index 
               ? 'font-bold drop-shadow-[0_0_12px_rgba(167,139,250,0.6)] hover:!text-[#c4b5fd] hover:drop-shadow-[0_0_16px_rgba(196,181,253,1)]' 
               : 'font-light hover:!text-white hover:!opacity-100 hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]'
@@ -467,8 +467,8 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             curve={1}
             tilt={5}
             inset={120} 
-            blur={0}
-            fade={0.15}
+            blur={3} // Efecto de desenfoque restaurado tal como en React Bits
+            fade={0.25} // Desvanecimiento restaurado
             smoothing={40} 
           />
         )}
