@@ -507,24 +507,23 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
 
       {/* Contenido Principal (Derecha) */}
       <div className="flex-1 h-full flex items-center justify-center relative z-0">
-        {/* Remover mix-blend-overlay de aquí, ya que rompe el backdrop-filter en navegadores basados en Chromium */}
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none"></div>
 
-        {/* Playback Controls (Poweramp Style + Ultra Liquid Glass) */}
+        {/* Playback Controls (Poweramp Style + True Liquid Glass) */}
         <div className="relative flex items-center justify-center w-[550px] h-[450px] -ml-[25%] z-20">
           
-          {/* Waveform (barras EXTREMADAMENTE gruesas: menos gap, más flex-1) */}
+          {/* Waveform (20 barras, gruesas con buen espacio) */}
           <div 
-            className="absolute inset-0 flex items-center justify-between gap-[4px] pointer-events-none px-6"
+            className="absolute inset-0 flex items-center justify-between gap-[14px] pointer-events-none px-6"
             style={{
               maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
             }}
           >
-            {Array.from({ length: 30 }).map((_, i) => {
+            {Array.from({ length: 20 }).map((_, i) => {
               // Altura masiva
               const height = 30 + Math.abs(Math.sin(i * 0.45) * 65 + Math.cos(i * 1.1) * 20);
-              const isPlayed = i < 11; // Progreso
+              const isPlayed = i < 7; // Progreso (~35%)
               return (
                 <div 
                   key={i} 
@@ -539,17 +538,19 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             })}
           </div>
 
-          {/* Botones (Ultra Liquid Glass sin bordes) */}
+          {/* Botones (Liquid Glass Moderado para que se vean las líneas) */}
           <div className="flex items-center gap-10 z-10">
             <button 
-              className="w-20 h-20 bg-white/10 backdrop-blur-2xl rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/20 transition-all shadow-xl"
+              className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
+              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
             >
               <SkipBack className="w-8 h-8 text-white" fill="currentColor" />
             </button>
             
             <button 
               onClick={() => setIsPlaying(!isPlaying)}
-              className="w-32 h-32 bg-white/10 backdrop-blur-3xl rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/20 transition-all shadow-2xl"
+              className="w-32 h-32 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-2xl"
+              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
             >
               {isPlaying ? (
                 <Pause className="w-14 h-14 text-white" fill="currentColor" />
@@ -559,7 +560,8 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             </button>
 
             <button 
-              className="w-20 h-20 bg-white/10 backdrop-blur-2xl rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/20 transition-all shadow-xl"
+              className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
+              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
             >
               <SkipForward className="w-8 h-8 text-white" fill="currentColor" />
             </button>
