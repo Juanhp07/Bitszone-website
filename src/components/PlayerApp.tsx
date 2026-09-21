@@ -510,26 +510,26 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
 
         {/* Playback Controls (Poweramp Style + Liquid Glass) */}
-        <div className="relative flex items-center justify-center w-[600px] h-80 -ml-[25%] z-20">
+        <div className="relative flex items-center justify-center w-[700px] h-[450px] -ml-[25%] z-20">
           
-          {/* Waveform (barras gruesas, super redondeadas y degradado vertical) */}
+          {/* Waveform (barras extremadamente gruesas, altas y con padding para no recortar el brillo) */}
           <div 
-            className="absolute inset-0 flex items-center justify-between gap-[8px] pointer-events-none px-4"
+            className="absolute inset-0 flex items-center justify-between gap-[12px] pointer-events-none px-12"
             style={{
-              maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)'
             }}
           >
-            {Array.from({ length: 45 }).map((_, i) => {
-              // Altura exagerada y orgánica
-              const height = 30 + Math.abs(Math.sin(i * 0.4) * 60 + Math.cos(i * 0.9) * 20);
-              const isPlayed = i < 18; // Progreso
+            {Array.from({ length: 32 }).map((_, i) => {
+              // Altura masiva
+              const height = 30 + Math.abs(Math.sin(i * 0.45) * 65 + Math.cos(i * 1.1) * 20);
+              const isPlayed = i < 12; // Progreso
               return (
                 <div 
                   key={i} 
                   className={`flex-1 rounded-full transition-colors duration-300 ${
                     isPlayed 
-                      ? 'bg-[#a855f7] drop-shadow-[0_0_16px_rgba(168,85,247,0.9)]' 
+                      ? 'bg-[#a855f7] drop-shadow-[0_0_24px_rgba(168,85,247,0.9)]' 
                       : 'bg-white/20'
                   }`} 
                   style={{ height: `${Math.min(100, height)}%` }} 
