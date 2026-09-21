@@ -509,22 +509,22 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       <div className="flex-1 h-full flex items-center justify-center relative z-0">
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
 
-        {/* Playback Controls (Poweramp Style) */}
-        <div className="relative flex items-center justify-center w-[500px] h-32 -ml-[25%] z-20">
+        {/* Playback Controls (Poweramp Style + Liquid Glass) */}
+        <div className="relative flex items-center justify-center w-[750px] h-48 -ml-[25%] z-20">
           
-          {/* Waveform */}
-          <div className="absolute inset-0 flex items-center justify-between gap-[3px] pointer-events-none">
-            {Array.from({ length: 65 }).map((_, i) => {
-              // Generador de altura de onda estilo musical
-              const height = 15 + Math.abs(Math.sin(i * 0.4) * 45 + Math.cos(i * 1.1) * 35);
-              const isPlayed = i < 28; // ~40% de progreso
+          {/* Waveform más grande y denso */}
+          <div className="absolute inset-0 flex items-center justify-between gap-[4px] pointer-events-none px-4">
+            {Array.from({ length: 85 }).map((_, i) => {
+              // Generador de altura de onda más dramático
+              const height = 15 + Math.abs(Math.sin(i * 0.35) * 60 + Math.cos(i * 0.85) * 25);
+              const isPlayed = i < 35; // Progreso
               return (
                 <div 
                   key={i} 
                   className={`flex-1 rounded-full transition-colors duration-300 ${
                     isPlayed 
-                      ? 'bg-[#a855f7] drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]' 
-                      : 'bg-white/20'
+                      ? 'bg-[#a855f7] drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]' 
+                      : 'bg-white/15'
                   }`} 
                   style={{ height: `${height}%` }} 
                 />
@@ -532,25 +532,25 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             })}
           </div>
 
-          {/* Botones */}
-          <div className="flex items-center gap-5 z-10">
-            <button className="w-14 h-14 bg-[#181818] rounded-full flex items-center justify-center hover:scale-105 hover:bg-[#222] transition-all shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-              <SkipBack className="w-6 h-6 text-white" fill="currentColor" />
+          {/* Botones (Liquid Glass) */}
+          <div className="flex items-center gap-6 z-10">
+            <button className="w-16 h-16 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/10 hover:border-white/20 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+              <SkipBack className="w-7 h-7 text-white" fill="currentColor" />
             </button>
             
             <button 
               onClick={() => setIsPlaying(!isPlaying)}
-              className="w-24 h-24 bg-[#181818] rounded-full flex items-center justify-center hover:scale-105 hover:bg-[#222] transition-all shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+              className="w-28 h-28 bg-white/5 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/10 hover:border-white/30 transition-all shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
             >
               {isPlaying ? (
-                <Pause className="w-10 h-10 text-white" fill="currentColor" />
+                <Pause className="w-12 h-12 text-white" fill="currentColor" />
               ) : (
-                <Play className="w-10 h-10 ml-2 text-white" fill="currentColor" />
+                <Play className="w-12 h-12 ml-2 text-white" fill="currentColor" />
               )}
             </button>
 
-            <button className="w-14 h-14 bg-[#181818] rounded-full flex items-center justify-center hover:scale-105 hover:bg-[#222] transition-all shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-              <SkipForward className="w-6 h-6 text-white" fill="currentColor" />
+            <button className="w-16 h-16 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/10 hover:border-white/20 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+              <SkipForward className="w-7 h-7 text-white" fill="currentColor" />
             </button>
           </div>
         </div>
