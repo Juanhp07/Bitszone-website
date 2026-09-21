@@ -125,7 +125,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   const displayArtists = Array.from(new Set([...dbArtists, ...DUMMY_ARTISTS]));
 
   return (
-    <div className="flex h-screen w-full bg-[#0a0a0a] text-white font-inter overflow-hidden">
+    <div className="flex h-screen w-full bg-[#050505] text-white font-inter overflow-hidden relative">
       
       {/* Estilos en línea para la animación del título y ocultar scrollbar */}
       <style>{`
@@ -149,6 +149,15 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         }
       `}</style>
 
+      {/* Fondo Curvo del Sidebar (Independiente para no cortar el texto al hacer scroll) */}
+      <div 
+        className="absolute top-0 left-0 h-full w-[45%] min-w-[450px] max-w-[650px] pointer-events-none z-0"
+        style={{
+          background: 'linear-gradient(to right, #0a0a0a, rgba(139, 92, 246, 0.08))',
+          borderRadius: '0 100% 100% 0 / 0 50% 50% 0',
+        }}
+      />
+
       {/* Lista de Artistas (Izquierda) */}
       <div 
         ref={scrollRef}
@@ -156,10 +165,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
-        className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start px-12 overflow-y-auto overflow-x-hidden no-scrollbar cursor-grab active:cursor-grabbing"
-        style={{
-          background: 'linear-gradient(to right, transparent 80%, rgba(139, 92, 246, 0.05) 100%)'
-        }}
+        className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start px-12 overflow-y-auto overflow-x-hidden no-scrollbar cursor-grab active:cursor-grabbing z-10 bg-transparent"
       >
         <div className="flex flex-col gap-8 w-full py-32">
           {loading ? (
@@ -176,7 +182,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
                   style={{
                     transform: `translateX(${curveOffset}px)`,
                     transition: 'transform 0.3s ease',
-                    width: `calc(100% - ${curveOffset}px)`, // Asegura que no sobrepase el ancho sumando el offset
+                    width: `calc(100% - ${curveOffset}px)`,
                   }}
                 >
                   <NavLinkHover label={artist} onClick={handleLinkClick} />
@@ -188,7 +194,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       </div>
 
       {/* Contenido Principal (Derecha) */}
-      <div className="flex-1 h-full flex items-center justify-center bg-[#050505] relative border-l border-white/5">
+      <div className="flex-1 h-full flex items-center justify-center relative z-0">
         <h1 
           className="text-4xl md:text-6xl lg:text-8xl tracking-[0.2em] font-bold select-none pointer-events-none animate-gradient-text text-transparent bg-clip-text"
           style={{
