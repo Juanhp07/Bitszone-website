@@ -1,8 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { PlayerApp } from '../components/PlayerApp';
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 ---
 
 <Layout title="Bitszone Web Player">
-  <PlayerApp client:load />
+  <PlayerApp supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} client:load />
 </Layout>

@@ -5,11 +5,11 @@ import {
   Menu, Cast, MoreVertical, ThumbsUp, ThumbsDown
 } from 'lucide-react';
 import { SpecularText } from './ui/SpecularText';
-import { supabase } from '../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 const CATEGORIES = ["Podcasts", "Actívate", "Entrenamiento", "Relajación", "Para sentirte bien", "Viaje diario", "Romance", "Fiesta", "Triste", "Sueño", "Concentración"];
 
-export const PlayerApp = () => {
+export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   // Player State
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -28,6 +28,11 @@ export const PlayerApp = () => {
   // Fetch from Supabase
   useEffect(() => {
     const fetchTracks = async () => {
+      if (!supabaseUrl || !supabaseAnonKey) {
+        setLoading(false);
+        return;
+      }
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
       const { data, error } = await supabase.from('tracks').select('*').order('id', { ascending: true });
       if (data && data.length > 0) {
         setTracks(data);
@@ -35,7 +40,7 @@ export const PlayerApp = () => {
       setLoading(false);
     };
     fetchTracks();
-  }, []);
+  }, [supabaseUrl, supabaseAnonKey]);
 
   const currentTrack = tracks.length > 0 ? tracks[currentTrackIndex] : null;
 
