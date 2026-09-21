@@ -138,7 +138,12 @@ const OptionWheel = ({
     draggable
   };
 
+  const startTime = useRef<number | null>(null);
+
   const runFrame = useCallback((now: number) => {
+    if (startTime.current === null) startTime.current = now;
+    const elapsed = now - startTime.current;
+
     const dt = Math.min((now - lastRef.current) / 1000, 0.05);
     lastRef.current = now;
     const cfg = cfgRef.current;
@@ -176,13 +181,23 @@ const OptionWheel = ({
         x = -mirror * R * (1 - Math.cos(ang)) * cfg.curve;
         rot = (mirror * ang * 180) / Math.PI;
       }
-      el.style.transform = `translate(${x.toFixed(2)}px, calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
+
+      // Animación de entrada con ondas ("aparezcan todas con ondas y luego se pongan rectas")
+      let waveOffset = 0;
+      if (elapsed < 2000) {
+        const progress = elapsed / 2000;
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const amplitude = (1 - easeOut) * 200; // La onda se va reduciendo a 0
+        waveOffset = Math.sin(i * 1.5 - elapsed * 0.01) * amplitude;
+      }
+
+      el.style.transform = `translate(${(x + waveOffset).toFixed(2)}px, calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
       el.style.opacity = String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade));
       el.style.filter = cfg.blur > 0 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : 'none';
       el.style.setProperty('--ow-p', Math.max(0, 1 - Math.min(dist, 1)).toFixed(4));
     }
 
-    rafRef.current = settled ? null : requestAnimationFrame(runFrame);
+    rafRef.current = settled && elapsed >= 2000 ? null : requestAnimationFrame(runFrame);
   }, []);
 
   const startLoop = useCallback(() => {
@@ -326,7 +341,8 @@ const OptionWheel = ({
           }}
           role="option"
           aria-selected={selectedIndex === index}
-          className={`absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] [color:color-mix(in_srgb,var(--ow-active-color)_calc(var(--ow-p,0)*100%),var(--ow-text-color))] left-[var(--ow-inset)] origin-left`}
+          // Cambiado top-1/2 a top-[25%] para que las opciones empiecen desde arriba
+          className={`absolute top-[25%] cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] [color:color-mix(in_srgb,var(--ow-active-color)_calc(var(--ow-p,0)*100%),var(--ow-text-color))] left-[var(--ow-inset)] origin-left`}
         >
           {/* Se usa el NavLinkHover aquí para mantener la animación de letras */}
           <NavLinkHover 
@@ -373,7 +389,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   return (
     <div className="flex h-screen w-full bg-[#050505] text-white font-inter overflow-hidden relative">
       
-      {/* Estilos en línea para la animación del título */}
+      {/* Estilos en línea para la animación del título y del fondo (cargando y cargado) */}
       <style>{`
         @keyframes gradientMove {
           0% { background-position: 0% 50%; }
@@ -384,11 +400,29 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
           background-size: 200% auto;
           animation: gradientMove 2s ease-in-out infinite;
         }
+
+        @keyframes loadingPulse {
+          0% { transform: scale(0.15); opacity: 0.6; }
+          50% { transform: scale(0.25); opacity: 1; }
+          100% { transform: scale(0.15); opacity: 0.6; }
+        }
+        .loading-glow {
+          animation: loadingPulse 1.5s infinite ease-in-out;
+          transform-origin: left center;
+        }
+        @keyframes expandGlow {
+          0% { transform: scale(0.25); }
+          100% { transform: scale(1); }
+        }
+        .loaded-glow {
+          animation: expandGlow 1.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
+          transform-origin: left center;
+        }
       `}</style>
 
       {/* Fondo Curvo y Difuminado del Sidebar a pantalla completa para evitar cortes */}
       <div 
-        className="absolute top-0 left-0 h-full w-full pointer-events-none z-0"
+        className={`absolute top-0 left-0 h-full w-full pointer-events-none z-0 ${loading ? 'loading-glow' : 'loaded-glow'}`}
         style={{
           // Radial gradient expandido que se desvanece suavemente
           background: 'radial-gradient(ellipse 45% 90% at 0% 50%, rgba(192, 163, 229, 0.18) 0%, rgba(139, 92, 246, 0.05) 50%, transparent 100%)',
@@ -398,15 +432,15 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       {/* Lista de Artistas (Izquierda) */}
       <div className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start overflow-hidden z-10 bg-transparent">
         {loading ? (
-          <div className="h-full w-full flex items-center px-12">
-            <p className="text-gray-500 py-4 text-3xl font-light">Cargando artistas...</p>
+          <div className="h-full w-full flex flex-col justify-center px-12">
+            {/* Texto eliminado por solicitud del usuario (se reemplaza por la bolita brillante) */}
           </div>
         ) : (
           <OptionWheel 
             items={displayArtists} 
             fontSize={3.2} // Ajusta el tamaño de los artistas
             spacing={1.3}  // Espaciado vertical
-            curve={1}    // Qué tanto se curvan
+            curve={1}      // Qué tanto se curvan
             tilt={5}       // Ángulo de inclinación del wheel
             inset={60}     // Padding desde la izquierda
           />
