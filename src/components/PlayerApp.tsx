@@ -139,12 +139,7 @@ const OptionWheel = ({
     draggable
   };
 
-  const startTime = useRef<number | null>(null);
-
   const runFrame = useCallback((now: number) => {
-    if (startTime.current === null) startTime.current = now;
-    const elapsed = now - startTime.current;
-
     const dt = Math.min((now - lastRef.current) / 1000, 0.05);
     lastRef.current = now;
     const cfg = cfgRef.current;
@@ -163,7 +158,6 @@ const OptionWheel = ({
     const mirror = cfg.side === 'right' ? -1 : 1;
     const tiltRad = (cfg.tilt * Math.PI) / 180;
     const R = tiltRad > 0.0005 ? cfg.rowH / tiltRad : 0;
-    
     for (let i = 0; i < n; i++) {
       const el = els[i];
       if (!el) continue;
@@ -182,23 +176,13 @@ const OptionWheel = ({
         x = -mirror * R * (1 - Math.cos(ang)) * cfg.curve;
         rot = (mirror * ang * 180) / Math.PI;
       }
-
-      // Animación de entrada con ondas ("aparezcan todas con ondas y luego se pongan rectas")
-      let waveOffset = 0;
-      if (elapsed < 2000) {
-        const progress = elapsed / 2000;
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        const amplitude = (1 - easeOut) * 200; // La onda se va reduciendo a 0
-        waveOffset = Math.sin(i * 1.5 - elapsed * 0.01) * amplitude;
-      }
-
-      el.style.transform = `translate(${(x + waveOffset).toFixed(2)}px, calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
+      el.style.transform = `translate(${x.toFixed(2)}px, calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
       el.style.opacity = String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade));
       el.style.filter = cfg.blur > 0 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : 'none';
       el.style.setProperty('--ow-p', Math.max(0, 1 - Math.min(dist, 1)).toFixed(4));
     }
 
-    rafRef.current = settled && elapsed >= 2000 ? null : requestAnimationFrame(runFrame);
+    rafRef.current = settled ? null : requestAnimationFrame(runFrame);
   }, []);
 
   const startLoop = useCallback(() => {
@@ -213,23 +197,14 @@ const OptionWheel = ({
     (value: number, snap: boolean) => {
       const cfg = cfgRef.current;
       let v = value;
-      
-      if (!cfg.loop) {
-        if (v < 0) {
-          v = 0;
-        } else if (v > cfg.count - 1) {
-          v = cfg.count - 1;
-        }
-      }
-      
+      if (!cfg.loop) v = Math.min(Math.max(v, 0), Math.max(cfg.count - 1, 0));
       if (snap) v = Math.round(v);
       targetRef.current = v;
-      
-      const clampIdx = Math.min(Math.max(Math.round(v), 0), cfg.count - 1);
-      if (clampIdx !== selectedRef.current) {
-        selectedRef.current = clampIdx;
-        setSelectedIndex(clampIdx);
-        onChangeRef.current?.(clampIdx, cfg.items[clampIdx]);
+      const idx = ((Math.round(v) % cfg.count) + cfg.count) % cfg.count;
+      if (idx !== selectedRef.current) {
+        selectedRef.current = idx;
+        setSelectedIndex(idx);
+        onChangeRef.current?.(idx, cfg.items[idx]);
       }
       startLoop();
     },
