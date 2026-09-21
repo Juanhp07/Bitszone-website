@@ -392,6 +392,8 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
 };
 
 
+import SloshGauge from './ui/SloshGauge';
+
 export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -538,33 +540,50 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             })}
           </div>
 
-          {/* Botones (Liquid Glass Moderado para que se vean las líneas) */}
-          <div className="flex items-center gap-10 z-10">
-            <button 
-              className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
-              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-            >
-              <SkipBack className="w-8 h-8 text-white" fill="currentColor" />
-            </button>
-            
-            <button 
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="w-32 h-32 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-2xl"
-              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-            >
-              {isPlaying ? (
-                <Pause className="w-14 h-14 text-white" fill="currentColor" />
-              ) : (
-                <Play className="w-14 h-14 ml-2 text-white" fill="currentColor" />
-              )}
-            </button>
+          {/* Controles Interactivos (Botones + Volumen) */}
+          <div className="flex flex-col items-center gap-10 z-10">
+            {/* Botones (Liquid Glass Moderado para que se vean las líneas) */}
+            <div className="flex items-center gap-10">
+              <button 
+                className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
+                style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+              >
+                <SkipBack className="w-8 h-8 text-white" fill="currentColor" />
+              </button>
+              
+              <button 
+                onClick={() => setIsPlaying(!isPlaying)}
+                className="w-32 h-32 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-2xl"
+                style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+              >
+                {isPlaying ? (
+                  <Pause className="w-14 h-14 text-white" fill="currentColor" />
+                ) : (
+                  <Play className="w-14 h-14 ml-2 text-white" fill="currentColor" />
+                )}
+              </button>
 
-            <button 
-              className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
-              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-            >
-              <SkipForward className="w-8 h-8 text-white" fill="currentColor" />
-            </button>
+              <button 
+                className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
+                style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+              >
+                <SkipForward className="w-8 h-8 text-white" fill="currentColor" />
+              </button>
+            </div>
+
+            {/* Barra de Volumen Horizontal (SloshGauge) */}
+            <div className="flex items-center gap-5 bg-white/5 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 shadow-lg">
+              <Volume2 className="w-5 h-5 text-white/50" />
+              <SloshGauge 
+                defaultValue={70}
+                width={200}
+                height={16}
+                radius={8}
+                liquidColor="#a855f7"
+                glassColor="rgba(255, 255, 255, 0.05)"
+                interactive={true}
+              />
+            </div>
           </div>
         </div>
 
@@ -572,22 +591,9 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         <div className="absolute right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-10 z-20">
           
           {/* Botón de Letras */}
-          <button className="flex flex-col items-center gap-2 group text-white/50 hover:text-white transition-colors">
-            <BookOpen className="w-5 h-5 group-hover:text-[#a855f7] transition-colors" />
-            <span className="text-[10px] uppercase tracking-[0.2em] font-medium">Letra</span>
+          <button className="w-12 h-12 bg-white/5 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/10 transition-colors border border-white/10 group shadow-lg">
+            <BookOpen className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
           </button>
-
-          {/* Control de Volumen */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-32 w-1.5 bg-white/10 rounded-full relative overflow-hidden group cursor-pointer shadow-lg">
-              {/* Nivel de volumen actual (ej. 60%) */}
-              <div className="absolute bottom-0 left-0 right-0 h-[60%] bg-[#9333ea] rounded-full group-hover:bg-[#a855f7] transition-colors" />
-            </div>
-            <button className="text-white/50 hover:text-white transition-colors group">
-              <Volume2 className="w-5 h-5 group-hover:text-[#a855f7] transition-colors" />
-            </button>
-          </div>
-          
         </div>
       </div>
 
