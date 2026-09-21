@@ -510,37 +510,47 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
 
         {/* Playback Controls (Poweramp Style + Liquid Glass) */}
-        <div className="relative flex items-center justify-center w-[600px] h-64 -ml-[25%] z-20">
+        <div className="relative flex items-center justify-center w-[600px] h-80 -ml-[25%] z-20">
           
-          {/* Waveform más estrecho y mucho más alto */}
-          <div className="absolute inset-0 flex items-center justify-between gap-[5px] pointer-events-none px-2">
-            {Array.from({ length: 65 }).map((_, i) => {
-              // Altura mucho más exagerada para ocupar todo el 'h-64'
-              const height = 20 + Math.abs(Math.sin(i * 0.35) * 65 + Math.cos(i * 0.8) * 15);
-              const isPlayed = i < 28; // Progreso
+          {/* Waveform (barras gruesas, super redondeadas y degradado vertical) */}
+          <div 
+            className="absolute inset-0 flex items-center justify-between gap-[8px] pointer-events-none px-4"
+            style={{
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
+            }}
+          >
+            {Array.from({ length: 45 }).map((_, i) => {
+              // Altura exagerada y orgánica
+              const height = 30 + Math.abs(Math.sin(i * 0.4) * 60 + Math.cos(i * 0.9) * 20);
+              const isPlayed = i < 18; // Progreso
               return (
                 <div 
                   key={i} 
                   className={`flex-1 rounded-full transition-colors duration-300 ${
                     isPlayed 
-                      ? 'bg-[#a855f7] drop-shadow-[0_0_12px_rgba(168,85,247,0.9)]' 
+                      ? 'bg-[#a855f7] drop-shadow-[0_0_16px_rgba(168,85,247,0.9)]' 
                       : 'bg-white/20'
                   }`} 
-                  style={{ height: `${height}%` }} 
+                  style={{ height: `${Math.min(100, height)}%` }} 
                 />
               );
             })}
           </div>
 
-          {/* Botones (Ultra Liquid Glass) */}
-          <div className="flex items-center gap-6 z-10">
-            <button className="w-16 h-16 bg-white/[0.12] backdrop-blur-[32px] border border-white/30 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/20 hover:border-white/40 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+          {/* Botones (Ultra Liquid Glass con blur en línea) */}
+          <div className="flex items-center gap-8 z-10">
+            <button 
+              className="w-16 h-16 bg-white/[0.05] border border-white/20 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/10 hover:border-white/30 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+              style={{ backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)' }}
+            >
               <SkipBack className="w-7 h-7 text-white" fill="currentColor" />
             </button>
             
             <button 
               onClick={() => setIsPlaying(!isPlaying)}
-              className="w-28 h-28 bg-white/[0.12] backdrop-blur-[32px] border border-white/30 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/20 hover:border-white/40 transition-all shadow-[0_12px_40px_rgba(0,0,0,0.6)]"
+              className="w-28 h-28 bg-white/[0.05] border border-white/20 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/10 hover:border-white/30 transition-all shadow-[0_12px_40px_rgba(0,0,0,0.6)]"
+              style={{ backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)' }}
             >
               {isPlaying ? (
                 <Pause className="w-12 h-12 text-white" fill="currentColor" />
@@ -549,7 +559,10 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
               )}
             </button>
 
-            <button className="w-16 h-16 bg-white/[0.12] backdrop-blur-[32px] border border-white/30 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/20 hover:border-white/40 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+            <button 
+              className="w-16 h-16 bg-white/[0.05] border border-white/20 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/10 hover:border-white/30 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+              style={{ backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)' }}
+            >
               <SkipForward className="w-7 h-7 text-white" fill="currentColor" />
             </button>
           </div>
