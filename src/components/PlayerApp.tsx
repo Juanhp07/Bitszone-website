@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 // Lista de artistas falsos para rellenar
@@ -9,7 +9,10 @@ const DUMMY_ARTISTS = [
   "Rosalía",
   "Arctic Monkeys",
   "Gorillaz",
-  "Tame Impala"
+  "Tame Impala",
+  "Daft Punk",
+  "The Strokes",
+  "Kendrick Lamar"
 ];
 
 /* Animación de split-character */
@@ -22,13 +25,13 @@ function NavLinkHover({
   label: string;
   href?: string;
   charStagger?: number;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
 }) {
   const isReducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
 
   if (isReducedMotion) {
     return (
-      <a href={href} onClick={onClick} className="block cursor-pointer opacity-50 hover:opacity-100 hover:font-bold transition-all duration-300">
+      <a href={href} onClick={onClick} className="block cursor-pointer opacity-50 hover:opacity-100 hover:font-bold transition-all duration-300 truncate max-w-full">
         {label}
       </a>
     );
@@ -38,10 +41,11 @@ function NavLinkHover({
     <a 
       href={href} 
       onClick={onClick} 
-      className="group/link-hover inline-block no-underline cursor-pointer opacity-40 hover:opacity-100 font-light hover:font-bold transition-all duration-300"
+      draggable={false}
+      className="group/link-hover inline-block no-underline cursor-pointer opacity-40 hover:opacity-100 font-light hover:font-bold transition-all duration-300 max-w-full truncate align-bottom"
     >
       <span className="sr-only">{label}</span>
-      <span aria-hidden="true" className="relative inline-block overflow-hidden align-middle leading-[1.08]">
+      <span aria-hidden="true" className="relative inline-block overflow-hidden align-middle leading-[1.08] truncate max-w-full">
         {[...label].map((char, index) => (
           <span
             key={index}
@@ -60,6 +64,12 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Drag to scroll refs and state
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
+
   // Fetch from Supabase
   useEffect(() => {
     const fetchTracks = async () => {
@@ -77,6 +87,37 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
     fetchTracks();
   }, [supabaseUrl, supabaseAnonKey]);
 
+  // Manejo de drag para hacer scroll
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartY(e.pageY - scrollRef.current.offsetTop);
+    setScrollTop(scrollRef.current.scrollTop);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const y = e.pageY - scrollRef.current.offsetTop;
+    const walk = (y - startY) * 1.5; // Velocidad de arrastre
+    scrollRef.current.scrollTop = scrollTop - walk;
+  };
+
+  // Prevenir click en el enlace si el usuario estaba arrastrando
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+    }
+  };
+
   // Extraer artistas únicos de la base de datos
   const dbArtists = Array.from(new Set(tracks.map(t => t.artist)));
   
@@ -86,7 +127,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   return (
     <div className="flex h-screen w-full bg-[#0a0a0a] text-white font-inter overflow-hidden">
       
-      {/* Estilos en línea para la animación del título BITSZONE */}
+      {/* Estilos en línea para la animación del título y ocultar scrollbar */}
       <style>{`
         @keyframes gradientMove {
           0% { background-position: 0% 50%; }
@@ -97,36 +138,48 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
           background-size: 200% auto;
           animation: gradientMove 2s ease-in-out infinite;
         }
+        
+        /* Ocultar scrollbar nativo */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
 
       {/* Lista de Artistas (Izquierda) */}
       <div 
-        className="w-[40%] min-w-[350px] max-w-[500px] h-full flex flex-col justify-center px-12 overflow-y-auto"
+        ref={scrollRef}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start px-12 overflow-y-auto overflow-x-hidden no-scrollbar cursor-grab active:cursor-grabbing"
         style={{
-          // Degradado sutil morado en el borde derecho en lugar de una línea sólida
           background: 'linear-gradient(to right, transparent 80%, rgba(139, 92, 246, 0.05) 100%)'
         }}
       >
-        <div className="flex flex-col gap-8 w-full py-20">
+        <div className="flex flex-col gap-8 w-full py-32">
           {loading ? (
             <p className="text-gray-500">Cargando artistas...</p>
           ) : (
             displayArtists.map((artist, i) => {
-              // Calcular el desplazamiento en X para crear el efecto de medio círculo
-              // Usamos Math.sin para crear la curva. En el medio (PI/2) es el máximo.
               const progress = i / (displayArtists.length - 1 || 1);
-              const curveOffset = Math.sin(progress * Math.PI) * 60; // 60px max offset
+              const curveOffset = Math.sin(progress * Math.PI) * 70; // Curva
 
               return (
                 <div 
                   key={i} 
-                  className="text-4xl md:text-5xl lg:text-6xl text-white tracking-tight"
+                  className="text-5xl lg:text-7xl text-white tracking-tight whitespace-nowrap"
                   style={{
                     transform: `translateX(${curveOffset}px)`,
-                    transition: 'transform 0.3s ease'
+                    transition: 'transform 0.3s ease',
+                    width: `calc(100% - ${curveOffset}px)`, // Asegura que no sobrepase el ancho sumando el offset
                   }}
                 >
-                  <NavLinkHover label={artist} />
+                  <NavLinkHover label={artist} onClick={handleLinkClick} />
                 </div>
               );
             })
@@ -135,7 +188,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       </div>
 
       {/* Contenido Principal (Derecha) */}
-      <div className="flex-1 h-full flex items-center justify-center bg-[#050505] relative">
+      <div className="flex-1 h-full flex items-center justify-center bg-[#050505] relative border-l border-white/5">
         <h1 
           className="text-4xl md:text-6xl lg:text-8xl tracking-[0.2em] font-bold select-none pointer-events-none animate-gradient-text text-transparent bg-clip-text"
           style={{
