@@ -154,7 +154,8 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         className="absolute top-0 left-0 h-full w-[45%] min-w-[450px] max-w-[650px] pointer-events-none z-0"
         style={{
           background: 'linear-gradient(to right, #0a0a0a, rgba(139, 92, 246, 0.08))',
-          borderRadius: '0 100% 100% 0 / 0 50% 50% 0',
+          // Curva mucho más suave (15% de profundidad horizontal)
+          borderRadius: '0 15% 15% 0 / 0 50% 50% 0',
         }}
       />
 
@@ -167,18 +168,20 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         onMouseMove={handleMouseMove}
         className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start px-12 overflow-y-auto overflow-x-hidden no-scrollbar cursor-grab active:cursor-grabbing z-10 bg-transparent"
       >
-        <div className="flex flex-col gap-8 w-full py-32">
+        <div className="flex flex-col gap-6 w-full py-32">
           {loading ? (
             <p className="text-gray-500">Cargando artistas...</p>
           ) : (
             displayArtists.map((artist, i) => {
               const progress = i / (displayArtists.length - 1 || 1);
-              const curveOffset = Math.sin(progress * Math.PI) * 70; // Curva
+              // Multiplicador reducido a 25 para una curva mínima en los textos
+              const curveOffset = Math.sin(progress * Math.PI) * 25; 
 
               return (
                 <div 
                   key={i} 
-                  className="text-5xl lg:text-7xl text-white tracking-tight whitespace-nowrap"
+                  // Tamaño de texto reducido a 3xl/4xl/5xl
+                  className="text-3xl md:text-4xl lg:text-5xl text-white tracking-tight whitespace-nowrap"
                   style={{
                     transform: `translateX(${curveOffset}px)`,
                     transition: 'transform 0.3s ease',
