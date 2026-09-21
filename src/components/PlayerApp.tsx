@@ -2,25 +2,25 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 // Lista de artistas falsos para rellenar
-  const initialArtists = [
-    "Michael Jackson",
-    "The Weeknd",
-    "Daft Punk",
-    "Arctic Monkeys",
-    "Gorillaz",
-    "Tame Impala",
-    "The Strokes",
-    "Kendrick Lamar",
-    "Coldplay",
-    "Radiohead",
-    "Nirvana",
-    "Queen",
-    "Muse",
-    "The Killers",
-    "Florence + The Machine",
-    "Paramore",
-    "Red Hot Chili Peppers"
-  ];
+const DUMMY_ARTISTS = [
+  "Michael Jackson",
+  "The Weeknd",
+  "Daft Punk",
+  "Arctic Monkeys",
+  "Gorillaz",
+  "Tame Impala",
+  "The Strokes",
+  "Kendrick Lamar",
+  "Coldplay",
+  "Radiohead",
+  "Nirvana",
+  "Queen",
+  "Muse",
+  "The Killers",
+  "Florence + The Machine",
+  "Paramore",
+  "Red Hot Chili Peppers"
+];
 
 /* Animación de split-character */
 function NavLinkHover({
@@ -404,8 +404,9 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   // Extraer artistas únicos de la base de datos
   const dbArtists = Array.from(new Set(tracks.map(t => t.artist)));
   
-  // Combinar los de la DB con los falsos
-  const displayArtists = Array.from(new Set([...dbArtists, ...DUMMY_ARTISTS]));
+  // Combinar los de la DB con los falsos y filtrar los que no queremos
+  const displayArtists = Array.from(new Set([...dbArtists, ...DUMMY_ARTISTS]))
+    .filter(name => name !== 'Dua Lipa' && name !== 'Rosalía');
 
   return (
     <div className="flex h-screen w-full bg-[#050505] text-white font-inter overflow-hidden relative">
