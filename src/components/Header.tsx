@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import TargetCursor from "./ui/TargetCursor";
 import { SpecularText } from "./ui/SpecularText";
 
 const NavLink = ({
@@ -16,7 +15,7 @@ const NavLink = ({
   return (
     <button
       onClick={onClick}
-      className={`cursor-target font-inter text-[15px] xl:text-[17px] 2xl:text-[20px] transition-colors relative text-left ${isActive ? "text-white" : "text-[#A0A3BD] hover:text-white"}`}
+      className={`font-inter text-[15px] xl:text-[17px] 2xl:text-[20px] transition-colors relative text-left ${isActive ? "text-white" : "text-[#A0A3BD] hover:text-white"}`}
     >
       <span className="relative z-10">{label}</span>
     </button>
@@ -30,19 +29,13 @@ export const Header = () => {
 
   return (
     <header className="absolute top-0 left-0 right-0 z-50 flex flex-col px-6 py-4 md:px-10 md:py-6 2xl:px-16 2xl:py-8 max-w-[1920px] mx-auto w-full">
-      <TargetCursor
-        targetSelector=".cursor-target"
-        cursorColor="#ffffff"
-        cursorColorOnTarget="#B497CF"
-        showOnlyOnTarget={true}
-      />
 
       <div className="flex items-center justify-between w-full">
         {/* Left: Logo */}
         <div className="flex items-center cursor-pointer w-1/2 justify-start">
           <SpecularText
             text="Bitszone"
-            className="text-[24px] xl:text-[28px] 2xl:text-[32px] tracking-normal leading-none pr-2 cursor-target"
+            className="text-[24px] xl:text-[28px] 2xl:text-[32px] tracking-normal leading-none pr-2"
             style={{
               fontFamily: '"DM Serif Display", serif',
               fontStyle: "italic",
@@ -57,7 +50,7 @@ export const Header = () => {
         {/* Right: Menu Icon */}
         <div className="w-1/2 flex justify-end">
           <button
-            className="cursor-target text-white p-2 relative z-50"
+            className="text-white p-2 relative z-50"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X size={32} /> : <Menu size={32} />}
