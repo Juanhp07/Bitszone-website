@@ -66,33 +66,35 @@ export const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <GlassSurface
-             width="fit-content"
-             height="fit-content"
-             className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:shadow-[0_0_50px_rgba(85,16,141,0.5)]"
-             borderRadius={40}
-             borderWidth={0}
-             backgroundOpacity={0.05}
-             blur={16}
-             distortionScale={-30}
-          >
-            <SpecularButton
-              radius={40}
-              tint="transparent"
-              tintOpacity={0}
-              blur={0}
-              lineColor="#FF9FFC"
-              baseColor="#7012CE"
-              intensity={4.0}
-              thickness={2}
-              className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
+          <a href="/player" target="_blank" rel="noopener noreferrer" className="block">
+            <GlassSurface
+               width="fit-content"
+               height="fit-content"
+               className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:shadow-[0_0_50px_rgba(85,16,141,0.5)]"
+               borderRadius={40}
+               borderWidth={0}
+               backgroundOpacity={0.05}
+               blur={16}
+               distortionScale={-30}
             >
-               <div className="flex items-center justify-center gap-3 text-white font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
-                 Explorar Catálogo 
-                 <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-[#A0A3BD] transition-all duration-300 ease-out group-hover:text-[#c084fc] group-hover:animate-bounce-x group-hover:drop-shadow-[0_0_12px_rgba(192,132,252,0.9)]" />
-               </div>
-            </SpecularButton>
-          </GlassSurface>
+              <SpecularButton
+                radius={40}
+                tint="transparent"
+                tintOpacity={0}
+                blur={0}
+                lineColor="#FF9FFC"
+                baseColor="#7012CE"
+                intensity={4.0}
+                thickness={2}
+                className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
+              >
+                 <div className="flex items-center justify-center gap-3 text-white font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
+                   Explorar Catálogo 
+                   <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-[#A0A3BD] transition-all duration-300 ease-out group-hover:text-[#c084fc] group-hover:translate-x-1" />
+                 </div>
+              </SpecularButton>
+            </GlassSurface>
+          </a>
         </motion.div>
       </div>
     </section>
