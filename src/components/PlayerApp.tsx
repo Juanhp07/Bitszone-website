@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { Volume2, BookOpen } from 'lucide-react';
 
 // Lista de artistas falsos para rellenar
 const DUMMY_ARTISTS = [
@@ -416,11 +417,14 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   // Extraer artistas únicos de la base de datos
   const dbArtists = Array.from(new Set(tracks.map(t => t.artist)));
   
-  // Combinar los de la DB con los falsos y filtrar los que no queremos
+  // Combinar los de la DB con los falsos, filtrar y ordenar
+  const sortedArtists = Array.from(new Set([...dbArtists, ...DUMMY_ARTISTS]))
+    .filter(name => name !== 'Dua Lipa' && name !== 'Rosalía')
+    .sort((a, b) => a.localeCompare(b));
+
   const displayArtists = [
     'ARTISTAS',
-    ...Array.from(new Set([...dbArtists, ...DUMMY_ARTISTS]))
-      .filter(name => name !== 'Dua Lipa' && name !== 'Rosalía')
+    ...sortedArtists
   ];
 
   return (
@@ -500,9 +504,31 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         )}
       </div>
 
-      {/* Contenido Principal (Derecha) - Vacío por ahora */}
+      {/* Contenido Principal (Derecha) */}
       <div className="flex-1 h-full flex items-center justify-center relative z-0">
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
+
+        {/* Controles Laterales Derechos */}
+        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-10 z-20">
+          
+          {/* Botón de Letras */}
+          <button className="flex flex-col items-center gap-2 group text-white/50 hover:text-white transition-colors">
+            <BookOpen className="w-5 h-5 group-hover:text-[#a855f7] transition-colors" />
+            <span className="text-[10px] uppercase tracking-[0.2em] font-medium">Letra</span>
+          </button>
+
+          {/* Control de Volumen */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-32 w-1.5 bg-white/10 rounded-full relative overflow-hidden group cursor-pointer shadow-lg">
+              {/* Nivel de volumen actual (ej. 60%) */}
+              <div className="absolute bottom-0 left-0 right-0 h-[60%] bg-[#9333ea] rounded-full group-hover:bg-[#a855f7] transition-colors" />
+            </div>
+            <button className="text-white/50 hover:text-white transition-colors group">
+              <Volume2 className="w-5 h-5 group-hover:text-[#a855f7] transition-colors" />
+            </button>
+          </div>
+          
+        </div>
       </div>
 
     </div>
