@@ -91,6 +91,7 @@ export interface OptionWheelProps {
   loop?: boolean;
   draggable?: boolean;
   className?: string;
+  logoRef?: React.RefObject<HTMLElement>;
 }
 
 const OptionWheel: React.FC<OptionWheelProps> = ({
@@ -108,31 +109,29 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
   fade = 0.15,
   minOpacity = 0.1,
   smoothing = 20,
-  inset = 120, // Increased inset to prevent clipping on the left edge
+  inset = 120, 
   loop = false,
   draggable = true,
-  className = ''
+  className = '',
+  logoRef
 }) => {
+  const [selectedIndex, setSelectedIndex] = useState(defaultSelected);
   const rootRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  const [selectedIndex, setSelectedIndex] = useState(defaultSelected);
-
+  const rafRef = useRef<number | null>(null);
   const targetRef = useRef(defaultSelected);
   const posRef = useRef(defaultSelected);
+  const lastRef = useRef(0);
+  const dragRef = useRef<{ y: number; start: number; id: number } | null>(null);
+  const dragMovedRef = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const wheelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectedRef = useRef(defaultSelected);
-  const rafRef = useRef<number | null>(null);
-  const lastRef = useRef(typeof performance !== 'undefined' ? performance.now() : 0);
-
   const onChangeRef = useRef(onChange);
+
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
-
-  const dragRef = useRef<{ y: number; start: number; id: number } | null>(null);
-  const dragMovedRef = useRef(false);
-  const wheelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
 
   const cfgRef = useRef({
     items,
@@ -146,7 +145,8 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
     smoothing,
     side,
     loop,
-    draggable
+    draggable,
+    logoRef
   });
 
   useEffect(() => {
@@ -162,30 +162,42 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
       smoothing,
       side,
       loop,
-      draggable
+      draggable,
+      logoRef
     };
-  }, [items, fontSize, spacing, curve, tilt, blur, fade, minOpacity, smoothing, side, loop, draggable]);
+  }, [items, fontSize, spacing, curve, tilt, blur, fade, minOpacity, smoothing, side, loop, draggable, logoRef]);
 
   const runFrame = useCallback((now: number) => {
     const rawDt = (now - lastRef.current) / 1000;
-    const dt = Math.max(0, Math.min(rawDt, 0.05)); // Clamped at 0 to prevent physics explosion (NaN items)
+    const dt = Math.max(0, Math.min(rawDt, 0.05)); 
     lastRef.current = now;
     const cfg = cfgRef.current;
     const tau = Math.max(cfg.smoothing, 1) / 1000;
     const k = 1 - Math.exp(-dt / tau);
-
     const target = targetRef.current;
     const cur = posRef.current;
     let next = cur + (target - cur) * k;
-    const settled = Math.abs(target - next) < 0.001;
-    if (settled) next = target;
+    let settled = false;
+
+    if (Math.abs(target - next) < 0.001) {
+      next = target;
+      settled = true;
+    }
     posRef.current = next;
+
+    if (cfg.logoRef?.current) {
+      // El logo desaparece rápidamente a medida que nos alejamos de la posición inicial (0)
+      const logoOpacity = Math.max(0, 1 - (Math.abs(next) / 1.2));
+      cfg.logoRef.current.style.opacity = String(logoOpacity);
+      cfg.logoRef.current.style.transform = `translateY(${Math.abs(next) * -10}px)`; // Sube un poco al desaparecer
+    }
 
     const els = itemRefs.current;
     const n = cfg.count;
     const mirror = cfg.side === 'right' ? -1 : 1;
     const tiltRad = (cfg.tilt * Math.PI) / 180;
     const R = tiltRad > 0.0005 ? cfg.rowH / tiltRad : 0;
+
     for (let i = 0; i < n; i++) {
       const el = els[i];
       if (!el) continue;
@@ -208,7 +220,6 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
       el.style.setProperty('--ow-opacity', String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade)));
       el.style.filter = cfg.blur > 0 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : 'none';
       
-      // Hacemos que la transición del color (lila a gris) sea mucho más rápida elevando la distancia al cuadrado
       const colorP = Math.pow(Math.max(0, 1 - Math.min(dist, 1)), 3);
       el.style.setProperty('--ow-p', colorP.toFixed(4));
     }
@@ -383,6 +394,7 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
 export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const logoRef = useRef<HTMLHeadingElement>(null);
 
   // Fetch from Supabase
   useEffect(() => {
@@ -440,22 +452,27 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         }
       `}</style>
 
-      {/* Fondo circular desenfocado con origen en el borde izquierdo */}
+      {/* Rueda de Opciones (Sidebar Izquierdo) */}
       <div 
-        className={`absolute top-1/2 left-[-600px] w-[1200px] h-[1200px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none z-0 ${loading ? 'loading-glow' : 'loaded-glow'}`}
-      />
-
-      {/* Lista de Artistas (Izquierda) */}
-      <div 
-        className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start overflow-hidden z-10 bg-transparent"
+        className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start overflow-hidden z-10 bg-transparent relative"
         style={{
           maskImage: 'linear-gradient(to right, black 0%, black 80%, transparent 100%)',
           WebkitMaskImage: 'linear-gradient(to right, black 0%, black 80%, transparent 100%)'
         }}
       >
+        <h1 
+          ref={logoRef}
+          className="absolute top-12 left-[120px] text-3xl md:text-4xl tracking-[0.2em] font-bold select-none pointer-events-none animate-gradient-text text-transparent bg-clip-text z-20 will-change-[opacity,transform] transition-[opacity,transform] duration-75"
+          style={{
+            backgroundImage: 'linear-gradient(to right, #9333ea, #ffffff, #9333ea)',
+          }}
+        >
+          BITSZONE
+        </h1>
+
         {loading ? (
           <div className="h-full w-full flex flex-col justify-center px-12">
-            {/* Vacio durante la carga para dejar lucir el globo brillante */}
+            {/* Vacio durante la carga */}
           </div>
         ) : (
           <OptionWheel 
@@ -469,21 +486,21 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             inset={120} 
             blur={1.5} 
             fade={0.25} 
-            smoothing={40} 
+            smoothing={20}
+            logoRef={logoRef}
           />
         )}
       </div>
 
-      {/* Contenido Principal (Derecha) */}
+      {/* Contenido Principal (Derecha) - Vacío por ahora */}
       <div className="flex-1 h-full flex items-center justify-center relative z-0">
-        <h1 
-          className="text-4xl md:text-6xl lg:text-8xl tracking-[0.2em] font-bold select-none pointer-events-none animate-gradient-text text-transparent bg-clip-text"
-          style={{
-            backgroundImage: 'linear-gradient(to right, #333333, #a78bfa, #333333)'
-          }}
-        >
-          BITSZONE
-        </h1>
+        
+        {/* Glow dinámico de carga */}
+        <div 
+          className={`absolute left-[-600px] top-1/2 w-[1200px] h-[1200px] rounded-full pointer-events-none transition-opacity duration-1000 blur-[150px] mix-blend-screen opacity-30 ${loading ? 'loading-glow bg-purple-900/40' : 'loaded-glow bg-purple-600/30'}`} 
+        />
+        
+        <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
       </div>
 
     </div>
