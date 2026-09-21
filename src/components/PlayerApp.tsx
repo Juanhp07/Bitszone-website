@@ -2,41 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, Home, Compass, Library, Play, Pause, 
   SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, 
-  Menu, Cast, MoreVertical, ThumbsUp, ThumbsDown, User
+  Menu, Cast, MoreVertical, ThumbsUp, ThumbsDown
 } from 'lucide-react';
 import { SpecularText } from './ui/SpecularText';
-
-// Sample royalty-free tracks for functional player
-const DEMO_TRACKS = [
-  {
-    id: 1,
-    title: "Lofi Study",
-    artist: "FASSounds",
-    img: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=200&auto=format&fit=crop",
-    src: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"
-  },
-  {
-    id: 2,
-    title: "Good Night",
-    artist: "FASSounds",
-    img: "https://images.unsplash.com/photo-1493225457124-a1a2a5956093?q=80&w=200&auto=format&fit=crop",
-    src: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_29fb66cbb4.mp3?filename=good-night-109430.mp3"
-  },
-  {
-    id: 3,
-    title: "Chill Abstract",
-    artist: "Coma-Media",
-    img: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=200&auto=format&fit=crop",
-    src: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=chill-abstract-intention-110432.mp3"
-  },
-  {
-    id: 4,
-    title: "Separation",
-    artist: "William_King",
-    img: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=200&auto=format&fit=crop",
-    src: "https://cdn.pixabay.com/download/audio/2022/10/25/audio_40212e3668.mp3?filename=separation-185196.mp3"
-  }
-];
+import { supabase } from '../lib/supabase';
 
 const CATEGORIES = ["Podcasts", "Actívate", "Entrenamiento", "Relajación", "Para sentirte bien", "Viaje diario", "Romance", "Fiesta", "Triste", "Sueño", "Concentración"];
 
@@ -46,6 +15,9 @@ export const PlayerApp = () => {
   const progressRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
   
+  const [tracks, setTracks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -53,7 +25,19 @@ export const PlayerApp = () => {
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
 
-  const currentTrack = DEMO_TRACKS[currentTrackIndex];
+  // Fetch from Supabase
+  useEffect(() => {
+    const fetchTracks = async () => {
+      const { data, error } = await supabase.from('tracks').select('*').order('id', { ascending: true });
+      if (data && data.length > 0) {
+        setTracks(data);
+      }
+      setLoading(false);
+    };
+    fetchTracks();
+  }, []);
+
+  const currentTrack = tracks.length > 0 ? tracks[currentTrackIndex] : null;
 
   // Audio Event Listeners
   useEffect(() => {
@@ -82,7 +66,7 @@ export const PlayerApp = () => {
       audio.removeEventListener('timeupdate', setAudioTime);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [currentTrackIndex]);
+  }, [currentTrackIndex, tracks]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -93,7 +77,7 @@ export const PlayerApp = () => {
 
   // Controls
   const togglePlay = () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || tracks.length === 0) return;
     if (isPlaying) {
       audioRef.current.pause();
     } else {
@@ -103,12 +87,14 @@ export const PlayerApp = () => {
   };
 
   const handleNext = () => {
-    setCurrentTrackIndex((prev) => (prev + 1) % DEMO_TRACKS.length);
+    if (tracks.length === 0) return;
+    setCurrentTrackIndex((prev) => (prev + 1) % tracks.length);
     setIsPlaying(true);
   };
 
   const handlePrev = () => {
-    setCurrentTrackIndex((prev) => (prev - 1 + DEMO_TRACKS.length) % DEMO_TRACKS.length);
+    if (tracks.length === 0) return;
+    setCurrentTrackIndex((prev) => (prev - 1 + tracks.length) % tracks.length);
     setIsPlaying(true);
   };
 
@@ -119,7 +105,7 @@ export const PlayerApp = () => {
 
   // Progress Bar click
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!progressRef.current || !audioRef.current) return;
+    if (!progressRef.current || !audioRef.current || duration === 0) return;
     const rect = progressRef.current.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
     audioRef.current.currentTime = percent * duration;
@@ -144,10 +130,13 @@ export const PlayerApp = () => {
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  // Visual array to fill the UI grids even if we only have 1 song uploaded right now
+  const displayTracks = tracks.length > 0 ? [...tracks, ...tracks, ...tracks, ...tracks, ...tracks, ...tracks].slice(0, 12) : [];
+
   return (
     <div className="flex flex-col h-screen w-full bg-[#030303] text-white overflow-hidden font-inter">
       {/* Hidden Audio Element */}
-      <audio ref={audioRef} src={currentTrack.src} />
+      {currentTrack && <audio ref={audioRef} src={currentTrack.audio_url} />}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
@@ -220,62 +209,74 @@ export const PlayerApp = () => {
               ))}
             </div>
 
-            {/* Quick Picks / Selección rápida */}
-            <div className="mb-12">
-              <div className="flex justify-between items-end mb-4">
-                <h2 className="text-3xl font-sora font-bold">Selección rápida</h2>
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-[#aaaaaa]">Cargando canciones desde Supabase...</p>
               </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4">
-                {[...DEMO_TRACKS, ...DEMO_TRACKS, ...DEMO_TRACKS].slice(0, 12).map((track, i) => (
-                  <div 
-                    key={i} 
-                    className="flex items-center gap-4 p-2 rounded-md hover:bg-white/10 cursor-pointer group transition-colors"
-                    onClick={() => handlePlayTrack(i % DEMO_TRACKS.length)}
-                  >
-                    <div className="relative w-12 h-12 rounded flex-shrink-0 overflow-hidden">
-                      <img src={track.img} alt={track.title} className="w-full h-full object-cover" />
-                      <div className={`absolute inset-0 bg-black/50 items-center justify-center ${currentTrackIndex === i && isPlaying ? 'flex' : 'hidden group-hover:flex'}`}>
-                        {currentTrackIndex === i && isPlaying ? (
-                          <Pause className="w-5 h-5 text-white" />
-                        ) : (
-                          <Play className="w-5 h-5 text-white fill-current ml-1" />
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <h3 className={`text-sm font-semibold truncate ${currentTrackIndex === i ? 'text-[#a855f7]' : 'text-white'}`}>{track.title}</h3>
-                      <p className="text-[13px] text-[#aaaaaa] truncate">{track.artist} • 1M reproducciones</p>
-                    </div>
-                    <MoreVertical className="w-5 h-5 text-[#aaaaaa] opacity-0 group-hover:opacity-100 transition-opacity" />
+            ) : tracks.length === 0 ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-[#aaaaaa]">No hay canciones disponibles. ¡Agrega más en Supabase!</p>
+              </div>
+            ) : (
+              <>
+                {/* Quick Picks / Selección rápida */}
+                <div className="mb-12">
+                  <div className="flex justify-between items-end mb-4">
+                    <h2 className="text-3xl font-sora font-bold">Selección rápida</h2>
                   </div>
-                ))}
-              </div>
-            </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4">
+                    {displayTracks.map((track, i) => (
+                      <div 
+                        key={i} 
+                        className="flex items-center gap-4 p-2 rounded-md hover:bg-white/10 cursor-pointer group transition-colors"
+                        onClick={() => handlePlayTrack(i % tracks.length)}
+                      >
+                        <div className="relative w-12 h-12 rounded flex-shrink-0 overflow-hidden">
+                          <img src={track.image_url} alt={track.title} className="w-full h-full object-cover" />
+                          <div className={`absolute inset-0 bg-black/50 items-center justify-center ${(currentTrackIndex === (i % tracks.length)) && isPlaying ? 'flex' : 'hidden group-hover:flex'}`}>
+                            {(currentTrackIndex === (i % tracks.length)) && isPlaying ? (
+                              <Pause className="w-5 h-5 text-white" />
+                            ) : (
+                              <Play className="w-5 h-5 text-white fill-current ml-1" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <h3 className={`text-sm font-semibold truncate ${(currentTrackIndex === (i % tracks.length)) ? 'text-[#a855f7]' : 'text-white'}`}>{track.title}</h3>
+                          <p className="text-[13px] text-[#aaaaaa] truncate">{track.artist} • 1M reproducciones</p>
+                        </div>
+                        <MoreVertical className="w-5 h-5 text-[#aaaaaa] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Relaxing Melodies (Square Cards) */}
-            <div className="mb-12">
-              <h2 className="text-3xl font-sora font-bold mb-6">Melodías relajantes</h2>
-              <div className="flex gap-6 overflow-x-auto pb-4 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
-                {[...DEMO_TRACKS, ...DEMO_TRACKS].map((track, i) => (
-                  <div 
-                    key={i} 
-                    className="min-w-[200px] w-[200px] flex-shrink-0 cursor-pointer group"
-                    onClick={() => handlePlayTrack((i + 2) % DEMO_TRACKS.length)}
-                  >
-                    <div className="w-full aspect-square rounded-md overflow-hidden relative mb-3">
-                      <img src={track.img} alt={track.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center hover:scale-110 transition-transform">
-                          <Play className="w-6 h-6 text-white fill-current ml-1" />
-                        </button>
+                {/* Relaxing Melodies (Square Cards) */}
+                <div className="mb-12">
+                  <h2 className="text-3xl font-sora font-bold mb-6">Tus Favoritos</h2>
+                  <div className="flex gap-6 overflow-x-auto pb-4 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+                    {displayTracks.slice(0, 6).map((track, i) => (
+                      <div 
+                        key={i} 
+                        className="min-w-[200px] w-[200px] flex-shrink-0 cursor-pointer group"
+                        onClick={() => handlePlayTrack((i + 2) % tracks.length)}
+                      >
+                        <div className="w-full aspect-square rounded-md overflow-hidden relative mb-3">
+                          <img src={track.image_url} alt={track.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <button className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center hover:scale-110 transition-transform">
+                              <Play className="w-6 h-6 text-white fill-current ml-1" />
+                            </button>
+                          </div>
+                        </div>
+                        <h3 className="text-[15px] font-semibold text-white truncate group-hover:underline">{track.title}</h3>
                       </div>
-                    </div>
-                    <h3 className="text-[15px] font-semibold text-white truncate group-hover:underline">{track.title} Mix</h3>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              </>
+            )}
 
           </div>
         </main>
@@ -284,7 +285,7 @@ export const PlayerApp = () => {
       {/* Bottom Sticky Player Bar (YT Music Style) */}
       <div className="bg-[#212121] h-[72px] flex items-center justify-between px-4 relative z-50">
         
-        {/* Progress Bar (YT Music puts it at the very top of the bar) */}
+        {/* Progress Bar */}
         <div 
           className="absolute top-0 left-0 right-0 h-[2px] bg-white/20 cursor-pointer group/progress"
           ref={progressRef}
@@ -300,22 +301,25 @@ export const PlayerApp = () => {
 
         {/* Left: Now Playing */}
         <div className="flex items-center gap-4 w-[30%] min-w-[200px]">
-          <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
-            <img src={currentTrack.img} alt="Cover" className="w-full h-full object-cover" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <h4 className="text-[15px] font-medium text-white truncate">{currentTrack.title}</h4>
-            <div className="flex items-center gap-1 text-[13px] text-[#aaaaaa]">
-              <span className="truncate hover:underline cursor-pointer">{currentTrack.artist}</span>
-              <span>•</span>
-              <span className="truncate hover:underline cursor-pointer">1M views</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 ml-4 text-[#aaaaaa]">
-            <ThumbsDown className="w-5 h-5 cursor-pointer hover:text-white" />
-            <ThumbsUp className="w-5 h-5 cursor-pointer hover:text-white" />
-            <MoreVertical className="w-5 h-5 cursor-pointer hover:text-white" />
-          </div>
+          {currentTrack ? (
+            <>
+              <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                <img src={currentTrack.image_url} alt="Cover" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <h4 className="text-[15px] font-medium text-white truncate">{currentTrack.title}</h4>
+                <div className="flex items-center gap-1 text-[13px] text-[#aaaaaa]">
+                  <span className="truncate hover:underline cursor-pointer">{currentTrack.artist}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 ml-4 text-[#aaaaaa]">
+                <ThumbsDown className="w-5 h-5 cursor-pointer hover:text-white" />
+                <ThumbsUp className="w-5 h-5 cursor-pointer hover:text-white" />
+              </div>
+            </>
+          ) : (
+             <div className="text-[#aaaaaa] text-sm">Selecciona una canción</div>
+          )}
         </div>
 
         {/* Center: Controls */}

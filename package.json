@@ -16,6 +16,7 @@
     "@astrojs/react": "^6.0.6",
     "@astrojs/tailwind": "^6.0.2",
     "@paper-design/shaders": "^0.0.81",
+    "@supabase/supabase-js": "^2.116.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "astro": "^7.3.3",
