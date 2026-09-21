@@ -54,7 +54,7 @@ function NavLinkHover({
       className="group/link-hover inline-block py-4 no-underline cursor-pointer hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-300 align-bottom text-inherit"
     >
       <span className="sr-only">{label}</span>
-      <span aria-hidden="true" className="relative inline-block align-middle leading-[1.08]">
+      <span aria-hidden="true" className="relative inline-block overflow-hidden align-middle leading-[1.08]">
         {[...label].map((char, index) => (
           <span
             key={index}
