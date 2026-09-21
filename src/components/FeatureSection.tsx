@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CoverflowCarousel } from './ui/CoverflowCarousel';
-import { LiquidMetalText } from './ui/LiquidMetalText';
 
 const albums = [
   {
@@ -58,17 +57,13 @@ export const FeatureSection = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-30 flex flex-col items-center pt-32 md:pt-48 text-center px-6 w-full"
       >
-        <p className="font-jetbrains text-xs tracking-widest text-[#deb7ff] uppercase mb-4 md:mb-8">Descubrimiento Sonoro</p>
         <h2 className="flex flex-col items-center justify-center font-sans font-bold text-center w-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
-          <span className="text-white text-5xl md:text-7xl lg:text-[80px] xl:text-[100px] tracking-normal leading-[1.1]">
+          <span className="text-white text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight">
             EL QUE BUSCA,
           </span>
-          <LiquidMetalText
-            text="ENCUENTRA SU RITMO."
-            className="mt-2 text-5xl md:text-7xl lg:text-[80px] xl:text-[100px] tracking-normal leading-[1.1]"
-            strokeWidth={4}
-            tintColor="#5C206B"
-          />
+          <span className="text-white text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight mt-2">
+            ENCUENTRA SU RITMO.
+          </span>
         </h2>
       </motion.div>
       
