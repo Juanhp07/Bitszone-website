@@ -38,7 +38,7 @@ function NavLinkHover({
 
   if (isReducedMotion) {
     return (
-      <a href={href} onClick={onClick} className="inline-block py-4 cursor-pointer hover:font-bold transition-all duration-300 hover:translate-x-3 hover:scale-[1.03] origin-left text-inherit">
+      <a href={href} onClick={onClick} className="inline-block py-4 cursor-pointer hover:font-bold transition-all duration-150 hover:translate-x-3 hover:scale-[1.03] origin-left text-inherit">
         {label}
       </a>
     );
@@ -49,14 +49,14 @@ function NavLinkHover({
       href={href} 
       onClick={onClick} 
       draggable={false}
-      className="group/link-hover inline-block py-4 no-underline cursor-pointer hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-300 align-bottom text-inherit"
+      className="group/link-hover inline-block py-4 no-underline cursor-pointer hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-150 align-bottom text-inherit"
     >
       <span className="sr-only">{label}</span>
       <span aria-hidden="true" className="relative inline-block overflow-hidden align-middle leading-[1.08]">
         {[...label].map((char, index) => (
           <span
             key={index}
-            className="relative inline-block whitespace-pre transition-transform duration-500 ease-[cubic-bezier(0.625,0.05,0,1)] group-hover/link-hover:-translate-y-[1.2em] group-focus-visible/link-hover:-translate-y-[1.2em]"
+            className="relative inline-block whitespace-pre transition-transform duration-200 ease-[cubic-bezier(0.625,0.05,0,1)] group-hover/link-hover:-translate-y-[1.2em] group-focus-visible/link-hover:-translate-y-[1.2em]"
             style={{ textShadow: "0 1.2em currentColor", transitionDelay: `${index * charStagger}s` }}
           >
             {char === " " ? " " : char}
@@ -357,10 +357,10 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
           }}
           role="option"
           aria-selected={selectedIndex === index}
-          className={`group/item absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] left-[var(--ow-inset)] origin-left ${
+          className={`group/item absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] left-[var(--ow-inset)] origin-left transition-[color,filter,font-weight,opacity] duration-150 ${
             selectedIndex === index 
               ? 'font-bold drop-shadow-[0_0_12px_rgba(167,139,250,0.6)] hover:!text-[#c4b5fd] hover:drop-shadow-[0_0_16px_rgba(196,181,253,1)]' 
-              : 'font-light hover:!text-white hover:!opacity-100'
+              : 'font-light hover:!text-white hover:!opacity-100 hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]'
           }`}
           style={{
             color: 'color-mix(in srgb, var(--ow-active-color) calc(var(--ow-p, 0) * 100%), var(--ow-text-color))'
@@ -460,7 +460,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         ) : (
           <OptionWheel 
             items={displayArtists} 
-            textColor="#888888"
+            textColor="#ffffff"
             activeColor="#a78bfa"
             fontSize={3.2}
             spacing={1.3}
@@ -468,8 +468,8 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             tilt={5}
             inset={120} 
             blur={0}
-            fade={0.4}
-            smoothing={120} 
+            fade={0.15}
+            smoothing={40} 
           />
         )}
       </div>
