@@ -46,12 +46,12 @@ export const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
           className="flex flex-col items-center justify-center text-center w-full font-sans font-bold"
         >
-          <span className="text-white text-[11vw] sm:text-[9vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px] tracking-tight leading-[1.1]">
+          <span className="text-white text-[11vw] sm:text-[9vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px] tracking-tight leading-none z-10">
             Tu música sin conexión
           </span>
           <LiquidMetalText
             text="descarga sin límites"
-            className="w-fit mt-4 md:mt-6 h-[16vw] sm:h-[14vw] lg:h-[130px] xl:h-[150px] 2xl:h-[180px] text-[11vw] sm:text-[9vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px]"
+            className="w-fit -mt-4 md:-mt-8 h-[16vw] sm:h-[14vw] lg:h-[130px] xl:h-[150px] 2xl:h-[180px] text-[11vw] sm:text-[9vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px]"
             strokeWidth={3}
           />
         </motion.h1>
@@ -59,7 +59,7 @@ export const HeroSection = () => {
       </div>
 
       {/* CTA Button - Pushed to the bottom */}
-      <div className="relative z-20 w-full flex justify-center pb-24 md:pb-32 xl:pb-40">
+      <div className="relative z-20 w-full flex justify-center pb-12 md:pb-16 xl:pb-24">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
