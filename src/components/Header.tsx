@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { SpecularText } from "./ui/SpecularText";
+import "../styles/bootstrap-custom.scss";
 
 const NavLink = ({
   label,
@@ -15,9 +16,18 @@ const NavLink = ({
   return (
     <button
       onClick={onClick}
-      className={`font-inter text-[15px] xl:text-[17px] 2xl:text-[20px] transition-colors relative text-left ${isActive ? "text-white" : "text-[#A0A3BD] hover:text-white"}`}
+      className={`btn p-0 text-start position-relative transition-colors border-0 bg-transparent ${isActive ? "text-white" : "text-white-50"}`}
+      style={{
+        fontFamily: "'Inter', sans-serif",
+        fontSize: "17px",
+        color: isActive ? "#ffffff" : "#A0A3BD",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+      onMouseLeave={(e) => {
+        if (!isActive) e.currentTarget.style.color = "#A0A3BD";
+      }}
     >
-      <span className="relative z-10">{label}</span>
+      <span className="position-relative" style={{ zIndex: 10 }}>{label}</span>
     </button>
   );
 };
@@ -28,15 +38,16 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="absolute top-0 left-0 right-0 z-50 flex flex-col px-6 py-4 md:px-10 md:py-6 2xl:px-16 2xl:py-8 max-w-[1920px] mx-auto w-full">
-
-      <div className="flex items-center justify-between w-full">
+    <header className="position-absolute top-0 start-0 end-0 d-flex flex-column px-4 px-md-5 py-3 py-md-4 w-100 mx-auto" style={{ zIndex: 50, maxWidth: "1920px" }}>
+      <div className="d-flex align-items-center justify-content-between w-100">
+        
         {/* Left: Logo */}
-        <div className="flex items-center cursor-pointer w-1/2 justify-start">
+        <div className="d-flex align-items-center w-50 justify-content-start" style={{ cursor: "pointer" }}>
           <SpecularText
             text="Bitszone"
-            className="text-[24px] xl:text-[28px] 2xl:text-[32px] tracking-normal leading-none pr-2"
+            className="pe-2"
             style={{
+              fontSize: "28px",
               fontFamily: '"DM Serif Display", serif',
               fontStyle: "italic",
             }}
@@ -48,9 +59,10 @@ export const Header = () => {
         </div>
 
         {/* Right: Menu Icon */}
-        <div className="w-1/2 flex justify-end">
+        <div className="w-50 d-flex justify-content-end">
           <button
-            className="text-white p-2 relative z-50"
+            className="btn text-white p-2 position-relative border-0 bg-transparent"
+            style={{ zIndex: 50 }}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X size={32} /> : <Menu size={32} />}
@@ -66,7 +78,19 @@ export const Header = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-16 right-6 md:right-10 2xl:right-16 mt-2 flex flex-col bg-[#0a0a0f]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 min-w-[220px] gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-40"
+            className="position-absolute d-flex flex-column p-4 rounded-4"
+            style={{
+              top: "70px",
+              right: "30px",
+              minWidth: "220px",
+              gap: "20px",
+              backgroundColor: "rgba(10, 10, 15, 0.95)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 10px 40px rgba(0, 0, 0, 0.5)",
+              zIndex: 40,
+            }}
           >
             <NavLink
               label="Inicio"
@@ -84,7 +108,9 @@ export const Header = () => {
                 setIsMenuOpen(false);
               }}
             />
-            <div className="h-[1px] w-full bg-white/10 my-1"></div>
+            
+            <div className="w-100 my-1" style={{ height: "1px", backgroundColor: "rgba(255,255,255,0.1)" }}></div>
+            
             <NavLink
               label="Iniciar sesión"
               isActive={activeAuth === "iniciar"}
