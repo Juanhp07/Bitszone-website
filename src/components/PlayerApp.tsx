@@ -169,7 +169,8 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
   }, [items, fontSize, spacing, curve, tilt, blur, fade, minOpacity, smoothing, side, loop, draggable]);
 
   const runFrame = useCallback((now: number) => {
-    const dt = Math.min((now - lastRef.current) / 1000, 0.05);
+    const rawDt = (now - lastRef.current) / 1000;
+    const dt = Math.max(0, Math.min(rawDt, 0.05)); // Clamped at 0 to prevent physics explosion (NaN items)
     lastRef.current = now;
     const cfg = cfgRef.current;
     const tau = Math.max(cfg.smoothing, 1) / 1000;
@@ -247,7 +248,7 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
       e.preventDefault();
       const cfg = cfgRef.current;
       const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
-      const step = Math.max(-1, Math.min(1, delta / cfg.rowH));
+      const step = Math.max(-0.5, Math.min(0.5, delta / (cfg.rowH * 1.5))); // Más lento
       applyTarget(targetRef.current + step, false);
       if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
       wheelTimerRef.current = setTimeout(() => applyTarget(targetRef.current, true), 140);
@@ -452,6 +453,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             tilt={5}
             inset={120} // Inset aumentado para que las palabras largas y curvas no choquen ni se corten contra el borde de la pantalla
             blur={0}
+            smoothing={120} // Hace que la animación se sienta mucho más suave y lenta
           />
         )}
       </div>
