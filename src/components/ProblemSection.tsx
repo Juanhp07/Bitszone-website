@@ -31,13 +31,10 @@ export const ProblemSection = () => {
 
       {/* Typography / Copywriting */}
       <div className="text-center max-w-4xl mx-auto mb-20">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2] mb-6">
-          Tu música no debería <br className="hidden md:block" /> abandonarte <br className="hidden md:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#d946ef] to-[#3b82f6]">cuando más la necesitas.</span>
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2]">
+          Toma el control absoluto de tu <br className="hidden md:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c0a3e5] to-[#818cf8]">biblioteca sin conexión de forma sencilla.</span>
         </h2>
-        <p className="text-[#A0A3BD] text-lg md:text-xl font-inter max-w-2xl mx-auto leading-relaxed">
-          Olvídate de descargas incompletas. Toma el <strong className="text-white">control absoluto</strong> de tu biblioteca sin conexión de forma sencilla.
-        </p>
       </div>
 
       {/* Static Cards */}
