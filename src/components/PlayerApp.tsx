@@ -509,26 +509,50 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       <div className="flex-1 h-full flex items-center justify-center relative z-0">
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
 
-        {/* Playback Controls (Centro de la pantalla) */}
-        <div className="flex items-center gap-10 z-20">
-          <button className="text-white/50 hover:text-white transition-colors hover:scale-105 transform">
-            <SkipBack className="w-10 h-10" fill="currentColor" />
-          </button>
+        {/* Playback Controls (Poweramp Style) */}
+        <div className="relative flex items-center justify-center w-[500px] h-32 -ml-[25%] z-20">
           
-          <button 
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)]"
-          >
-            {isPlaying ? (
-              <Pause className="w-10 h-10" fill="currentColor" />
-            ) : (
-              <Play className="w-10 h-10 ml-2" fill="currentColor" />
-            )}
-          </button>
+          {/* Waveform */}
+          <div className="absolute inset-0 flex items-center justify-between gap-[3px] pointer-events-none">
+            {Array.from({ length: 65 }).map((_, i) => {
+              // Generador de altura de onda estilo musical
+              const height = 15 + Math.abs(Math.sin(i * 0.4) * 45 + Math.cos(i * 1.1) * 35);
+              const isPlayed = i < 28; // ~40% de progreso
+              return (
+                <div 
+                  key={i} 
+                  className={`flex-1 rounded-full transition-colors duration-300 ${
+                    isPlayed 
+                      ? 'bg-[#a855f7] drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]' 
+                      : 'bg-white/20'
+                  }`} 
+                  style={{ height: `${height}%` }} 
+                />
+              );
+            })}
+          </div>
 
-          <button className="text-white/50 hover:text-white transition-colors hover:scale-105 transform">
-            <SkipForward className="w-10 h-10" fill="currentColor" />
-          </button>
+          {/* Botones */}
+          <div className="flex items-center gap-5 z-10">
+            <button className="w-14 h-14 bg-[#181818] rounded-full flex items-center justify-center hover:scale-105 hover:bg-[#222] transition-all shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+              <SkipBack className="w-6 h-6 text-white" fill="currentColor" />
+            </button>
+            
+            <button 
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="w-24 h-24 bg-[#181818] rounded-full flex items-center justify-center hover:scale-105 hover:bg-[#222] transition-all shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+            >
+              {isPlaying ? (
+                <Pause className="w-10 h-10 text-white" fill="currentColor" />
+              ) : (
+                <Play className="w-10 h-10 ml-2 text-white" fill="currentColor" />
+              )}
+            </button>
+
+            <button className="w-14 h-14 bg-[#181818] rounded-full flex items-center justify-center hover:scale-105 hover:bg-[#222] transition-all shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+              <SkipForward className="w-6 h-6 text-white" fill="currentColor" />
+            </button>
+          </div>
         </div>
 
         {/* Controles Laterales Derechos */}
