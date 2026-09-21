@@ -40,7 +40,7 @@ function NavLinkHover({
 
   if (isReducedMotion) {
     return (
-      <a href={href} onClick={onClick} className="inline-block py-4 cursor-pointer opacity-50 hover:opacity-100 transition-all duration-300 truncate max-w-full hover:translate-x-3 hover:scale-[1.03] origin-left text-inherit">
+      <a href={href} onClick={onClick} className="inline-block py-4 cursor-pointer hover:font-bold transition-all duration-300 hover:translate-x-3 hover:scale-[1.03] origin-left text-inherit">
         {label}
       </a>
     );
@@ -51,10 +51,10 @@ function NavLinkHover({
       href={href} 
       onClick={onClick} 
       draggable={false}
-      className="group/link-hover inline-block py-4 no-underline cursor-pointer opacity-70 hover:opacity-100 hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-300 max-w-full truncate align-bottom text-inherit"
+      className="group/link-hover inline-block py-4 no-underline cursor-pointer hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-300 align-bottom text-inherit"
     >
       <span className="sr-only">{label}</span>
-      <span aria-hidden="true" className="relative inline-block overflow-hidden align-middle leading-[1.08] truncate max-w-full">
+      <span aria-hidden="true" className="relative inline-block align-middle leading-[1.08]">
         {[...label].map((char, index) => (
           <span
             key={index}
@@ -207,7 +207,7 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
         rot = (mirror * ang * 180) / Math.PI;
       }
       el.style.transform = `translate(${x.toFixed(2)}px, calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
-      el.style.opacity = String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade));
+      el.style.setProperty('--ow-opacity', String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade)));
       el.style.filter = cfg.blur > 0 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : 'none';
       el.style.setProperty('--ow-p', Math.max(0, 1 - Math.min(dist, 1)).toFixed(4));
     }
@@ -356,9 +356,15 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
           }}
           role="option"
           aria-selected={selectedIndex === index}
-          className={`absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] [color:color-mix(in_srgb,var(--ow-active-color)_calc(var(--ow-p,0)*100%),var(--ow-text-color))] left-[var(--ow-inset)] origin-left ${
-            selectedIndex === index ? 'font-bold drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]' : 'font-light'
+          className={`absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,filter] left-[var(--ow-inset)] origin-left ${
+            selectedIndex === index 
+              ? 'font-bold drop-shadow-[0_0_12px_rgba(167,139,250,0.6)] hover:!text-[#c4b5fd] hover:drop-shadow-[0_0_16px_rgba(196,181,253,1)]' 
+              : 'font-light hover:!text-white hover:!opacity-100 hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]'
           }`}
+          style={{
+            opacity: 'var(--ow-opacity, 1)',
+            color: 'color-mix(in srgb, var(--ow-active-color) calc(var(--ow-p, 0) * 100%), var(--ow-text-color))',
+          }}
         >
           <NavLinkHover 
             label={label} 
@@ -439,7 +445,13 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       />
 
       {/* Lista de Artistas (Izquierda) */}
-      <div className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start overflow-hidden z-10 bg-transparent">
+      <div 
+        className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start overflow-hidden z-10 bg-transparent"
+        style={{
+          maskImage: 'linear-gradient(to right, black 0%, black 80%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, black 0%, black 80%, transparent 100%)'
+        }}
+      >
         {loading ? (
           <div className="h-full w-full flex flex-col justify-center px-12">
             {/* Vacio durante la carga para dejar lucir el globo brillante */}
@@ -447,13 +459,15 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         ) : (
           <OptionWheel 
             items={displayArtists} 
+            textColor="#ffffff"
+            activeColor="#a78bfa" // Color lila para el artista seleccionado
             fontSize={3.2}
             spacing={1.3}
             curve={1}
             tilt={5}
-            inset={120} // Inset aumentado para que las palabras largas y curvas no choquen ni se corten contra el borde de la pantalla
+            inset={120} 
             blur={0}
-            smoothing={120} // Hace que la animación se sienta mucho más suave y lenta
+            smoothing={120} 
           />
         )}
       </div>
