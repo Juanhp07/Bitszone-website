@@ -42,7 +42,7 @@ export const Header = () => {
         <div className="flex items-center cursor-pointer hover:scale-105 transition-transform duration-300 w-1/3 justify-start">
           <SpecularText
             text="Bitszone"
-            className="text-[24px] xl:text-[28px] 2xl:text-[32px] tracking-normal leading-none pr-2"
+            className="text-[24px] xl:text-[28px] 2xl:text-[32px] tracking-normal leading-none pr-2 cursor-target"
             style={{
               fontFamily: '"DM Serif Display", serif',
               fontStyle: "italic",
