@@ -103,7 +103,7 @@ export const Header = () => {
             />
             <div className="h-[1px] w-full bg-white/10 my-1"></div>
             <NavLink
-              label="Iniciar sesión TSMR"
+              label="Iniciar sesión"
               isActive={activeAuth === "iniciar"}
               onClick={() => {
                 setActiveAuth("iniciar");
