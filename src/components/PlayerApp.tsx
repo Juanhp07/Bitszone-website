@@ -2,27 +2,25 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 // Lista de artistas falsos para rellenar
-const DUMMY_ARTISTS = [
-  "Michael Jackson",
-  "The Weeknd",
-  "Dua Lipa",
-  "Daft Punk",
-  "Rosalía",
-  "Arctic Monkeys",
-  "Gorillaz",
-  "Tame Impala",
-  "The Strokes",
-  "Kendrick Lamar",
-  "Coldplay",
-  "Radiohead",
-  "Nirvana",
-  "Queen",
-  "Muse",
-  "The Killers",
-  "Florence + The Machine",
-  "Paramore",
-  "Red Hot Chili Peppers"
-];
+  const initialArtists = [
+    "Michael Jackson",
+    "The Weeknd",
+    "Daft Punk",
+    "Arctic Monkeys",
+    "Gorillaz",
+    "Tame Impala",
+    "The Strokes",
+    "Kendrick Lamar",
+    "Coldplay",
+    "Radiohead",
+    "Nirvana",
+    "Queen",
+    "Muse",
+    "The Killers",
+    "Florence + The Machine",
+    "Paramore",
+    "Red Hot Chili Peppers"
+  ];
 
 /* Animación de split-character */
 function NavLinkHover({
@@ -207,9 +205,12 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
         rot = (mirror * ang * 180) / Math.PI;
       }
       el.style.transform = `translate(${x.toFixed(2)}px, calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
-      el.style.opacity = String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade));
+      el.style.setProperty('--ow-opacity', String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade)));
       el.style.filter = cfg.blur > 0 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : 'none';
-      el.style.setProperty('--ow-p', Math.max(0, 1 - Math.min(dist, 1)).toFixed(4));
+      
+      // Hacemos que la transición del color (lila a gris) sea mucho más rápida elevando la distancia al cuadrado
+      const colorP = Math.pow(Math.max(0, 1 - Math.min(dist, 1)), 3);
+      el.style.setProperty('--ow-p', colorP.toFixed(4));
     }
 
     rafRef.current = settled ? null : requestAnimationFrame(runFrame);
@@ -458,7 +459,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         ) : (
           <OptionWheel 
             items={displayArtists} 
-            textColor="#ffffff"
+            textColor="#888888"
             activeColor="#a78bfa"
             fontSize={3.2}
             spacing={1.3}
@@ -466,6 +467,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             tilt={5}
             inset={120} 
             blur={0}
+            fade={0.4}
             smoothing={120} 
           />
         )}
