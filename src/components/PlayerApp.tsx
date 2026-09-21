@@ -10,9 +10,17 @@ const DUMMY_ARTISTS = [
   "Arctic Monkeys",
   "Gorillaz",
   "Tame Impala",
-  "Daft Punk",
   "The Strokes",
-  "Kendrick Lamar"
+  "Kendrick Lamar",
+  "Coldplay",
+  "Radiohead",
+  "Nirvana",
+  "Queen",
+  "Muse",
+  "The Killers",
+  "Florence + The Machine",
+  "Paramore",
+  "Red Hot Chili Peppers"
 ];
 
 /* Animación de split-character */
@@ -69,6 +77,12 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
+  
+  // Momentum (inercia) scroll refs
+  const velocityRef = useRef(0);
+  const lastMouseYRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const animationRef = useRef<number>();
 
   // Fetch from Supabase
   useEffect(() => {
@@ -87,33 +101,69 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
     fetchTracks();
   }, [supabaseUrl, supabaseAnonKey]);
 
+  // Aplica la inercia cuando sueltas el mouse
+  const startMomentum = () => {
+    const applyInertia = () => {
+      if (!scrollRef.current) return;
+      if (Math.abs(velocityRef.current) > 0.1) {
+        scrollRef.current.scrollTop -= velocityRef.current;
+        velocityRef.current *= 0.95; // Fricción (ajustar para más o menos deslizamiento)
+        animationRef.current = requestAnimationFrame(applyInertia);
+      }
+    };
+    animationRef.current = requestAnimationFrame(applyInertia);
+  };
+
   // Manejo de drag para hacer scroll
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    
     setIsDragging(true);
     setStartY(e.pageY - scrollRef.current.offsetTop);
     setScrollTop(scrollRef.current.scrollTop);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
+    
+    lastMouseYRef.current = e.pageY;
+    lastTimeRef.current = Date.now();
+    velocityRef.current = 0;
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !scrollRef.current) return;
     e.preventDefault();
+    
     const y = e.pageY - scrollRef.current.offsetTop;
     const walk = (y - startY) * 1.5; // Velocidad de arrastre
     scrollRef.current.scrollTop = scrollTop - walk;
+
+    // Calcular velocidad para la inercia
+    const now = Date.now();
+    const dt = now - lastTimeRef.current;
+    if (dt > 0) {
+      const dy = e.pageY - lastMouseYRef.current;
+      velocityRef.current = (dy / dt) * 18; // Escala de velocidad
+    }
+    lastMouseYRef.current = e.pageY;
+    lastTimeRef.current = now;
   };
 
-  // Prevenir click en el enlace si el usuario estaba arrastrando
-  const handleLinkClick = (e: React.MouseEvent) => {
+  const handleMouseUp = () => {
     if (isDragging) {
+      setIsDragging(false);
+      startMomentum();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      startMomentum();
+    }
+  };
+
+  // Prevenir click en el enlace si el usuario estaba arrastrando rápido
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (isDragging || Math.abs(velocityRef.current) > 2) {
       e.preventDefault();
     }
   };
@@ -151,10 +201,10 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
 
       {/* Fondo Curvo y Difuminado del Sidebar */}
       <div 
-        className="absolute top-0 left-0 h-full w-[50%] min-w-[500px] max-w-[700px] pointer-events-none z-0"
+        className="absolute top-0 left-0 h-full w-[60%] min-w-[600px] max-w-[800px] pointer-events-none z-0"
         style={{
-          // Radial gradient que desaparece gradualmente, sin bordes duros
-          background: 'radial-gradient(ellipse 100% 80% at 0% 50%, rgba(192, 163, 229, 0.15) 0%, rgba(139, 92, 246, 0.03) 60%, transparent 100%)',
+          // Radial gradient expandido y más extendido hacia la derecha
+          background: 'radial-gradient(ellipse 120% 90% at 0% 50%, rgba(192, 163, 229, 0.18) 0%, rgba(139, 92, 246, 0.05) 50%, transparent 100%)',
         }}
       />
 
@@ -166,6 +216,11 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
         className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start px-12 overflow-y-auto overflow-x-hidden no-scrollbar cursor-grab active:cursor-grabbing z-10 bg-transparent"
+        style={{
+          // Máscara de gradiente para difuminar los bordes superior e inferior
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
+        }}
       >
         {/* Eliminamos el gap-6 y usamos py-4 en los enlaces directamente */}
         <div className="flex flex-col w-full py-32">
