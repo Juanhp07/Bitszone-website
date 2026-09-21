@@ -509,27 +509,27 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       <div className="flex-1 h-full flex items-center justify-center relative z-0">
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
 
-        {/* Playback Controls (Poweramp Style + Liquid Glass) */}
-        <div className="relative flex items-center justify-center w-[700px] h-[450px] -ml-[25%] z-20">
+        {/* Playback Controls (Poweramp Style + Ultra Liquid Glass) */}
+        <div className="relative flex items-center justify-center w-[550px] h-[500px] -ml-[25%] z-20">
           
-          {/* Waveform (barras extremadamente gruesas, altas y con padding para no recortar el brillo) */}
+          {/* Waveform (barras EXTREMADAMENTE gruesas, altas) */}
           <div 
-            className="absolute inset-0 flex items-center justify-between gap-[12px] pointer-events-none px-12"
+            className="absolute inset-0 flex items-center justify-between gap-[16px] pointer-events-none px-12"
             style={{
               maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)'
             }}
           >
-            {Array.from({ length: 32 }).map((_, i) => {
+            {Array.from({ length: 24 }).map((_, i) => {
               // Altura masiva
-              const height = 30 + Math.abs(Math.sin(i * 0.45) * 65 + Math.cos(i * 1.1) * 20);
-              const isPlayed = i < 12; // Progreso
+              const height = 30 + Math.abs(Math.sin(i * 0.5) * 65 + Math.cos(i * 1.2) * 20);
+              const isPlayed = i < 9; // Progreso
               return (
                 <div 
                   key={i} 
                   className={`flex-1 rounded-full transition-colors duration-300 ${
                     isPlayed 
-                      ? 'bg-[#a855f7] drop-shadow-[0_0_24px_rgba(168,85,247,0.9)]' 
+                      ? 'bg-[#a855f7] shadow-[0_0_32px_rgba(168,85,247,1)]' 
                       : 'bg-white/20'
                   }`} 
                   style={{ height: `${Math.min(100, height)}%` }} 
@@ -538,32 +538,32 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             })}
           </div>
 
-          {/* Botones (Ultra Liquid Glass con blur en línea) */}
-          <div className="flex items-center gap-8 z-10">
+          {/* Botones (Ultra Liquid Glass sin bordes) */}
+          <div className="flex items-center gap-10 z-10">
             <button 
-              className="w-16 h-16 bg-white/[0.05] border border-white/20 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/10 hover:border-white/30 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
-              style={{ backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)' }}
+              className="w-20 h-20 bg-white/[0.08] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.12] transition-all shadow-xl"
+              style={{ backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
             >
-              <SkipBack className="w-7 h-7 text-white" fill="currentColor" />
+              <SkipBack className="w-8 h-8 text-white" fill="currentColor" />
             </button>
             
             <button 
               onClick={() => setIsPlaying(!isPlaying)}
-              className="w-28 h-28 bg-white/[0.05] border border-white/20 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/10 hover:border-white/30 transition-all shadow-[0_12px_40px_rgba(0,0,0,0.6)]"
-              style={{ backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)' }}
+              className="w-32 h-32 bg-white/[0.08] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.12] transition-all shadow-2xl"
+              style={{ backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
             >
               {isPlaying ? (
-                <Pause className="w-12 h-12 text-white" fill="currentColor" />
+                <Pause className="w-14 h-14 text-white" fill="currentColor" />
               ) : (
-                <Play className="w-12 h-12 ml-2 text-white" fill="currentColor" />
+                <Play className="w-14 h-14 ml-2 text-white" fill="currentColor" />
               )}
             </button>
 
             <button 
-              className="w-16 h-16 bg-white/[0.05] border border-white/20 rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/10 hover:border-white/30 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
-              style={{ backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)' }}
+              className="w-20 h-20 bg-white/[0.08] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.12] transition-all shadow-xl"
+              style={{ backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
             >
-              <SkipForward className="w-7 h-7 text-white" fill="currentColor" />
+              <SkipForward className="w-8 h-8 text-white" fill="currentColor" />
             </button>
           </div>
         </div>
