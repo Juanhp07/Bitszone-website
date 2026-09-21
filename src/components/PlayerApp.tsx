@@ -540,45 +540,46 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             })}
           </div>
 
-          {/* Controles Interactivos (Botones + Volumen) */}
-          <div className="flex flex-col items-center gap-10 z-10">
-            {/* Botones (Liquid Glass Moderado para que se vean las líneas) */}
-            <div className="flex items-center gap-10">
-              <button 
-                className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
-                style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-              >
-                <SkipBack className="w-8 h-8 text-white" fill="currentColor" />
-              </button>
-              
-              <button 
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="w-32 h-32 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-2xl"
-                style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-              >
-                {isPlaying ? (
-                  <Pause className="w-14 h-14 text-white" fill="currentColor" />
-                ) : (
-                  <Play className="w-14 h-14 ml-2 text-white" fill="currentColor" />
-                )}
-              </button>
+          {/* Controles Interactivos (Botones) */}
+          <div className="flex items-center gap-10 z-10">
+            <button 
+              className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
+              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+            >
+              <SkipBack className="w-8 h-8 text-white" fill="currentColor" />
+            </button>
+            
+            <button 
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="w-32 h-32 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-2xl"
+              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+            >
+              {isPlaying ? (
+                <Pause className="w-14 h-14 text-white" fill="currentColor" />
+              ) : (
+                <Play className="w-14 h-14 ml-2 text-white" fill="currentColor" />
+              )}
+            </button>
 
-              <button 
-                className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
-                style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-              >
-                <SkipForward className="w-8 h-8 text-white" fill="currentColor" />
-              </button>
-            </div>
+            <button 
+              className="w-20 h-20 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-xl"
+              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+            >
+              <SkipForward className="w-8 h-8 text-white" fill="currentColor" />
+            </button>
+          </div>
+        </div>
 
-            {/* Barra de Volumen Horizontal (SloshGauge) */}
-            <div className="flex items-center gap-5 bg-white/5 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 shadow-lg">
-              <Volume2 className="w-5 h-5 text-white/50" />
+        {/* Barra de Volumen Horizontal (Pegada abajo y alineada al reproductor) */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 -ml-[12.5%] w-[550px] z-20">
+          <div className="flex items-center w-full bg-white/[0.03] backdrop-blur-xl px-6 py-4 rounded-full border border-white/10 shadow-2xl">
+            <Volume2 className="w-6 h-6 text-white/50 shrink-0 mr-5" />
+            <div className="flex-1 overflow-hidden rounded-full">
               <SloshGauge 
                 defaultValue={70}
-                width={200}
-                height={16}
-                radius={8}
+                width={450}
+                height={20}
+                radius={10}
                 liquidColor="#a855f7"
                 glassColor="rgba(255, 255, 255, 0.05)"
                 interactive={true}
