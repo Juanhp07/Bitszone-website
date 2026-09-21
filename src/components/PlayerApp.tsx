@@ -26,6 +26,7 @@ const DUMMY_ARTISTS = [
 ];
 
 /* Animación de split-character */
+/* Animación de split-character */
 function NavLinkHover({
   label,
   href,
@@ -41,7 +42,7 @@ function NavLinkHover({
 
   if (isReducedMotion) {
     return (
-      <a href={href} onClick={onClick} className="inline-block py-4 cursor-pointer hover:font-bold transition-all duration-300 truncate max-w-full hover:translate-x-3 hover:scale-[1.03] origin-left text-white">
+      <a href={href} onClick={onClick} className="inline-block py-4 cursor-pointer transition-all duration-300 truncate max-w-full hover:translate-x-3 hover:scale-[1.03] origin-left text-inherit">
         {label}
       </a>
     );
@@ -52,7 +53,7 @@ function NavLinkHover({
       href={href} 
       onClick={onClick} 
       draggable={false}
-      className="group/link-hover inline-block py-4 no-underline cursor-pointer font-light hover:font-bold hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-300 max-w-full truncate align-bottom text-white"
+      className="group/link-hover inline-block py-4 no-underline cursor-pointer hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-300 max-w-full truncate align-bottom text-inherit"
     >
       <span className="sr-only">{label}</span>
       <span aria-hidden="true" className="relative inline-block overflow-hidden align-middle leading-[1.08] truncate max-w-full">
@@ -212,16 +213,36 @@ const OptionWheel = ({
     (value: number, snap: boolean) => {
       const cfg = cfgRef.current;
       let v = value;
-      if (!cfg.loop) v = Math.min(Math.max(v, 0), Math.max(cfg.count - 1, 0));
-      if (snap) v = Math.round(v);
+      let outOfBounds = false;
+      
+      if (!cfg.loop) {
+        if (v < 0) {
+          v = -0.5; // Efecto banda elástica al inicio
+          outOfBounds = true;
+        } else if (v > cfg.count - 1) {
+          v = cfg.count - 1 + 0.5; // Efecto banda elástica al final
+          outOfBounds = true;
+        }
+      }
+      
+      if (snap && !outOfBounds) v = Math.round(v);
       targetRef.current = v;
-      const idx = ((Math.round(v) % cfg.count) + cfg.count) % cfg.count;
-      if (idx !== selectedRef.current) {
-        selectedRef.current = idx;
-        setSelectedIndex(idx);
-        onChangeRef.current?.(idx, cfg.items[idx]);
+      
+      const clampIdx = Math.min(Math.max(Math.round(v), 0), cfg.count - 1);
+      if (clampIdx !== selectedRef.current) {
+        selectedRef.current = clampIdx;
+        setSelectedIndex(clampIdx);
+        onChangeRef.current?.(clampIdx, cfg.items[clampIdx]);
       }
       startLoop();
+
+      // Regresar suavemente (rebote) si se soltó fuera de los límites
+      if (outOfBounds && snap) {
+        setTimeout(() => {
+          targetRef.current = v < 0 ? 0 : cfg.count - 1;
+          startLoop();
+        }, 150);
+      }
     },
     [startLoop]
   );
@@ -342,7 +363,9 @@ const OptionWheel = ({
           role="option"
           aria-selected={selectedIndex === index}
           // Cambiado top-1/2 a top-[25%] para que las opciones empiecen desde arriba
-          className={`absolute top-[25%] cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] [color:color-mix(in_srgb,var(--ow-active-color)_calc(var(--ow-p,0)*100%),var(--ow-text-color))] left-[var(--ow-inset)] origin-left`}
+          className={`absolute top-[25%] cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] [color:color-mix(in_srgb,var(--ow-active-color)_calc(var(--ow-p,0)*100%),var(--ow-text-color))] left-[var(--ow-inset)] origin-left transition-all duration-300 ${
+            selectedIndex === index ? 'font-bold drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]' : 'font-light'
+          }`}
         >
           {/* Se usa el NavLinkHover aquí para mantener la animación de letras */}
           <NavLinkHover 
@@ -402,31 +425,25 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         }
 
         @keyframes loadingPulse {
-          0% { transform: scale(0.15); opacity: 0.6; }
-          50% { transform: scale(0.25); opacity: 1; }
-          100% { transform: scale(0.15); opacity: 0.6; }
+          0% { transform: translateY(-50%) scale(0.4); opacity: 0.6; }
+          50% { transform: translateY(-50%) scale(0.6); opacity: 1; }
+          100% { transform: translateY(-50%) scale(0.4); opacity: 0.6; }
         }
         .loading-glow {
           animation: loadingPulse 1.5s infinite ease-in-out;
-          transform-origin: left center;
         }
         @keyframes expandGlow {
-          0% { transform: scale(0.25); }
-          100% { transform: scale(1); }
+          0% { transform: translateY(-50%) scale(0.6); }
+          100% { transform: translateY(-50%) scale(1) translateX(-30%); }
         }
         .loaded-glow {
           animation: expandGlow 1.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
-          transform-origin: left center;
         }
       `}</style>
 
-      {/* Fondo Curvo y Difuminado del Sidebar a pantalla completa para evitar cortes */}
+      {/* Fondo circular desenfocado (Usa un div redondeado y borroso real para evitar cortes por scaling) */}
       <div 
-        className={`absolute top-0 left-0 h-full w-full pointer-events-none z-0 ${loading ? 'loading-glow' : 'loaded-glow'}`}
-        style={{
-          // Radial gradient expandido que se desvanece suavemente
-          background: 'radial-gradient(ellipse 45% 90% at 0% 50%, rgba(192, 163, 229, 0.18) 0%, rgba(139, 92, 246, 0.05) 50%, transparent 100%)',
-        }}
+        className={`absolute top-1/2 left-0 w-[1200px] h-[1200px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none z-0 ${loading ? 'loading-glow' : 'loaded-glow'}`}
       />
 
       {/* Lista de Artistas (Izquierda) */}
