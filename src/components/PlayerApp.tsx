@@ -355,7 +355,7 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
           }}
           role="option"
           aria-selected={selectedIndex === index}
-          className={`absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] [color:color-mix(in_srgb,var(--ow-active-color)_calc(var(--ow-p,0)*100%),var(--ow-text-color))] left-[var(--ow-inset)] origin-left transition-all duration-300 ${
+          className={`absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] [color:color-mix(in_srgb,var(--ow-active-color)_calc(var(--ow-p,0)*100%),var(--ow-text-color))] left-[var(--ow-inset)] origin-left ${
             selectedIndex === index ? 'font-bold drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]' : 'font-light'
           }`}
         >
