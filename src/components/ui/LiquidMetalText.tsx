@@ -36,6 +36,10 @@ export const LiquidMetalText: React.FC<LiquidMetalTextProps> = ({
           top: 0 !important;
           left: 0 !important;
         }
+        @keyframes text-sweep {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
       `;
       document.head.appendChild(style);
     }
@@ -98,7 +102,7 @@ export const LiquidMetalText: React.FC<LiquidMetalTextProps> = ({
         className="whitespace-nowrap block"
         style={{
           color: "transparent",
-          WebkitTextStroke: "1px rgba(255, 255, 255, 0.2)", 
+          WebkitTextStroke: "2px rgba(255, 255, 255, 0.3)", 
         }}
       >
         {text}
@@ -147,6 +151,14 @@ export const LiquidMetalText: React.FC<LiquidMetalTextProps> = ({
           <div 
             ref={shaderRef} 
             className="w-full h-full shader-container-text relative" 
+          />
+          {/* Shimmer / Sweep Effect */}
+          <div 
+            className="absolute inset-0 top-0 bottom-0 w-[50%] h-full pointer-events-none mix-blend-overlay"
+            style={{
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.8) 50%, transparent)",
+              animation: "text-sweep 2.5s ease-in-out infinite",
+            }}
           />
         </div>
       )}

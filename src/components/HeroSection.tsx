@@ -44,15 +44,15 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          className="flex flex-col items-center justify-center text-center w-full font-sans font-bold mb-10 md:mb-14 xl:mb-16"
+          className="flex flex-col items-center justify-center text-center w-full font-sans font-bold mb-16 md:mb-24 xl:mb-32"
         >
-          <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px] tracking-normal leading-[1.1]">
+          <span className="text-white text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px] tracking-normal leading-none z-10">
             Tu música sin conexión
           </span>
           <LiquidMetalText
             text="descarga sin límites"
-            className="w-full mt-2 md:mt-4 h-[15vw] sm:h-[12vw] lg:h-[100px] xl:h-[120px] 2xl:h-[140px] text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px]"
-            strokeWidth={3}
+            className="w-full -mt-2 md:-mt-6 h-[15vw] sm:h-[12vw] lg:h-[100px] xl:h-[120px] 2xl:h-[140px] text-[10vw] sm:text-[7vw] lg:text-[65px] xl:text-[80px] 2xl:text-[95px]"
+            strokeWidth={4.5}
           />
         </motion.h1>
 
@@ -61,7 +61,7 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 md:mt-12"
         >
           <GlassSurface
              width="fit-content"
