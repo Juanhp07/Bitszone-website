@@ -417,8 +417,11 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   const dbArtists = Array.from(new Set(tracks.map(t => t.artist)));
   
   // Combinar los de la DB con los falsos y filtrar los que no queremos
-  const displayArtists = Array.from(new Set([...dbArtists, ...DUMMY_ARTISTS]))
-    .filter(name => name !== 'Dua Lipa' && name !== 'Rosalía');
+  const displayArtists = [
+    'ARTISTAS',
+    ...Array.from(new Set([...dbArtists, ...DUMMY_ARTISTS]))
+      .filter(name => name !== 'Dua Lipa' && name !== 'Rosalía')
+  ];
 
   return (
     <div className="flex h-screen w-full bg-[#050505] text-white font-inter overflow-hidden relative">
@@ -489,7 +492,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             curve={1}
             tilt={5}
             inset={120} 
-            blur={1.5} 
+            blur={0.8} 
             fade={0.25} 
             smoothing={20}
             logoRef={logoRef}
