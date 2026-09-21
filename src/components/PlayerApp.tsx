@@ -12,7 +12,7 @@ const DUMMY_ARTISTS = [
   "Tame Impala"
 ];
 
-/* Animación de split-character extraída del componente que enviaste */
+/* Animación de split-character */
 function NavLinkHover({
   label,
   href,
@@ -28,14 +28,18 @@ function NavLinkHover({
 
   if (isReducedMotion) {
     return (
-      <a href={href} onClick={onClick} className="block cursor-pointer">
+      <a href={href} onClick={onClick} className="block cursor-pointer opacity-50 hover:opacity-100 hover:font-bold transition-all duration-300">
         {label}
       </a>
     );
   }
 
   return (
-    <a href={href} onClick={onClick} className="group/link-hover inline-block no-underline cursor-pointer">
+    <a 
+      href={href} 
+      onClick={onClick} 
+      className="group/link-hover inline-block no-underline cursor-pointer opacity-40 hover:opacity-100 font-light hover:font-bold transition-all duration-300"
+    >
       <span className="sr-only">{label}</span>
       <span aria-hidden="true" className="relative inline-block overflow-hidden align-middle leading-[1.08]">
         {[...label].map((char, index) => (
@@ -82,24 +86,62 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   return (
     <div className="flex h-screen w-full bg-[#0a0a0a] text-white font-inter overflow-hidden">
       
+      {/* Estilos en línea para la animación del título BITSZONE */}
+      <style>{`
+        @keyframes gradientMove {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-text {
+          background-size: 200% auto;
+          animation: gradientMove 2s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Lista de Artistas (Izquierda) */}
-      <div className="w-1/3 min-w-[350px] h-full flex flex-col justify-center px-12 border-r border-white/10 overflow-y-auto">
+      <div 
+        className="w-[40%] min-w-[350px] max-w-[500px] h-full flex flex-col justify-center px-12 overflow-y-auto"
+        style={{
+          // Degradado sutil morado en el borde derecho en lugar de una línea sólida
+          background: 'linear-gradient(to right, transparent 80%, rgba(139, 92, 246, 0.05) 100%)'
+        }}
+      >
         <div className="flex flex-col gap-8 w-full py-20">
           {loading ? (
             <p className="text-gray-500">Cargando artistas...</p>
           ) : (
-            displayArtists.map((artist, i) => (
-              <div key={i} className="text-4xl md:text-5xl lg:text-6xl font-light text-white tracking-tight">
-                <NavLinkHover label={artist} />
-              </div>
-            ))
+            displayArtists.map((artist, i) => {
+              // Calcular el desplazamiento en X para crear el efecto de medio círculo
+              // Usamos Math.sin para crear la curva. En el medio (PI/2) es el máximo.
+              const progress = i / (displayArtists.length - 1 || 1);
+              const curveOffset = Math.sin(progress * Math.PI) * 60; // 60px max offset
+
+              return (
+                <div 
+                  key={i} 
+                  className="text-4xl md:text-5xl lg:text-6xl text-white tracking-tight"
+                  style={{
+                    transform: `translateX(${curveOffset}px)`,
+                    transition: 'transform 0.3s ease'
+                  }}
+                >
+                  <NavLinkHover label={artist} />
+                </div>
+              );
+            })
           )}
         </div>
       </div>
 
       {/* Contenido Principal (Derecha) */}
-      <div className="flex-1 h-full flex items-center justify-center bg-[#050505]">
-        <h1 className="text-4xl md:text-6xl lg:text-8xl tracking-[0.2em] font-light text-white/5 select-none pointer-events-none">
+      <div className="flex-1 h-full flex items-center justify-center bg-[#050505] relative">
+        <h1 
+          className="text-4xl md:text-6xl lg:text-8xl tracking-[0.2em] font-bold select-none pointer-events-none animate-gradient-text text-transparent bg-clip-text"
+          style={{
+            backgroundImage: 'linear-gradient(to right, #333333, #a78bfa, #333333)'
+          }}
+        >
           BITSZONE
         </h1>
       </div>
