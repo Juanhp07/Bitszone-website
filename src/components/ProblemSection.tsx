@@ -5,19 +5,19 @@ const problems = [
   {
     id: 1,
     title: "El fin de los archivos fantasma",
-    description: "Se acabó el modo avión silencioso. Visualiza exactamente qué pistas están listas para escucharse offline y cuáles siguen en la nube.",
+    description: "Visualiza al instante qué pistas están listas para escucharse offline y cuáles siguen en la nube.",
     icon: <FileWarning size={24} className="text-[#a855f7]" />
   },
   {
     id: 2,
     title: "Control total de tu espacio",
-    description: "Cero descargas ciegas. Monitorea al milímetro cuánto almacenamiento ocupa tu biblioteca musical y adminístralo con un solo toque.",
+    description: "Monitorea cuánto almacenamiento ocupa tu biblioteca y adminístralo fácilmente.",
     icon: <HardDrive size={24} className="text-[#3b82f6]" />
   },
   {
     id: 3,
     title: "Licencias siempre vigentes",
-    description: "No más caducidades sorpresa. Recibe notificaciones predictivas antes de que tus descargas expiren para mantener tu música siempre activa.",
+    description: "Recibe notificaciones antes de que expiren tus descargas para mantener tu música activa.",
     icon: <ClockAlert size={24} className="text-[#06b6d4]" />
   }
 ];
@@ -35,8 +35,8 @@ export const ProblemSection = () => {
           Tu música no debería <br className="hidden md:block" /> abandonarte <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a855f7] via-[#d946ef] to-[#3b82f6]">cuando más la necesitas.</span>
         </h2>
-        <p className="text-[#A0A3BD] text-lg md:text-xl font-inter max-w-3xl mx-auto leading-relaxed">
-          Descargas incompletas, archivos fantasma y sincronizaciones fallidas son historia. Bitszone erradica la incertidumbre dándote <strong className="text-white">visibilidad y control absoluto</strong> sobre tu biblioteca sin conexión.
+        <p className="text-[#A0A3BD] text-lg md:text-xl font-inter max-w-2xl mx-auto leading-relaxed">
+          Olvídate de descargas incompletas. Toma el <strong className="text-white">control absoluto</strong> de tu biblioteca sin conexión de forma sencilla.
         </p>
       </div>
 
@@ -61,7 +61,7 @@ export const ProblemSection = () => {
 
       {/* CTA Button */}
       <div className="mt-20">
-        <button className="px-8 py-4 rounded-full font-inter font-semibold text-white bg-gradient-to-r from-[#a855f7] to-[#3b82f6] text-[17px] tracking-wide">
+        <button className="px-8 py-4 rounded-full font-inter font-semibold text-white bg-[#a855f7] hover:bg-[#9333ea] transition-colors text-[17px] tracking-wide">
           Probar Bitszone Gratis
         </button>
       </div>
