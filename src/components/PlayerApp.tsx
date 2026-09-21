@@ -31,7 +31,7 @@ function NavLinkHover({
 
   if (isReducedMotion) {
     return (
-      <a href={href} onClick={onClick} className="block cursor-pointer opacity-50 hover:opacity-100 hover:font-bold transition-all duration-300 truncate max-w-full hover:translate-x-3 hover:scale-[1.03] origin-left">
+      <a href={href} onClick={onClick} className="inline-block py-4 cursor-pointer opacity-50 hover:opacity-100 hover:font-bold transition-all duration-300 truncate max-w-full hover:translate-x-3 hover:scale-[1.03] origin-left">
         {label}
       </a>
     );
@@ -42,7 +42,7 @@ function NavLinkHover({
       href={href} 
       onClick={onClick} 
       draggable={false}
-      className="group/link-hover inline-block no-underline cursor-pointer opacity-40 hover:opacity-100 font-light hover:font-bold hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-300 max-w-full truncate align-bottom"
+      className="group/link-hover inline-block py-4 no-underline cursor-pointer opacity-40 hover:opacity-100 font-light hover:font-bold hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-300 max-w-full truncate align-bottom"
     >
       <span className="sr-only">{label}</span>
       <span aria-hidden="true" className="relative inline-block overflow-hidden align-middle leading-[1.08] truncate max-w-full">
@@ -149,13 +149,12 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         }
       `}</style>
 
-      {/* Fondo Curvo del Sidebar (Independiente para no cortar el texto al hacer scroll) */}
+      {/* Fondo Curvo y Difuminado del Sidebar */}
       <div 
-        className="absolute top-0 left-0 h-full w-[45%] min-w-[450px] max-w-[650px] pointer-events-none z-0"
+        className="absolute top-0 left-0 h-full w-[50%] min-w-[500px] max-w-[700px] pointer-events-none z-0"
         style={{
-          background: 'linear-gradient(to right, #0a0a0a, rgba(139, 92, 246, 0.08))',
-          // Curva moderada (30% de profundidad horizontal)
-          borderRadius: '0 30% 30% 0 / 0 50% 50% 0',
+          // Radial gradient que desaparece gradualmente, sin bordes duros
+          background: 'radial-gradient(ellipse 100% 80% at 0% 50%, rgba(192, 163, 229, 0.15) 0%, rgba(139, 92, 246, 0.03) 60%, transparent 100%)',
         }}
       />
 
@@ -168,19 +167,18 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         onMouseMove={handleMouseMove}
         className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start px-12 overflow-y-auto overflow-x-hidden no-scrollbar cursor-grab active:cursor-grabbing z-10 bg-transparent"
       >
-        <div className="flex flex-col gap-6 w-full py-32">
+        {/* Eliminamos el gap-6 y usamos py-4 en los enlaces directamente */}
+        <div className="flex flex-col w-full py-32">
           {loading ? (
-            <p className="text-gray-500">Cargando artistas...</p>
+            <p className="text-gray-500 py-4">Cargando artistas...</p>
           ) : (
             displayArtists.map((artist, i) => {
               const progress = i / (displayArtists.length - 1 || 1);
-              // Multiplicador ajustado a 40 para una curva más notable pero elegante
               const curveOffset = Math.sin(progress * Math.PI) * 40; 
 
               return (
                 <div 
                   key={i} 
-                  // Tamaño de texto reducido a 3xl/4xl/5xl
                   className="text-3xl md:text-4xl lg:text-5xl text-white tracking-tight whitespace-nowrap"
                   style={{
                     transform: `translateX(${curveOffset}px)`,
