@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Volume2, BookOpen } from 'lucide-react';
+import { Volume2, BookOpen, Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 
 // Lista de artistas falsos para rellenar
 const DUMMY_ARTISTS = [
@@ -395,6 +395,7 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
 export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const logoRef = useRef<HTMLHeadingElement>(null);
 
   // Fetch from Supabase
@@ -507,6 +508,28 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       {/* Contenido Principal (Derecha) */}
       <div className="flex-1 h-full flex items-center justify-center relative z-0">
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
+
+        {/* Playback Controls (Centro de la pantalla) */}
+        <div className="flex items-center gap-10 z-20">
+          <button className="text-white/50 hover:text-white transition-colors hover:scale-105 transform">
+            <SkipBack className="w-10 h-10" fill="currentColor" />
+          </button>
+          
+          <button 
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)]"
+          >
+            {isPlaying ? (
+              <Pause className="w-10 h-10" fill="currentColor" />
+            ) : (
+              <Play className="w-10 h-10 ml-2" fill="currentColor" />
+            )}
+          </button>
+
+          <button className="text-white/50 hover:text-white transition-colors hover:scale-105 transform">
+            <SkipForward className="w-10 h-10" fill="currentColor" />
+          </button>
+        </div>
 
         {/* Controles Laterales Derechos */}
         <div className="absolute right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-10 z-20">
