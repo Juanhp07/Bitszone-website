@@ -207,7 +207,7 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
         rot = (mirror * ang * 180) / Math.PI;
       }
       el.style.transform = `translate(${x.toFixed(2)}px, calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
-      el.style.setProperty('--ow-opacity', String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade)));
+      el.style.opacity = String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade));
       el.style.filter = cfg.blur > 0 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : 'none';
       el.style.setProperty('--ow-p', Math.max(0, 1 - Math.min(dist, 1)).toFixed(4));
     }
@@ -356,14 +356,13 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
           }}
           role="option"
           aria-selected={selectedIndex === index}
-          className={`absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,filter] left-[var(--ow-inset)] origin-left ${
+          className={`group/item absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] left-[var(--ow-inset)] origin-left ${
             selectedIndex === index 
               ? 'font-bold drop-shadow-[0_0_12px_rgba(167,139,250,0.6)] hover:!text-[#c4b5fd] hover:drop-shadow-[0_0_16px_rgba(196,181,253,1)]' 
-              : 'font-light hover:!text-white hover:!opacity-100 hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]'
+              : 'font-light hover:!text-white hover:!opacity-100'
           }`}
           style={{
-            opacity: 'var(--ow-opacity, 1)',
-            color: 'color-mix(in srgb, var(--ow-active-color) calc(var(--ow-p, 0) * 100%), var(--ow-text-color))',
+            color: 'color-mix(in srgb, var(--ow-active-color) calc(var(--ow-p, 0) * 100%), var(--ow-text-color))'
           }}
         >
           <NavLinkHover 
@@ -460,7 +459,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
           <OptionWheel 
             items={displayArtists} 
             textColor="#ffffff"
-            activeColor="#a78bfa" // Color lila para el artista seleccionado
+            activeColor="#a78bfa"
             fontSize={3.2}
             spacing={1.3}
             curve={1}
