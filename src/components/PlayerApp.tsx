@@ -31,7 +31,7 @@ function NavLinkHover({
 
   if (isReducedMotion) {
     return (
-      <a href={href} onClick={onClick} className="block cursor-pointer opacity-50 hover:opacity-100 hover:font-bold transition-all duration-300 truncate max-w-full">
+      <a href={href} onClick={onClick} className="block cursor-pointer opacity-50 hover:opacity-100 hover:font-bold transition-all duration-300 truncate max-w-full hover:translate-x-3 hover:scale-[1.03] origin-left">
         {label}
       </a>
     );
@@ -42,7 +42,7 @@ function NavLinkHover({
       href={href} 
       onClick={onClick} 
       draggable={false}
-      className="group/link-hover inline-block no-underline cursor-pointer opacity-40 hover:opacity-100 font-light hover:font-bold transition-all duration-300 max-w-full truncate align-bottom"
+      className="group/link-hover inline-block no-underline cursor-pointer opacity-40 hover:opacity-100 font-light hover:font-bold hover:translate-x-3 hover:scale-[1.03] origin-left transition-all duration-300 max-w-full truncate align-bottom"
     >
       <span className="sr-only">{label}</span>
       <span aria-hidden="true" className="relative inline-block overflow-hidden align-middle leading-[1.08] truncate max-w-full">
@@ -154,8 +154,8 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         className="absolute top-0 left-0 h-full w-[45%] min-w-[450px] max-w-[650px] pointer-events-none z-0"
         style={{
           background: 'linear-gradient(to right, #0a0a0a, rgba(139, 92, 246, 0.08))',
-          // Curva mucho más suave (15% de profundidad horizontal)
-          borderRadius: '0 15% 15% 0 / 0 50% 50% 0',
+          // Curva moderada (30% de profundidad horizontal)
+          borderRadius: '0 30% 30% 0 / 0 50% 50% 0',
         }}
       />
 
@@ -174,8 +174,8 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
           ) : (
             displayArtists.map((artist, i) => {
               const progress = i / (displayArtists.length - 1 || 1);
-              // Multiplicador reducido a 25 para una curva mínima en los textos
-              const curveOffset = Math.sin(progress * Math.PI) * 25; 
+              // Multiplicador ajustado a 40 para una curva más notable pero elegante
+              const curveOffset = Math.sin(progress * Math.PI) * 40; 
 
               return (
                 <div 
