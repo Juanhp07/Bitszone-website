@@ -186,10 +186,10 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
     posRef.current = next;
 
     if (cfg.logoRef?.current) {
-      // El logo desaparece rápidamente a medida que nos alejamos de la posición inicial (0)
-      const logoOpacity = Math.max(0, 1 - (Math.abs(next) / 1.2));
+      // El logo desaparece más lentamente a medida que nos alejamos de la posición inicial (0)
+      const logoOpacity = Math.max(0, 1 - (Math.abs(next) / 2.5));
       cfg.logoRef.current.style.opacity = String(logoOpacity);
-      cfg.logoRef.current.style.transform = `translateY(${Math.abs(next) * -10}px)`; // Sube un poco al desaparecer
+      cfg.logoRef.current.style.transform = `translateY(${Math.abs(next) * -8}px)`; // Sube un poco al desaparecer
     }
 
     const els = itemRefs.current;
@@ -452,6 +452,11 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         }
       `}</style>
 
+      {/* Fondo circular desenfocado con origen en el borde izquierdo */}
+      <div 
+        className={`absolute top-1/2 left-[-600px] w-[1200px] h-[1200px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none z-0 ${loading ? 'loading-glow' : 'loaded-glow'}`}
+      />
+
       {/* Rueda de Opciones (Sidebar Izquierdo) */}
       <div 
         className="w-[45%] min-w-[450px] max-w-[650px] h-full flex flex-col justify-start overflow-hidden z-10 bg-transparent relative"
@@ -494,12 +499,6 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
 
       {/* Contenido Principal (Derecha) - Vacío por ahora */}
       <div className="flex-1 h-full flex items-center justify-center relative z-0">
-        
-        {/* Glow dinámico de carga */}
-        <div 
-          className={`absolute left-[-600px] top-1/2 w-[1200px] h-[1200px] rounded-full pointer-events-none transition-opacity duration-1000 blur-[150px] mix-blend-screen opacity-30 ${loading ? 'loading-glow bg-purple-900/40' : 'loaded-glow bg-purple-600/30'}`} 
-        />
-        
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
       </div>
 
