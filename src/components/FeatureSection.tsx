@@ -73,43 +73,6 @@ export const FeatureSection = () => {
         {/* Glow point behind images, aligned to horizon */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-[#55108d]/20 blur-[100px] z-0 pointer-events-none"></div>
 
-        {/* --- THE GLOWING PERSPECTIVE PATH (APERTURA) --- */}
-        {/* Placed inside the wrapper so it perfectly aligns with the 3D horizon (top 50% of the carousel) */}
-        <svg 
-          className="absolute z-10 pointer-events-none mix-blend-screen [mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)]"
-          style={{ top: '50%', left: 0, width: '100%', height: '50%' }}
-          preserveAspectRatio="none"
-          viewBox="0 0 100 100"
-        >
-          <defs>
-            <linearGradient id="glowLine" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor="#FF9FFC" stopOpacity="0" />
-              <stop offset="15%" stopColor="#FF9FFC" stopOpacity="0.9" />
-              <stop offset="50%" stopColor="#5227FF" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#5227FF" stopOpacity="0" />
-            </linearGradient>
-            
-            <linearGradient id="glowFill" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor="#FF9FFC" stopOpacity="0" />
-              <stop offset="15%" stopColor="#FF9FFC" stopOpacity="0.2" />
-              <stop offset="40%" stopColor="#5227FF" stopOpacity="0.05" />
-              <stop offset="100%" stopColor="#5227FF" stopOpacity="0" />
-            </linearGradient>
-
-            <filter id="neonBlur">
-              <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          
-          <polygon points="50,0 100,100 0,100" fill="url(#glowFill)" />
-          <line x1="50" y1="0" x2="0" y2="100" stroke="url(#glowLine)" strokeWidth="2" vectorEffect="non-scaling-stroke" filter="url(#neonBlur)" />
-          <line x1="50" y1="0" x2="100" y2="100" stroke="url(#glowLine)" strokeWidth="2" vectorEffect="non-scaling-stroke" filter="url(#neonBlur)" />
-        </svg>
-
         <CoverflowCarousel items={albums} speed={1.5} spacing={220} />
       </div>
 

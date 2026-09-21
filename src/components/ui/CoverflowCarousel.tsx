@@ -203,11 +203,11 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
         }
         
         .coverflow-inner.glow-active::before {
-          opacity: 0.7; /* Liquid blur activates */
+          opacity: 0.3; /* Liquid blur activates (reduced) */
         }
         
         .coverflow-inner.glow-active img {
-          box-shadow: 0 0 50px rgba(255,255,255,0.2), 0 20px 40px rgba(0,0,0,0.8);
+          box-shadow: 0 0 20px rgba(255,255,255,0.1), 0 15px 30px rgba(0,0,0,0.6);
         }
         
         .info-panel {
