@@ -467,8 +467,8 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             curve={1}
             tilt={5}
             inset={120} 
-            blur={3} // Efecto de desenfoque restaurado tal como en React Bits
-            fade={0.25} // Desvanecimiento restaurado
+            blur={1.5} // Reducido un poco para que sea más legible pero mantenga el estilo
+            fade={0.25} 
             smoothing={40} 
           />
         )}
