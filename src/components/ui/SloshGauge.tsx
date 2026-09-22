@@ -375,13 +375,6 @@ const SloshGauge: React.FC<SloshGaugeProps> = ({
           aria-hidden="true"
         />
       ) : null}
-      {interactive && !disabled ? (
-        <div
-          ref={marker}
-          className="pointer-events-none absolute top-0 -ml-px w-0.5 h-full rounded-[1px] bg-current opacity-0 [transition:opacity_150ms_ease] group-data-[held=true]:opacity-100"
-          aria-hidden="true"
-        />
-      ) : null}
     </div>
   );
 };

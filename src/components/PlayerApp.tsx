@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Volume2, BookOpen, Play, Pause, SkipBack, SkipForward } from 'lucide-react';
+import { Volume2, Volume1, VolumeX, BookOpen, Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 
 // Lista de artistas falsos para rellenar
 const DUMMY_ARTISTS = [
@@ -398,6 +398,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   const [tracks, setTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(70);
   const logoRef = useRef<HTMLHeadingElement>(null);
 
   // Fetch from Supabase
@@ -570,21 +571,29 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
           </div>
         </div>
 
-        {/* Barra de Volumen Horizontal (Pegada abajo y alineada al reproductor) */}
+        {/* Barra de Volumen Horizontal (Minimalista) */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 -ml-[12.5%] w-[550px] z-20">
-          <div className="flex items-center w-full bg-white/[0.03] backdrop-blur-xl px-6 py-4 rounded-full border border-white/10 shadow-2xl">
-            <Volume2 className="w-6 h-6 text-white/50 shrink-0 mr-5" />
-            <div className="flex-1 overflow-hidden rounded-full">
+          <div className="flex items-center w-full bg-[#111111]/80 backdrop-blur-2xl px-6 py-4 rounded-full shadow-2xl">
+            <div className="w-8 shrink-0 flex justify-center text-white/50 transition-colors duration-300">
+              {volume === 0 ? <VolumeX className="w-5 h-5" /> : volume < 50 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            </div>
+            
+            <div className="flex-1 overflow-hidden rounded-full mx-4 flex items-center justify-center">
               <SloshGauge 
-                defaultValue={70}
-                width={450}
-                height={20}
-                radius={10}
+                value={volume}
+                onChange={setVolume}
+                width={398}
+                height={16}
+                radius={8}
                 liquidColor="#a855f7"
                 glassColor="rgba(255, 255, 255, 0.05)"
                 interactive={true}
               />
             </div>
+
+            <span className="w-10 text-right text-white/50 font-medium text-sm tabular-nums">
+              {volume}%
+            </span>
           </div>
         </div>
 
