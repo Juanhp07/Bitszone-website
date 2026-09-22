@@ -625,20 +625,20 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
           </button>
         </div>
 
-        {/* Contenido (con difuminado múltiple) */}
+        {/* Contenido */}
         <div 
           className="flex-1 w-full h-full relative"
-          style={{
-            // Difuminado izquierdo (extremadamente suave y profundo)
+          style={rightPanel === 'cover' ? {
+            // Difuminado izquierdo (solo para portada)
             maskImage: 'linear-gradient(to right, transparent 0%, transparent 10%, black 75%)',
             WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 10%, black 75%)'
-          }}
+          } : undefined}
         >
           {rightPanel === 'cover' ? (
             <div 
               className="w-full h-full relative group cursor-pointer overflow-hidden"
               style={{
-                // Difuminado arriba y abajo (ahora en el contenedor para que no se escale la máscara)
+                // Difuminado arriba y abajo (solo portada)
                 maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
                 WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
               }}
@@ -648,16 +648,19 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
                 alt="Cover" 
                 className="w-full h-full object-cover object-center opacity-40 scale-110 group-hover:scale-100 group-hover:opacity-90 transition-all duration-[800ms] ease-out"
               />
+              
+              {/* Gradiente inferior para legibilidad */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[800ms] ease-out" />
+              
+              {/* Texto THRILLER Animado */}
+              <div className="absolute inset-x-0 bottom-24 flex justify-center translate-y-16 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] z-10 pointer-events-none">
+                <h3 className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 text-5xl font-black tracking-[0.6em] uppercase drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] ml-[0.6em]">
+                  Thriller
+                </h3>
+              </div>
             </div>
           ) : (
-            <div 
-              className="w-full h-full flex flex-col items-center justify-center p-12 overflow-y-auto"
-              style={{
-                // Difuminado arriba y abajo para las letras también
-                maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
-              }}
-            >
+            <div className="w-full h-full flex flex-col items-center justify-center p-12 overflow-y-auto">
               <p className="text-white/50 text-xl leading-[2.5] text-center font-medium">
                 (Letra sincronizada aquí)
                 <br /><br />
