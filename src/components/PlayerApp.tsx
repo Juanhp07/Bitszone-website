@@ -654,7 +654,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
               
               {/* Texto THRILLER Animado */}
               <div className="absolute inset-x-0 bottom-24 flex justify-center translate-y-16 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] z-10 pointer-events-none">
-                <h3 className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 text-5xl font-black tracking-[0.6em] uppercase drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] ml-[0.6em]">
+                <h3 className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 text-3xl font-black tracking-[0.4em] uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] ml-[0.4em]">
                   Thriller
                 </h3>
               </div>
