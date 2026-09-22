@@ -629,22 +629,26 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         <div 
           className="flex-1 w-full h-full relative"
           style={{
-            // Difuminado izquierdo (muy pronunciado)
-            maskImage: 'linear-gradient(to right, transparent 0%, black 50%)',
-            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 50%)'
+            // Difuminado izquierdo (extremadamente suave y profundo)
+            maskImage: 'linear-gradient(to right, transparent 0%, transparent 10%, black 75%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 10%, black 75%)'
           }}
         >
           {rightPanel === 'cover' ? (
-            <img 
-              src="/mj.png" 
-              alt="Cover" 
-              className="w-full h-full object-cover object-center opacity-80"
+            <div 
+              className="w-full h-full relative group cursor-pointer overflow-hidden"
               style={{
-                // Difuminado arriba y abajo
+                // Difuminado arriba y abajo (ahora en el contenedor para que no se escale la máscara)
                 maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
                 WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
               }}
-            />
+            >
+              <img 
+                src="/mj.png" 
+                alt="Cover" 
+                className="w-full h-full object-cover object-center opacity-40 scale-110 group-hover:scale-100 group-hover:opacity-90 transition-all duration-[800ms] ease-out"
+              />
+            </div>
           ) : (
             <div 
               className="w-full h-full flex flex-col items-center justify-center p-12 overflow-y-auto"
