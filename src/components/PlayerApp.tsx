@@ -599,39 +599,61 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       </div>
 
       {/* Sidebar Derecho (Portada / Letra) */}
-      <div 
-        className="w-[30%] max-w-[450px] h-full relative z-10 flex flex-col"
-        style={{
-          maskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 100%)'
-        }}
-      >
+      <div className="w-[30%] max-w-[450px] h-full relative z-10 flex flex-col">
+        
         {/* Selector Portada / Letra */}
-        <div className="absolute top-12 left-0 right-0 flex justify-center gap-12 z-20">
+        <div className="absolute top-12 left-0 right-0 flex justify-center gap-16 z-20">
           <button 
             onClick={() => setRightPanel('cover')}
-            className={`uppercase tracking-widest text-xs font-bold transition-all duration-300 ${rightPanel === 'cover' ? 'text-white' : 'text-white/30 hover:text-white/60'}`}
+            className={`uppercase tracking-[0.3em] text-sm font-bold transition-all duration-300 ${
+              rightPanel === 'cover' 
+                ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' 
+                : 'text-white/50 hover:text-white/80'
+            }`}
           >
             Portada
           </button>
           <button 
             onClick={() => setRightPanel('lyrics')}
-            className={`uppercase tracking-widest text-xs font-bold transition-all duration-300 ${rightPanel === 'lyrics' ? 'text-white' : 'text-white/30 hover:text-white/60'}`}
+            className={`uppercase tracking-[0.3em] text-sm font-bold transition-all duration-300 ${
+              rightPanel === 'lyrics' 
+                ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' 
+                : 'text-white/50 hover:text-white/80'
+            }`}
           >
             Letra
           </button>
         </div>
 
-        {/* Contenido */}
-        <div className="flex-1 w-full h-full relative">
+        {/* Contenido (con difuminado múltiple) */}
+        <div 
+          className="flex-1 w-full h-full relative"
+          style={{
+            // Difuminado izquierdo (muy pronunciado)
+            maskImage: 'linear-gradient(to right, transparent 0%, black 50%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 50%)'
+          }}
+        >
           {rightPanel === 'cover' ? (
             <img 
               src="/mj.png" 
               alt="Cover" 
               className="w-full h-full object-cover object-center opacity-80"
+              style={{
+                // Difuminado arriba y abajo
+                maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
+              }}
             />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-black/20 p-12 overflow-y-auto">
+            <div 
+              className="w-full h-full flex flex-col items-center justify-center p-12 overflow-y-auto"
+              style={{
+                // Difuminado arriba y abajo para las letras también
+                maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
+              }}
+            >
               <p className="text-white/50 text-xl leading-[2.5] text-center font-medium">
                 (Letra sincronizada aquí)
                 <br /><br />
