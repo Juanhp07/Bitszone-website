@@ -601,8 +601,12 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
       {/* Sidebar Derecho (Portada / Letra) */}
       <div className="w-[30%] max-w-[450px] h-full relative z-10 flex flex-col">
         
-        {/* Selector Portada / Letra */}
-        <div className="absolute top-12 left-0 right-0 flex justify-center gap-16 z-20">
+        {/* Selector Portada / Letra (Con compensación óptica dinámica) */}
+        <div 
+          className={`absolute top-12 left-0 right-0 flex justify-center gap-16 z-20 transition-transform duration-[800ms] ease-out ${
+            rightPanel === 'cover' ? 'translate-x-6' : 'translate-x-0'
+          }`}
+        >
           <button 
             onClick={() => setRightPanel('cover')}
             className={`uppercase tracking-[0.3em] text-sm font-bold transition-all duration-300 ${
@@ -652,8 +656,8 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
               {/* Gradiente inferior para legibilidad */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[800ms] ease-out" />
               
-              {/* Texto THRILLER Animado */}
-              <div className="absolute inset-x-0 bottom-24 flex justify-center translate-y-16 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] z-10 pointer-events-none">
+              {/* Texto THRILLER Animado (Con compensación óptica hacia la derecha: pl-12) */}
+              <div className="absolute inset-x-0 bottom-24 flex justify-center pl-12 translate-y-16 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] z-10 pointer-events-none">
                 <h3 className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 text-3xl font-black tracking-[0.4em] uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] ml-[0.4em]">
                   Thriller
                 </h3>
