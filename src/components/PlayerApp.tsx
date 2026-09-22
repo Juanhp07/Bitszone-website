@@ -399,6 +399,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
+  const [rightPanel, setRightPanel] = useState<'cover' | 'lyrics'>('cover');
   const logoRef = useRef<HTMLHeadingElement>(null);
 
   // Fetch from Supabase
@@ -508,12 +509,12 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         )}
       </div>
 
-      {/* Contenido Principal (Derecha) */}
-      <div className="flex-1 h-full flex items-center justify-center relative z-0">
+      {/* Contenido Principal (Centro) */}
+      <div className="flex-1 h-full flex flex-col items-center justify-center relative z-0">
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none"></div>
 
         {/* Playback Controls (Poweramp Style + True Liquid Glass) */}
-        <div className="relative flex items-center justify-center w-[550px] h-[450px] -ml-[25%] z-20">
+        <div className="relative flex items-center justify-center w-[550px] h-[450px] z-20">
           
           {/* Waveform (20 barras, gruesas con buen espacio) */}
           <div 
@@ -524,7 +525,6 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             }}
           >
             {Array.from({ length: 20 }).map((_, i) => {
-              // Altura masiva
               const height = 30 + Math.abs(Math.sin(i * 0.45) * 65 + Math.cos(i * 1.1) * 20);
               const isPlayed = i < 7; // Progreso (~35%)
               return (
@@ -572,7 +572,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
         </div>
 
         {/* Barra de Volumen Horizontal (Minimalista) */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 -ml-[12.5%] w-[550px] z-20">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[550px] z-20">
           <div className="flex items-center w-full bg-[#111111]/80 backdrop-blur-2xl px-6 py-4 rounded-full shadow-2xl">
             <div className="w-8 shrink-0 flex justify-center text-white/50 transition-colors duration-300">
               {volume === 0 ? <VolumeX className="w-5 h-5" /> : volume < 50 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -596,14 +596,52 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             </span>
           </div>
         </div>
+      </div>
 
-        {/* Controles Laterales Derechos */}
-        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-10 z-20">
-          
-          {/* Botón de Letras */}
-          <button className="w-12 h-12 bg-white/5 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/10 transition-colors border border-white/10 group shadow-lg">
-            <BookOpen className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+      {/* Sidebar Derecho (Portada / Letra) */}
+      <div 
+        className="w-[30%] max-w-[450px] h-full relative z-10 flex flex-col"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 100%)'
+        }}
+      >
+        {/* Selector Portada / Letra */}
+        <div className="absolute top-12 left-0 right-0 flex justify-center gap-12 z-20">
+          <button 
+            onClick={() => setRightPanel('cover')}
+            className={`uppercase tracking-widest text-xs font-bold transition-all duration-300 ${rightPanel === 'cover' ? 'text-white' : 'text-white/30 hover:text-white/60'}`}
+          >
+            Portada
           </button>
+          <button 
+            onClick={() => setRightPanel('lyrics')}
+            className={`uppercase tracking-widest text-xs font-bold transition-all duration-300 ${rightPanel === 'lyrics' ? 'text-white' : 'text-white/30 hover:text-white/60'}`}
+          >
+            Letra
+          </button>
+        </div>
+
+        {/* Contenido */}
+        <div className="flex-1 w-full h-full relative">
+          {rightPanel === 'cover' ? (
+            <img 
+              src="/mj.png" 
+              alt="Cover" 
+              className="w-full h-full object-cover object-center opacity-80"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-black/20 p-12 overflow-y-auto">
+              <p className="text-white/50 text-xl leading-[2.5] text-center font-medium">
+                (Letra sincronizada aquí)
+                <br /><br />
+                She was more like a beauty queen<br />
+                From a movie scene<br />
+                I said don't mind, but what do you mean<br />
+                I am the one...
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
