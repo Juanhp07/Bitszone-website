@@ -121,6 +121,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         album={nowPlayingAlbum}
         isPlaying={isPlaying}
         togglePlay={togglePlay}
+        onPlayTrack={handlePlayTrack}
         volume={volume}
         setVolume={setVolume}
         progress={progress}
