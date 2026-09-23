@@ -79,10 +79,10 @@ export const AlbumView = ({
            ) : (
              album.tracks?.map((track) => {
                const isThisTrackPlaying = nowPlayingTrackId === track.id;
-               const durationSecs = Math.floor(track.duration / 1000);
+               const durationSecs = track.duration ? Math.floor(track.duration / 1000) : 0;
                const mins = Math.floor(durationSecs / 60);
                const secs = durationSecs % 60;
-               const formattedDuration = `${mins}:${secs.toString().padStart(2, '0')}`;
+               const formattedDuration = track.duration ? `${mins}:${secs.toString().padStart(2, '0')}` : "--:--";
 
                return (
                  <div 
