@@ -1,72 +1,72 @@
 import { useState, useEffect } from 'react';
 import type { Album, Track } from './types';
+import { createClient } from '@supabase/supabase-js';
 
-const ARTISTS = ['Michael Jackson', 'Daft Punk', 'The Weeknd', 'Dua Lipa', 'Tame Impala'];
-
-export const useCatalog = () => {
+export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Usar el cliente de Supabase solo si tenemos las credenciales
+  const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+
   useEffect(() => {
     const fetchCatalog = async () => {
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
+      
       try {
-        const fetchedAlbums: Album[] = [];
-        for (const artist of ARTISTS) {
-          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=album&limit=1`);
-          const data = await res.json();
-          if (data.results && data.results.length > 0) {
-            const result = data.results[0];
-            fetchedAlbums.push({
-              id: result.collectionId,
-              title: result.collectionName,
-              artist: result.artistName,
-              coverUrl: result.artworkUrl100.replace('100x100bb', '600x600bb'),
-              year: result.releaseDate ? result.releaseDate.substring(0, 4) : 'Unknown',
-              genre: result.primaryGenreName,
-              trackCount: result.trackCount,
+        // Agrupar todas las canciones por álbum desde la base de datos
+        const { data: tracks, error } = await supabase.from('tracks').select('*').order('track_number', { ascending: true });
+        
+        if (error) throw error;
+        if (!tracks) return;
+
+        // Convertir la lista plana de tracks a una lista de álbumes únicos
+        const albumsMap = new Map<string, Album>();
+        
+        tracks.forEach(t => {
+          const albumKey = t.album;
+          if (!albumsMap.has(albumKey)) {
+            albumsMap.set(albumKey, {
+              id: albumKey, // Usamos el nombre del álbum como ID temporal
+              title: t.album,
+              artist: t.artist,
+              coverUrl: t.image_url,
+              year: '1982', // Hardcodeado por ahora para Thriller, o sacar de DB
+              genre: 'Pop/Rock',
+              trackCount: 0, // Lo calculamos luego
+              tracks: []
             });
           }
-        }
-        setAlbums(fetchedAlbums);
+          
+          const album = albumsMap.get(albumKey)!;
+          album.tracks!.push({
+            id: t.id,
+            title: t.title,
+            artist: t.artist,
+            duration: t.duration,
+            previewUrl: t.audio_url,
+            trackNumber: t.track_number,
+          });
+          album.trackCount = album.tracks!.length;
+        });
+
+        setAlbums(Array.from(albumsMap.values()));
       } catch (error) {
-        console.error("Error fetching catalog", error);
+        console.error("Error fetching catalog from Supabase", error);
       } finally {
         setLoading(false);
       }
     };
     fetchCatalog();
-  }, []);
+  }, [supabaseUrl, supabaseAnonKey]); // re-run if credentials change
 
-  const fetchAlbumDetails = async (albumId: number): Promise<Album | null> => {
-    try {
-      const res = await fetch(`https://itunes.apple.com/lookup?id=${albumId}&entity=song`);
-      const data = await res.json();
-      if (data.results && data.results.length > 0) {
-        const albumData = data.results.find((r: any) => r.wrapperType === 'collection');
-        const tracksData = data.results.filter((r: any) => r.wrapperType === 'track');
-        
-        return {
-          id: albumData.collectionId,
-          title: albumData.collectionName,
-          artist: albumData.artistName,
-          coverUrl: albumData.artworkUrl100.replace('100x100bb', '600x600bb'),
-          year: albumData.releaseDate ? albumData.releaseDate.substring(0, 4) : 'Unknown',
-          genre: albumData.primaryGenreName,
-          trackCount: albumData.trackCount,
-          tracks: tracksData.map((t: any) => ({
-            id: t.trackId,
-            title: t.trackName,
-            artist: t.artistName,
-            duration: t.trackTimeMillis,
-            previewUrl: t.previewUrl,
-            trackNumber: t.trackNumber,
-          })),
-        };
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return null;
+  const fetchAlbumDetails = async (albumId: string | number): Promise<Album | null> => {
+    // Como ya cargamos todas las canciones de golpe en el fetchCatalog, 
+    // simplemente devolvemos el álbum que ya tenemos en memoria.
+    return albums.find(a => a.id === albumId) || null;
   };
 
   return { albums, loading, fetchAlbumDetails };

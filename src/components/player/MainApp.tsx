@@ -12,7 +12,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads'>('catalog');
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   
-  const { albums, loading, fetchAlbumDetails } = useCatalog();
+  const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
   
