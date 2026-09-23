@@ -23,12 +23,6 @@ export const TopNav = ({ currentView, onViewChange }: { currentView: string, onV
           Inicio
         </button>
         <button 
-          onClick={() => onViewChange('catalog')}
-          className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all ${currentView === 'catalog' ? 'bg-white/10 text-white shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
-        >
-          Explorar Catálogo
-        </button>
-        <button 
           onClick={() => onViewChange('downloads')}
           className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all ${currentView === 'downloads' ? 'bg-[#a855f7] text-white shadow-lg shadow-purple-500/20' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
         >

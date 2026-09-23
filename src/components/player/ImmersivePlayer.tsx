@@ -1,3 +1,4 @@
+import type { Album, Track } from "./types";
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Volume2, Volume1, VolumeX, BookOpen, Play, Pause, SkipBack, SkipForward } from 'lucide-react';
@@ -395,40 +396,32 @@ const OptionWheel: React.FC<OptionWheelProps> = ({
 import SloshGauge from '../ui/SloshGauge';
 
 export const ImmersivePlayer = ({ 
-  supabaseUrl, 
-  supabaseAnonKey,
+  isExpanded,
   onClose,
-  isExpanded
+  track,
+  album,
+  isPlaying,
+  togglePlay,
+  volume,
+  setVolume,
+  progress
 }: { 
-  supabaseUrl?: string, 
-  supabaseAnonKey?: string,
+  isExpanded: boolean,
   onClose: () => void,
-  isExpanded: boolean
+  track: Track | null,
+  album: Album | null,
+  isPlaying: boolean,
+  togglePlay: () => void,
+  volume: number,
+  setVolume: (v: number) => void,
+  progress: number
 }) => {
-  const [tracks, setTracks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(70);
   const [rightPanel, setRightPanel] = useState<'cover' | 'lyrics'>('cover');
   const logoRef = useRef<HTMLHeadingElement>(null);
 
-  // Fetch from Supabase
+  if (!track || !album) return null;
 
-  useEffect(() => {
-    const fetchTracks = async () => {
-      if (!supabaseUrl || !supabaseAnonKey) {
-        setLoading(false);
-        return;
-      }
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      const { data, error } = await supabase.from('tracks').select('*').order('id', { ascending: true });
-      if (data && data.length > 0) {
-        setTracks(data);
-      }
-      setLoading(false);
-    };
-    fetchTracks();
-  }, [supabaseUrl, supabaseAnonKey]);
+  const tracks = album.tracks || [];
 
   // Extraer artistas únicos de la base de datos
   const dbArtists = Array.from(new Set(tracks.map(t => t.artist)));
@@ -551,7 +544,7 @@ export const ImmersivePlayer = ({
           >
             {Array.from({ length: 20 }).map((_, i) => {
               const height = 30 + Math.abs(Math.sin(i * 0.45) * 65 + Math.cos(i * 1.1) * 20);
-              const isPlayed = i < 7; // Progreso (~35%)
+              const isPlayed = i < (progress * 20);
               return (
                 <div 
                   key={i} 
@@ -576,7 +569,7 @@ export const ImmersivePlayer = ({
             </button>
             
             <button 
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={togglePlay}
               className="w-32 h-32 bg-white/[0.05] rounded-full flex items-center justify-center hover:scale-105 hover:bg-white/[0.08] transition-all shadow-2xl"
               style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
             >
@@ -673,7 +666,7 @@ export const ImmersivePlayer = ({
               }}
             >
               <img 
-                src="/mj.png" 
+                src={album.coverUrl} 
                 alt="Cover" 
                 className="w-full h-full object-cover object-center opacity-40 scale-110 group-hover:scale-100 group-hover:opacity-90 transition-all duration-[800ms] ease-out"
               />
@@ -681,10 +674,10 @@ export const ImmersivePlayer = ({
               {/* Gradiente inferior para legibilidad */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[800ms] ease-out" />
               
-              {/* Texto THRILLER Animado (Con compensación óptica hacia la derecha: pl-12) */}
+              {/* Texto Animado (Con compensación óptica hacia la derecha: pl-12) */}
               <div className="absolute inset-x-0 bottom-24 flex justify-center pl-12 translate-y-16 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] z-10 pointer-events-none">
-                <h3 className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 text-3xl font-black tracking-[0.4em] uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] ml-[0.4em]">
-                  Thriller
+                <h3 className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 text-3xl font-black tracking-[0.4em] uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] ml-[0.4em] text-center max-w-[80%] line-clamp-2 leading-tight">
+                  {album.title}
                 </h3>
               </div>
             </div>
