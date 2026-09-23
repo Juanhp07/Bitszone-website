@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Shuffle, Repeat } from 'lucide-react';
 import type { Album, Track } from './types';
 
 export const MiniPlayer = ({ 
@@ -31,61 +31,66 @@ export const MiniPlayer = ({
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[1200px] z-40">
-      <div 
-        onClick={onExpand}
-        className="flex items-center justify-between w-full bg-[#111111]/90 backdrop-blur-3xl px-6 py-4 rounded-3xl border border-white/5 shadow-2xl cursor-pointer hover:bg-[#1a1a1a]/90 transition-colors group"
-      >
-        {/* Left: Now Playing Info */}
-        <div className="flex items-center gap-4 w-[30%]">
-          <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/10 shadow-lg relative group-hover:shadow-purple-500/20 transition-all">
-            <img src={album.coverUrl} alt="Cover" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
-          </div>
-          <div className="flex flex-col">
-            <h4 className="text-white font-medium text-sm line-clamp-1">{track.title}</h4>
-            <span className="text-white/50 text-xs mt-0.5 line-clamp-1">{track.artist}</span>
+    <div className="w-full h-[90px] bg-[#111111] border-t border-white/10 shrink-0 flex items-center justify-between px-6 z-40">
+      
+      {/* Left: Now Playing Info */}
+      <div className="flex items-center gap-4 w-[30%] min-w-[200px]">
+        <div 
+          onClick={onExpand}
+          className="w-14 h-14 rounded-md overflow-hidden bg-white/10 cursor-pointer relative group"
+        >
+          <img src={album.coverUrl} alt="Cover" className="w-full h-full object-cover group-hover:opacity-50 transition-opacity" />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
           </div>
         </div>
-
-        {/* Center: Playback Controls */}
-        <div className="flex flex-col items-center gap-2 flex-1">
-          <div className="flex items-center gap-6">
-            <button className="text-white/40 hover:text-white transition-colors" onClick={(e) => { e.stopPropagation(); }}>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 3h5v5"></path><path d="M4 20L21 3"></path><path d="M21 16v5h-5"></path><path d="M15 15l6 6"></path><path d="M4 4l5 5"></path></svg>
-            </button>
-            <button className="text-white/70 hover:text-white transition-colors" onClick={(e) => { e.stopPropagation(); }}>
-              <SkipBack className="w-5 h-5" fill="currentColor" />
-            </button>
-            <button 
-              className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors" 
-              onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-            >
-              {isPlaying ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5 ml-1" fill="currentColor" />}
-            </button>
-            <button className="text-white/70 hover:text-white transition-colors" onClick={(e) => { e.stopPropagation(); }}>
-              <SkipForward className="w-5 h-5" fill="currentColor" />
-            </button>
-            <button className="text-white/40 hover:text-white transition-colors" onClick={(e) => { e.stopPropagation(); }}>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-            </button>
-          </div>
-          
-          <div className="flex items-center gap-3 w-full max-w-[400px]">
-            <span className="text-[10px] font-medium text-white/40 tabular-nums">{formatTime(currentSecs)}</span>
-            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-[#a855f7] rounded-full shadow-[0_0_10px_#a855f7]" style={{ width: `${progress * 100}%` }}></div>
-            </div>
-            <span className="text-[10px] font-medium text-white/40 tabular-nums">{formatTime(durationSecs)}</span>
-          </div>
+        <div className="flex flex-col cursor-pointer" onClick={onExpand}>
+          <h4 className="text-white font-medium text-sm line-clamp-1 hover:underline">{track.title}</h4>
+          <span className="text-white/50 text-xs mt-0.5 line-clamp-1 hover:underline">{track.artist}</span>
         </div>
+      </div>
 
-        {/* Right: Volume & Extra */}
-        <div className="flex items-center justify-end gap-4 w-[30%]">
-          <Volume2 className="w-4 h-4 text-white/50" />
-          <div className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full bg-white/50 rounded-full" style={{ width: `${volume}%` }}></div>
+      {/* Center: Playback Controls */}
+      <div className="flex flex-col items-center gap-2 flex-1 max-w-[600px]">
+        <div className="flex items-center gap-6">
+          <button className="text-white/40 hover:text-white transition-colors">
+            <Shuffle className="w-4 h-4" />
+          </button>
+          <button className="text-white/70 hover:text-white transition-colors">
+            <SkipBack className="w-5 h-5" fill="currentColor" />
+          </button>
+          <button 
+            className="w-8 h-8 bg-white hover:scale-105 rounded-full flex items-center justify-center text-black transition-transform" 
+            onClick={togglePlay}
+          >
+            {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-1" fill="currentColor" />}
+          </button>
+          <button className="text-white/70 hover:text-white transition-colors">
+            <SkipForward className="w-5 h-5" fill="currentColor" />
+          </button>
+          <button className="text-white/40 hover:text-white transition-colors">
+            <Repeat className="w-4 h-4" />
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-3 w-full">
+          <span className="text-[11px] font-medium text-white/50 tabular-nums w-10 text-right">{formatTime(currentSecs)}</span>
+          <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden group cursor-pointer relative">
+            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="h-full bg-white rounded-full group-hover:bg-[#a855f7] transition-colors" style={{ width: `${progress * 100}%` }}></div>
           </div>
+          <span className="text-[11px] font-medium text-white/50 tabular-nums w-10">{formatTime(durationSecs)}</span>
+        </div>
+      </div>
+
+      {/* Right: Volume & Extra */}
+      <div className="flex items-center justify-end gap-4 w-[30%] min-w-[200px]">
+        <button className="text-white/50 hover:text-white transition-colors">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+        <Volume2 className="w-4 h-4 text-white/50" />
+        <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden group cursor-pointer">
+          <div className="h-full bg-white group-hover:bg-[#a855f7] transition-colors" style={{ width: `${volume}%` }}></div>
         </div>
       </div>
     </div>

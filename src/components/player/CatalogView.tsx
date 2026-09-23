@@ -1,79 +1,123 @@
 import React from 'react';
-import type { Album } from './types';
+import type { Album, Track } from './types';
+import { Play } from 'lucide-react';
 
-export const CatalogView = ({ albums, loading, onSelectAlbum }: { albums: Album[], loading: boolean, onSelectAlbum: (album: Album) => void }) => {
+const DUMMY_ARTISTS = [
+  { name: 'Bad Bunny', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5eb9e3cea9186701bb176c8cb81' },
+  { name: 'KAROL G', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5eb8a18357a70a8d6e32bc01fc6' },
+  { name: 'Rauw Alejandro', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5eb3b381ec5774a2bd01a6b0c25' },
+  { name: 'J Balvin', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5eba4e03004fb0fbbba1116c278' },
+  { name: 'Maluma', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5ebbcc0ec12b3cb315c10af14c4' },
+  { name: 'Feid', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5ebc1b016d933e1ef6a6352fcbc' },
+  { name: 'Danny Ocean', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5ebdc98939b8bc14f6b216ab42b' },
+];
+
+export const CatalogView = ({ 
+  albums, 
+  loading, 
+  onSelectAlbum,
+  onPlayTrack
+}: { 
+  albums: Album[], 
+  loading: boolean, 
+  onSelectAlbum: (album: Album) => void,
+  onPlayTrack: (track: Track, album: Album) => void
+}) => {
+  // Sacamos todas las canciones del único álbum que tenemos para la sección "Canciones del momento"
+  const allTracks = albums.flatMap(a => a.tracks?.map(t => ({ track: t, album: a })) || []);
+  const displayTracks = allTracks.slice(0, 8); // Mostrar algunas
+
   return (
-    <div className="w-full h-full pt-32 px-12 overflow-y-auto pb-40 relative z-10">
-      <div className="max-w-[1400px] mx-auto">
-        
-        <header className="mb-12">
-          <p className="text-[#a855f7] text-xs font-bold tracking-widest uppercase mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#a855f7]"></span> DIRECTORIO SONORA V4.8 • STREAM & VAULT
-          </p>
-          <h2 className="text-5xl font-black text-white tracking-tight mb-4">EXPLORA TU UNIVERSO SONORO</h2>
-          <p className="text-white/60 text-lg max-w-2xl leading-relaxed">
-            Descubre álbumes esenciales y guarda tu música favorita para escuchar sin límites, con o sin conexión en calidad máster autenticada.
-          </p>
-        </header>
-
-        {/* Filters */}
-        <div className="flex items-center gap-3 mb-12 overflow-x-auto pb-4">
-          <button className="px-5 py-2 rounded-full bg-[#a855f7]/20 text-[#a855f7] border border-[#a855f7]/30 text-sm font-semibold flex items-center gap-2 shrink-0">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg> Para ti
-          </button>
-          <button className="px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-white/80 border border-white/5 text-sm font-medium shrink-0 transition-colors">
-            Tendencias
-          </button>
-          <button className="px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-white/80 border border-white/5 text-sm font-medium shrink-0 transition-colors">
-            Rock & Alternativo
-          </button>
-          <button className="px-5 py-2 rounded-full bg-white/5 hover:bg-white/10 text-white/80 border border-white/5 text-sm font-medium shrink-0 transition-colors">
-            Electrónica
-          </button>
+    <div className="w-full h-full px-8 py-8 pb-32 relative z-10">
+      
+      {/* Canciones del momento */}
+      <section className="mb-12">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-white tracking-tight">Canciones del momento</h2>
+          <button className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
         </div>
 
-        {/* Álbumes Destacados */}
-        <section className="mb-16">
-          <h3 className="text-xs text-white/40 font-bold uppercase tracking-widest mb-2">SELECCIÓN CURADA</h3>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-white font-serif italic">Álbumes Destacados</h2>
-          </div>
+        <div className="flex gap-6 overflow-x-auto pb-6 -mx-8 px-8 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+          {loading ? (
+            [1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="min-w-[180px] w-[180px]">
+                <div className="w-full aspect-square bg-white/5 rounded-md mb-4 animate-pulse"></div>
+                <div className="h-4 bg-white/5 rounded-full w-3/4 mb-2 animate-pulse"></div>
+                <div className="h-3 bg-white/5 rounded-full w-1/2 animate-pulse"></div>
+              </div>
+            ))
+          ) : (
+            displayTracks.map((item, idx) => (
+              <div 
+                key={idx} 
+                className="min-w-[180px] w-[180px] group cursor-pointer"
+                onClick={() => onPlayTrack(item.track, item.album)}
+              >
+                <div className="w-full aspect-square mb-4 relative rounded-md overflow-hidden bg-white/5 shadow-lg">
+                  <img src={item.album.coverUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Cover" />
+                  
+                  {/* Play Button Hover */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button className="w-12 h-12 rounded-full bg-[#a855f7] text-white flex items-center justify-center shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all">
+                      <Play className="w-6 h-6 ml-1" fill="currentColor" />
+                    </button>
+                  </div>
+                </div>
+                <h3 className="text-white font-medium text-sm mb-1 truncate">{item.track.title}</h3>
+                <p className="text-white/50 text-xs truncate">{item.track.artist}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {loading ? (
-              [1, 2, 3, 4].map((i) => (
-                <div key={i} className="group cursor-pointer">
-                  <div className="aspect-square bg-white/5 rounded-2xl mb-4 border border-white/5 animate-pulse"></div>
-                  <div className="h-5 w-3/4 bg-white/10 rounded mb-2 animate-pulse"></div>
-                  <div className="h-4 w-1/2 bg-white/5 rounded animate-pulse"></div>
+      {/* Artistas Populares */}
+      <section className="mb-12">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-white tracking-tight">Artistas populares</h2>
+          <button className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+        </div>
+
+        <div className="flex gap-6 overflow-x-auto pb-6 -mx-8 px-8 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+          {DUMMY_ARTISTS.map((artist, idx) => (
+            <div key={idx} className="min-w-[180px] w-[180px] group cursor-pointer flex flex-col items-center text-center">
+              <div className="w-full aspect-square mb-4 relative rounded-full overflow-hidden shadow-xl bg-white/5">
+                <img src={artist.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={artist.name} />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button className="w-12 h-12 rounded-full bg-[#a855f7] text-white flex items-center justify-center shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all">
+                    <Play className="w-6 h-6 ml-1" fill="currentColor" />
+                  </button>
                 </div>
-              ))
-            ) : (
-              albums.map((album) => (
-                <div 
-                  key={album.id}
-                  onClick={() => onSelectAlbum(album)}
-                  className="group cursor-pointer"
-                >
-                  <div className="aspect-square bg-[#0a0a10] rounded-2xl mb-4 overflow-hidden relative border border-white/5">
-                    <img src={album.coverUrl} alt="Cover" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
-                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] text-white/80 font-medium flex items-center gap-1.5 border border-white/10">
-                      <svg className="w-3 h-3 text-[#a855f7]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                      {album.genre}
-                    </div>
-                  </div>
-                  <h4 className="text-white font-bold text-lg mb-1">{album.title}</h4>
-                  <p className="text-white/50 text-sm mb-2">{album.artist}</p>
-                  <div className="flex items-center justify-between text-xs text-white/30 font-medium">
-                    <span>{album.year}</span>
-                    <span>{album.trackCount} Pistas</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-      </div>
+              </div>
+              <h3 className="text-white font-medium text-sm mb-1 truncate w-full">{artist.name}</h3>
+              <p className="text-white/50 text-xs truncate w-full">{artist.role}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Álbumes (Para poder entrar al AlbumView) */}
+      <section className="mb-12">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-white tracking-tight">Álbumes destacados</h2>
+        </div>
+        <div className="flex gap-6 overflow-x-auto pb-6 -mx-8 px-8 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+          {albums.map((album, idx) => (
+            <div 
+              key={idx} 
+              className="min-w-[180px] w-[180px] group cursor-pointer"
+              onClick={() => onSelectAlbum(album)}
+            >
+              <div className="w-full aspect-square mb-4 relative rounded-md overflow-hidden bg-white/5 shadow-lg">
+                <img src={album.coverUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Cover" />
+              </div>
+              <h3 className="text-white font-medium text-sm mb-1 truncate">{album.title}</h3>
+              <p className="text-white/50 text-xs truncate">{album.artist}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { TopNav } from './TopNav';
+import { Sidebar } from './Sidebar';
 import { MiniPlayer } from './MiniPlayer';
 import { CatalogView } from './CatalogView';
 import { AlbumView } from './AlbumView';
@@ -75,31 +76,40 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   };
 
   return (
-    <div className="w-full h-screen bg-[#05050A] text-white font-sans overflow-hidden relative">
+    <div className="w-full h-screen bg-[#05050A] text-white font-sans overflow-hidden flex flex-col relative">
       <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none"></div>
 
       <TopNav currentView={currentView} onViewChange={setCurrentView} />
 
-      <div className="w-full h-full relative z-10">
-        {currentView === 'catalog' && (
-          <CatalogView 
-            albums={albums} 
-            loading={loading} 
-            onSelectAlbum={handleSelectAlbum} 
-          />
-        )}
-        {currentView === 'album' && (
-          <AlbumView 
-            album={selectedAlbumFull || selectedAlbum} 
-            loading={!selectedAlbumFull}
-            onViewChange={setCurrentView}
-            onPlayTrack={handlePlayTrack}
-            nowPlayingTrackId={nowPlayingTrack?.id}
-            isPlaying={isPlaying}
-            togglePlay={togglePlay}
-          />
-        )}
-        {currentView === 'downloads' && <DownloadsView />}
+      <div className="flex-1 flex overflow-hidden relative z-10">
+        <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+
+        <main className="flex-1 h-full overflow-y-auto bg-gradient-to-b from-[#1a1a24] to-[#0a0a0f] rounded-tl-xl border-l border-t border-white/5 relative">
+          <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/20 to-transparent pointer-events-none"></div>
+          
+          <div className="relative z-10 h-full">
+            {currentView === 'catalog' && (
+              <CatalogView 
+                albums={albums} 
+                loading={loading} 
+                onSelectAlbum={handleSelectAlbum} 
+                onPlayTrack={handlePlayTrack}
+              />
+            )}
+            {currentView === 'album' && (
+              <AlbumView 
+                album={selectedAlbumFull || selectedAlbum} 
+                loading={!selectedAlbumFull}
+                onViewChange={setCurrentView}
+                onPlayTrack={handlePlayTrack}
+                nowPlayingTrackId={nowPlayingTrack?.id}
+                isPlaying={isPlaying}
+                togglePlay={togglePlay}
+              />
+            )}
+            {currentView === 'downloads' && <DownloadsView />}
+          </div>
+        </main>
       </div>
 
       {nowPlayingTrack && nowPlayingAlbum && (

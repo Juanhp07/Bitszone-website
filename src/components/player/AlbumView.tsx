@@ -22,7 +22,7 @@ export const AlbumView = ({
   if (!album) return null;
 
   return (
-    <div className="w-full h-full pt-32 px-12 overflow-y-auto pb-40 relative z-10 flex gap-12">
+    <div className="w-full h-full px-8 py-8 pb-32 relative z-10 flex gap-12">
       <div className="w-[30%] max-w-[400px] shrink-0">
         <button onClick={() => onViewChange('catalog')} className="text-white/50 hover:text-white flex items-center gap-2 text-sm font-medium mb-8 transition-colors">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>
