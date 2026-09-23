@@ -418,6 +418,7 @@ export const ImmersivePlayer = ({
 }) => {
   const [rightPanel, setRightPanel] = useState<'cover' | 'lyrics'>('cover');
   const logoRef = useRef<HTMLHeadingElement>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (!track || !album) return null;
 
