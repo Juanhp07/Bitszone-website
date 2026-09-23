@@ -485,7 +485,7 @@ export const ImmersivePlayer = ({
 
       {/* Fondo circular desenfocado con origen en el borde izquierdo */}
       <div 
-        className={`absolute top-1/2 left-[-600px] w-[1200px] h-[1200px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none z-0 ${loading ? 'loading-glow' : 'loaded-glow'}`}
+        className="absolute top-1/2 left-[-600px] w-[1200px] h-[1200px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none z-0 loaded-glow"
       />
 
       {/* Rueda de Opciones (Sidebar Izquierdo) */}
@@ -506,13 +506,8 @@ export const ImmersivePlayer = ({
           BITSZONE
         </h1>
 
-        {loading ? (
-          <div className="h-full w-full flex flex-col justify-center px-12">
-            {/* Vacio durante la carga */}
-          </div>
-        ) : (
-          <OptionWheel 
-            items={displayArtists} 
+        <OptionWheel 
+          items={displayArtists} 
             textColor="#ffffff"
             activeColor="#9333ea"
             fontSize={3.2}
@@ -525,7 +520,6 @@ export const ImmersivePlayer = ({
             smoothing={20}
             logoRef={logoRef}
           />
-        )}
       </div>
 
       {/* Contenido Principal (Centro) */}
