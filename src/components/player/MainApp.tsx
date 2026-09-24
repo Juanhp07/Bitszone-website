@@ -97,39 +97,45 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         {/* Floating Main Content (Body) */}
         <div className="flex-1 relative flex flex-col min-w-0 bg-white/[0.02] backdrop-blur-3xl rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
           
-          <main className="flex-1 h-full overflow-y-auto relative z-0 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-            <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none"></div>
+          <div className="flex-1 relative flex flex-col min-h-0">
+            {/* Top gradient inside main content */}
+            <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none z-0"></div>
             
-            <div className="relative z-10 h-full pb-32">
-              {currentView === 'catalog' && (
-                <CatalogView 
-                  albums={albums} 
-                  loading={loading} 
-                  onSelectAlbum={handleSelectAlbum} 
-                  onPlayTrack={handlePlayTrack}
-                />
-              )}
-              {currentView === 'album' && (
-                <AlbumView 
-                  album={selectedAlbumFull || selectedAlbum} 
-                  loading={!selectedAlbumFull}
-                  onViewChange={setCurrentView}
-                  onPlayTrack={handlePlayTrack}
-                  nowPlayingTrackId={nowPlayingTrack?.id}
-                  isPlaying={isPlaying}
-                  togglePlay={togglePlay}
-                />
-              )}
-              {currentView === 'downloads' && <DownloadsView />}
-            </div>
-          </main>
+            <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+              <div className="pb-12 h-full">
+                {currentView === 'catalog' && (
+                  <CatalogView 
+                    albums={albums} 
+                    loading={loading} 
+                    onSelectAlbum={handleSelectAlbum} 
+                    onPlayTrack={handlePlayTrack}
+                  />
+                )}
+                {currentView === 'album' && (
+                  <AlbumView 
+                    album={selectedAlbumFull || selectedAlbum} 
+                    loading={!selectedAlbumFull}
+                    onViewChange={setCurrentView}
+                    onPlayTrack={handlePlayTrack}
+                    nowPlayingTrackId={nowPlayingTrack?.id}
+                    isPlaying={isPlaying}
+                    togglePlay={togglePlay}
+                  />
+                )}
+                {currentView === 'downloads' && <DownloadsView />}
+              </div>
+            </main>
 
-          {/* Fade-out gradient exactly the height of the player (90px) + some buffer */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+            {/* Fade-out gradients applied to the scrollable area bounds */}
+            {/* Bottom gradient */}
+            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+            {/* Right side gradient */}
+            <div className="absolute top-0 right-0 bottom-0 w-24 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+          </div>
 
-          {/* Fusionado Player at the bottom of the body */}
+          {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
           {nowPlayingTrack && nowPlayingAlbum && (
-            <div className="absolute bottom-0 left-0 right-0 z-30">
+            <div className="shrink-0 z-30">
               <MiniPlayer 
                 track={nowPlayingTrack}
                 album={nowPlayingAlbum}
