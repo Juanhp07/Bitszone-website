@@ -28,7 +28,7 @@ export const CatalogView = ({
   const displayTracks = allTracks.slice(0, 8); // Mostrar algunas
 
   return (
-    <div className="w-full h-full px-8 py-8 pb-32 relative z-10">
+    <div className="w-full h-full px-10 py-10 pb-40 relative z-10">
       
       {/* Canciones del momento */}
       <section className="mb-12">

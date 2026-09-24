@@ -1,0 +1,25 @@
+--- src/components/player/MainApp.tsx
++++ src/components/player/MainApp.tsx
+@@ -102,9 +102,9 @@
+ 
+             {/* Fade-out gradients applied to the scrollable area bounds */}
+             {/* Bottom gradient */}
+-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
++            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+             {/* Right side gradient */}
+-            <div className="absolute top-0 right-0 bottom-0 w-24 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
++            <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+           </div>
+ 
+           {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
+--- src/components/player/CatalogView.tsx
++++ src/components/player/CatalogView.tsx
+@@ -28,7 +28,7 @@
+   const displayTracks = allTracks.slice(0, 8); // Mostrar algunas
+ 
+   return (
+-    <div className="w-full h-full px-8 py-8 pb-32 relative z-10">
++    <div className="w-full h-full px-10 py-10 pb-40 relative z-10">
+       
+       {/* Canciones del momento */}
+       <section className="mb-12">
