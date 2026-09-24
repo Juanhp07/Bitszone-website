@@ -2,24 +2,24 @@ import React from 'react';
 
 export const Sidebar = ({ currentView, onViewChange }: { currentView: string, onViewChange: (view: any) => void }) => {
   return (
-    <aside className="w-64 h-full flex flex-col bg-black/20 backdrop-blur-3xl shrink-0 z-10">
+    <aside className="w-full h-full flex flex-col bg-white/[0.02] backdrop-blur-3xl border border-white/5">
       <div className="flex-1 px-4 py-6 flex flex-col gap-2">
         <button 
           onClick={() => onViewChange('catalog')}
-          className={`flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors ${
+          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${
             currentView === 'catalog' ? 'text-white bg-white/10 shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >
           Inicio
         </button>
         <button 
-          className="flex items-center gap-4 px-4 py-3 rounded-lg font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+          className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors"
         >
           Biblioteca
         </button>
         <button 
           onClick={() => onViewChange('downloads')}
-          className={`flex items-center gap-4 px-4 py-3 rounded-lg font-medium transition-colors ${
+          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${
             currentView === 'downloads' ? 'text-white bg-white/10 shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >
