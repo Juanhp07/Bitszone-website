@@ -77,52 +77,65 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   return (
     <div className="w-full h-screen bg-[#05050A] text-white font-sans overflow-hidden flex flex-col relative">
-      <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none"></div>
+      {/* Background Orbs to make Glassmorphism visible on Sidebar/Header */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#a855f7]/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none z-0"></div>
 
-      <TopNav currentView={currentView} onViewChange={setCurrentView} />
+      {/* TopNav is now completely Z-20 so it sits above content */}
+      <div className="relative z-20 shrink-0">
+        <TopNav currentView={currentView} onViewChange={setCurrentView} />
+      </div>
 
       <div className="flex-1 flex overflow-hidden relative z-10">
         <Sidebar currentView={currentView} onViewChange={setCurrentView} />
 
-        <main className="flex-1 h-full overflow-y-auto bg-gradient-to-b from-[#1a1a24] to-[#0a0a0f] rounded-tl-xl border-l border-t border-white/5 relative">
-          <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/20 to-transparent pointer-events-none"></div>
-          
-          <div className="relative z-10 h-full">
-            {currentView === 'catalog' && (
-              <CatalogView 
-                albums={albums} 
-                loading={loading} 
-                onSelectAlbum={handleSelectAlbum} 
-                onPlayTrack={handlePlayTrack}
-              />
-            )}
-            {currentView === 'album' && (
-              <AlbumView 
-                album={selectedAlbumFull || selectedAlbum} 
-                loading={!selectedAlbumFull}
-                onViewChange={setCurrentView}
-                onPlayTrack={handlePlayTrack}
-                nowPlayingTrackId={nowPlayingTrack?.id}
-                isPlaying={isPlaying}
-                togglePlay={togglePlay}
-              />
-            )}
-            {currentView === 'downloads' && <DownloadsView />}
-          </div>
-        </main>
-      </div>
+        {/* Contenedor derecho (Main content + Floating Player) */}
+        <div className="flex-1 relative flex flex-col min-w-0 bg-[#05050A]">
+          <main className="flex-1 h-full overflow-y-auto bg-gradient-to-b from-[#1a1a24] to-[#05050A] rounded-tl-2xl border-l border-t border-white/5 relative z-0">
+            <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none"></div>
+            
+            <div className="relative z-10 h-full pb-32">
+              {currentView === 'catalog' && (
+                <CatalogView 
+                  albums={albums} 
+                  loading={loading} 
+                  onSelectAlbum={handleSelectAlbum} 
+                  onPlayTrack={handlePlayTrack}
+                />
+              )}
+              {currentView === 'album' && (
+                <AlbumView 
+                  album={selectedAlbumFull || selectedAlbum} 
+                  loading={!selectedAlbumFull}
+                  onViewChange={setCurrentView}
+                  onPlayTrack={handlePlayTrack}
+                  nowPlayingTrackId={nowPlayingTrack?.id}
+                  isPlaying={isPlaying}
+                  togglePlay={togglePlay}
+                />
+              )}
+              {currentView === 'downloads' && <DownloadsView />}
+            </div>
+          </main>
 
-      {nowPlayingTrack && nowPlayingAlbum && (
-        <MiniPlayer 
-          track={nowPlayingTrack}
-          album={nowPlayingAlbum}
-          isPlaying={isPlaying}
-          togglePlay={togglePlay}
-          progress={progress}
-          volume={volume}
-          onExpand={() => setIsPlayerExpanded(true)} 
-        />
-      )}
+          {/* Reproductor Flotante, restringido al área derecha */}
+          {nowPlayingTrack && nowPlayingAlbum && (
+            <div className="absolute bottom-6 left-0 right-0 flex justify-center z-40 pointer-events-none">
+              <div className="w-[92%] max-w-[1200px] pointer-events-auto">
+                <MiniPlayer 
+                  track={nowPlayingTrack}
+                  album={nowPlayingAlbum}
+                  isPlaying={isPlaying}
+                  togglePlay={togglePlay}
+                  progress={progress}
+                  volume={volume}
+                  onExpand={() => setIsPlayerExpanded(true)} 
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       <ImmersivePlayer 
         isExpanded={isPlayerExpanded}

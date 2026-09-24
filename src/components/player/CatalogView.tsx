@@ -3,13 +3,13 @@ import type { Album, Track } from './types';
 import { Play } from 'lucide-react';
 
 const DUMMY_ARTISTS = [
-  { name: 'Bad Bunny', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5eb9e3cea9186701bb176c8cb81' },
-  { name: 'KAROL G', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5eb8a18357a70a8d6e32bc01fc6' },
-  { name: 'Rauw Alejandro', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5eb3b381ec5774a2bd01a6b0c25' },
-  { name: 'J Balvin', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5eba4e03004fb0fbbba1116c278' },
-  { name: 'Maluma', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5ebbcc0ec12b3cb315c10af14c4' },
-  { name: 'Feid', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5ebc1b016d933e1ef6a6352fcbc' },
-  { name: 'Danny Ocean', role: 'Artista', img: 'https://i.scdn.co/image/ab6761610000e5ebdc98939b8bc14f6b216ab42b' },
+  { name: 'Bad Bunny', role: 'Artista', img: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80' },
+  { name: 'KAROL G', role: 'Artista', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80' },
+  { name: 'Rauw Alejandro', role: 'Artista', img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80' },
+  { name: 'J Balvin', role: 'Artista', img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80' },
+  { name: 'Maluma', role: 'Artista', img: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=400&q=80' },
+  { name: 'Feid', role: 'Artista', img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80' },
+  { name: 'Danny Ocean', role: 'Artista', img: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&q=80' },
 ];
 
 export const CatalogView = ({ 
