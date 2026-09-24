@@ -1,36 +1,37 @@
 import React from 'react';
+import { Menu, Search } from 'lucide-react';
 
-export const TopNav = ({ currentView, onViewChange }: { currentView: string, onViewChange: (view: any) => void }) => {
+export const TopNav = ({ currentView, onViewChange, onToggleSidebar }: { currentView: string, onViewChange: (view: any) => void, onToggleSidebar: () => void }) => {
   return (
-    <nav className="w-full h-20 flex items-center justify-between px-8 bg-black">
-      {/* Left: Menu & Logo */}
+    <header className="h-20 w-full bg-black flex items-center justify-between px-8 relative z-20 shrink-0">
       <div className="flex items-center gap-6 w-[250px]">
-        <button className="text-white/70 hover:text-white transition-colors">
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
+        <button onClick={onToggleSidebar} className="text-white/70 hover:text-white transition-colors">
+          <Menu className="w-6 h-6" />
         </button>
-        <h1 className="text-xl font-bold tracking-[0.2em] text-white cursor-pointer" onClick={() => onViewChange('catalog')}>
-          BITSZONE
-        </h1>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+            <div className="w-4 h-4 bg-black rounded-sm"></div>
+          </div>
+          <span className="text-white font-bold text-xl tracking-widest">BITSZONE</span>
+        </div>
       </div>
 
-      {/* Center: Search */}
-      <div className="flex-1 flex justify-center max-w-2xl">
-        <div className="w-full max-w-md flex items-center bg-white/5 border border-white/10 rounded-full px-4 py-2 hover:bg-white/10 transition-colors focus-within:bg-white/10 focus-within:border-white/30">
-          <svg className="w-4 h-4 text-white/50 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <div className="flex-1 max-w-xl px-6">
+        <div className="relative group">
+          <Search className="w-4 h-4 text-white/40 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-white/70 transition-colors" />
           <input 
             type="text" 
             placeholder="Search" 
-            className="bg-transparent border-none outline-none text-sm text-white placeholder-white/40 w-full"
+            className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-sm text-white placeholder:text-white/40 focus:outline-none focus:bg-white/10 focus:border-white/20 transition-all"
           />
         </div>
       </div>
 
-      {/* Right: Acceder */}
-      <div className="w-[250px] flex justify-end">
-        <button className="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+      <div className="flex items-center justify-end gap-4 w-[250px]">
+        <button className="px-5 py-2 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors">
           Acceder
         </button>
       </div>
-    </nav>
+    </header>
   );
 };

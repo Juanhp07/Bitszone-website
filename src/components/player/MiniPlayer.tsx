@@ -31,7 +31,7 @@ export const MiniPlayer = ({
   };
 
   return (
-    <div className="w-full h-[90px] bg-black/80 backdrop-blur-3xl border-t border-white/10 shrink-0 flex items-center justify-between px-6 relative overflow-hidden group/player rounded-none">
+    <div className="w-full h-[90px] bg-transparent shrink-0 flex items-center justify-between px-6 relative overflow-hidden group/player rounded-none">
       {/* Decorative gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-transparent pointer-events-none opacity-50"></div>
       

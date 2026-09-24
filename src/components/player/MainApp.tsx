@@ -11,6 +11,7 @@ import type { Album, Track } from './types';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads'>('catalog');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
@@ -77,28 +78,40 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   return (
     <div className="w-full h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative">
-      {/* Background Orbs to make floating elements stand out */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#a855f7]/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-blue-600/15 rounded-full blur-[120px] pointer-events-none z-0"></div>
-      <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none z-0"></div>
-
       <div className="relative z-20 shrink-0">
-        <TopNav currentView={currentView} onViewChange={setCurrentView} />
+        <TopNav 
+          currentView={currentView} 
+          onViewChange={setCurrentView} 
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
       </div>
 
       {/* Main Container - Sidebar Flush, Body Floating */}
       <div className="flex-1 flex overflow-hidden relative z-10">
         
-        {/* Sidebar Flush Left */}
-        <div className="w-64 h-full shrink-0 relative z-10">
-          <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+        {/* Sidebar Flush Left with toggle transition */}
+        <div className={`h-full shrink-0 relative z-10 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
+          <div className="w-64 h-full">
+            <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+          </div>
         </div>
 
         {/* Floating Main Content (Body) wrapper - provides the gap */}
         <div className="flex-1 relative flex flex-col min-w-0 p-4 pl-4 pr-4 pb-4">
-          <div className="flex-1 relative flex flex-col min-w-0 bg-gradient-to-br from-white/[0.06] to-white/[0.01] backdrop-blur-[100px] rounded-2xl border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] overflow-hidden">
+          
+          {/* Main Body container that fully clips its background layers */}
+          <div className="flex-1 relative flex flex-col min-w-0 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] overflow-hidden">
             
-            <div className="flex-1 relative flex flex-col min-h-0">
+            {/* The colored orbs are now CONFINED inside this container so they don't bleed into the padding */}
+            <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[80%] bg-[#a855f7]/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-600/15 rounded-full blur-[120px] pointer-events-none z-0"></div>
+            
+            {/* The glass layer that blurs the confined orbs */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] to-white/[0.01] backdrop-blur-[100px] border border-white/[0.08] pointer-events-none z-0 rounded-2xl"></div>
+            <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none z-0"></div>
+
+            {/* Actual scrollable content on top of the glass */}
+            <div className="flex-1 relative flex flex-col min-h-0 z-10">
               {/* Top gradient inside main content */}
               <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none z-0"></div>
               
@@ -136,7 +149,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
             {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
             {nowPlayingTrack && nowPlayingAlbum && (
-              <div className="shrink-0 z-30 border-t border-white/5">
+              <div className="shrink-0 z-30 border-t border-white/5 bg-black/40 backdrop-blur-3xl">
                 <MiniPlayer 
                   track={nowPlayingTrack}
                   album={nowPlayingAlbum}

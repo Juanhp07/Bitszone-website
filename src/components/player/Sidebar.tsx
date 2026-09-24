@@ -1,4 +1,5 @@
 import React from 'react';
+import { Home, Library, DownloadCloud } from 'lucide-react';
 
 export const Sidebar = ({ currentView, onViewChange }: { currentView: string, onViewChange: (view: any) => void }) => {
   return (
@@ -10,11 +11,13 @@ export const Sidebar = ({ currentView, onViewChange }: { currentView: string, on
             currentView === 'catalog' ? 'text-white bg-white/10 shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >
+          <Home className="w-5 h-5" />
           Inicio
         </button>
         <button 
           className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors"
         >
+          <Library className="w-5 h-5" />
           Biblioteca
         </button>
         <button 
@@ -23,6 +26,7 @@ export const Sidebar = ({ currentView, onViewChange }: { currentView: string, on
             currentView === 'downloads' ? 'text-white bg-white/10 shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >
+          <DownloadCloud className="w-5 h-5" />
           Mis descargas
         </button>
       </div>
