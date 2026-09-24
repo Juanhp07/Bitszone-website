@@ -1,0 +1,54 @@
+--- src/components/player/MainApp.tsx
++++ src/components/player/MainApp.tsx
+@@ -28,21 +28,28 @@
+   useEffect(() => {
+     if (!audioRef.current) {
+       audioRef.current = new Audio();
+-      audioRef.current.addEventListener('timeupdate', () => {
+-        if (audioRef.current) {
+-          setProgress(audioRef.current.currentTime / audioRef.current.duration || 0);
+-        }
+-      });
+-      audioRef.current.addEventListener('ended', () => {
+-        setIsPlaying(false);
+-        setProgress(0);
+-        handleNextTrack();
+-      });
+     }
+-  }, [nowPlayingAlbum, nowPlayingTrack]);
++    
++    const handleTimeUpdate = () => {
++      if (audioRef.current) {
++        setProgress(audioRef.current.currentTime / audioRef.current.duration || 0);
++      }
++    };
++
++    const handleEnded = () => {
++      setIsPlaying(false);
++      setProgress(0);
++      if (nowPlayingAlbum && nowPlayingTrack) {
++        const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack.id);
++        if (currentIndex < nowPlayingAlbum.tracks.length - 1) {
++          const nextTrack = nowPlayingAlbum.tracks[currentIndex + 1];
++          setNowPlayingTrack(nextTrack);
++          if (audioRef.current) {
++            audioRef.current.src = nextTrack.previewUrl;
++            audioRef.current.play();
++            setIsPlaying(true);
++          }
++        }
++      }
++    };
++
++    audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
++    audioRef.current.addEventListener('ended', handleEnded);
++
++    return () => {
++      if (audioRef.current) {
++        audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
++        audioRef.current.removeEventListener('ended', handleEnded);
++      }
++    };
++  }, [nowPlayingAlbum, nowPlayingTrack]);
+ 
+   useEffect(() => {

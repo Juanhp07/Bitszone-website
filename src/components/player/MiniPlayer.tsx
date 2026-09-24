@@ -9,7 +9,9 @@ export const MiniPlayer = ({
   togglePlay,
   progress,
   volume,
-  onExpand 
+  onExpand,
+  onNext,
+  onPrev 
 }: { 
   track: Track,
   album: Album,
@@ -17,7 +19,9 @@ export const MiniPlayer = ({
   togglePlay: () => void,
   progress: number,
   volume: number,
-  onExpand: () => void 
+  onExpand: () => void,
+  onNext: () => void,
+  onPrev: () => void
 }) => {
 
   const durationSecs = Math.floor((track.duration || 0) / 1000);
@@ -33,7 +37,7 @@ export const MiniPlayer = ({
   return (
     <div className="w-full h-[90px] bg-transparent shrink-0 flex items-center justify-between px-6 relative overflow-hidden group/player rounded-none">
       {/* Decorative gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-transparent pointer-events-none opacity-50"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-transparent pointer-events-none opacity-30"></div>
       
       {/* Left: Now Playing Info */}
       <div className="flex items-center gap-4 w-[30%] min-w-[200px] relative z-10">
@@ -58,7 +62,7 @@ export const MiniPlayer = ({
           <button className="text-white/40 hover:text-white transition-colors">
             <Shuffle className="w-4 h-4" />
           </button>
-          <button className="text-white/70 hover:text-white transition-colors">
+          <button className="text-white/70 hover:text-white transition-colors" onClick={onPrev}>
             <SkipBack className="w-5 h-5" fill="currentColor" />
           </button>
           <button 
@@ -67,7 +71,7 @@ export const MiniPlayer = ({
           >
             {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-1" fill="currentColor" />}
           </button>
-          <button className="text-white/70 hover:text-white transition-colors">
+          <button className="text-white/70 hover:text-white transition-colors" onClick={onNext}>
             <SkipForward className="w-5 h-5" fill="currentColor" />
           </button>
           <button className="text-white/40 hover:text-white transition-colors">

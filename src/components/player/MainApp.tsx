@@ -29,17 +29,41 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
-      audioRef.current.addEventListener('timeupdate', () => {
-        if (audioRef.current) {
-          setProgress(audioRef.current.currentTime / audioRef.current.duration || 0);
-        }
-      });
-      audioRef.current.addEventListener('ended', () => {
-        setIsPlaying(false);
-        setProgress(0);
-      });
     }
-  }, []);
+    
+    const handleTimeUpdate = () => {
+      if (audioRef.current) {
+        setProgress(audioRef.current.currentTime / audioRef.current.duration || 0);
+      }
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setProgress(0);
+      if (nowPlayingAlbum && nowPlayingTrack) {
+        const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack.id);
+        if (currentIndex < nowPlayingAlbum.tracks.length - 1) {
+          const nextTrack = nowPlayingAlbum.tracks[currentIndex + 1];
+          setNowPlayingTrack(nextTrack);
+          if (audioRef.current) {
+            audioRef.current.src = nextTrack.previewUrl;
+            audioRef.current.play();
+            setIsPlaying(true);
+          }
+        }
+      }
+    };
+
+    audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
+    audioRef.current.addEventListener('ended', handleEnded);
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
+        audioRef.current.removeEventListener('ended', handleEnded);
+      }
+    };
+  }, [nowPlayingAlbum, nowPlayingTrack]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -63,6 +87,26 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       }
       audioRef.current.play();
       setIsPlaying(true);
+    }
+  };
+
+  const handleNextTrack = () => {
+    if (!nowPlayingAlbum || !nowPlayingTrack) return;
+    const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack.id);
+    if (currentIndex < nowPlayingAlbum.tracks.length - 1) {
+      handlePlayTrack(nowPlayingAlbum.tracks[currentIndex + 1], nowPlayingAlbum);
+    }
+  };
+
+  const handlePrevTrack = () => {
+    if (!nowPlayingAlbum || !nowPlayingTrack) return;
+    const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack.id);
+    if (currentIndex > 0) {
+      handlePlayTrack(nowPlayingAlbum.tracks[currentIndex - 1], nowPlayingAlbum);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+      }
     }
   };
 
@@ -149,7 +193,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
             {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
             {nowPlayingTrack && nowPlayingAlbum && (
-              <div className="shrink-0 z-30 border-t border-white/5 bg-black/40 backdrop-blur-3xl">
+              <div className="shrink-0 z-30 border-t border-white/5 bg-black/95 backdrop-blur-3xl">
                 <MiniPlayer 
                   track={nowPlayingTrack}
                   album={nowPlayingAlbum}
@@ -157,7 +201,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   togglePlay={togglePlay}
                   progress={progress}
                   volume={volume}
-                  onExpand={() => setIsPlayerExpanded(true)} 
+                  onExpand={() => setIsPlayerExpanded(true)}
+                  onNext={handleNextTrack}
+                  onPrev={handlePrevTrack}
                 />
               </div>
             )}
