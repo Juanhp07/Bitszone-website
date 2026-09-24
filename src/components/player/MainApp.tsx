@@ -76,7 +76,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   };
 
   return (
-    <div className="w-full h-screen bg-[#05050A] text-white font-sans overflow-hidden flex flex-col relative">
+    <div className="w-full h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative">
       {/* Background Orbs to make floating elements stand out */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#a855f7]/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-blue-600/15 rounded-full blur-[120px] pointer-events-none z-0"></div>
@@ -96,7 +96,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
         {/* Floating Main Content (Body) wrapper - provides the gap */}
         <div className="flex-1 relative flex flex-col min-w-0 p-4 pl-4 pr-4 pb-4">
-          <div className="flex-1 relative flex flex-col min-w-0 bg-white/[0.02] backdrop-blur-3xl rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
+          <div className="flex-1 relative flex flex-col min-w-0 bg-gradient-to-br from-white/[0.06] to-white/[0.01] backdrop-blur-[100px] rounded-2xl border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] overflow-hidden">
             
             <div className="flex-1 relative flex flex-col min-h-0">
               {/* Top gradient inside main content */}

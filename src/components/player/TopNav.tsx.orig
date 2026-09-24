@@ -2,7 +2,7 @@ import React from 'react';
 
 export const TopNav = ({ currentView, onViewChange }: { currentView: string, onViewChange: (view: any) => void }) => {
   return (
-    <nav className="w-full h-20 flex items-center justify-between px-8 bg-black">
+    <nav className="w-full h-20 flex items-center justify-between px-8 bg-black/20 backdrop-blur-3xl border-b border-white/5">
       {/* Left: Menu & Logo */}
       <div className="flex items-center gap-6 w-[250px]">
         <button className="text-white/70 hover:text-white transition-colors">

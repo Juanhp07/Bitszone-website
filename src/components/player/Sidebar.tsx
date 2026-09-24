@@ -2,7 +2,7 @@ import React from 'react';
 
 export const Sidebar = ({ currentView, onViewChange }: { currentView: string, onViewChange: (view: any) => void }) => {
   return (
-    <aside className="w-full h-full flex flex-col bg-black/20 backdrop-blur-3xl border-r border-white/5">
+    <aside className="w-full h-full flex flex-col bg-black">
       <div className="flex-1 px-4 py-6 flex flex-col gap-2">
         <button 
           onClick={() => onViewChange('catalog')}
