@@ -86,67 +86,69 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         <TopNav currentView={currentView} onViewChange={setCurrentView} />
       </div>
 
-      {/* Floating Layout Container with gap and padding */}
-      <div className="flex-1 flex overflow-hidden relative z-10 p-6 gap-6 pt-6">
+      {/* Main Container - Sidebar Flush, Body Floating */}
+      <div className="flex-1 flex overflow-hidden relative z-10">
         
-        {/* Floating Sidebar */}
-        <div className="w-64 h-full shrink-0 rounded-2xl overflow-hidden shadow-2xl relative">
+        {/* Sidebar Flush Left */}
+        <div className="w-64 h-full shrink-0 relative z-10">
           <Sidebar currentView={currentView} onViewChange={setCurrentView} />
         </div>
 
-        {/* Floating Main Content (Body) */}
-        <div className="flex-1 relative flex flex-col min-w-0 bg-white/[0.02] backdrop-blur-3xl rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
-          
-          <div className="flex-1 relative flex flex-col min-h-0">
-            {/* Top gradient inside main content */}
-            <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none z-0"></div>
+        {/* Floating Main Content (Body) wrapper - provides the gap */}
+        <div className="flex-1 relative flex flex-col min-w-0 p-4 pl-4 pr-4 pb-4">
+          <div className="flex-1 relative flex flex-col min-w-0 bg-white/[0.02] backdrop-blur-3xl rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
             
-            <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-              <div className="pb-12 h-full">
-                {currentView === 'catalog' && (
-                  <CatalogView 
-                    albums={albums} 
-                    loading={loading} 
-                    onSelectAlbum={handleSelectAlbum} 
-                    onPlayTrack={handlePlayTrack}
-                  />
-                )}
-                {currentView === 'album' && (
-                  <AlbumView 
-                    album={selectedAlbumFull || selectedAlbum} 
-                    loading={!selectedAlbumFull}
-                    onViewChange={setCurrentView}
-                    onPlayTrack={handlePlayTrack}
-                    nowPlayingTrackId={nowPlayingTrack?.id}
-                    isPlaying={isPlaying}
-                    togglePlay={togglePlay}
-                  />
-                )}
-                {currentView === 'downloads' && <DownloadsView />}
-              </div>
-            </main>
+            <div className="flex-1 relative flex flex-col min-h-0">
+              {/* Top gradient inside main content */}
+              <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none z-0"></div>
+              
+              <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+                <div className="pb-12 h-full">
+                  {currentView === 'catalog' && (
+                    <CatalogView 
+                      albums={albums} 
+                      loading={loading} 
+                      onSelectAlbum={handleSelectAlbum} 
+                      onPlayTrack={handlePlayTrack}
+                    />
+                  )}
+                  {currentView === 'album' && (
+                    <AlbumView 
+                      album={selectedAlbumFull || selectedAlbum} 
+                      loading={!selectedAlbumFull}
+                      onViewChange={setCurrentView}
+                      onPlayTrack={handlePlayTrack}
+                      nowPlayingTrackId={nowPlayingTrack?.id}
+                      isPlaying={isPlaying}
+                      togglePlay={togglePlay}
+                    />
+                  )}
+                  {currentView === 'downloads' && <DownloadsView />}
+                </div>
+              </main>
 
-            {/* Fade-out gradients applied to the scrollable area bounds */}
-            {/* Bottom gradient */}
-            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
-            {/* Right side gradient */}
-            <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
-          </div>
-
-          {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
-          {nowPlayingTrack && nowPlayingAlbum && (
-            <div className="shrink-0 z-30">
-              <MiniPlayer 
-                track={nowPlayingTrack}
-                album={nowPlayingAlbum}
-                isPlaying={isPlaying}
-                togglePlay={togglePlay}
-                progress={progress}
-                volume={volume}
-                onExpand={() => setIsPlayerExpanded(true)} 
-              />
+              {/* Fade-out gradients applied to the scrollable area bounds */}
+              {/* Bottom gradient */}
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+              {/* Right side gradient */}
+              <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
             </div>
-          )}
+
+            {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
+            {nowPlayingTrack && nowPlayingAlbum && (
+              <div className="shrink-0 z-30 border-t border-white/5">
+                <MiniPlayer 
+                  track={nowPlayingTrack}
+                  album={nowPlayingAlbum}
+                  isPlaying={isPlaying}
+                  togglePlay={togglePlay}
+                  progress={progress}
+                  volume={volume}
+                  onExpand={() => setIsPlayerExpanded(true)} 
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
