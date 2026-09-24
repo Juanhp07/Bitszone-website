@@ -8,6 +8,9 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar }: { current
         <button onClick={onToggleSidebar} className="text-white/70 hover:text-white transition-colors">
           <Menu className="w-6 h-6" />
         </button>
+        <div className="flex items-center gap-3">
+          <span className="text-white font-bold text-xl tracking-widest">BITSZONE</span>
+        </div>
       </div>
 
       <div className="flex-1 max-w-xl px-6">
