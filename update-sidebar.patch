@@ -1,0 +1,11 @@
+--- src/components/player/Sidebar.tsx
++++ src/components/player/Sidebar.tsx
+@@ -32,7 +32,7 @@
+ 
+       <div className="p-6">
+         <div className="flex items-center justify-center py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 text-xs font-medium tracking-wide">
+-          4.2GB disponible
++          4.2GB/5GB disponibles
+         </div>
+       </div>
+     </aside>

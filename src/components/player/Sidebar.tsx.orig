@@ -33,7 +33,7 @@ export const Sidebar = ({ currentView, onViewChange }: { currentView: string, on
 
       <div className="p-6">
         <div className="flex items-center justify-center py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 text-xs font-medium tracking-wide">
-          4.2GB/5GB disponibles
+          4.2GB disponible
         </div>
       </div>
     </aside>
