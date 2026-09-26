@@ -1,0 +1,8 @@
+--- src/components/player/types.ts
++++ src/components/player/types.ts
+@@ -1,4 +1,4 @@
+-export type ViewState = 'catalog' | 'album' | 'downloads';
++export type ViewState = 'catalog' | 'album' | 'downloads' | 'library';
+ 
+ export interface Track {
+   id: number;

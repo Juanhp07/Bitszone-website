@@ -8,6 +8,7 @@ import { DownloadsView } from './DownloadsView';
 import { ImmersivePlayer } from './ImmersivePlayer';
 import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
+import { DownloadsProvider } from './DownloadsContext';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads'>('catalog');
@@ -121,6 +122,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   };
 
   return (
+    <DownloadsProvider>
     <div className="w-full h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative">
       <div className="relative z-20 shrink-0">
         <TopNav 
@@ -224,5 +226,6 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         progress={progress}
       />
     </div>
+    </DownloadsProvider>
   );
 };

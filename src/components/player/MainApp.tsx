@@ -9,9 +9,10 @@ import { ImmersivePlayer } from './ImmersivePlayer';
 import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
+import { Library } from 'lucide-react';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
-  const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads'>('catalog');
+  const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads' | 'library'>('catalog');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   
@@ -183,6 +184,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     />
                   )}
                   {currentView === 'downloads' && <DownloadsView />}
+                  {currentView === 'library' && <DownloadsView title="Tu Biblioteca" icon={Library} />}
                 </div>
               </main>
 

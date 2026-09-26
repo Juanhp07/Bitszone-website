@@ -1,0 +1,60 @@
+--- src/components/player/CatalogView.tsx
++++ src/components/player/CatalogView.tsx
+@@ -1,6 +1,7 @@
+ import React, { useState } from 'react';
+-import { Play, Pause } from 'lucide-react';
++import { Play, Pause, Download, Check, Loader2 } from 'lucide-react';
+ import type { Album, Track } from './types';
++import { useDownloads } from './DownloadsContext';
+ 
+ export const CatalogView = ({ 
+@@ -16,6 +17,8 @@
+ }) => {
+   const [hoveredAlbum, setHoveredAlbum] = useState<string | number | null>(null);
++  const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
++  const { downloadTrack, isDownloaded } = useDownloads();
+ 
+   if (loading) {
+     return (
+@@ -25,6 +28,14 @@
+     );
+   }
+ 
++  const handleDownload = async (e: React.MouseEvent, track: Track) => {
++    e.stopPropagation();
++    if (isDownloaded(track.id)) return;
++    setDownloadingIds(prev => [...prev, track.id]);
++    await downloadTrack(track);
++    setDownloadingIds(prev => prev.filter(id => id !== track.id));
++  };
++
+   return (
+     <div className="flex flex-col gap-10">
+       {/* Featured Section */}
+@@ -48,7 +59,32 @@
+                     <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                       {/* Play button */}
+-                      <button 
++                      
++                      {/* Download button for the first track in the album */}
++                      {album.tracks && album.tracks.length > 0 && (
++                        <button 
++                          onClick={(e) => handleDownload(e, album.tracks![0])}
++                          className="w-10 h-10 bg-black/50 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105"
++                          disabled={isDownloaded(album.tracks![0].id) || downloadingIds.includes(album.tracks![0].id)}
++                        >
++                          {downloadingIds.includes(album.tracks![0].id) ? (
++                            <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" />
++                          ) : isDownloaded(album.tracks![0].id) ? (
++                            <Check className="w-4 h-4 text-[#a855f7]" />
++                          ) : (
++                            <Download className="w-4 h-4" />
++                          )}
++                        </button>
++                      )}
++
++                      <button
+                         className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
+                         onClick={(e) => {
+                           e.stopPropagation();
