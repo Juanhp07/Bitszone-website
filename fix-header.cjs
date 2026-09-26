@@ -1,3 +1,8 @@
+const fs = require('fs');
+let header = fs.readFileSync('src/components/Header.tsx', 'utf8');
+
+// The new content for Header.tsx
+const newHeader = `
 import React, { useState } from "react";
 import { SpecularText } from "./ui/SpecularText";
 import "../styles/bootstrap-custom.scss";
@@ -28,3 +33,6 @@ export const Header = () => {
     </header>
   );
 };
+`;
+
+fs.writeFileSync('src/components/Header.tsx', newHeader.trim() + '\\n');
