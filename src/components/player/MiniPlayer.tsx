@@ -11,7 +11,9 @@ export const MiniPlayer = ({
   volume,
   onExpand,
   onNext,
-  onPrev 
+  onPrev,
+  onSeek,
+  onVolumeChange
 }: { 
   track: Track,
   album: Album,
@@ -21,7 +23,9 @@ export const MiniPlayer = ({
   volume: number,
   onExpand: () => void,
   onNext: () => void,
-  onPrev: () => void
+  onPrev: () => void,
+  onSeek?: (progress: number) => void,
+  onVolumeChange?: (volume: number) => void
 }) => {
 
   const durationSecs = Math.floor((track.duration || 0) / 1000);
@@ -81,9 +85,17 @@ export const MiniPlayer = ({
         
         <div className="flex items-center gap-3 w-full">
           <span className="text-[11px] font-medium text-white/50 tabular-nums w-10 text-right">{formatTime(currentSecs)}</span>
-          <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden group cursor-pointer relative">
-            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="h-full bg-white rounded-full group-hover:bg-[#a855f7] transition-colors" style={{ width: `${progress * 100}%` }}></div>
+          <div className="flex-1 h-1.5 bg-white/10 rounded-full relative group flex items-center cursor-pointer">
+            <div className="absolute left-0 h-full bg-white rounded-full group-hover:bg-[#a855f7] transition-colors pointer-events-none" style={{ width: `${progress * 100}%` }}></div>
+            <input 
+              type="range" 
+              min="0" 
+              max="1" 
+              step="0.001" 
+              value={progress}
+              onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
+              className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10"
+            />
           </div>
           <span className="text-[11px] font-medium text-white/50 tabular-nums w-10">{formatTime(durationSecs)}</span>
         </div>
@@ -95,8 +107,16 @@ export const MiniPlayer = ({
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </button>
         <Volume2 className="w-4 h-4 text-white/50" />
-        <div className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden group cursor-pointer">
-          <div className="h-full bg-white group-hover:bg-[#a855f7] transition-colors" style={{ width: `${volume}%` }}></div>
+        <div className="w-24 h-1.5 bg-white/10 rounded-full relative group cursor-pointer flex items-center">
+          <div className="absolute left-0 h-full bg-white group-hover:bg-[#a855f7] rounded-full transition-colors pointer-events-none" style={{ width: `${volume}%` }}></div>
+          <input 
+            type="range" 
+            min="0" 
+            max="100" 
+            value={volume}
+            onChange={(e) => onVolumeChange && onVolumeChange(parseFloat(e.target.value))}
+            className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10"
+          />
         </div>
       </div>
     </div>
