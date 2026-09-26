@@ -161,7 +161,7 @@ export const AlbumView = ({
                     ) : isHovered ? (
                       <Play className="w-4 h-4 text-white mx-auto" fill="currentColor" />
                     ) : (
-                      <span className={nowPlayingTrackId === track.id ? 'text-[#a855f7]' : ''}>{track.trackNumber}</span>
+                      <span className={nowPlayingTrackId === track.id ? 'text-[#a855f7]' : ''}>{index + 1}</span>
                     )}
                   </div>
                   

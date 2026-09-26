@@ -63,10 +63,8 @@ export const AlbumView = ({
   return (
     <div className="h-full flex flex-col relative">
       {/* Background Blurred Cover Glow from Top-Right */}
-      <div className="absolute top-0 right-0 w-[60vw] h-[600px] z-0 pointer-events-none overflow-hidden opacity-50">
-        <div className="absolute -top-[10%] -right-[10%] w-[120%] h-[120%] bg-cover bg-center blur-[120px]" style={{ backgroundImage: `url(${album.coverUrl})` }}></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-[#05050A] to-transparent"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050A]/50 to-[#05050A]"></div>
+      <div className="absolute top-0 right-0 w-[70vw] h-[700px] z-0 pointer-events-none opacity-50" style={{ WebkitMaskImage: 'radial-gradient(ellipse at top right, black 0%, transparent 70%)' }}>
+        <div className="absolute inset-0 bg-cover bg-center blur-[100px]" style={{ backgroundImage: `url(${album.coverUrl})` }}></div>
       </div>
 
       {/* Hero Section */}
