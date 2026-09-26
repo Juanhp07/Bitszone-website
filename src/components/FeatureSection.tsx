@@ -47,18 +47,26 @@ const albums = [
   }
 ,
   {
-    src: "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/df/e8/3b/dfe83bb9-9d58-94df-73bb-eb1ec826317b/886445388062.jpg/500x500bb.jpg",
+    src: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/ac/f9/f2/acf9f236-eae7-023a-120d-6c071797512d/cover.jpg/500x500bb.jpg",
     alt: "Adolescent's Orquesta - Ahora Mas Que Nunca",
     title: "Ahora Mas Que Nunca",
     artist: "Adolescent's Orquesta",
     color: "#eab308" // Yellow/Gold
   },
   {
-    src: "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/c7/28/68/c72868da-dbab-e95b-dddc-6379f64bfda9/653341334629.jpg/500x500bb.jpg",
+    src: "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/a4/61/13/a461132e-73b6-10f9-5267-a64e53a01004/195079913662.jpg/500x500bb.jpg",
     alt: "Zaperoko - Coverizando",
     title: "Coverizando",
     artist: "Zaperoko",
     color: "#22c55e" // Green
+  }
+,
+  {
+    src: "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/04/31/61/0431617b-8479-58fe-3cc3-9fbfef175a71/20UMGIM06593.rgb.jpg/500x500bb.jpg",
+    alt: "5 Seconds of Summer - CALM",
+    title: "CALM",
+    artist: "5 Seconds of Summer",
+    color: "#f43f5e" // Rose/Pink
   }
 ];
 
