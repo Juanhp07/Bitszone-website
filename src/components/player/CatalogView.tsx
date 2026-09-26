@@ -7,12 +7,14 @@ export const CatalogView = ({
   albums,
   loading,
   onSelectAlbum,
-  onPlayTrack
+  onPlayTrack,
+  onSelectArtist
 }: { 
   albums: Album[],
   loading: boolean,
   onSelectAlbum: (album: Album) => void,
-  onPlayTrack: (t: Track, a: Album) => void
+  onPlayTrack: (t: Track, a: Album) => void,
+  onSelectArtist?: (artist: {name: string, img: string}) => void
 }) => {
   const [hoveredAlbum, setHoveredAlbum] = useState<string | number | null>(null);
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
@@ -104,9 +106,9 @@ export const CatalogView = ({
             { name: 'Michael Jackson', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg/500px-Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg' },
             { name: 'Linkin Park', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg/500px-Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg' },
             { name: 'Post Malone', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Post_Malone_July_2021_%28cropped%29.jpg/500px-Post_Malone_July_2021_%28cropped%29.jpg' },
-            { name: 'Héctor Lavoe', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ec/H%C3%A9ctor_Lavoe_%281969_Fania_Records_publicity_photo%29.jpg/500px-H%C3%A9ctor_Lavoe_%281969_Fania_Records_publicity_photo%29.jpg' }
+            { name: 'Ismael Rivera', img: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/1f/14/af/1f14af69-7164-3ea6-65dc-ccd79ee5c340/18CRGIM08038.rgb.jpg/500x500bb.jpg' }
           ].map((artist, i) => (
-            <div key={i} className="w-40 shrink-0 flex flex-col items-center gap-4 group cursor-pointer">
+            <div key={i} className="w-40 shrink-0 flex flex-col items-center gap-4 group cursor-pointer" onClick={() => onSelectArtist && onSelectArtist(artist)}>
               <div className="w-40 h-40 rounded-full overflow-hidden shadow-lg relative">
                 <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>

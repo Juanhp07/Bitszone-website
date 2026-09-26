@@ -1,3 +1,4 @@
+import { ArtistView } from "./ArtistView";
 import React, { useState, useRef, useEffect } from 'react';
 import { TopNav } from './TopNav';
 import { Sidebar } from './Sidebar';
@@ -12,7 +13,9 @@ import { DownloadsProvider } from './DownloadsContext';
 import { Heart } from 'lucide-react';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
-  const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads' | 'library'>('catalog');
+
+  const [currentView, setCurrentView] = useState<"catalog" | "album" | "downloads" | "library" | "artist">("catalog");
+  const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string} | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   
@@ -170,6 +173,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       loading={loading} 
                       onSelectAlbum={handleSelectAlbum} 
                       onPlayTrack={handlePlayTrack}
+                      onSelectArtist={(artist) => {
+                        setSelectedArtist(artist);
+                        setCurrentView('artist');
+                      }}
                     />
                   )}
                   {currentView === 'album' && (
@@ -185,6 +192,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   )}
                   {currentView === 'downloads' && <DownloadsView type="downloads" onPlayTrack={handlePlayTrack} />}
                   {currentView === 'library' && <DownloadsView type="favorites" title="Tus Favoritos" icon={Heart} onPlayTrack={handlePlayTrack} />}
+                  {currentView === 'artist' && selectedArtist && (
+                    <ArtistView 
+                      artist={selectedArtist} 
+                      albums={albums} 
+                      onBack={() => setCurrentView('catalog')}
+                      onSelectAlbum={handleSelectAlbum} 
+                    />
+                  )}
                 </div>
               </main>
 

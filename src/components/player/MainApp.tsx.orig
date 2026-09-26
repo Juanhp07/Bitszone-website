@@ -208,6 +208,13 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   onExpand={() => setIsPlayerExpanded(true)}
                   onNext={handleNextTrack}
                   onPrev={handlePrevTrack}
+                  onSeek={(p) => {
+                    if (audioRef.current && audioRef.current.duration) {
+                      audioRef.current.currentTime = p * audioRef.current.duration;
+                      setProgress(p);
+                    }
+                  }}
+                  onVolumeChange={(v) => setVolume(v)}
                 />
               </div>
             )}

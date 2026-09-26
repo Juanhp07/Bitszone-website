@@ -1,0 +1,43 @@
+--- src/components/player/MainApp.tsx
++++ src/components/player/MainApp.tsx
+@@ -9,12 +9,14 @@
+ import { AlbumView } from './AlbumView';
+ import { DownloadsView } from './DownloadsView';
+ import { useDownloads } from './DownloadsContext';
++import { ArtistView } from './ArtistView';
+ 
+ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
+-  const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads' | 'library'>('catalog');
++  const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads' | 'library' | 'artist'>('catalog');
+   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
+   
+   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
+   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
++  const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string} | null>(null);
+ 
+@@ -107,6 +109,10 @@
+                       loading={loading} 
+                       onSelectAlbum={handleSelectAlbum} 
+                       onPlayTrack={handlePlayTrack}
++                      onSelectArtist={(artist) => {
++                        setSelectedArtist(artist);
++                        setCurrentView('artist');
++                      }}
+                     />
+                   )}
+                   {currentView === 'album' && (
+@@ -124,6 +130,14 @@
+                   )}
+                   {currentView === 'downloads' && <DownloadsView type="downloads" onPlayTrack={handlePlayTrack} />}
+                   {currentView === 'library' && <DownloadsView type="favorites" title="Tus Favoritos" icon={Heart} onPlayTrack={handlePlayTrack} />}
++                  {currentView === 'artist' && selectedArtist && (
++                    <ArtistView 
++                      artist={selectedArtist} 
++                      albums={albums} 
++                      onBack={() => setCurrentView('catalog')}
++                      onSelectAlbum={handleSelectAlbum} 
++                    />
++                  )}
+                 </div>
+               </main>
