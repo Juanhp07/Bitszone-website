@@ -30,10 +30,9 @@ export const ProblemSection = () => {
       <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#a855f7]/5 blur-[120px] rounded-[100%] pointer-events-none -z-10"></div>
 
       {/* Typography / Copywriting */}
-      <div className="text-center max-w-4xl mx-auto mb-20">
+      <div className="text-center max-w-5xl text-balance mx-auto mb-20">
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2]">
-          Toma el control absoluto de tu <br className="hidden md:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c0a3e5] to-[#818cf8]">biblioteca sin conexión de forma sencilla.</span>
+          Toma el control absoluto de tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c0a3e5] to-[#818cf8]">biblioteca sin conexión de forma sencilla.</span>
         </h2>
       </div>
 

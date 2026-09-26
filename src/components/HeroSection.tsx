@@ -73,15 +73,15 @@ export const HeroSection = () => {
                className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:shadow-[0_0_50px_rgba(85,16,141,0.5)]"
                borderRadius={40}
                borderWidth={0}
-               backgroundOpacity={0.05}
-               blur={16}
+               backgroundOpacity={0.15}
+               blur={40}
                distortionScale={-30}
             >
               <SpecularButton
                 radius={40}
                 tint="transparent"
-                tintOpacity={0.15}
-                blur={12}
+                tintOpacity={0.25}
+                blur={40}
                 lineColor="#FF9FFC"
                 baseColor="#7012CE"
                 intensity={4.0}
