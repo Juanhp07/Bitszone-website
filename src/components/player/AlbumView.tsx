@@ -134,7 +134,7 @@ export const AlbumView = ({
 
           {/* Tracklist */}
           <div className="flex flex-col gap-1 pb-10">
-            {album.tracks?.map((track) => {
+            {album.tracks?.map((track, index) => {
               const isPlayingTrack = nowPlayingTrackId === track.id && isPlaying;
               const isHovered = hoveredTrack === track.id;
               const downloaded = isDownloaded(track.id);
