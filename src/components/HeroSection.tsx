@@ -66,7 +66,7 @@ export const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <a href="/player" target="_blank" rel="noopener noreferrer" className="block">
+          <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline">
             <GlassSurface
                width="fit-content"
                height="fit-content"

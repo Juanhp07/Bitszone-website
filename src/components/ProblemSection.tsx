@@ -42,10 +42,10 @@ export const ProblemSection = () => {
         {problems.map((item) => (
           <div 
             key={item.id} 
-            className="rounded-2xl p-8 bg-white/[0.03] border border-white/5 flex flex-col"
+            className="rounded-2xl p-8 bg-white/[0.03] flex flex-col"
           >
             {/* Icon Wrapper */}
-            <div className="w-14 h-14 rounded-full border border-white/10 bg-white/5 flex items-center justify-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-6">
               {item.icon}
             </div>
             
@@ -56,12 +56,6 @@ export const ProblemSection = () => {
         ))}
       </div>
 
-      {/* CTA Button */}
-      <div className="mt-20">
-        <button className="px-8 py-4 rounded-full font-inter font-semibold text-white bg-[#a855f7] hover:bg-[#9333ea] transition-colors text-[17px] tracking-wide">
-          Probar Bitszone Gratis
-        </button>
-      </div>
 
     </section>
   );

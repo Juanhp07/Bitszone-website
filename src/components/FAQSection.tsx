@@ -13,10 +13,6 @@ const faqs = [
     answer: "Nuestro sistema de sincronización asegura que cada byte del archivo esté en tu dispositivo antes de marcarlo como disponible, sin archivos temporales rotos."
   },
   {
-    question: "¿Cuánto cuesta Bitszone y qué incluye el plan Premium?",
-    answer: "Ofrecemos diferentes niveles, desde una versión gratuita limitada hasta Premium con descargas sin pérdida de calidad y sin límites de almacenamiento local."
-  },
-  {
     question: "¿Cómo gestiono el espacio de almacenamiento y la memoria caché?",
     answer: "Tienes un panel dedicado con visibilidad real de cuánto ocupa cada playlist o álbum, con opciones para liberar espacio con un solo clic."
   },
@@ -24,10 +20,6 @@ const faqs = [
     question: "¿Qué calidad de audio ofrece Bitszone?",
     answer: "Soportamos múltiples formatos, incluyendo FLAC para audiófilos y opciones comprimidas de alta eficiencia para ahorrar espacio."
   },
-  {
-    question: "¿Puedo usar mi cuenta en múltiples dispositivos?",
-    answer: "Sí, puedes sincronizar tu biblioteca en varios dispositivos, aunque la reproducción simultánea depende de tu plan de suscripción."
-  }
 ];
 
 export const FAQSection = () => {
