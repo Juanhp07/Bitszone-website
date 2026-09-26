@@ -15,7 +15,7 @@ import { Heart } from 'lucide-react';
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
 
   const [currentView, setCurrentView] = useState<"catalog" | "album" | "downloads" | "library" | "artist">("catalog");
-  const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string} | null>(null);
+  const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string, type?: string} | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   

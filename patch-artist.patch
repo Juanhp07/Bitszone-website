@@ -1,0 +1,32 @@
+--- src/components/player/ArtistView.tsx
++++ src/components/player/ArtistView.tsx
+@@ -7,7 +7,7 @@
+   albums, 
+   onBack,
+   onSelectAlbum
+ }: { 
+-  artist: { name: string, img: string }, 
++  artist: { name: string, img: string, type?: string }, 
+   albums: Album[],
+   onBack: () => void,
+   onSelectAlbum: (album: Album) => void 
+@@ -31,7 +31,7 @@
+         </div>
+         
+         <div className="flex flex-col gap-2 pb-2">
+-          <span className="text-white/70 text-sm font-semibold tracking-widest uppercase">Artista</span>
++          <span className="text-white/70 text-sm font-semibold tracking-widest uppercase">{artist.type || 'Artista'}</span>
+           <h1 className="text-6xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{artist.name}</h1>
+           <div className="flex items-center gap-2 mt-2 text-white/80 font-medium">
+             <span>{artistAlbums.length} álbumes</span>
+--- src/components/player/MainApp.tsx
++++ src/components/player/MainApp.tsx
+@@ -15,7 +15,7 @@
+   
+   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
+   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
+-  const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string} | null>(null);
++  const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string, type?: string} | null>(null);
+   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
+ 
+   const [nowPlayingTrack, setNowPlayingTrack] = useState<Track | null>(null);

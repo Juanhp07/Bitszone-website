@@ -8,7 +8,7 @@ export const ArtistView = ({
   onBack,
   onSelectAlbum
 }: { 
-  artist: { name: string, img: string, type?: string }, 
+  artist: { name: string, img: string }, 
   albums: Album[],
   onBack: () => void,
   onSelectAlbum: (album: Album) => void 
