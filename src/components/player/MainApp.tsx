@@ -9,7 +9,7 @@ import { ImmersivePlayer } from './ImmersivePlayer';
 import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
-import { Library } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads' | 'library'>('catalog');
@@ -183,8 +183,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       togglePlay={togglePlay}
                     />
                   )}
-                  {currentView === 'downloads' && <DownloadsView />}
-                  {currentView === 'library' && <DownloadsView title="Tu Biblioteca" icon={Library} />}
+                  {currentView === 'downloads' && <DownloadsView type="downloads" onPlayTrack={handlePlayTrack} />}
+                  {currentView === 'library' && <DownloadsView type="favorites" title="Tus Favoritos" icon={Heart} onPlayTrack={handlePlayTrack} />}
                 </div>
               </main>
 

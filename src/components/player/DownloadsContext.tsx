@@ -4,39 +4,47 @@ import type { Track } from './types';
 interface DownloadsContextType {
   downloadedTracks: Track[];
   downloadTrack: (track: Track) => Promise<void>;
+  removeDownload: (trackId: number) => void;
   isDownloaded: (trackId: number) => boolean;
-  totalBytes: number; // For the 5GB quota
+  totalBytes: number;
+  
+  favoriteTracks: Track[];
+  toggleFavorite: (track: Track) => void;
+  isFavorite: (trackId: number) => boolean;
 }
 
 const DownloadsContext = createContext<DownloadsContextType | undefined>(undefined);
 
 export const DownloadsProvider = ({ children }: { children: React.ReactNode }) => {
   const [downloadedTracks, setDownloadedTracks] = useState<Track[]>([]);
+  const [favoriteTracks, setFavoriteTracks] = useState<Track[]>([]);
   const [totalBytes, setTotalBytes] = useState(0);
-
-  // 1 GB = 1,073,741,824 bytes
-  // We'll simulate 5-10MB per track for the quota
   
   useEffect(() => {
-    const saved = localStorage.getItem('bz_downloads');
-    if (saved) {
+    const savedDownloads = localStorage.getItem('bz_downloads');
+    if (savedDownloads) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.parse(savedDownloads);
         setDownloadedTracks(parsed);
         calculateBytes(parsed);
+      } catch (e) {}
+    }
+
+    const savedFavs = localStorage.getItem('bz_favorites');
+    if (savedFavs) {
+      try {
+        setFavoriteTracks(JSON.parse(savedFavs));
       } catch (e) {}
     }
   }, []);
 
   const calculateBytes = (tracks: Track[]) => {
-    // Simulate ~8MB per track
     const bytes = tracks.length * 8 * 1024 * 1024;
     setTotalBytes(bytes);
   };
 
   const downloadTrack = async (track: Track) => {
     return new Promise<void>((resolve) => {
-      // Simulate network delay for downloading
       setTimeout(() => {
         setDownloadedTracks(prev => {
           if (prev.find(t => t.id === track.id)) return prev;
@@ -46,7 +54,16 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
           return updated;
         });
         resolve();
-      }, 1500); // 1.5s simulated download time
+      }, 1500);
+    });
+  };
+
+  const removeDownload = (trackId: number) => {
+    setDownloadedTracks(prev => {
+      const updated = prev.filter(t => t.id !== trackId);
+      localStorage.setItem('bz_downloads', JSON.stringify(updated));
+      calculateBytes(updated);
+      return updated;
     });
   };
 
@@ -54,8 +71,29 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     return downloadedTracks.some(t => t.id === trackId);
   };
 
+  const toggleFavorite = (track: Track) => {
+    setFavoriteTracks(prev => {
+      const exists = prev.find(t => t.id === track.id);
+      let updated;
+      if (exists) {
+        updated = prev.filter(t => t.id !== track.id);
+      } else {
+        updated = [...prev, track];
+      }
+      localStorage.setItem('bz_favorites', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const isFavorite = (trackId: number) => {
+    return favoriteTracks.some(t => t.id === trackId);
+  };
+
   return (
-    <DownloadsContext.Provider value={{ downloadedTracks, downloadTrack, isDownloaded, totalBytes }}>
+    <DownloadsContext.Provider value={{ 
+      downloadedTracks, downloadTrack, removeDownload, isDownloaded, totalBytes,
+      favoriteTracks, toggleFavorite, isFavorite
+    }}>
       {children}
     </DownloadsContext.Provider>
   );

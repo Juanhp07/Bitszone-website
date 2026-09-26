@@ -22,7 +22,7 @@ export const AlbumView = ({
 }) => {
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
-  const { downloadTrack, isDownloaded } = useDownloads();
+  const { downloadTrack, isDownloaded, toggleFavorite, isFavorite } = useDownloads();
 
   if (loading) {
     return (
@@ -41,12 +41,23 @@ export const AlbumView = ({
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  const getPlays = (id: number) => {
+    // Generate a pseudo-random looking number based on the ID so it doesn't change on re-render
+    const num = ((id * 1234567) % 900000) + 100000;
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   const handleDownload = async (e: React.MouseEvent, track: Track) => {
     e.stopPropagation();
     if (isDownloaded(track.id)) return;
     setDownloadingIds(prev => [...prev, track.id]);
     await downloadTrack(track);
     setDownloadingIds(prev => prev.filter(id => id !== track.id));
+  };
+
+  const handleFavorite = (e: React.MouseEvent, track: Track) => {
+    e.stopPropagation();
+    toggleFavorite(track);
   };
 
   return (
@@ -123,6 +134,7 @@ export const AlbumView = ({
               const isHovered = hoveredTrack === track.id;
               const downloaded = isDownloaded(track.id);
               const isDownloading = downloadingIds.includes(track.id);
+              const favorited = isFavorite(track.id);
 
               return (
                 <div 
@@ -160,7 +172,7 @@ export const AlbumView = ({
                     </div>
                   </div>
                   
-                  <div className="text-right text-white/50 text-sm">{(Math.random() * 1000000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
+                  <div className="text-right text-white/50 text-sm">{getPlays(track.id)}</div>
                   
                   <div className="flex items-center justify-end gap-5">
                     <button 
@@ -176,7 +188,12 @@ export const AlbumView = ({
                         isHovered && <Download className="w-4 h-4" />
                       )}
                     </button>
-                    {isHovered && <Heart className="w-4 h-4 text-white/40 hover:text-white transition-colors" />}
+                    <button 
+                      onClick={(e) => handleFavorite(e, track)}
+                      className={`transition-colors ${favorited ? 'text-[#a855f7]' : 'text-white/40 hover:text-white'}`}
+                    >
+                      {(isHovered || favorited) && <Heart className="w-4 h-4" fill={favorited ? 'currentColor' : 'none'} />}
+                    </button>
                     <div className="w-10 text-right text-white/50 text-sm">
                       {formatDuration(track.duration)}
                     </div>
