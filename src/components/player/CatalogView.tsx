@@ -3,6 +3,7 @@ import { DownloadCloud } from 'lucide-react';
 import { Play, Pause, Download, Check, Loader2 } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
+import { useDraggableScroll } from './useDraggableScroll';
 
 export const CatalogView = ({ 
   albums,
@@ -23,10 +24,35 @@ export const CatalogView = ({
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
   const [isDownloadingAlbum, setIsDownloadingAlbum] = useState<number | null>(null);
 
+  const artistsScrollRef = useDraggableScroll();
+  const albumsScrollRef = useDraggableScroll();
+  const albumsScrollRef2 = useDraggableScroll();
+
   const handleDownloadAlbumClick = (e: React.MouseEvent, album: Album) => {
     e.stopPropagation();
     setShowDownloadConfirm(album);
   };
+
+
+  const knownArtistImages: Record<string, string> = {
+    'Michael Jackson': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg/500px-Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg',
+    'Linkin Park': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg/500px-Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg',
+    'Post Malone': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Post_Malone_July_2021_%28cropped%29.jpg/500px-Post_Malone_July_2021_%28cropped%29.jpg',
+    'Ismael Rivera': 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/1f/14/af/1f14af69-7164-3ea6-65dc-ccd79ee5c340/18CRGIM08038.rgb.jpg/500x500bb.jpg',
+    'El Gran Combo de Puerto Rico': 'https://is1-ssl.mzstatic.com/image/thumb/Features115/v4/25/87/e5/2587e5b0-b22b-f971-cb23-13381790d852/dj.nwovtbjq.jpg/500x500bb.jpg'
+  };
+
+  const artistsMap = new Map();
+  albums.forEach(album => {
+    if (!artistsMap.has(album.artist)) {
+      artistsMap.set(album.artist, {
+        name: album.artist,
+        img: knownArtistImages[album.artist] || album.coverUrl,
+        type: album.artist.includes('Combo') || album.artist.includes('Orquesta') ? 'Grupo Musical' : 'Artista'
+      });
+    }
+  });
+  const dynamicArtists = Array.from(artistsMap.values());
 
   const executeDownloadAlbum = async () => {
     const album = showDownloadConfirm;
@@ -71,7 +97,7 @@ export const CatalogView = ({
           <button className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
         </div>
         
-        <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        <div ref={albumsScrollRef as any} className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
           {albums.map((album) => (
             <div 
               key={album.id}
@@ -125,14 +151,8 @@ export const CatalogView = ({
           <button className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
         </div>
         
-        <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-          {[
-            { name: 'Michael Jackson', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg/500px-Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg' },
-            { name: 'Linkin Park', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg/500px-Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg' },
-            { name: 'Post Malone', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Post_Malone_July_2021_%28cropped%29.jpg/500px-Post_Malone_July_2021_%28cropped%29.jpg' },
-            { name: 'Ismael Rivera', img: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/1f/14/af/1f14af69-7164-3ea6-65dc-ccd79ee5c340/18CRGIM08038.rgb.jpg/500x500bb.jpg' },
-            { name: 'El Gran Combo de Puerto Rico', type: 'Grupo Musical', img: 'https://is1-ssl.mzstatic.com/image/thumb/Features115/v4/25/87/e5/2587e5b0-b22b-f971-cb23-13381790d852/dj.nwovtbjq.jpg/500x500bb.jpg' }
-          ].map((artist, i) => (
+        <div ref={artistsScrollRef as any} className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+          {dynamicArtists.map((artist, i) => (
             <div key={i} className="w-40 shrink-0 flex flex-col items-center gap-4 group cursor-pointer" onClick={() => onSelectArtist && onSelectArtist(artist)}>
               <div className="w-40 h-40 rounded-full overflow-hidden shadow-lg relative">
                 <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -154,7 +174,7 @@ export const CatalogView = ({
           <button className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
         </div>
         
-        <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        <div ref={albumsScrollRef2 as any} className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
            {albums.slice().reverse().map((album) => (
             <div 
               key={`rec-${album.id}`}
