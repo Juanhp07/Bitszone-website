@@ -34,7 +34,7 @@ export const FAQSection = () => {
         transition={{ duration: 0.7, ease: "easeOut" }}
         className="mb-12"
       >
-        <div className="inline-block px-3 py-1 mb-6 rounded-full border border-white/5 bg-white/5 font-jetbrains text-xs text-[#A0A3BD]">
+        <div className="inline-block px-3 py-1 mb-6 rounded-full bg-white/5 font-jetbrains text-xs text-[#A0A3BD]">
           PREGUNTAS FRECUENTES
         </div>
         <h2 className="text-3xl md:text-5xl font-sora font-bold text-white leading-tight">
@@ -57,7 +57,7 @@ export const FAQSection = () => {
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
             >
               <span className="font-inter font-medium text-white pr-8">{faq.question}</span>
-              <div className={`w-6 h-6 rounded-full border border-white/5 flex items-center justify-center transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''}`}>
                 <ChevronDown className="w-4 h-4 text-[#A0A3BD]" />
               </div>
             </button>

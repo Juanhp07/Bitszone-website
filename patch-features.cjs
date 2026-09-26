@@ -1,4 +1,6 @@
-import React from 'react';
+const fs = require('fs');
+
+const code = `import React from 'react';
 import { motion } from 'framer-motion';
 import { CoverflowCarousel } from './ui/CoverflowCarousel';
 
@@ -103,3 +105,6 @@ export const FeatureSection = () => {
     </section>
   );
 };
+`;
+
+fs.writeFileSync('src/components/FeatureSection.tsx', code);
