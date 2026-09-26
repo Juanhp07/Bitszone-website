@@ -1,0 +1,18 @@
+--- src/components/player/DownloadsView.tsx
++++ src/components/player/DownloadsView.tsx
+@@ -58,10 +58,11 @@
+ 
+   return (
+     <div className="h-full flex flex-col relative">
+-      {/* Background Blurred Glow */}
+-      <div className="absolute top-0 left-0 right-0 h-[600px] z-0 overflow-hidden pointer-events-none">
+-        <div className={`w-full h-full opacity-40 blur-[100px] bg-gradient-to-br -translate-y-10 scale-150 ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`} />
+-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050A]/80 to-transparent" />
++      {/* Background Blurred Glow from Top-Right */}
++      <div className="absolute top-0 right-0 w-[60vw] h-[600px] z-0 pointer-events-none overflow-hidden opacity-50">
++        <div className={`absolute -top-[10%] -right-[10%] w-[120%] h-[120%] blur-[120px] bg-gradient-to-br ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`}></div>
++        <div className="absolute inset-0 bg-gradient-to-r from-[#05050A] to-transparent"></div>
++        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050A]/50 to-[#05050A]"></div>
+       </div>
+ 
+       {/* Hero Section */}
