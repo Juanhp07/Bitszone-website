@@ -1,0 +1,53 @@
+--- src/components/player/DownloadsContext.tsx
++++ src/components/player/DownloadsContext.tsx
+@@ -8,11 +8,13 @@
+   downloadTrack: (track: Track) => Promise<void>;
+   removeDownload: (trackId: number) => void;
+   toggleFavorite: (track: Track) => void;
+   isDownloaded: (trackId: number) => boolean;
+   isFavorite: (trackId: number) => boolean;
+   totalBytes: number;
++  newDownloadsCount: number;
++  clearNewDownloads: () => void;
+ }
+ 
+ const DownloadsContext = createContext<DownloadsContextType | undefined>(undefined);
+ 
+@@ -21,6 +23,7 @@
+   const [favoriteTracks, setFavoriteTracks] = useState<Track[]>([]);
+   const [totalBytes, setTotalBytes] = useState(0);
++  const [newDownloadsCount, setNewDownloadsCount] = useState(0);
+ 
+   // Cargar desde localStorage
+   useEffect(() => {
+@@ -53,6 +56,8 @@
+         const current = JSON.parse(localStorage.getItem('bz_downloads') || '[]');
+         localStorage.setItem('bz_downloads', JSON.stringify([...current, track]));
+         loadData();
++        
++        setNewDownloadsCount(prev => prev + 1);
+       } catch (error) {
+         console.error('Error downloading:', error);
+       }
+@@ -83,6 +88,10 @@
+     return favoriteTracks.some(t => t.id === trackId);
+   };
+ 
++  const clearNewDownloads = () => {
++    setNewDownloadsCount(0);
++  };
++
+   return (
+     <DownloadsContext.Provider value={{ 
+       downloadedTracks, 
+@@ -91,7 +100,9 @@
+       removeDownload, 
+       toggleFavorite, 
+       isDownloaded, 
+       isFavorite, 
+-      totalBytes 
++      totalBytes,
++      newDownloadsCount,
++      clearNewDownloads
+     }}>
+       {children}

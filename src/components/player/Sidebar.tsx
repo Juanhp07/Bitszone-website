@@ -3,7 +3,7 @@ import { Home, Library, DownloadCloud } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 
 export const Sidebar = ({ currentView, onViewChange }: { currentView: string, onViewChange: (view: any) => void }) => {
-  const { totalBytes } = useDownloads();
+  const { totalBytes, newDownloadsCount } = useDownloads();
   
   // Base 4.20 GB available
   const baseAvailableGB = 4.20;
@@ -37,11 +37,18 @@ export const Sidebar = ({ currentView, onViewChange }: { currentView: string, on
         </button>
         <button 
           onClick={() => onViewChange('downloads')}
-          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${
+          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors relative ${
             currentView === 'downloads' ? 'text-white bg-white/10 shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >
-          <DownloadCloud className="w-5 h-5" />
+          <div className="relative">
+            <DownloadCloud className="w-5 h-5" />
+            {newDownloadsCount > 0 && currentView !== 'downloads' && (
+              <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-[#a855f7] text-white text-[10px] font-bold animate-bounce shadow-[0_0_10px_rgba(168,85,247,0.6)]">
+                {newDownloadsCount}
+              </span>
+            )}
+          </div>
           Mis descargas
         </button>
       </div>

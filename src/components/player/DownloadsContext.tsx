@@ -11,6 +11,9 @@ interface DownloadsContextType {
   favoriteTracks: Track[];
   toggleFavorite: (track: Track) => void;
   isFavorite: (trackId: number) => boolean;
+  
+  newDownloadsCount: number;
+  clearNewDownloads: () => void;
 }
 
 const DownloadsContext = createContext<DownloadsContextType | undefined>(undefined);
@@ -19,6 +22,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   const [downloadedTracks, setDownloadedTracks] = useState<Track[]>([]);
   const [favoriteTracks, setFavoriteTracks] = useState<Track[]>([]);
   const [totalBytes, setTotalBytes] = useState(0);
+  const [newDownloadsCount, setNewDownloadsCount] = useState(0);
   
   useEffect(() => {
     const savedDownloads = localStorage.getItem('bz_downloads');
@@ -53,6 +57,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
           calculateBytes(updated);
           return updated;
         });
+        setNewDownloadsCount(prev => prev + 1);
         resolve();
       }, 1500);
     });
@@ -89,10 +94,13 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     return favoriteTracks.some(t => t.id === trackId);
   };
 
+  const clearNewDownloads = () => setNewDownloadsCount(0);
+
   return (
     <DownloadsContext.Provider value={{ 
       downloadedTracks, downloadTrack, removeDownload, isDownloaded, totalBytes,
-      favoriteTracks, toggleFavorite, isFavorite
+      favoriteTracks, toggleFavorite, isFavorite,
+      newDownloadsCount, clearNewDownloads
     }}>
       {children}
     </DownloadsContext.Provider>
