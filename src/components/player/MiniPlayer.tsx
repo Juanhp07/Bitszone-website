@@ -1,5 +1,6 @@
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Shuffle, Repeat } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Shuffle, Repeat, Heart } from 'lucide-react';
+import { useDownloads } from './DownloadsContext';
 import type { Album, Track } from './types';
 
 export const MiniPlayer = ({ 
@@ -27,6 +28,7 @@ export const MiniPlayer = ({
   onSeek?: (progress: number) => void,
   onVolumeChange?: (volume: number) => void
 }) => {
+  const { isFavorite, toggleFavorite } = useDownloads();
 
   const durationSecs = Math.floor((track.duration || 0) / 1000);
   const currentSecs = Math.floor(durationSecs * progress);
@@ -58,6 +60,16 @@ export const MiniPlayer = ({
           <h4 className="text-white font-semibold text-sm line-clamp-1 hover:underline">{track.title}</h4>
           <span className="text-white/60 text-xs mt-0.5 line-clamp-1 hover:underline">{track.artist}</span>
         </div>
+        <button 
+          className="ml-4 text-white/50 hover:text-white transition-colors"
+          onClick={() => toggleFavorite(track)}
+        >
+          <Heart 
+            className="w-5 h-5" 
+            fill={isFavorite(track.id) ? "#a855f7" : "none"} 
+            color={isFavorite(track.id) ? "#a855f7" : "currentColor"} 
+          />
+        </button>
       </div>
 
       {/* Center: Playback Controls */}
