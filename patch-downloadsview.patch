@@ -1,13 +1,12 @@
---- src/components/player/Sidebar.tsx
-+++ src/components/player/Sidebar.tsx
-@@ -7,9 +7,9 @@
-   const { totalBytes, newDownloadsCount } = useDownloads();
-   
--  // Base 4.20 GB available
+--- src/components/player/DownloadsView.tsx
++++ src/components/player/DownloadsView.tsx
+@@ -20,8 +20,8 @@
+   };
+ 
+-  // Base 4.20 GB available logic
 -  const baseAvailableGB = 4.20;
 +  // Start precisely at 5.00 GB available
 +  const baseAvailableGB = 5.00;
    const downloadedGB = totalBytes / (1024 * 1024 * 1024);
    const availableGB = Math.max(0, baseAvailableGB - downloadedGB);
-   
    const totalUsedGB = 5.0 - availableGB;

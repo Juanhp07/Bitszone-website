@@ -57,8 +57,8 @@ export const DownloadsView = ({
     }
   };
 
-  // Base 4.20 GB available logic
-  const baseAvailableGB = 4.20;
+  // Start precisely at 5.00 GB available
+  const baseAvailableGB = 5.00;
   const downloadedGB = totalBytes / (1024 * 1024 * 1024);
   const availableGB = Math.max(0, baseAvailableGB - downloadedGB);
   const totalUsedGB = 5.0 - availableGB;

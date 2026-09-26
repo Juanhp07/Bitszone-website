@@ -1,0 +1,13 @@
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(
+  'https://oxloqoggjldbjjratwoh.supabase.co', 
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94bG9xb2dnamxkYmpqcmF0d29oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5NjAzMzEsImV4cCI6MjEwNTUzNjMzMX0.jgYh-GP25f4krR5CJw8bHzGS9XNnlg9_4TnZQVcj84o'
+);
+async function run() {
+  const { data: tracks } = await supabase.from('tracks').select('title, audio_url').eq('album', 'Esto Fue Lo Que Trajo El Barco').limit(2);
+  console.log(tracks);
+  
+  const { data: tracks2 } = await supabase.from('tracks').select('title, audio_url').eq('album', "Hollywood's Bleeding").limit(2);
+  console.log(tracks2);
+}
+run();

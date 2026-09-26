@@ -5,8 +5,8 @@ import { useDownloads } from './DownloadsContext';
 export const Sidebar = ({ currentView, onViewChange }: { currentView: string, onViewChange: (view: any) => void }) => {
   const { totalBytes, newDownloadsCount } = useDownloads();
   
-  // Base 4.20 GB available
-  const baseAvailableGB = 4.20;
+  // Start precisely at 5.00 GB available
+  const baseAvailableGB = 5.00;
   const downloadedGB = totalBytes / (1024 * 1024 * 1024);
   const availableGB = Math.max(0, baseAvailableGB - downloadedGB);
   

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DownloadCloud, Play, Heart, Clock, X, Trash2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Track, Album } from './types';
@@ -14,10 +14,16 @@ export const DownloadsView = ({
   icon?: any,
   onPlayTrack?: (t: Track, a: Album) => void 
 }) => {
-  const { downloadedTracks, favoriteTracks, removeDownload, toggleFavorite } = useDownloads();
+  const { downloadedTracks, favoriteTracks, removeDownload, toggleFavorite, clearNewDownloads, totalBytes } = useDownloads();
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
 
   const tracks = type === 'downloads' ? downloadedTracks : favoriteTracks;
+
+  useEffect(() => {
+    if (type === 'downloads') {
+      clearNewDownloads();
+    }
+  }, [type, clearNewDownloads]);
 
   const formatDuration = (millis: number) => {
     const totalSeconds = Math.floor(millis / 1000);
@@ -37,7 +43,6 @@ export const DownloadsView = ({
 
   const handlePlay = (track: Track) => {
     if (onPlayTrack) {
-      // Mock an album to satisfy the player interface
       const dummyAlbum: Album = {
         id: 'playlist',
         title: title,
@@ -51,6 +56,12 @@ export const DownloadsView = ({
       onPlayTrack(track, dummyAlbum);
     }
   };
+
+  // Base 4.20 GB available logic
+  const baseAvailableGB = 4.20;
+  const downloadedGB = totalBytes / (1024 * 1024 * 1024);
+  const availableGB = Math.max(0, baseAvailableGB - downloadedGB);
+  const totalUsedGB = 5.0 - availableGB;
 
   if (tracks.length === 0) {
     return (
@@ -71,11 +82,10 @@ export const DownloadsView = ({
   return (
     <div className="h-full flex flex-col relative">
       {/* Background Blurred Glow from Top-Right */}
-      <div className="absolute top-0 right-0 w-[60vw] h-[600px] z-0 pointer-events-none overflow-hidden opacity-50">
-        <div className={`absolute -top-[10%] -right-[10%] w-[120%] h-[120%] blur-[120px] bg-gradient-to-br ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`}></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-[#05050A] to-transparent"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050A]/50 to-[#05050A]"></div>
+      <div className="absolute top-0 right-0 w-[70vw] h-[700px] z-0 pointer-events-none opacity-50" style={{ WebkitMaskImage: 'radial-gradient(ellipse at top right, black 0%, transparent 70%)' }}>
+        <div className={`absolute inset-0 blur-[100px] bg-gradient-to-br ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`}></div>
       </div>
+
       {/* Hero Section */}
       <div className="px-8 pt-16 pb-6 flex items-end gap-6 relative z-10 border-b border-white/5">
         <div className={`w-40 h-40 shrink-0 rounded-2xl bg-gradient-to-br shadow-2xl flex items-center justify-center ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`}>
@@ -87,6 +97,14 @@ export const DownloadsView = ({
           <h1 className="text-5xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{title}</h1>
           <div className="flex items-center gap-2 mt-2 text-white/80 font-medium">
             <span>{tracks.length} canciones</span>
+            {type === 'downloads' && (
+              <>
+                <span className="text-white/30">•</span>
+                <span className="text-white/60">
+                  {availableGB.toFixed(2)}GB libres de 5.00GB
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>
