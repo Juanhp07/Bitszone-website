@@ -55,7 +55,7 @@ export const ScrollableList = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="relative group">
+    <div className="relative">
       {showLeft && (
         <button
           onClick={() => scroll('left')}
