@@ -3,7 +3,7 @@ import type { Track, Album } from './types';
 
 interface DownloadsContextType {
   downloadedTracks: Track[];
-  downloadTrack: (track: Track) => Promise<void>;
+  downloadTrack: (track: Track, album?: Album) => Promise<void>;
   removeDownload: (trackId: number) => void;
   isDownloaded: (trackId: number) => boolean;
   totalBytes: number;
@@ -48,12 +48,13 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     setTotalBytes(bytes);
   };
 
-  const downloadTrack = async (track: Track) => {
+  const downloadTrack = async (track: Track, album?: Album) => {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         setDownloadedTracks(prev => {
           if (prev.find(t => t.id === track.id)) return prev;
-          const updated = [...prev, track];
+          const trackToSave = album ? { ...track, albumId: album.id, albumTitle: album.title, albumCover: album.coverUrl } : track;
+          const updated = [...prev, trackToSave];
           localStorage.setItem('bz_downloads', JSON.stringify(updated));
           calculateBytes(updated);
           return updated;

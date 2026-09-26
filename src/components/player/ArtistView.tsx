@@ -34,7 +34,7 @@ export const ArtistView = ({
     const tracksToDownload = album.tracks.filter(t => !isDownloaded(t.id));
     for (const track of tracksToDownload) {
       setDownloadingIds(prev => [...prev, track.id]);
-      await downloadTrack(track);
+      await downloadTrack(track, album);
       setDownloadingIds(prev => prev.filter(id => id !== track.id));
     }
     setIsDownloadingAlbum(null);

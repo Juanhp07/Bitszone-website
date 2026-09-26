@@ -53,7 +53,7 @@ export const AlbumView = ({
     e.stopPropagation();
     if (isDownloaded(track.id)) return;
     setDownloadingIds(prev => [...prev, track.id]);
-    await downloadTrack(track);
+    await downloadTrack(track, album);
     setDownloadingIds(prev => prev.filter(id => id !== track.id));
   };
 
@@ -71,7 +71,7 @@ export const AlbumView = ({
     
     for (const track of tracksToDownload) {
       setDownloadingIds(prev => [...prev, track.id]);
-      await downloadTrack(track);
+      await downloadTrack(track, album);
       setDownloadingIds(prev => prev.filter(id => id !== track.id));
     }
     
