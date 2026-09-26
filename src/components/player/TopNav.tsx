@@ -25,9 +25,9 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar }: { current
           className="font-bold text-xl tracking-widest cursor-pointer"
           onClick={() => onViewChange('catalog')}
           style={{
-            background: 'linear-gradient(45deg, #a855f7, #3b82f6, #a855f7)',
+            background: 'linear-gradient(45deg, #6b7280, #a1a1aa, #6b7280)',
             backgroundSize: '200% 200%',
-            animation: 'gradientMove 3s ease infinite',
+            animation: 'gradientMove 5s ease infinite',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}

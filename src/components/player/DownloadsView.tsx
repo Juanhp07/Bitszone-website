@@ -1,82 +1,95 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { DownloadCloud, Play, Heart, Clock } from 'lucide-react';
+import { useDownloads } from './DownloadsContext';
 
 export const DownloadsView = () => {
+  const { downloadedTracks } = useDownloads();
+  const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
+
+  const formatDuration = (millis: number) => {
+    const totalSeconds = Math.floor(millis / 1000);
+    const m = Math.floor(totalSeconds / 60);
+    const s = Math.floor(totalSeconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  if (downloadedTracks.length === 0) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center relative z-10 px-8 text-center pt-24">
+        <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6">
+          <DownloadCloud className="w-10 h-10 text-white/20" />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-3">No has descargado nada aún</h2>
+        <p className="text-white/50 max-w-md">
+          Las canciones que descargues aparecerán aquí para que puedas escucharlas sin conexión a internet.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-full pt-32 px-12 overflow-y-auto pb-40 relative z-10">
-      <div className="max-w-[1000px] mx-auto">
-        <header className="mb-10">
-          <p className="text-[#a855f7] text-xs font-bold tracking-widest uppercase mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#a855f7]"></span> IHC VERIFIED VAULT <span className="text-white/30 font-normal">v2.4 • Modo Sin Conexión</span>
-          </p>
-          <h2 className="text-5xl font-black text-white tracking-tight mb-4 uppercase">Mis Descargas</h2>
-          <p className="text-white/60 text-lg max-w-2xl leading-relaxed">
-            Tu música verificada para escuchar en cualquier lugar sin interrupciones, sin datos móviles y con licencia local garantizada en modo avión.
-          </p>
-        </header>
+    <div className="h-full flex flex-col relative">
+      {/* Hero Section */}
+      <div className="px-8 pt-16 pb-6 flex items-end gap-6 relative z-10 border-b border-white/5">
+        <div className="w-40 h-40 shrink-0 rounded-2xl bg-gradient-to-br from-[#a855f7] to-[#3b82f6] shadow-2xl flex items-center justify-center">
+          <DownloadCloud className="w-16 h-16 text-white" />
+        </div>
+        
+        <div className="flex flex-col gap-2 pb-2">
+          <span className="text-white/70 text-sm font-semibold tracking-widest uppercase">Playlist</span>
+          <h1 className="text-5xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>Mis descargas</h1>
+          <div className="flex items-center gap-2 mt-2 text-white/80 font-medium">
+            <span>{downloadedTracks.length} canciones descargadas</span>
+          </div>
+        </div>
+      </div>
 
-        {/* Storage Widget */}
-        <div className="w-full bg-gradient-to-br from-[#1a1025] to-[#0a0510] rounded-3xl p-8 border border-[#a855f7]/20 shadow-[0_0_50px_rgba(168,85,247,0.05)] mb-12">
-          <div className="flex justify-between items-end mb-6">
-            <div>
-              <p className="text-white/40 text-xs font-bold tracking-widest uppercase mb-1">Gestión de Almacenamiento Local</p>
-              <div className="flex items-baseline gap-2">
-                <h3 className="text-4xl font-bold text-white">1.2 GB</h3>
-                <span className="text-white/50 text-sm">ocupados por Bitszone • <span className="text-white">3.8 GB disponibles</span> <span className="text-white/30 text-xs">(64 GB totales)</span></span>
+      <div className="px-8 relative z-10 flex-1 pt-6">
+        {/* Header */}
+        <div className="grid grid-cols-[50px_1fr_100px] gap-4 px-4 py-2 text-white/50 text-sm font-medium border-b border-white/5 mb-4">
+          <div className="text-center">#</div>
+          <div>Título</div>
+          <div className="flex justify-end"><Clock className="w-4 h-4" /></div>
+        </div>
+
+        {/* Tracklist */}
+        <div className="flex flex-col gap-1 pb-10">
+          {downloadedTracks.map((track, index) => {
+            const isHovered = hoveredTrack === track.id;
+            return (
+              <div 
+                key={track.id}
+                onMouseEnter={() => setHoveredTrack(track.id)}
+                onMouseLeave={() => setHoveredTrack(null)}
+                className="grid grid-cols-[50px_1fr_100px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group hover:bg-white/5"
+              >
+                <div className="text-center text-white/50 font-medium">
+                  {isHovered ? (
+                    <Play className="w-4 h-4 text-white mx-auto" fill="currentColor" />
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                </div>
+                
+                <div className="flex flex-col pr-4">
+                  <span className="font-medium line-clamp-1 text-white">
+                    {track.title}
+                  </span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-white/50 text-sm line-clamp-1 group-hover:text-white/80 transition-colors">{track.artist}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-end gap-4">
+                  {isHovered && <Heart className="w-4 h-4 text-white/40 hover:text-white transition-colors" />}
+                  <div className="w-10 text-right text-white/50 text-sm">
+                    {formatDuration(track.duration)}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <button className="px-4 py-2 rounded-lg bg-white/10 text-white/80 text-xs font-medium border border-white/5">Memoria interna</button>
-              <button className="px-4 py-2 rounded-lg bg-transparent text-white/40 text-xs font-medium border border-transparent hover:bg-white/5">Tarjeta SD externa</button>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden mb-3 flex">
-            <div className="h-full bg-gradient-to-r from-[#a855f7] to-[#d8b4fe] w-[18%]"></div>
-            <div className="h-full bg-white/10 w-[5%]"></div>
-          </div>
-          
-          <div className="flex justify-between text-[10px] text-white/40 font-medium">
-            <div className="flex gap-4">
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#d8b4fe]"></span> Audio Bitszone (Hi-Res 320k)</span>
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-white/10"></span> Otras apps y sistema</span>
-            </div>
-            <span>24% asignado a audio offline</span>
-          </div>
+            );
+          })}
         </div>
-
-        {/* Tracks List */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-full bg-[#a855f7] text-white text-xs font-bold">Todas las descargas (42)</button>
-            <button className="px-4 py-2 rounded-full bg-white/5 text-white/60 hover:text-white text-xs font-medium">Álbumes guardados (3)</button>
-          </div>
-          <div className="w-64 relative">
-             <input type="text" placeholder="Filtrar por pista o artista..." className="w-full bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white focus:outline-none focus:border-[#a855f7]/50" />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {/* Track 1 */}
-          <div className="flex items-center gap-4 p-3 hover:bg-white/5 rounded-xl transition-colors group cursor-pointer border border-transparent hover:border-white/5">
-             <img src="/mj.png" className="w-12 h-12 rounded-lg object-cover" />
-             <div className="flex-1">
-               <h4 className="text-white font-medium text-sm flex items-center gap-2">Hyperluminal Drift <span className="text-[9px] bg-white/10 px-1.5 py-0.5 rounded text-white/60">FLAC</span></h4>
-               <p className="text-white/50 text-xs">Kavinsky • Reborn Edition</p>
-             </div>
-             <div className="text-right px-8 border-r border-white/5">
-               <p className="text-white/80 text-sm font-medium">18.4 MB</p>
-               <p className="text-white/40 text-[10px]">320 kbps CBR</p>
-             </div>
-             <div className="px-4 w-40 flex justify-end">
-               <span className="text-green-400 text-xs font-medium flex items-center gap-1.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Disponible sin conexión</span>
-             </div>
-             <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition-colors">
-               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-             </button>
-          </div>
-        </div>
-
       </div>
     </div>
   );

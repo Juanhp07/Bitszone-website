@@ -147,11 +147,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           <div className="flex-1 relative flex flex-col min-w-0 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] overflow-hidden">
             
             {/* The colored orbs are now CONFINED inside this container so they don't bleed into the padding */}
-            <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[80%] bg-[#a855f7]/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
-            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-600/15 rounded-full blur-[120px] pointer-events-none z-0"></div>
+            <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#a855f7]/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
             
             {/* The glass layer that blurs the confined orbs */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] to-white/[0.01] backdrop-blur-[100px] border border-white/[0.08] pointer-events-none z-0 rounded-2xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent backdrop-blur-3xl border border-white/[0.05] pointer-events-none z-0 rounded-2xl"></div>
             <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none z-0"></div>
 
             {/* Actual scrollable content on top of the glass */}

@@ -1,7 +1,16 @@
 import React from 'react';
 import { Home, Library, DownloadCloud } from 'lucide-react';
+import { useDownloads } from './DownloadsContext';
 
 export const Sidebar = ({ currentView, onViewChange }: { currentView: string, onViewChange: (view: any) => void }) => {
+  const { totalBytes } = useDownloads();
+  
+  // Base 4.20 GB used + whatever was downloaded
+  const baseUsedGB = 4.20;
+  const downloadedGB = totalBytes / (1024 * 1024 * 1024);
+  const totalUsedGB = baseUsedGB + downloadedGB;
+  const availableGB = Math.max(0, 5.0 - totalUsedGB);
+
   return (
     <aside className="w-full h-full flex flex-col bg-black">
       <div className="flex-1 px-4 py-6 flex flex-col gap-2">
@@ -33,7 +42,7 @@ export const Sidebar = ({ currentView, onViewChange }: { currentView: string, on
 
       <div className="p-6">
         <div className="flex items-center justify-center py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 text-xs font-medium tracking-wide">
-          4.2GB/5GB disponibles
+          {availableGB.toFixed(2)}GB / 5GB disponibles
         </div>
       </div>
     </aside>

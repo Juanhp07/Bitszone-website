@@ -1,0 +1,25 @@
+--- src/components/player/MainApp.tsx
++++ src/components/player/MainApp.tsx
+@@ -9,6 +9,7 @@
+ import { ImmersivePlayer } from './ImmersivePlayer';
+ import { useCatalog } from './useCatalog';
+ import type { Album, Track } from './types';
++import { DownloadsProvider } from './DownloadsContext';
+ 
+ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
+   const [currentView, setCurrentView] = useState<'catalog' | 'album' | 'downloads'>('catalog');
+@@ -107,6 +108,7 @@
+   };
+ 
+   return (
++    <DownloadsProvider>
+     <div className="w-full h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative">
+       <div className="relative z-20 shrink-0">
+         <TopNav 
+@@ -194,6 +196,7 @@
+         progress={progress}
+       />
+     </div>
++    </DownloadsProvider>
+   );
+ };

@@ -1,11 +1,12 @@
-import React from 'react';
-import { Play, Pause } from 'lucide-react';
+import React, { useState } from 'react';
+import { Play, Pause, Heart, MoreHorizontal, Clock, ArrowLeft, Download, Check, Loader2 } from 'lucide-react';
 import type { Album, Track } from './types';
+import { useDownloads } from './DownloadsContext';
 
 export const AlbumView = ({ 
   album, 
-  loading, 
-  onViewChange, 
+  loading,
+  onViewChange,
   onPlayTrack,
   nowPlayingTrackId,
   isPlaying,
@@ -13,102 +14,177 @@ export const AlbumView = ({
 }: { 
   album: Album | null, 
   loading: boolean,
-  onViewChange: (v: any) => void,
+  onViewChange: (view: any) => void,
   onPlayTrack: (t: Track, a: Album) => void,
   nowPlayingTrackId?: number,
   isPlaying: boolean,
   togglePlay: () => void
 }) => {
+  const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
+  const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
+  const { downloadTrack, isDownloaded } = useDownloads();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    );
+  }
+
   if (!album) return null;
 
+  const formatDuration = (millis: number) => {
+    const totalSeconds = Math.floor(millis / 1000);
+    const m = Math.floor(totalSeconds / 60);
+    const s = Math.floor(totalSeconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleDownload = async (e: React.MouseEvent, track: Track) => {
+    e.stopPropagation();
+    if (isDownloaded(track.id)) return;
+    setDownloadingIds(prev => [...prev, track.id]);
+    await downloadTrack(track);
+    setDownloadingIds(prev => prev.filter(id => id !== track.id));
+  };
+
   return (
-    <div className="w-full h-full px-8 py-8 pb-32 relative z-10 flex gap-12">
-      <div className="w-[30%] max-w-[400px] shrink-0">
-        <button onClick={() => onViewChange('catalog')} className="text-white/50 hover:text-white flex items-center gap-2 text-sm font-medium mb-8 transition-colors">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>
-          Volver
+    <div className="h-full flex flex-col relative">
+      {/* Hero Section */}
+      <div className="px-8 pt-8 pb-6 flex items-end gap-6 relative z-10">
+        <button 
+          onClick={() => onViewChange('catalog')}
+          className="absolute top-8 left-8 w-10 h-10 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center transition-colors border border-white/10"
+        >
+          <ArrowLeft className="w-5 h-5 text-white" />
         </button>
-        <div className="w-full aspect-square rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.15)] border border-white/10 relative">
-          <img src={album.coverUrl} alt="Cover" className="w-full h-full object-cover" />
-          <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] text-white/80 font-medium flex items-center gap-1.5 border border-white/10 uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-[#a855f7]"></span> {album.genre}
+
+        <div className="w-52 h-52 shrink-0 rounded-2xl shadow-2xl overflow-hidden mt-12 relative group">
+          <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </div>
+        
+        <div className="flex flex-col gap-2 pb-2">
+          <span className="text-white/70 text-sm font-semibold tracking-widest uppercase">Álbum</span>
+          <h1 className="text-6xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{album.title}</h1>
+          <div className="flex items-center gap-2 mt-2 text-white/80 font-medium">
+            <span className="text-white">{album.artist}</span>
+            <span>•</span>
+            <span>{album.year}</span>
+            <span>•</span>
+            <span>{album.trackCount} canciones</span>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 max-w-[900px] pt-12">
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-white/70 flex items-center gap-1.5">
-               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-               Álbum Oficial
-            </span>
+      <div className="px-8 relative z-10 flex-1">
+        {/* Actions */}
+        <div className="flex items-center gap-6 py-4">
+          <button 
+            className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] hover:scale-105 rounded-full flex items-center justify-center text-white transition-all shadow-[0_8px_20px_rgba(168,85,247,0.3)]"
+            onClick={() => {
+              if (nowPlayingTrackId && album.tracks?.find(t => t.id === nowPlayingTrackId)) {
+                togglePlay();
+              } else if (album.tracks && album.tracks.length > 0) {
+                onPlayTrack(album.tracks[0], album);
+              }
+            }}
+          >
+            {isPlaying && nowPlayingTrackId && album.tracks?.find(t => t.id === nowPlayingTrackId) ? (
+              <Pause className="w-6 h-6" fill="currentColor" />
+            ) : (
+              <Play className="w-6 h-6 ml-1" fill="currentColor" />
+            )}
+          </button>
+          <button className="text-white/50 hover:text-white transition-colors">
+            <Heart className="w-8 h-8" />
+          </button>
+          <button className="text-white/50 hover:text-white transition-colors">
+            <MoreHorizontal className="w-8 h-8" />
+          </button>
+        </div>
+
+        <div className="mt-8">
+          {/* Header */}
+          <div className="grid grid-cols-[50px_1fr_100px_120px] gap-4 px-4 py-2 text-white/50 text-sm font-medium border-b border-white/5 mb-4">
+            <div className="text-center">#</div>
+            <div>Título</div>
+            <div className="text-right">Reproducciones</div>
+            <div className="flex items-center justify-end gap-6">
+               <Clock className="w-4 h-4" />
+            </div>
           </div>
-          <h1 className="text-6xl font-serif italic text-white mb-4">{album.title}</h1>
-          <p className="text-lg text-white/70 flex items-center gap-4">
-            <span className="font-semibold text-white">{album.artist}</span>
-            <span>•</span>
-            <span>{album.year}</span>
-            <span>•</span>
-            <span>{album.trackCount} pistas</span>
-          </p>
-        </div>
 
-        <div className="flex items-center gap-4 mb-12">
-          {album.tracks && album.tracks.length > 0 && (
-            <button 
-              onClick={() => onPlayTrack(album.tracks![0], album)}
-              className="flex items-center gap-2 px-8 py-4 rounded-full bg-[#a855f7] hover:bg-[#9333ea] text-white font-bold transition-all shadow-lg hover:shadow-purple-500/30 hover:scale-105"
-            >
-              <Play fill="currentColor" className="w-5 h-5" /> Reproducir Todo
-            </button>
-          )}
-        </div>
+          {/* Tracklist */}
+          <div className="flex flex-col gap-1 pb-10">
+            {album.tracks?.map((track) => {
+              const isPlayingTrack = nowPlayingTrackId === track.id && isPlaying;
+              const isHovered = hoveredTrack === track.id;
+              const downloaded = isDownloaded(track.id);
+              const isDownloading = downloadingIds.includes(track.id);
 
-        {/* Tracklist Table */}
-        <div className="w-full">
-           <div className="grid grid-cols-[50px_1fr_100px_100px] gap-4 px-4 py-3 text-xs font-medium text-white/40 tracking-widest uppercase border-b border-white/5 mb-2">
-             <div>#</div>
-             <div>Título</div>
-             <div className="text-right">Calidad</div>
-             <div className="text-right">Duración</div>
-           </div>
-           
-           {loading ? (
-             <div className="py-8 text-center text-white/50">Cargando pistas...</div>
-           ) : (
-             album.tracks?.map((track) => {
-               const isThisTrackPlaying = nowPlayingTrackId === track.id;
-               const durationSecs = track.duration ? Math.floor(track.duration / 1000) : 0;
-               const mins = Math.floor(durationSecs / 60);
-               const secs = durationSecs % 60;
-               const formattedDuration = track.duration ? `${mins}:${secs.toString().padStart(2, '0')}` : "--:--";
-
-               return (
-                 <div 
-                   key={track.id}
-                   onClick={() => isThisTrackPlaying ? togglePlay() : onPlayTrack(track, album)}
-                   className={`grid grid-cols-[50px_1fr_100px_100px] gap-4 px-4 py-4 items-center rounded-xl transition-colors group cursor-pointer border border-transparent ${
-                     isThisTrackPlaying ? 'bg-white/[0.05] border-[#a855f7]/30' : 'hover:bg-white/5 hover:border-white/5'
-                   }`}
-                 >
-                   <div className="text-white/50 text-sm font-medium group-hover:text-white flex items-center">
-                     {isThisTrackPlaying && isPlaying ? (
-                       <svg className="w-4 h-4 text-[#a855f7]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-                     ) : (
-                       track.trackNumber.toString().padStart(2, '0')
-                     )}
-                   </div>
-                   <div>
-                     <h4 className={`font-medium mb-0.5 ${isThisTrackPlaying ? 'text-[#a855f7]' : 'text-white'}`}>{track.title}</h4>
-                     <p className="text-white/50 text-xs">{track.artist}</p>
-                   </div>
-                   <div className="text-right text-xs text-white/40">Lossless</div>
-                   <div className="text-right text-sm text-white/60 tabular-nums">{formattedDuration}</div>
-                 </div>
-               )
-             })
-           )}
+              return (
+                <div 
+                  key={track.id}
+                  onMouseEnter={() => setHoveredTrack(track.id)}
+                  onMouseLeave={() => setHoveredTrack(null)}
+                  onClick={() => onPlayTrack(track, album)}
+                  className={`grid grid-cols-[50px_1fr_100px_120px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group ${
+                    nowPlayingTrackId === track.id ? 'bg-white/10' : 'hover:bg-white/5'
+                  }`}
+                >
+                  <div className="text-center text-white/50 font-medium">
+                    {isPlayingTrack ? (
+                      <div className="w-4 h-4 flex items-end justify-center gap-[2px] mx-auto">
+                        <div className="w-1 h-3 bg-[#a855f7] animate-[bounce_1s_infinite]"></div>
+                        <div className="w-1 h-4 bg-[#a855f7] animate-[bounce_1.2s_infinite]"></div>
+                        <div className="w-1 h-2 bg-[#a855f7] animate-[bounce_0.8s_infinite]"></div>
+                      </div>
+                    ) : isHovered ? (
+                      <Play className="w-4 h-4 text-white mx-auto" fill="currentColor" />
+                    ) : (
+                      <span className={nowPlayingTrackId === track.id ? 'text-[#a855f7]' : ''}>{track.trackNumber}</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col pr-4">
+                    <span className={`font-medium line-clamp-1 ${nowPlayingTrackId === track.id ? 'text-[#a855f7]' : 'text-white'}`}>
+                      {track.title}
+                    </span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {track.previewUrl.includes('explicit') && (
+                        <span className="px-1 py-0.5 rounded-sm bg-white/20 text-[10px] font-bold text-white leading-none">E</span>
+                      )}
+                      <span className="text-white/50 text-sm line-clamp-1 group-hover:text-white/80 transition-colors">{track.artist}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right text-white/50 text-sm">{(Math.random() * 1000000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
+                  
+                  <div className="flex items-center justify-end gap-5">
+                    <button 
+                      onClick={(e) => handleDownload(e, track)}
+                      className="text-white/40 hover:text-white transition-colors"
+                      disabled={isDownloading || downloaded}
+                    >
+                      {isDownloading ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" />
+                      ) : downloaded ? (
+                        <Check className="w-4 h-4 text-[#a855f7]" />
+                      ) : (
+                        isHovered && <Download className="w-4 h-4" />
+                      )}
+                    </button>
+                    {isHovered && <Heart className="w-4 h-4 text-white/40 hover:text-white transition-colors" />}
+                    <div className="w-10 text-right text-white/50 text-sm">
+                      {formatDuration(track.duration)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
