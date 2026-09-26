@@ -23,7 +23,6 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   spacing = 220,
 }) => {
   const [containerRef, { width: containerWidth }] = useMeasure<HTMLDivElement>();
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   
   const requestRef = useRef<number>();
   
@@ -82,19 +81,19 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       const opacity = 1 - Math.abs(normalizedDistance) * 0.8;
       const translateZ = -Math.abs(normalizedDistance) * 250;
 
-      const isHovered = hoveredIndex === index;
+      const isCenter = Math.abs(normalizedDistance) < 0.15;
       
       card.style.transform = `translateX(${currentX - centerScreenX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
       card.style.zIndex = zIndex.toString();
-      card.style.opacity = isHovered ? "1" : Math.max(0, opacity).toString();
+      card.style.opacity = isCenter ? "1" : Math.max(0, opacity).toString();
       
       const inner = card.querySelector('.coverflow-inner') as HTMLDivElement;
       if (inner) {
         const baseScale = 1 - Math.abs(normalizedDistance) * 0.2;
-        const targetScale = isHovered ? 1.05 : baseScale;
+        const targetScale = isCenter ? 1.05 : baseScale;
         inner.style.transform = `scale(${targetScale})`;
         
-        if (isHovered) {
+        if (isCenter) {
           inner.classList.add('glow-active');
         } else {
           inner.classList.remove('glow-active');
@@ -103,7 +102,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     });
 
     requestRef.current = requestAnimationFrame(animate);
-  }, [containerWidth, hoveredIndex, speed, spacing, totalWidth]);
+  }, [containerWidth, speed, spacing, totalWidth]);
 
   useEffect(() => {
     if (containerWidth > 0) {
@@ -232,15 +231,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
           key={index}
           className="coverflow-card group"
           style={{ '--card-color': item.color } as React.CSSProperties}
-          onMouseEnter={() => {
-            isHoveringCard.current = true;
-            setHoveredIndex(index);
-            centerCard(index);
-          }}
-          onMouseLeave={() => {
-            isHoveringCard.current = false;
-            setHoveredIndex(null);
-          }}
+
           onClick={() => centerCard(index)}
         >
           <div className="coverflow-inner">
