@@ -18,9 +18,7 @@ export const CatalogView = ({
   onSelectArtist?: (artist: {name: string, img: string, type?: string}) => void
 }) => {
   const [hoveredAlbum, setHoveredAlbum] = useState<string | number | null>(null);
-  const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const { downloadTrack, isDownloaded } = useDownloads();
-
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
   const [isDownloadingAlbum, setIsDownloadingAlbum] = useState<number | null>(null);

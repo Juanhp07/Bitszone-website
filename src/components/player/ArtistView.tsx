@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Play } from 'lucide-react';
+import { ArrowLeft, Play, Download, Check, Loader2 } from 'lucide-react';
+import { useDownloads } from './DownloadsContext';
 import type { Album } from './types';
 
 export const ArtistView = ({ 
@@ -14,6 +15,31 @@ export const ArtistView = ({
   onSelectAlbum: (album: Album) => void 
 }) => {
   // Filtrar los álbumes que pertenecen a este artista
+
+  const { downloadTrack, isDownloaded } = useDownloads();
+  const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
+  const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
+  const [isDownloadingAlbum, setIsDownloadingAlbum] = useState<number | null>(null);
+
+  const handleDownloadAlbumClick = (e: React.MouseEvent, album: Album) => {
+    e.stopPropagation();
+    setShowDownloadConfirm(album);
+  };
+
+  const executeDownloadAlbum = async () => {
+    const album = showDownloadConfirm;
+    setShowDownloadConfirm(null);
+    if (!album || !album.tracks) return;
+    setIsDownloadingAlbum(album.id);
+    const tracksToDownload = album.tracks.filter(t => !isDownloaded(t.id));
+    for (const track of tracksToDownload) {
+      setDownloadingIds(prev => [...prev, track.id]);
+      await downloadTrack(track);
+      setDownloadingIds(prev => prev.filter(id => id !== track.id));
+    }
+    setIsDownloadingAlbum(null);
+  };
+
   const artistAlbums = albums.filter(a => a.artist.toLowerCase().includes(artist.name.toLowerCase()));
 
   return (
