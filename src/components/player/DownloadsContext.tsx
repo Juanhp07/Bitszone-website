@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Track } from './types';
+import type { Track, Album } from './types';
 
 interface DownloadsContextType {
   downloadedTracks: Track[];
@@ -10,6 +10,7 @@ interface DownloadsContextType {
   
   favoriteTracks: Track[];
   toggleFavorite: (track: Track) => void;
+  toggleFavoriteAlbum: (album: Album) => void;
   isFavorite: (trackId: number) => boolean;
   
   newDownloadsCount: number;
@@ -90,6 +91,23 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     });
   };
 
+  
+  const toggleFavoriteAlbum = (album: Album) => {
+    if (!album.tracks) return;
+    setFavoriteTracks(prev => {
+      let updated = [...prev];
+      const allFavorited = album.tracks!.every(t => prev.some(pt => pt.id === t.id));
+      if (allFavorited) {
+        updated = updated.filter(pt => !album.tracks!.some(t => t.id === pt.id));
+      } else {
+        const tracksToAdd = album.tracks!.filter(t => !prev.some(pt => pt.id === t.id));
+        updated = [...updated, ...tracksToAdd];
+      }
+      localStorage.setItem('bz_favorites', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const isFavorite = (trackId: number) => {
     return favoriteTracks.some(t => t.id === trackId);
   };
@@ -99,7 +117,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   return (
     <DownloadsContext.Provider value={{ 
       downloadedTracks, downloadTrack, removeDownload, isDownloaded, totalBytes,
-      favoriteTracks, toggleFavorite, isFavorite,
+      favoriteTracks, toggleFavorite, toggleFavoriteAlbum, isFavorite,
       newDownloadsCount, clearNewDownloads
     }}>
       {children}

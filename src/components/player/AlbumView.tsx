@@ -24,7 +24,7 @@ export const AlbumView = ({
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
   const [isDownloadingAlbum, setIsDownloadingAlbum] = useState(false);
-  const { downloadTrack, isDownloaded, toggleFavorite, isFavorite } = useDownloads();
+  const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum } = useDownloads();
 
   if (loading) {
       return (
@@ -79,6 +79,7 @@ export const AlbumView = ({
   };
 
   const isEntireAlbumDownloaded = album.tracks?.every(t => isDownloaded(t.id)) ?? false;
+  const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
 
   return (
     <div className="h-full flex flex-col relative">
@@ -133,8 +134,8 @@ export const AlbumView = ({
               <Play className="w-6 h-6 ml-1" fill="currentColor" />
             )}
           </button>
-          <button className="text-white/50 hover:text-white transition-colors">
-            <Heart className="w-8 h-8" />
+          <button onClick={() => toggleFavoriteAlbum(album)} className={`transition-colors ${isEntireAlbumFavorited ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}>
+            <Heart className="w-8 h-8" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
           </button>
           <button className="text-white/50 hover:text-white transition-colors">
             </button>
