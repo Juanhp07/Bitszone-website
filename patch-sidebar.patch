@@ -1,0 +1,11 @@
+--- src/components/player/Sidebar.tsx
++++ src/components/player/Sidebar.tsx
+@@ -43,7 +43,7 @@
+           <div className="relative">
+             <DownloadCloud className="w-5 h-5" />
+             {newDownloadsCount > 0 && currentView !== 'downloads' && (
+-              <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-[#a855f7] text-white text-[10px] font-bold animate-bounce shadow-[0_0_10px_rgba(168,85,247,0.6)]">
++              <span key={newDownloadsCount} className="absolute -top-2 -right-2 flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-gradient-to-r from-[#a855f7] to-[#3b82f6] text-white text-[10px] font-bold animate-sparkle">
+                 {newDownloadsCount}
+               </span>
+             )}
