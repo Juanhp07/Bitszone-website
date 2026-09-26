@@ -27,26 +27,7 @@ export const AlbumView = ({
   const { downloadTrack, isDownloaded, toggleFavorite, isFavorite } = useDownloads();
 
   if (loading) {
-    
-  const handleDownloadAlbum = async () => {
-    setShowDownloadConfirm(false);
-    if (!album.tracks) return;
-    
-    setIsDownloadingAlbum(true);
-    const tracksToDownload = album.tracks.filter(t => !isDownloaded(t.id));
-    
-    for (const track of tracksToDownload) {
-      setDownloadingIds(prev => [...prev, track.id]);
-      await downloadTrack(track);
-      setDownloadingIds(prev => prev.filter(id => id !== track.id));
-    }
-    
-    setIsDownloadingAlbum(false);
-  };
-
-  const isEntireAlbumDownloaded = album.tracks?.every(t => isDownloaded(t.id)) ?? false;
-
-  return (
+      return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
@@ -80,6 +61,24 @@ export const AlbumView = ({
     e.stopPropagation();
     toggleFavorite(track);
   };
+
+  const handleDownloadAlbum = async () => {
+    setShowDownloadConfirm(false);
+    if (!album.tracks) return;
+    
+    setIsDownloadingAlbum(true);
+    const tracksToDownload = album.tracks.filter(t => !isDownloaded(t.id));
+    
+    for (const track of tracksToDownload) {
+      setDownloadingIds(prev => [...prev, track.id]);
+      await downloadTrack(track);
+      setDownloadingIds(prev => prev.filter(id => id !== track.id));
+    }
+    
+    setIsDownloadingAlbum(false);
+  };
+
+  const isEntireAlbumDownloaded = album.tracks?.every(t => isDownloaded(t.id)) ?? false;
 
   return (
     <div className="h-full flex flex-col relative">
