@@ -13,7 +13,7 @@ export const Header = () => {
             text="Bitszone"
             className="pe-2"
             style={{
-              fontSize: "28px",
+              fontSize: "36px",
               fontFamily: '"DM Serif Display", serif',
               fontStyle: "italic",
             }}
