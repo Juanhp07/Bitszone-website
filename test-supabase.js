@@ -1,17 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config({ path: '.env' });
 
-const supabaseUrl = process.env.PUBLIC_SUPABASE_URL || 'https://oxloqoggjldbjjratwoh.supabase.co';
-const supabaseKey = process.env.PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(process.env.PUBLIC_SUPABASE_URL, process.env.PUBLIC_SUPABASE_ANON_KEY);
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-async function checkBucket() {
-  const { data, error } = await supabase.storage.from('songs').list('Thriller');
-  if (error) {
-    console.error('Error fetching bucket:', error);
-  } else {
-    console.log('Files in Thriller folder:', data);
-  }
+async function check() {
+  const { data: albums } = await supabase.from('albums').select('*');
+  console.log('Albums:', albums);
+  
+  const { data: tracks } = await supabase.from('tracks').select('*').limit(3);
+  console.log('Sample Tracks:', tracks);
 }
 
-checkBucket();
+check();

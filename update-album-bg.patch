@@ -1,0 +1,15 @@
+--- src/components/player/AlbumView.tsx
++++ src/components/player/AlbumView.tsx
+@@ -43,6 +43,12 @@
+ 
+   return (
+     <div className="h-full flex flex-col relative">
++      {/* Background Blurred Cover */}
++      <div className="absolute top-0 left-0 right-0 h-[600px] z-0 overflow-hidden pointer-events-none">
++        <img src={album.coverUrl} alt="" className="w-full h-full object-cover opacity-40 blur-[80px] scale-150 -translate-y-10" />
++        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050A]/80 to-transparent" />
++      </div>
++
+       {/* Hero Section */}
+       <div className="px-8 pt-8 pb-6 flex items-end gap-6 relative z-10">
+         <button 

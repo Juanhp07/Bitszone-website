@@ -70,6 +70,11 @@ export const DownloadsView = ({
 
   return (
     <div className="h-full flex flex-col relative">
+      {/* Background Blurred Glow */}
+      <div className="absolute top-0 left-0 right-0 h-[600px] z-0 overflow-hidden pointer-events-none">
+        <div className={`w-full h-full opacity-40 blur-[100px] bg-gradient-to-br -translate-y-10 scale-150 ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`} />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050A]/80 to-transparent" />
+      </div>
       {/* Hero Section */}
       <div className="px-8 pt-16 pb-6 flex items-end gap-6 relative z-10 border-b border-white/5">
         <div className={`w-40 h-40 shrink-0 rounded-2xl bg-gradient-to-br shadow-2xl flex items-center justify-center ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`}>

@@ -1,35 +1,15 @@
 --- src/components/player/DownloadsView.tsx
 +++ src/components/player/DownloadsView.tsx
-@@ -2,7 +2,7 @@
- import { DownloadCloud, Play, Heart, Clock } from 'lucide-react';
- import { useDownloads } from './DownloadsContext';
+@@ -58,6 +58,11 @@
  
--export const DownloadsView = () => {
-+export const DownloadsView = ({ title = "Mis descargas", icon: Icon = DownloadCloud }: { title?: string, icon?: any }) => {
-   const { downloadedTracks } = useDownloads();
-   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
- 
-@@ -17,9 +17,9 @@
-       <div className="h-full flex flex-col items-center justify-center relative z-10 px-8 text-center pt-24">
-         <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6">
--          <DownloadCloud className="w-10 h-10 text-white/20" />
-+          <Icon className="w-10 h-10 text-white/20" />
-         </div>
--        <h2 className="text-2xl font-bold text-white mb-3">No has descargado nada aún</h2>
-+        <h2 className="text-2xl font-bold text-white mb-3">Tu lista está vacía</h2>
-         <p className="text-white/50 max-w-md">
-           Las canciones que descargues aparecerán aquí para que puedas escucharlas sin conexión a internet.
-         </p>
-@@ -32,10 +32,10 @@
+   return (
+     <div className="h-full flex flex-col relative">
++      {/* Background Blurred Glow */}
++      <div className="absolute top-0 left-0 right-0 h-[600px] z-0 overflow-hidden pointer-events-none">
++        <div className={`w-full h-full opacity-40 blur-[100px] bg-gradient-to-br -translate-y-10 scale-150 ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`} />
++        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05050A]/80 to-[#05050A]" />
++      </div>
++
+       {/* Hero Section */}
        <div className="px-8 pt-16 pb-6 flex items-end gap-6 relative z-10 border-b border-white/5">
-         <div className="w-40 h-40 shrink-0 rounded-2xl bg-gradient-to-br from-[#a855f7] to-[#3b82f6] shadow-2xl flex items-center justify-center">
--          <DownloadCloud className="w-16 h-16 text-white" />
-+          <Icon className="w-16 h-16 text-white" />
-         </div>
-         
-         <div className="flex flex-col gap-2 pb-2">
-           <span className="text-white/70 text-sm font-semibold tracking-widest uppercase">Playlist</span>
--          <h1 className="text-5xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>Mis descargas</h1>
-+          <h1 className="text-5xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{title}</h1>
-           <div className="flex items-center gap-2 mt-2 text-white/80 font-medium">
-             <span>{downloadedTracks.length} canciones descargadas</span>
+         <div className={`w-40 h-40 shrink-0 rounded-2xl bg-gradient-to-br shadow-2xl flex items-center justify-center ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`}>
