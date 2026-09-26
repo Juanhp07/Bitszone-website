@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { DownloadCloud } from 'lucide-react';
-import { Play, Pause, Download, Check, Loader2 } from 'lucide-react';
+import { Play, Pause, Download, Check, Loader2, ChevronLeft } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
-import { useDraggableScroll } from './useDraggableScroll';
+import { ScrollableList } from '../ui/ScrollableList';
 
 export const CatalogView = ({ 
   albums,
@@ -23,16 +23,12 @@ export const CatalogView = ({
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
   const [isDownloadingAlbum, setIsDownloadingAlbum] = useState<number | null>(null);
-
-  const artistsScrollRef = useDraggableScroll();
-  const albumsScrollRef = useDraggableScroll();
-  const albumsScrollRef2 = useDraggableScroll();
+  const [expandedSection, setExpandedSection] = useState<'canciones' | 'artistas' | 'destacados' | null>(null);
 
   const handleDownloadAlbumClick = (e: React.MouseEvent, album: Album) => {
     e.stopPropagation();
     setShowDownloadConfirm(album);
   };
-
 
   const knownArtistImages: Record<string, string> = {
     'Michael Jackson': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg/500px-Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg',
@@ -54,6 +50,21 @@ export const CatalogView = ({
   });
   const dynamicArtists = Array.from(artistsMap.values());
 
+  const renderList = (items: any[], isExpanded: boolean, renderItem: (item: any, i: number) => React.ReactNode) => {
+    if (isExpanded) {
+      return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 pb-20">
+          {items.map(renderItem)}
+        </div>
+      );
+    }
+    return (
+      <ScrollableList>
+        {items.map(renderItem)}
+      </ScrollableList>
+    );
+  };
+
   const executeDownloadAlbum = async () => {
     const album = showDownloadConfirm;
     setShowDownloadConfirm(null);
@@ -64,164 +75,126 @@ export const CatalogView = ({
     
     for (const track of tracksToDownload) {
       setDownloadingIds(prev => [...prev, track.id]);
-      await downloadTrack(track);
+      await downloadTrack(track, album);
       setDownloadingIds(prev => prev.filter(id => id !== track.id));
     }
-    
     setIsDownloadingAlbum(null);
   };
 
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full pt-32">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+  const renderAlbumCard = (album: Album) => (
+    <div 
+      key={album.id}
+      className={`${expandedSection ? 'w-full' : 'w-48'} shrink-0 flex flex-col gap-3 group cursor-pointer`}
+      onClick={() => onSelectAlbum(album)}
+    >
+      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-48 h-48'} rounded-xl overflow-hidden relative shadow-lg`}>
+        <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <button 
+            className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (album.tracks && album.tracks.length > 0) {
+                onPlayTrack(album.tracks[0], album);
+              }
+            }}
+          >
+            <Play className="w-6 h-6 ml-1" fill="currentColor" />
+          </button>
+        </div>
+        {album.tracks && album.tracks.length > 0 && (
+          <button 
+            onClick={(e) => handleDownloadAlbumClick(e, album)}
+            className="absolute bottom-2 right-2 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 z-10"
+            disabled={album.tracks.every(t => isDownloaded(t.id)) || isDownloadingAlbum === album.id}
+          >
+            {isDownloadingAlbum === album.id ? (
+              <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" />
+            ) : album.tracks.every(t => isDownloaded(t.id)) ? (
+              <Check className="w-4 h-4 text-[#a855f7]" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+          </button>
+        )}
       </div>
-    );
-  }
-
-  const handleDownload = async (e: React.MouseEvent, track: Track) => {
-    e.stopPropagation();
-    if (isDownloaded(track.id)) return;
-    setDownloadingIds(prev => [...prev, track.id]);
-    await downloadTrack(track);
-    setDownloadingIds(prev => prev.filter(id => id !== track.id));
-  };
+      <div className="flex flex-col">
+        <h3 className="text-white font-semibold text-sm line-clamp-1">{album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
+        <span className="text-white/50 text-xs mt-1">{album.artist}</span>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-10">
-      {/* Featured Section */}
+      {(!expandedSection || expandedSection === 'canciones') && (
       <section className="px-8 pt-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white tracking-tight">Canciones del momento</h2>
-          <button className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+          <div className="flex items-center gap-4">
+            {expandedSection && (
+              <button onClick={() => setExpandedSection(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+            <h2 className="text-2xl font-bold text-white tracking-tight">Canciones del momento</h2>
+          </div>
+          {!expandedSection && (
+            <button onClick={() => setExpandedSection('canciones')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+          )}
         </div>
-        
-        <div ref={albumsScrollRef as any} className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-          {albums.map((album) => (
-            <div 
-              key={album.id}
-              className="w-48 shrink-0 flex flex-col gap-3 group cursor-pointer"
-              onClick={() => onSelectAlbum(album)}
-            >
-              <div className="w-48 h-48 rounded-xl overflow-hidden relative shadow-lg">
-                <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <button 
-                    className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (album.tracks && album.tracks.length > 0) {
-                        onPlayTrack(album.tracks[0], album);
-                      }
-                    }}
-                  >
-                    <Play className="w-6 h-6 ml-1" fill="currentColor" />
-                  </button>
-                </div>
-                {album.tracks && album.tracks.length > 0 && (
-                  <button 
-                    onClick={(e) => handleDownloadAlbumClick(e, album)}
-                    className="absolute bottom-2 right-2 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 z-10"
-                    disabled={album.tracks.every(t => isDownloaded(t.id)) || isDownloadingAlbum === album.id}
-                  >
-                    {isDownloadingAlbum === album.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" />
-                    ) : album.tracks.every(t => isDownloaded(t.id)) ? (
-                      <Check className="w-4 h-4 text-[#a855f7]" />
-                    ) : (
-                      <Download className="w-4 h-4" />
-                    )}
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <h3 className="text-white font-semibold text-sm line-clamp-1">{album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
-                <span className="text-white/50 text-xs mt-1">{album.artist}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+        {renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album))}
       </section>
+      )}
 
-      {/* Popular Artists Section */}
+      {(!expandedSection || expandedSection === 'artistas') && (
       <section className="px-8 pt-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white tracking-tight">Artistas populares</h2>
-          <button className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+          <div className="flex items-center gap-4">
+            {expandedSection && (
+              <button onClick={() => setExpandedSection(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+            <h2 className="text-2xl font-bold text-white tracking-tight">Artistas populares</h2>
+          </div>
+          {!expandedSection && (
+            <button onClick={() => setExpandedSection('artistas')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+          )}
         </div>
-        
-        <div ref={artistsScrollRef as any} className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-          {dynamicArtists.map((artist, i) => (
-            <div key={i} className="w-40 shrink-0 flex flex-col items-center gap-4 group cursor-pointer" onClick={() => onSelectArtist && onSelectArtist(artist)}>
-              <div className="w-40 h-40 rounded-full overflow-hidden shadow-lg relative">
-                <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </div>
-              <div className="flex flex-col items-center">
-                <h3 className="text-white font-semibold text-sm">{artist.name}</h3>
-                <span className="text-white/50 text-xs mt-1">Artista</span>
-              </div>
+        {renderList(dynamicArtists, expandedSection === 'artistas', (artist, i) => (
+          <div key={i} className={`${expandedSection ? 'w-full' : 'w-40'} shrink-0 flex flex-col items-center gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
+            <div className={`${expandedSection ? 'w-full aspect-square' : 'w-40 h-40'} rounded-full overflow-hidden shadow-lg relative`}>
+              <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
-          ))}
-        </div>
+            <div className="flex flex-col items-center">
+              <h3 className="text-white font-semibold text-sm text-center line-clamp-1">{artist.name}</h3>
+              <span className="text-white/50 text-xs mt-1">{artist.type || 'Artista'}</span>
+            </div>
+          </div>
+        ))}
       </section>
+      )}
 
-      {/* Recommended Albums */}
+      {(!expandedSection || expandedSection === 'destacados') && (
       <section className="px-8 pt-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white tracking-tight">Álbumes destacados</h2>
-          <button className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+          <div className="flex items-center gap-4">
+            {expandedSection && (
+              <button onClick={() => setExpandedSection(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+            <h2 className="text-2xl font-bold text-white tracking-tight">Álbumes destacados</h2>
+          </div>
+          {!expandedSection && (
+            <button onClick={() => setExpandedSection('destacados')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+          )}
         </div>
-        
-        <div ref={albumsScrollRef2 as any} className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-           {albums.slice().reverse().map((album) => (
-            <div 
-              key={`rec-${album.id}`}
-              className="w-48 shrink-0 flex flex-col gap-3 group cursor-pointer"
-              onClick={() => onSelectAlbum(album)}
-            >
-              <div className="w-48 h-48 rounded-xl overflow-hidden relative shadow-lg">
-                <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <button 
-                    className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (album.tracks && album.tracks.length > 0) {
-                        onPlayTrack(album.tracks[0], album);
-                      }
-                    }}
-                  >
-                    <Play className="w-6 h-6 ml-1" fill="currentColor" />
-                  </button>
-                </div>
-                {album.tracks && album.tracks.length > 0 && (
-                  <button 
-                    onClick={(e) => handleDownloadAlbumClick(e, album)}
-                    className="absolute bottom-2 right-2 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 z-10"
-                    disabled={album.tracks.every(t => isDownloaded(t.id)) || isDownloadingAlbum === album.id}
-                  >
-                    {isDownloadingAlbum === album.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" />
-                    ) : album.tracks.every(t => isDownloaded(t.id)) ? (
-                      <Check className="w-4 h-4 text-[#a855f7]" />
-                    ) : (
-                      <Download className="w-4 h-4" />
-                    )}
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <h3 className="text-white font-semibold text-sm line-clamp-1">{album.title}</h3>
-                <span className="text-white/50 text-xs mt-1">{album.artist}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+        {renderList(albums.slice().reverse(), expandedSection === 'destacados', (album) => renderAlbumCard(album))}
       </section>
+      )}
       
-      {/* Download Confirmation Modal */}
       {showDownloadConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
           <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
