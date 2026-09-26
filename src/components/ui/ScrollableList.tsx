@@ -43,6 +43,17 @@ export const ScrollableList = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
+  const getMaskImage = () => {
+    if (showLeft && showRight) {
+      return 'linear-gradient(to right, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)';
+    } else if (showRight) {
+      return 'linear-gradient(to right, black 0%, black calc(100% - 60px), transparent 100%)';
+    } else if (showLeft) {
+      return 'linear-gradient(to right, transparent 0px, black 60px, black 100%)';
+    }
+    return 'none';
+  };
+
   return (
     <div className="relative group">
       {showLeft && (
@@ -58,7 +69,7 @@ export const ScrollableList = ({ children }: { children: React.ReactNode }) => {
         ref={scrollContainerRef}
         onScroll={checkScroll}
         className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory scroll-smooth" 
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitMaskImage: getMaskImage(), maskImage: getMaskImage(), transition: 'mask-image 0.3s ease' }}
       >
         {children}
       </div>
