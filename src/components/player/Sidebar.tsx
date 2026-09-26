@@ -9,6 +9,10 @@ export const Sidebar = ({ currentView, onViewChange }: { currentView: string, on
   const baseAvailableGB = 4.20;
   const downloadedGB = totalBytes / (1024 * 1024 * 1024);
   const availableGB = Math.max(0, baseAvailableGB - downloadedGB);
+  
+  const totalUsedGB = 5.0 - availableGB;
+  const availablePercent = (availableGB / 5.0) * 100;
+  const usedPercent = (totalUsedGB / 5.0) * 100;
 
   return (
     <aside className="w-full h-full flex flex-col bg-black">
@@ -43,9 +47,23 @@ export const Sidebar = ({ currentView, onViewChange }: { currentView: string, on
       </div>
 
       <div className="p-6">
-        <div className="flex items-center justify-center py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 text-xs font-medium tracking-wide">
-          {availableGB.toFixed(2)}GB / 5GB disponibles
-        </div>
+        <button 
+          onClick={() => onViewChange('downloads')}
+          className="relative w-full flex items-center justify-center py-3 rounded-xl bg-white/5 border border-white/10 overflow-hidden hover:bg-white/10 transition-colors group"
+        >
+          {/* Progress fill */}
+          <div 
+            className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ${
+              availablePercent >= 50 ? 'bg-green-500/40' : 
+              availablePercent >= 15 ? 'bg-yellow-500/40' : 
+              'bg-red-500/40'
+            }`} 
+            style={{ width: `${usedPercent}%` }}
+          />
+          <span className="relative z-10 text-white/70 text-xs font-medium tracking-wide group-hover:text-white transition-colors">
+            {availableGB.toFixed(2)}GB / 5GB libres
+          </span>
+        </button>
       </div>
     </aside>
   );

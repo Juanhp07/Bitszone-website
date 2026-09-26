@@ -101,13 +101,13 @@ export const CatalogView = ({
         
         <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
           {[
-            { name: 'Bad Bunny', img: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop' },
-            { name: 'KAROL G', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop' },
-            { name: 'Rauw Alejandro', img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop' },
-            { name: 'J Balvin', img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop' },
-            { name: 'Maluma', img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop' },
-            { name: 'Feid', img: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300&h=300&fit=crop' },
-            { name: 'Danny Ocean', img: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=300&h=300&fit=crop' }
+            { name: 'Michael Jackson', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg/500px-Michael_Jackson_1983_%283x4_cropped%29_%28contrast%29.jpg' },
+            { name: 'Linkin Park', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg/500px-Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg' },
+            { name: 'Post Malone', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Post_Malone_July_2021_%28cropped%29.jpg/500px-Post_Malone_July_2021_%28cropped%29.jpg' },
+            { name: 'Héctor Lavoe', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ec/H%C3%A9ctor_Lavoe_%281969_Fania_Records_publicity_photo%29.jpg/500px-H%C3%A9ctor_Lavoe_%281969_Fania_Records_publicity_photo%29.jpg' },
+            { name: 'Marc Anthony', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Interview_with_Marc_Anthony_%28cropped%29.png/500px-Interview_with_Marc_Anthony_%28cropped%29.png' },
+            { name: 'Grupo Niche', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/GN_foto_plataformas.png/500px-GN_foto_plataformas.png' },
+            { name: 'Frankie Ruiz', img: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Frankie_Ruiz_%2880s_%26_90s%29.jpg/500px-Frankie_Ruiz_%2880s_%26_90s%29.jpg' }
           ].map((artist, i) => (
             <div key={i} className="w-40 shrink-0 flex flex-col items-center gap-4 group cursor-pointer">
               <div className="w-40 h-40 rounded-full overflow-hidden shadow-lg relative">
