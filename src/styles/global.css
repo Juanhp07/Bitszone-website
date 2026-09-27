@@ -127,25 +127,32 @@
 
 /* Modern Scrollbar globally */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 8px !important;
+  height: 8px !important;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: transparent !important;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
+  background: #ffffff !important;
+  border-radius: 10px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #ffffff;
-  border: 1px solid transparent;
+  background: #ffffff !important;
+}
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+::-webkit-scrollbar-corner {
+  background: transparent !important;
 }
 
 /* Firefox support */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.8) transparent;
+  scrollbar-width: thin !important;
+  scrollbar-color: #ffffff transparent !important;
 }
