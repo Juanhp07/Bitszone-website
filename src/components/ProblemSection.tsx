@@ -32,7 +32,8 @@ export const ProblemSection = () => {
       {/* Typography / Copywriting */}
       <div className="text-center w-full max-w-[1200px] mx-auto mb-20">
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2]">
-          Toma el control absoluto de tu biblioteca <br className="hidden md:block" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c0a3e5] to-[#818cf8]">sin conexión de forma sencilla.</span>
+          Toma el control absoluto <br className="hidden md:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c0a3e5] to-[#818cf8]">sin conexión de forma sencilla</span>
         </h2>
       </div>
 
