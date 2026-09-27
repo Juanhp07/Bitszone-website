@@ -128,8 +128,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   return (
     <DownloadsProvider>
     <div className="w-full h-screen bg-[#050505] text-white font-sans overflow-hidden flex flex-col relative">
-      {/* Root background orb so the sidebar blur is visible */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#a855f7]/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
+      {/* Global Background Orbs and Noise */}
+      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#a855f7]/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none z-0"></div>
       <div className="absolute top-0 left-0 right-0 z-50">
         <TopNav 
           currentView={currentView} 
@@ -148,21 +151,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           </div>
         </div>
 
-        {/* Floating Main Content (Body) wrapper - provides the gap */}
-        <div className="flex-1 relative flex flex-col min-w-0 pb-4 pr-4 pl-4">
-          
-          {/* Main Body container that fully clips its background layers */}
-          <div className="flex-1 relative flex flex-col min-w-0 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] overflow-hidden">
-            
-            {/* The colored orbs are now CONFINED inside this container so they don't bleed into the padding */}
-            <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#a855f7]/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
-            
-            {/* The glass layer that blurs the confined orbs */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent backdrop-blur-3xl border border-white/[0.05] pointer-events-none z-0 rounded-2xl"></div>
-            <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none z-0"></div>
-
-            {/* Actual scrollable content on top of the glass */}
+        {/* Full-bleed Main Content container */}
+        <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden">
+            {/* Actual scrollable content */}
             <div className="flex-1 relative flex flex-col min-h-0 z-10">
               {/* Top gradient inside main content */}
               <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none z-0"></div>
@@ -214,7 +205,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
             {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
             {nowPlayingTrack && nowPlayingAlbum && (
-              <div className="shrink-0 z-30 border-t border-white/5 bg-black/95 backdrop-blur-3xl">
+              <div className="shrink-0 z-30 border-t border-white/5 bg-black/40 backdrop-blur-3xl">
                 <MiniPlayer 
                   track={nowPlayingTrack}
                   album={nowPlayingAlbum}
@@ -235,7 +226,6 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                 />
               </div>
             )}
-          </div>
         </div>
       </div>
 
