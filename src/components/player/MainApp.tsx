@@ -276,27 +276,39 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
             </div>
 
-            {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
+            {/* Floating Glass Player */}
             {nowPlayingTrack && nowPlayingAlbum && (
-              <div className="shrink-0 z-30 border-t border-white/5 bg-black/40 backdrop-blur-3xl">
-                <MiniPlayer 
-                  track={nowPlayingTrack}
-                  album={nowPlayingAlbum}
-                  isPlaying={isPlaying}
-                  togglePlay={togglePlay}
-                  progress={progress}
-                  volume={volume}
-                  onExpand={() => setIsPlayerExpanded(true)}
-                  onNext={handleNextTrack}
-                  onPrev={handlePrevTrack}
-                  onSeek={(p) => {
-                    if (audioRef.current && audioRef.current.duration) {
-                      audioRef.current.currentTime = p * audioRef.current.duration;
-                      setProgress(p);
-                    }
-                  }}
-                  onVolumeChange={(v) => setVolume(v)}
-                />
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-3rem)] max-w-screen-2xl">
+                <GlassSurface
+                  width="100%"
+                  height="90px"
+                  borderRadius={24}
+                  blur={20}
+                  opacity={0.7}
+                  brightness={10}
+                  borderWidth={1}
+                >
+                  <MiniPlayer 
+                    track={nowPlayingTrack}
+                    album={nowPlayingAlbum}
+                    isPlaying={isPlaying}
+                    togglePlay={togglePlay}
+                    progress={progress}
+                    volume={volume}
+                    onExpand={() => setIsPlayerExpanded(true)}
+                    onNext={handleNextTrack}
+                    onPrev={handlePrevTrack}
+                    onSeek={(p) => {
+                      if (audioRef.current && audioRef.current.duration) {
+                        audioRef.current.currentTime = p * audioRef.current.duration;
+                      }
+                    }}
+                    onVolumeChange={(v) => {
+                      setVolume(v);
+                      if (audioRef.current) audioRef.current.volume = v / 100;
+                    }}
+                  />
+                </GlassSurface>
               </div>
             )}
         </div>
