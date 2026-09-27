@@ -128,7 +128,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   return (
     <DownloadsProvider>
     <div className="w-full h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative">
-      <div className="relative z-20 shrink-0">
+      <div className="absolute top-0 left-0 right-0 z-50">
         <TopNav 
           currentView={currentView} 
           onViewChange={setCurrentView} 
@@ -137,7 +137,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       </div>
 
       {/* Main Container - Sidebar Flush, Body Floating */}
-      <div className="flex-1 flex overflow-hidden relative z-10">
+      <div className="w-full h-full flex overflow-hidden relative z-10">
         
         {/* Sidebar Flush Left with toggle transition */}
         <div className={`h-full shrink-0 relative z-10 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
@@ -147,7 +147,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         </div>
 
         {/* Floating Main Content (Body) wrapper - provides the gap */}
-        <div className="flex-1 relative flex flex-col min-w-0 p-4 pl-4 pr-4 pb-4">
+        <div className="flex-1 relative flex flex-col min-w-0 pb-4 pr-4 pl-4">
           
           {/* Main Body container that fully clips its background layers */}
           <div className="flex-1 relative flex flex-col min-w-0 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] overflow-hidden">
@@ -166,7 +166,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none z-0"></div>
               
               <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-                <div className="pb-12 h-full">
+                <div className="pt-24 pb-12 min-h-full">
                   {currentView === 'catalog' && (
                     <CatalogView 
                       albums={albums} 
