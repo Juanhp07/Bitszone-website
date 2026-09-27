@@ -73,10 +73,10 @@ export const FeatureSection = () => {
       >
         <h2 className="flex flex-col items-center justify-center font-sans font-bold text-center w-full ">
           <span className="text-white/70 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight">
-            EL QUE BUSCA,
+            El que busca,
           </span>
           <span className="text-white/70 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight mt-2">
-            ENCUENTRA SU RITMO
+            encuentra su ritmo
           </span>
         </h2>
       </motion.div>
