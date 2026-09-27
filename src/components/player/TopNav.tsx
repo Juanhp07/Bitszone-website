@@ -1,5 +1,6 @@
 import React from 'react';
 import { Menu, User } from 'lucide-react';
+import { SpecularText } from '../ui/SpecularText';
 
 export const TopNav = ({ currentView, onViewChange, onToggleSidebar }: { currentView: string, onViewChange: (view: any) => void, onToggleSidebar: () => void }) => {
   return (
@@ -21,19 +22,26 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar }: { current
 
       {/* Center: Logo */}
       <div className="flex-1 flex items-center justify-center">
-        <span 
-          className="font-bold text-xl tracking-widest cursor-pointer"
+        
+        <div 
           onClick={() => onViewChange('catalog')}
-          style={{
-            background: 'linear-gradient(45deg, #6b7280, #a1a1aa, #6b7280)',
-            backgroundSize: '200% 200%',
-            animation: 'gradientMove 5s ease infinite',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
+          className="cursor-pointer"
         >
-          BITSZONE
-        </span>
+          <SpecularText
+            text="Bitszone"
+            className="pe-2"
+            style={{
+              fontSize: "42px",
+              fontFamily: '"DM Serif Display", serif',
+              fontStyle: "italic",
+            }}
+            specularColor="#5A1B5E"
+            baseStrokeColor="transparent"
+            strokeWidth={1.5}
+            glowSize={50}
+          />
+        </div>
+
       </div>
 
       {/* Right: Acceder */}
