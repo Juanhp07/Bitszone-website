@@ -210,6 +210,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           currentView={currentView} 
           onViewChange={setCurrentView} 
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          isSidebarOpen={isSidebarOpen}
         />
       </div>
 

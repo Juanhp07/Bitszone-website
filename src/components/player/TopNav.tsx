@@ -1,8 +1,8 @@
 import React from 'react';
-import { Menu, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { SpecularText } from '../ui/SpecularText';
 
-export const TopNav = ({ currentView, onViewChange, onToggleSidebar }: { currentView: string, onViewChange: (view: any) => void, onToggleSidebar: () => void }) => {
+export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOpen }: { currentView: string, onViewChange: (view: any) => void, onToggleSidebar: () => void, isSidebarOpen: boolean }) => {
   return (
     <header className="h-20 w-full bg-transparent flex items-center px-8 relative z-20 shrink-0">
       <style>{`
@@ -16,7 +16,17 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar }: { current
       {/* Left: Menu */}
       <div className="flex-1 flex items-center">
         <button onClick={onToggleSidebar} className="text-white/70 hover:text-white transition-colors">
-          <Menu className="w-6 h-6" />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible">
+            <line x1="4" y1="6" x2="20" y2="6" className="transition-transform duration-300" />
+            <line x1="4" y1="12" x2="20" y2="12" className="transition-transform duration-300" />
+            <line x1="4" y1="18" x2="20" y2="18" 
+              className="transition-all duration-300 ease-in-out"
+              style={{
+                transform: isSidebarOpen ? 'translateX(0)' : 'translateX(-16px)',
+                opacity: isSidebarOpen ? 1 : 0
+              }}
+            />
+          </svg>
         </button>
       </div>
 
