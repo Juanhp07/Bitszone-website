@@ -81,7 +81,7 @@ export const CatalogView = ({
     setIsDownloadingAlbum(null);
   };
 
-  const renderAlbumCard = (album: Album) => (
+  const renderAlbumCard = (album: Album, showTrackTitle: boolean = false) => (
     <div 
       key={album.id}
       className={`${expandedSection ? 'w-full' : 'w-48'} shrink-0 flex flex-col gap-3 group cursor-pointer`}
@@ -119,7 +119,7 @@ export const CatalogView = ({
         )}
       </div>
       <div className="flex flex-col">
-        <h3 className="text-white font-semibold text-sm line-clamp-1">{album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
+        <h3 className="text-white font-semibold text-sm line-clamp-1">{showTrackTitle && album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
         <span className="text-white/50 text-xs mt-1">{album.artist}</span>
       </div>
     </div>
@@ -142,7 +142,7 @@ export const CatalogView = ({
             <button onClick={() => setExpandedSection('canciones')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
-        {renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album))}
+        {renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true))}
       </section>
       )}
 
@@ -191,7 +191,7 @@ export const CatalogView = ({
             <button onClick={() => setExpandedSection('destacados')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
-        {renderList(albums.slice().reverse(), expandedSection === 'destacados', (album) => renderAlbumCard(album))}
+        {renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album))}
       </section>
       )}
       
