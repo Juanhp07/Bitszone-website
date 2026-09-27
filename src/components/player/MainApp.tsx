@@ -7,6 +7,7 @@ import { CatalogView } from './CatalogView';
 import { AlbumView } from './AlbumView';
 import { DownloadsView } from './DownloadsView';
 import { ImmersivePlayer } from './ImmersivePlayer';
+import GlassSurface from '../ui/GlassSurface';
 import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
@@ -231,7 +232,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               
               
               <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-                <div className="pt-24 pb-12 min-h-full">
+                <div className="pt-24 pb-[140px] min-h-full">
                   {currentView === 'catalog' && (
                     <CatalogView 
                       albums={albums} 
