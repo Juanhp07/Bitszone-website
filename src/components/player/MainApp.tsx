@@ -132,7 +132,16 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     <div className="w-full h-screen bg-[#050505] text-white font-sans overflow-hidden flex flex-col relative">
       {/* Unified Global Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-[#050505] to-blue-900/20 pointer-events-none z-0"></div>
-      <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#a855f7]/15 to-transparent pointer-events-none z-0"></div>
+      <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#a855f7]/15 to-transparent pointer-events-none z-0 transition-opacity duration-700 ${currentView === 'album' ? 'opacity-0' : 'opacity-100'}"></div>
+      
+      {/* Dynamic Album Background Glow (Expanded to entire web page) */}
+      <div 
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? 'opacity-50' : 'opacity-0'}`}
+        style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
+      >
+        <div className="absolute inset-0 bg-cover bg-center blur-[150px] scale-110 opacity-70" style={{ backgroundImage: currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? `url(${(selectedAlbumFull || selectedAlbum).coverUrl})` : 'none' }}></div>
+      </div>
+
       <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none z-0"></div>
 
       {/* SEAMLESS GLOBAL GLASS LAYER using a single blurred pane and a vector clip-path */}
