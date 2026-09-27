@@ -146,10 +146,7 @@ export const DownloadsView = ({
 
   return (
     <div className="h-full flex flex-col relative">
-      {/* Background Blurred Glow from Top-Right */}
-      <div className="absolute top-0 right-0 w-[70vw] h-[700px] z-0 pointer-events-none opacity-50" style={{ WebkitMaskImage: 'radial-gradient(ellipse at top right, black 0%, transparent 70%)' }}>
-        <div className={`absolute inset-0 blur-[100px] bg-gradient-to-br ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`}></div>
-      </div>
+      
 
       {/* Hero Section */}
       <div className="px-8 pt-16 pb-6 flex items-end gap-6 relative z-10 border-b border-white/5">
