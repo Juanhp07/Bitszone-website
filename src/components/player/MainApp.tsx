@@ -127,7 +127,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   return (
     <DownloadsProvider>
-    <div className="w-full h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative">
+    <div className="w-full h-screen bg-[#050505] text-white font-sans overflow-hidden flex flex-col relative">
+      {/* Root background orb so the sidebar blur is visible */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#a855f7]/10 rounded-full blur-[150px] pointer-events-none z-0"></div>
       <div className="absolute top-0 left-0 right-0 z-50">
         <TopNav 
           currentView={currentView} 
