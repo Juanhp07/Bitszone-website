@@ -15,7 +15,7 @@ export const Sidebar = ({ currentView, onViewChange }: { currentView: string, on
   const usedPercent = (totalUsedGB / 5.0) * 100;
 
   return (
-    <aside className="w-full h-full flex flex-col bg-black/40 backdrop-blur-xl border-r border-white/5 pt-20">
+    <aside className="w-full h-full flex flex-col bg-transparent pt-20">
       <div className="flex-1 px-4 py-6 flex flex-col gap-2">
         <button 
           onClick={() => onViewChange('catalog')}

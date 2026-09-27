@@ -128,11 +128,40 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   return (
     <DownloadsProvider>
     <div className="w-full h-screen bg-[#050505] text-white font-sans overflow-hidden flex flex-col relative">
-      {/* Global Background Orbs and Noise */}
-      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#a855f7]/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none z-0"></div>
-      <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none z-0"></div>
+      {/* Unified Global Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-[#050505] to-blue-900/20 pointer-events-none z-0"></div>
+      <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#a855f7]/15 to-transparent pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none z-0"></div>
+
+      {/* GLOBAL GLASS LAYER for TopNav and Sidebar */}
+      <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+        {/* Sidebar Glass Area */}
+        <div className={`absolute top-0 left-0 h-full bg-black/30 backdrop-blur-xl transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
+          {/* Vertical right border starting AFTER the corner */}
+          <div className={`absolute right-0 top-[104px] bottom-0 w-[1px] bg-white/10 transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}></div>
+        </div>
+
+        {/* Header Glass Area */}
+        <div className={`absolute top-0 right-0 h-20 bg-black/30 backdrop-blur-xl transition-all duration-300 ${isSidebarOpen ? 'left-64' : 'left-0'}`}>
+          {/* Horizontal bottom border starting AFTER the corner */}
+          <div className="absolute bottom-0 right-0 h-[1px] bg-white/10 transition-all duration-300" style={{ left: isSidebarOpen ? '24px' : '0px' }}></div>
+        </div>
+
+        {/* The Curved Intersection */}
+        <div className={`absolute top-20 transition-all duration-300 ${isSidebarOpen ? 'left-64 opacity-100' : 'left-0 opacity-0'}`} style={{ width: 24, height: 24 }}>
+          {/* Glass fill for the inverted corner */}
+          <div className="absolute inset-0 bg-black/30" style={{ 
+            backdropFilter: 'blur(24px)', 
+            WebkitBackdropFilter: 'blur(24px)', 
+            maskImage: 'radial-gradient(circle at 100% 100%, transparent 23px, black 23.5px)', 
+            WebkitMaskImage: 'radial-gradient(circle at 100% 100%, transparent 23px, black 23.5px)' 
+          }}></div>
+          {/* White curve */}
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="absolute inset-0">
+             <path d="M 0 24 A 24 24 0 0 0 24 0" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          </svg>
+        </div>
+      </div>
       <div className="absolute top-0 left-0 right-0 z-50">
         <TopNav 
           currentView={currentView} 
@@ -142,21 +171,20 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       </div>
 
       {/* Main Container - Sidebar Flush, Body Floating */}
-      <div className="w-full h-full flex overflow-hidden relative z-10">
+      <div className="w-full h-full flex overflow-hidden relative">
         
         {/* Sidebar Flush Left with toggle transition */}
-        <div className={`h-full shrink-0 relative z-10 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
+        <div className={`h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
           <div className="w-64 h-full">
             <Sidebar currentView={currentView} onViewChange={setCurrentView} />
           </div>
         </div>
 
         {/* Full-bleed Main Content container */}
-        <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
             {/* Actual scrollable content */}
             <div className="flex-1 relative flex flex-col min-h-0 z-10">
-              {/* Top gradient inside main content */}
-              <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-purple-900/10 to-transparent pointer-events-none z-0"></div>
+              
               
               <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                 <div className="pt-24 pb-12 min-h-full">

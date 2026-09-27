@@ -4,7 +4,7 @@ import { SpecularText } from '../ui/SpecularText';
 
 export const TopNav = ({ currentView, onViewChange, onToggleSidebar }: { currentView: string, onViewChange: (view: any) => void, onToggleSidebar: () => void }) => {
   return (
-    <header className="h-20 w-full bg-black/40 backdrop-blur-xl flex items-center px-8 relative z-20 shrink-0 border-b border-white/5">
+    <header className="h-20 w-full bg-transparent flex items-center px-8 relative z-20 shrink-0">
       <style>{`
         @keyframes gradientMove {
           0% { background-position: 0% 50%; }
