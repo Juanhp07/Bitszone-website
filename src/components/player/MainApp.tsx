@@ -284,8 +284,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   height="90px"
                   borderRadius={24}
                   blur={20}
-                  opacity={0.7}
-                  brightness={10}
+                  opacity={0.85}
+                  backgroundOpacity={0.5}
+                  brightness={0}
                   borderWidth={1}
                 >
                   <MiniPlayer 
