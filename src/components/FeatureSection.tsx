@@ -72,11 +72,11 @@ export const FeatureSection = () => {
         className="relative z-30 flex flex-col items-center pt-32 md:pt-48 text-center px-6 w-full"
       >
         <h2 className="flex flex-col items-center justify-center font-sans font-bold text-center w-full ">
-          <span className="text-white/30 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight">
+          <span className="text-white/70 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight">
             EL QUE BUSCA,
           </span>
-          <span className="text-white/30 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight mt-2">
-            ENCUENTRA SU RITMO.
+          <span className="text-white/70 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight mt-2">
+            ENCUENTRA SU RITMO
           </span>
         </h2>
       </motion.div>
