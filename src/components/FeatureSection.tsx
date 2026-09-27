@@ -71,18 +71,18 @@ export const FeatureSection = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-30 flex flex-col items-center pt-32 md:pt-48 text-center px-6 w-full"
       >
-        <h2 className="flex flex-col items-center justify-center font-sans font-bold text-center w-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
-          <span className="text-white text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight">
+        <h2 className="flex flex-col items-center justify-center font-sans font-bold text-center w-full ">
+          <span className="text-white/30 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight">
             EL QUE BUSCA,
           </span>
-          <span className="text-white text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight mt-2">
+          <span className="text-white/30 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight mt-2">
             ENCUENTRA SU RITMO.
           </span>
         </h2>
       </motion.div>
       
       {/* The Coverflow Carousel Wrapper */}
-      <div className="relative w-full z-20 flex-1 flex justify-center items-center mt-20 md:mt-32 mb-20 min-h-[600px]">
+      <div className="relative w-full z-20 flex-1 flex justify-center items-center mt-4 md:mt-8 mb-20 min-h-[600px]">
         
         {/* Glow point behind images, aligned to horizon */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-[#55108d]/20 blur-[100px] z-0 pointer-events-none"></div>
