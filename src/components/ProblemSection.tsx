@@ -32,10 +32,10 @@ export const ProblemSection = () => {
 
       {/* Typography / Copywriting */}
       <motion.div 
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: 150, rotate: 5, scale: 0.95 }}
+        whileInView={{ opacity: 1, x: 0, rotate: 0, scale: 1 }}
         viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
+        transition={{ duration: 0.9, type: "spring", bounce: 0.2 }}
         className="text-center w-full max-w-[1200px] mx-auto mb-20 md:mb-32"
       >
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2]">
@@ -56,10 +56,10 @@ export const ProblemSection = () => {
           <motion.div 
             key={item.id} 
             variants={{
-              hidden: { opacity: 0, y: 40, scale: 0.95 },
+              hidden: { opacity: 0, x: 100, scale: 0.95 },
               visible: { 
                 opacity: 1, 
-                y: 0, 
+                x: 0, 
                 scale: 1, 
                 transition: { type: "spring", stiffness: 50, damping: 15 } 
               }

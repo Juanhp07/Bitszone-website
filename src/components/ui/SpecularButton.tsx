@@ -93,7 +93,7 @@ void main() {
   vec2 L = vec2(cos(uAngle), sin(uAngle));
 
   // Dark base stroke hugging the edge for a sense of thickness
-  float base = (1.0 - smoothstep(0.0, uBaseWidth, abs(d))) * 0.45;
+  float base = 0.0;
 
   // Symmetric specular: the edges facing toward/away from the light both
   // catch a streak. The angular window (size + fade) is measured with an
@@ -206,15 +206,8 @@ const SpecularButton = ({
       const dx = Math.max(rect.left - e.clientX, 0, e.clientX - rect.right);
       const dy = Math.max(rect.top - e.clientY, 0, e.clientY - rect.bottom);
       const dist = Math.hypot(dx, dy);
-      // Over the button itself the light settles on the diagonal (framing the
-      // corners) and gently sways with the cursor position within the button.
-      if (dist === 0) {
-        const nx = (e.clientX - cx) / (rect.width / 2);
-        const ny = (cy - e.clientY) / (rect.height / 2);
-        pointerAngle = Math.atan2(2 / rect.height, -2 / rect.width) + nx * 0.3 + ny * 0.15;
-      } else {
-        pointerAngle = Math.atan2(cy - e.clientY, e.clientX - cx);
-      }
+      const pointerAngleRaw = Math.atan2(cy - e.clientY, e.clientX - cx);
+      pointerAngle = pointerAngleRaw;
       const t = Math.max(0, 1 - dist / Math.max(propsRef.current.proximity, 1));
       proximityT = t * t * (3 - 2 * t);
     };
@@ -235,10 +228,13 @@ const SpecularButton = ({
       last = now;
       const p = propsRef.current;
 
+      // Circulación constante sin tiempos muertos
       idleAngle += p.speed * dt;
       const target =
         p.followMouse && pointerAngle != null && (!p.autoAnimate || proximityT > 0) ? pointerAngle : idleAngle;
-      const diff = ((target - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+      let diff = (target - angle) % (Math.PI * 2);
+      if (diff > Math.PI) diff -= Math.PI * 2;
+      if (diff < -Math.PI) diff += Math.PI * 2;
       angle += diff * (1 - Math.exp(-dt * 7));
 
       // Shine fades in with pointer proximity unless autoAnimate keeps it on

@@ -28,10 +28,10 @@ export const FAQSection = () => {
   return (
     <section className="py-48 md:py-64 px-6 md:px-12 max-w-4xl mx-auto flex flex-col justify-center">
       <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: 150, y: 150, rotate: 10 }}
+        whileInView={{ opacity: 1, x: 0, y: 0, rotate: 0 }}
         viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
+        transition={{ duration: 0.9, type: "spring", bounce: 0.2 }}
         className="mb-12 md:mb-24"
       >
         <div className="inline-block px-3 py-1 mb-6 rounded-full bg-white/5 font-jetbrains text-xs text-[#A0A3BD]">
@@ -46,8 +46,8 @@ export const FAQSection = () => {
         {faqs.map((faq, i) => (
           <motion.div 
             key={i} 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: 100, y: 100 }}
+            whileInView={{ opacity: 1, x: 0, y: 0 }}
             viewport={{ once: true, amount: 0.1, margin: "100px" }}
             transition={{ duration: 0.5, delay: i * 0.1, type: "spring", stiffness: 50, damping: 15 }}
             className="border-b border-white/10"
