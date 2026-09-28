@@ -61,7 +61,7 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-2 md:mt-4 2xl:mt-6"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 md:mt-8 2xl:mt-10"
         >
           <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline">
             <GlassSurface
@@ -115,33 +115,33 @@ export const HeroSection = () => {
       </div>
 
       {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 1.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 cursor-pointer"
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-40 flex flex-col items-center justify-end pb-8 md:pb-12 z-30 cursor-pointer pointer-events-auto overflow-hidden"
         onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
       >
-        <span className="text-white/60 text-[10px] xl:text-xs font-inter uppercase tracking-[0.2em] mb-1">Descubre más</span>
+        {/* Glow light from bottom */}
+        <motion.div 
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-[80px] left-1/2 -translate-x-1/2 w-[80vw] max-w-[600px] h-[160px] bg-gradient-to-t from-[#B497CF]/50 to-transparent blur-[40px] rounded-[100%] pointer-events-none" 
+        />
         
-        {/* Mouse icon */}
-        <div className="w-[24px] h-[38px] xl:w-[28px] xl:h-[44px] rounded-full border-[2px] border-white/20 flex justify-center pt-2 relative overflow-hidden backdrop-blur-md shadow-[0_0_15px_rgba(82,39,255,0.15)]">
-          {/* Glowing animated wheel */}
-          <motion.div
-            animate={{ 
-              y: [0, 14],
-              opacity: [1, 0]
-            }}
-            transition={{ 
-              duration: 1.5, 
-              repeat: Infinity, 
-              ease: "circOut" 
-            }}
-            className="w-1 h-2.5 rounded-full bg-gradient-to-b from-[#FF9FFC] to-[#c084fc] shadow-[0_0_8px_rgba(255,159,252,0.8)]"
-          />
-        </div>
-
-      </motion.div>
+        {/* Blinking and floating text */}
+        <motion.span 
+          animate={{ 
+            opacity: [0, 1, 0],
+            y: [25, 0, -25]
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="text-[#f5f5f5] text-[10px] md:text-xs xl:text-sm font-inter uppercase tracking-[0.4em] font-medium drop-shadow-[0_0_12px_rgba(255,159,252,0.8)] relative z-10"
+        >
+          Descubre más
+        </motion.span>
+      </div>
     </section>
   );
 };
