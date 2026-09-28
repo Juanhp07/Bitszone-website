@@ -43,7 +43,7 @@ export const Sidebar = ({
           }`}
         >
           <Library className="w-5 h-5" />
-          Biblioteca 2.0
+          Biblioteca
         </button>
         <button
           onClick={() => onViewChange("downloads")}
