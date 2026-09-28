@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
 import { Play, Pause, X } from 'lucide-react';
 
@@ -27,19 +28,28 @@ export const ImmersivePlayer = ({
 }) => {
   if (!track || !album) return null;
 
-  return (
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isExpanded) onClose();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isExpanded, onClose]);
+
+  return createPortal(
     <>
       {/* Backdrop (oscurece el resto de la página al abrir el modal) */}
       <div 
         onClick={onClose}
-        className={`fixed inset-0 bg-[#05050A]/80 backdrop-blur-md z-30 transition-opacity duration-500 ${
+        className={`fixed inset-0 bg-[#05050A]/80 backdrop-blur-md z-[100] transition-opacity duration-500 ${
           isExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       />
 
       {/* Modal Container */}
       <div 
-        className={`fixed z-30 left-1/2 -translate-x-1/2 w-[90%] max-w-[1200px] top-24 bottom-[120px] rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] border border-white/5 bg-[#111111]/80 ${
+        onClick={(e) => e.stopPropagation()}
+        className={`fixed z-[100] left-1/2 -translate-x-1/2 w-[95vw] max-w-[1400px] top-10 bottom-[100px] rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] border border-white/5 bg-[#111111]/80 ${
           isExpanded ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[20%] opacity-0 scale-95 pointer-events-none'
         }`}
       >
@@ -123,6 +133,7 @@ export const ImmersivePlayer = ({
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 };
