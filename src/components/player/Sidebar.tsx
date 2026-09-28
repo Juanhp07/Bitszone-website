@@ -80,7 +80,7 @@ export const Sidebar = ({
                <span className="text-[11px] font-semibold capitalize tracking-wide">Almacenamiento</span>
              </div>
              <span className="text-white/80 text-[11px] font-medium tracking-wide font-mono pl-[22px]">
-               {availableGB.toFixed(2)}GB <span className="text-white/40">de 5.0GB</span>
+               {availableGB.toFixed(2)}GB <span className="text-white/40">de 5.00GB</span>
              </span>
           </div>
           
