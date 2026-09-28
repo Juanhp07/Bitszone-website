@@ -105,10 +105,10 @@ export const HeroSection = () => {
                 baseColor="#000000"
                 intensity={4.0}
                 thickness={2}
-                className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
+                className="!bg-transparent px-8 py-3 xl:px-10 xl:py-4 2xl:px-12 2xl:py-5"
               >
-                <div className="flex items-center justify-center gap-3 font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full animate-text-pulse-soft transition-colors duration-300">
-                  Explorar Catálogo
+                <div className="flex items-center justify-center gap-3 font-inter text-sm xl:text-lg 2xl:text-xl font-medium w-full h-full text-white">
+                  Explorar catálogo
                   <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 animate-text-pulse-soft transition-colors duration-300 group-hover:animate-bounce-right" />
                 </div>
               </SpecularButton>
