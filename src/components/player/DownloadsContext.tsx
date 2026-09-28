@@ -15,6 +15,8 @@ interface DownloadsContextType {
   
   newDownloadsCount: number;
   clearNewDownloads: () => void;
+  clearDownloads: () => void;
+  clearFavorites: () => void;
 }
 
 const DownloadsContext = createContext<DownloadsContextType | undefined>(undefined);
@@ -115,11 +117,22 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
 
   const clearNewDownloads = () => setNewDownloadsCount(0);
 
+  const clearDownloads = () => {
+    setDownloadedTracks([]);
+    localStorage.setItem('bz_downloads', JSON.stringify([]));
+    calculateBytes([]);
+  };
+
+  const clearFavorites = () => {
+    setFavoriteTracks([]);
+    localStorage.setItem('bz_favorites', JSON.stringify([]));
+  };
+
   return (
     <DownloadsContext.Provider value={{ 
       downloadedTracks, downloadTrack, removeDownload, isDownloaded, totalBytes,
       favoriteTracks, toggleFavorite, toggleFavoriteAlbum, isFavorite,
-      newDownloadsCount, clearNewDownloads
+      newDownloadsCount, clearNewDownloads, clearDownloads, clearFavorites
     }}>
       {children}
     </DownloadsContext.Provider>

@@ -14,9 +14,11 @@ export const DownloadsView = ({
   icon?: any,
   onPlayTrack?: (t: Track, a: Album) => void 
 }) => {
-  const { downloadedTracks, favoriteTracks, removeDownload, toggleFavorite, clearNewDownloads, totalBytes } = useDownloads();
+  const { downloadedTracks, favoriteTracks, removeDownload, toggleFavorite, clearNewDownloads, totalBytes, clearDownloads, clearFavorites } = useDownloads();
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [trackToRemove, setTrackToRemove] = useState<Track | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
 
   const tracks = type === 'downloads' ? downloadedTracks : favoriteTracks;
 
@@ -160,6 +162,17 @@ export const DownloadsView = ({
                 </span>
               </>
             )}
+            {tracks.length > 0 && (
+              <>
+                <span className="text-white/30">•</span>
+                <button 
+                  onClick={() => setShowClearConfirm(true)}
+                  className="text-xs px-3 py-1 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors uppercase tracking-widest font-bold"
+                >
+                  Vaciar lista
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -220,6 +233,59 @@ export const DownloadsView = ({
                 className="px-4 py-2 rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/25"
               >
                 {type === 'downloads' ? 'Eliminar' : 'Quitar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-[#18181b] border border-red-500/20 rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-red-500/10 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                <Trash2 className="w-6 h-6 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-white">
+                {type === 'downloads' ? '¿Eliminar todas las descargas?' : '¿Vaciar favoritos?'}
+              </h3>
+            </div>
+            <p className="text-white/70 mb-4 leading-relaxed">
+              Esta acción no se puede deshacer. Se eliminarán las <strong>{tracks.length}</strong> canciones de tu lista.
+              Para confirmar, escribe <strong className="text-red-400">CONFIRMAR</strong> a continuación:
+            </p>
+            <input 
+              type="text"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder="Escribe CONFIRMAR"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500/50 mb-6 font-mono text-center tracking-widest uppercase"
+            />
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => {
+                  setShowClearConfirm(false);
+                  setConfirmText("");
+                }} 
+                className="px-4 py-2 rounded-lg font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => {
+                  if (confirmText.toUpperCase() === 'CONFIRMAR') {
+                    if (type === 'downloads') {
+                      clearDownloads();
+                    } else {
+                      clearFavorites();
+                    }
+                    setShowClearConfirm(false);
+                    setConfirmText("");
+                  }
+                }}
+                disabled={confirmText.toUpperCase() !== 'CONFIRMAR'}
+                className="px-4 py-2 rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-500/25"
+              >
+                Vaciar Todo
               </button>
             </div>
           </div>
