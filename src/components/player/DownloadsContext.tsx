@@ -140,7 +140,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
       } else {
         const tracksToAdd = album.tracks!
           .filter(t => !prev.some(pt => pt.id === t.id))
-          .map(track => ({ ...track, albumId: album.id, albumTitle: album.title, albumCover: album.coverUrl }));
+          .map(track => ({ ...track, albumId: album.id, albumTitle: album.title, albumCover: album.coverUrl, addedAt: track.addedAt || new Date().toISOString() }));
         updated = [...updated, ...tracksToAdd];
       }
       localStorage.setItem('bz_favorites', JSON.stringify(updated));

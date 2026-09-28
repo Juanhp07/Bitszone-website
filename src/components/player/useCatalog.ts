@@ -49,8 +49,7 @@ export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
             duration: t.duration,
             previewUrl: t.audio_url,
             trackNumber: t.track_number,
-            addedAt: t.created_at,
-            sizeMb: t.size_mb || t.size || (t.duration / 1000 * 0.023)
+                        sizeMb: t.size_mb || t.size || (t.duration / 1000 * 0.023)
           });
           album.trackCount = album.tracks!.length;
         });
