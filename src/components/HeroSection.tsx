@@ -10,11 +10,18 @@ import { LiquidMetalText } from './ui/LiquidMetalText';
 export const HeroSection = () => {
   const { scrollY } = useScroll();
   const fadeOutOpacity = useTransform(scrollY, [0, 150], [1, 0]);
+  
+  // Parallax exit effect for the main hero content
+  const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
+  const heroY = useTransform(scrollY, [0, 400], [0, -150]);
 
   return (
     <section className="relative w-full mx-auto min-h-[100vh] flex flex-col justify-center px-8 md:px-16 2xl:px-24">
       
-      <div className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center flex-1 pt-24 md:pt-32 2xl:pt-48 -mt-16 md:-mt-24 2xl:-mt-32">
+      <motion.div 
+        style={{ opacity: heroOpacity, y: heroY }}
+        className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center flex-1 pt-24 md:pt-32 2xl:pt-48 -mt-16 md:-mt-24 2xl:-mt-32"
+      >
 
         {/* Huge Typography */}
         <motion.h1
@@ -40,18 +47,38 @@ export const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 md:mt-8 2xl:mt-10"
         >
-          <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline">
+          <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline group cursor-pointer transition-all duration-300 hover:scale-105 hover:drop-shadow-[0_0_35px_rgba(255,159,252,0.8)] hover:brightness-110">
             <GlassSurface
               width="fit-content"
               height="fit-content"
-              className="flex items-center justify-center group transition-transform duration-300 hover:scale-105 !shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:!shadow-[0_0_50px_rgba(85,16,141,0.5)] !border-none"
               borderRadius={999}
-              borderWidth={0}
-              backgroundOpacity={0.15}
-              blur={40}
-              distortionScale={-30}
+              backgroundOpacity={0.4}
+              blur={4}
+              className="relative z-10 transition-colors duration-500 ease-out group-hover:!bg-[rgba(10,0,20,0.3)]"
               style={{ borderRadius: '999px' }}
             >
+              {/* Contorno interactivo perfectamente alineado DENTRO del cristal */}
+              <div className="absolute inset-0 pointer-events-none z-20 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                <SpecularButton
+                  radius={999}
+                  tint="transparent"
+                  tintOpacity={0}
+                  blur={0}
+                  lineColor="#FF9FFC"
+                  baseColor="#000000"
+                  intensity={4.0}
+                  thickness={2}
+                  proximity={0}
+                  autoAnimate={true}
+                  speed={1.5}
+                  className="w-full h-full !m-0 !p-0 border-none !bg-transparent !shadow-none !backdrop-filter-none text-transparent"
+                >
+                  <span className="hidden"></span>
+                </SpecularButton>
+              </div>
+
+              {/* Efecto de olas del fondo real pasando a través del cristal oscuro */}
+              <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-[999px] pointer-events-none overflow-hidden mix-blend-screen bg-[rgba(255,159,252,0.05)]" />
               <style>{`
                 @keyframes bounce-right {
                   0%, 100% { transform: translateX(0); }
@@ -59,37 +86,26 @@ export const HeroSection = () => {
                 }
                 @keyframes text-pulse-soft {
                   0%, 100% { color: #ffffff; filter: drop-shadow(0 0 0px transparent); }
-                  50% { color: #d8b4fe; filter: drop-shadow(0 0 6px rgba(216, 180, 254, 0.4)); }
+                  50% { color: #FF9FFC; filter: drop-shadow(0 0 8px rgba(255, 159, 252, 0.5)); }
                 }
                 .animate-text-pulse-soft {
                   animation: text-pulse-soft 2.5s infinite ease-in-out;
                 }
                 .group:hover .arrow-icon {
                   animation: bounce-right 1s infinite ease-in-out !important;
-                  color: #d8b4fe !important;
-                  filter: drop-shadow(0 0 8px rgba(216, 180, 254, 0.5)) !important;
+                  color: #FF9FFC !important;
+                  filter: drop-shadow(0 0 12px rgba(255, 159, 252, 0.9)) !important;
                 }
               `}</style>
-              <SpecularButton
-                radius={999}
-                tint="transparent"
-                tintOpacity={0}
-                blur={40}
-                lineColor="#FF9FFC"
-                baseColor="#000000"
-                intensity={4.0}
-                thickness={2}
-                className="!bg-transparent px-6 py-4 xl:px-8 xl:py-5 2xl:px-10 2xl:py-6"
-              >
-                <div className="flex items-center justify-center gap-3 font-inter text-sm xl:text-lg 2xl:text-xl font-medium w-full h-full text-white">
-                  Explorar catálogo
-                  <ArrowRight className="arrow-icon w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 animate-text-pulse-soft transition-colors duration-300" />
-                </div>
-              </SpecularButton>
+              
+              <div className="relative z-10 flex items-center justify-center gap-3 px-6 py-3 xl:px-8 xl:py-4 2xl:px-10 2xl:py-5 font-inter text-sm xl:text-lg 2xl:text-xl font-medium w-full h-full text-white tracking-wide">
+                Explorar catálogo
+                <ArrowRight className="arrow-icon w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 animate-text-pulse-soft transition-colors duration-300" />
+              </div>
             </GlassSurface>
           </a>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Interactive Floating Text - Fades out on scroll */}
       <motion.div 

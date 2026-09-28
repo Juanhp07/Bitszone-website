@@ -65,10 +65,10 @@ export const FeatureSection = () => {
   return (
     <section className="relative w-full flex flex-col items-center min-h-[120vh]">
       <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: -150, rotate: -5, scale: 0.95 }}
+        whileInView={{ opacity: 1, x: 0, rotate: 0, scale: 1 }}
         viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.9, type: "spring", bounce: 0.2 }}
         className="relative z-30 flex flex-col items-center pt-32 md:pt-48 text-center px-6 w-full"
       >
         <h2 className="flex flex-col items-center justify-center font-sans font-bold text-center w-full ">
