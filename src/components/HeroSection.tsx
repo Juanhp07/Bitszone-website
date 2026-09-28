@@ -77,20 +77,29 @@ export const HeroSection = () => {
               blur={40}
               distortionScale={-30}
             >
+              <style>{`
+                @keyframes bounce-right {
+                  0%, 100% { transform: translateX(0); }
+                  50% { transform: translateX(6px); }
+                }
+                .group:hover .group-hover\\:animate-bounce-right {
+                  animation: bounce-right 1s infinite ease-in-out;
+                }
+              `}</style>
               <SpecularButton
                 radius={40}
-                tint="transparent"
-                tintOpacity={0}
-                blur={0}
+                tint="#FF9FFC"
+                tintOpacity={0.08}
+                blur={20}
                 lineColor="#FF9FFC"
-                baseColor="#7012CE"
+                baseColor="transparent"
                 intensity={4.0}
                 thickness={2}
                 className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
               >
-                <div className="flex items-center justify-center gap-3 text-white font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
+                <div className="flex items-center justify-center gap-3 text-white transition-colors duration-300 ease-out group-hover:text-[#c084fc] font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
                   Explorar Catálogo
-                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-white transition-all duration-300 ease-out group-hover:text-[#c084fc] group-hover:translate-x-1" />
+                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-white transition-colors duration-300 ease-out group-hover:text-[#c084fc] group-hover:animate-bounce-right" />
                 </div>
               </SpecularButton>
             </GlassSurface>
