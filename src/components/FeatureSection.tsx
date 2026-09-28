@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CoverflowCarousel } from './ui/CoverflowCarousel';
-import LaserFlow from './ui/LaserFlow';
 
 const albums = [
   {
@@ -65,20 +64,6 @@ const albums = [
 export const FeatureSection = () => {
   return (
     <section className="relative w-full flex flex-col items-center min-h-[120vh]">
-      
-      {/* Inverted Laser Flow Connective Beam (shooting DOWN behind albums) */}
-      <div className="absolute top-[-60vh] left-0 w-full h-[120vh] z-0 pointer-events-none rotate-180 opacity-70">
-        <LaserFlow 
-          color="#5227FF" // Morado oscuro
-          backgroundColor="transparent"
-          verticalSizing={2.5}
-          horizontalSizing={2.0}
-          wispDensity={0.8}
-          fogIntensity={0.1} // Reducido para oscurecer y evitar blancos quemados
-          wispIntensity={1.0} // Reducido para suavizar la luz central
-        />
-      </div>
-
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}

@@ -5,22 +5,28 @@ import { HeroSection } from '../components/HeroSection';
 import { FeatureSection } from '../components/FeatureSection';
 import { ProblemSection } from '../components/ProblemSection';
 import { FAQSection } from '../components/FAQSection';
+import { SmoothScroll } from '../components/ui/SmoothScroll';
+import { Global3DScene } from '../components/ui/Global3DScene';
 ---
 
 <Layout title="Bitszone - Tu música sin conexión">
-  <Header client:load />
-  
-  <main>
-    <HeroSection client:load />
-    <FeatureSection client:visible />
-    <ProblemSection client:visible />
-    <FAQSection client:visible />
-  </main>
+  <SmoothScroll client:load>
+    <Global3DScene client:load />
+    
+    <Header client:load />
+    
+    <main class="relative z-10">
+      <HeroSection client:load />
+      <FeatureSection client:visible />
+      <ProblemSection client:visible />
+      <FAQSection client:visible />
+    </main>
 
-  <footer class="w-full py-8 text-center text-[#A0A3BD] border-t border-white/5 mt-16 font-inter text-sm relative z-10">
-    <div class="max-w-[1920px] mx-auto px-8 md:px-16 2xl:px-24 flex flex-col md:flex-row justify-between items-center gap-4">
-      <p class="m-0">&copy; {new Date().getFullYear()} Bitszone. Todos los derechos reservados.</p>
-      <p class="m-0">Desarrollado por <span class="text-white font-semibold tracking-wide">J3T</span> & <span class="text-white font-semibold tracking-wide">JuanHP</span></p>
-    </div>
-  </footer>
+    <footer class="w-full py-8 text-center text-[#A0A3BD] border-t border-white/5 mt-16 font-inter text-sm relative z-10 bg-canvas/80 backdrop-blur-md">
+      <div class="max-w-[1920px] mx-auto px-8 md:px-16 2xl:px-24 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="m-0">&copy; {new Date().getFullYear()} Bitszone. Todos los derechos reservados.</p>
+        <p class="m-0">Desarrollado por <span class="text-white font-semibold tracking-wide">J3T</span> & <span class="text-white font-semibold tracking-wide">JuanHP</span></p>
+      </div>
+    </footer>
+  </SmoothScroll>
 </Layout>
