@@ -15,6 +15,8 @@ interface DownloadsContextType {
   
   newDownloadsCount: number;
   clearNewDownloads: () => void;
+  removeAlbumFromDownloads: (albumId: string) => void;
+  removeAlbumFromFavorites: (albumId: string) => void;
   clearDownloads: () => void;
   clearFavorites: () => void;
 }
@@ -120,6 +122,23 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
 
   const clearNewDownloads = () => setNewDownloadsCount(0);
 
+  const removeAlbumFromDownloads = (albumId: string) => {
+    setDownloadedTracks(prev => {
+      const updated = prev.filter(t => (t.albumId ? String(t.albumId) : 'unknown') !== albumId);
+      localStorage.setItem('bz_downloads', JSON.stringify(updated));
+      calculateBytes(updated);
+      return updated;
+    });
+  };
+
+  const removeAlbumFromFavorites = (albumId: string) => {
+    setFavoriteTracks(prev => {
+      const updated = prev.filter(t => (t.albumId ? String(t.albumId) : 'unknown') !== albumId);
+      localStorage.setItem('bz_favorites', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const clearDownloads = () => {
     setDownloadedTracks([]);
     localStorage.setItem('bz_downloads', JSON.stringify([]));
@@ -135,7 +154,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     <DownloadsContext.Provider value={{ 
       downloadedTracks, downloadTrack, removeDownload, isDownloaded, totalBytes,
       favoriteTracks, toggleFavorite, toggleFavoriteAlbum, isFavorite,
-      newDownloadsCount, clearNewDownloads, clearDownloads, clearFavorites
+      newDownloadsCount, clearNewDownloads, removeAlbumFromDownloads, removeAlbumFromFavorites, clearDownloads, clearFavorites
     }}>
       {children}
     </DownloadsContext.Provider>
