@@ -61,21 +61,19 @@ export const DownloadsView = ({
   const totalUsedGB = 5.0 - availableGB;
 
 
-  const groupedTracks = type === 'downloads' 
-    ? tracks.reduce((acc, track) => {
-        const albumKey = track.albumId ? String(track.albumId) : 'unknown';
-        if (!acc[albumKey]) {
-          acc[albumKey] = {
-            id: albumKey,
-            title: track.albumTitle || 'Canciones sueltas',
-            coverUrl: track.albumCover || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&h=500&fit=crop',
-            tracks: []
-          };
-        }
-        acc[albumKey].tracks.push(track);
-        return acc;
-      }, {} as Record<string, { id: string, title: string, coverUrl: string, tracks: Track[] }>)
-    : null;
+  const groupedTracks = tracks.reduce((acc, track) => {
+    const albumKey = track.albumId ? String(track.albumId) : 'unknown';
+    if (!acc[albumKey]) {
+      acc[albumKey] = {
+        id: albumKey,
+        title: track.albumTitle || 'Canciones sueltas',
+        coverUrl: track.albumCover || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&h=500&fit=crop',
+        tracks: []
+      };
+    }
+    acc[albumKey].tracks.push(track);
+    return acc;
+  }, {} as Record<string, { id: string, title: string, coverUrl: string, tracks: Track[] }>);
 
   const renderTrack = (track: Track, index: number) => {
     const isHovered = hoveredTrack === track.id;
@@ -167,42 +165,27 @@ export const DownloadsView = ({
       </div>
 
       <div className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-8">
-        {type === 'downloads' && groupedTracks ? (
-          <div className="flex flex-col gap-10">
-            {Object.values(groupedTracks).map(group => (
-              <div key={group.id} className="flex flex-col">
-                <div className="flex items-center gap-4 mb-4 px-4">
-                  <img src={group.coverUrl} alt={group.title} className="w-14 h-14 rounded-lg object-cover shadow-lg" />
-                  <h3 className="text-xl font-bold text-white">{group.title}</h3>
-                </div>
-                
-                <div className="grid grid-cols-[50px_1fr_100px_40px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
-                  <div className="text-center">#</div>
-                  <div>Título</div>
-                  <div className="flex justify-end"><Clock className="w-4 h-4" /></div>
-                  <div></div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  {group.tracks.map((track, index) => renderTrack(track, index))}
-                </div>
+        <div className="flex flex-col gap-10">
+          {Object.values(groupedTracks).map(group => (
+            <div key={group.id} className="flex flex-col">
+              <div className="flex items-center gap-4 mb-4 px-4">
+                <img src={group.coverUrl} alt={group.title} className="w-14 h-14 rounded-lg object-cover shadow-lg" />
+                <h3 className="text-xl font-bold text-white">{group.title}</h3>
               </div>
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-[50px_1fr_100px_40px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
-              <div className="text-center">#</div>
-              <div>Título</div>
-              <div className="flex justify-end"><Clock className="w-4 h-4" /></div>
-              <div></div>
-            </div>
+              
+              <div className="grid grid-cols-[50px_1fr_100px_40px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
+                <div className="text-center">#</div>
+                <div>Título</div>
+                <div className="flex justify-end"><Clock className="w-4 h-4" /></div>
+                <div></div>
+              </div>
 
-            <div className="flex flex-col gap-1">
-              {tracks.map((track, index) => renderTrack(track, index))}
+              <div className="flex flex-col gap-1">
+                {group.tracks.map((track, index) => renderTrack(track, index))}
+              </div>
             </div>
-          </>
-        )}
+          ))}
+        </div>
       </div>
       {trackToRemove && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
