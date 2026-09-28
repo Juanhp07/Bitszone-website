@@ -226,14 +226,11 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
         background: isDarkMode ? `hsl(0 0% 0% / ${backgroundOpacity})` : `hsl(0 0% 100% / ${backgroundOpacity})`,
         backdropFilter: `url(#${filterId}) saturate(${saturation})`,
         boxShadow: isDarkMode
-          ? `0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset,
-             0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset,
-             0px 4px 16px rgba(17, 17, 26, 0.05),
-             0px 8px 24px rgba(17, 17, 26, 0.05),
-             0px 16px 56px rgba(17, 17, 26, 0.05),
-             0px 4px 16px rgba(17, 17, 26, 0.05) inset,
-             0px 8px 24px rgba(17, 17, 26, 0.05) inset,
-             0px 16px 56px rgba(17, 17, 26, 0.05) inset`
+          ? `0 0 2px 1px color-mix(in oklch, #FF9FFC, transparent 65%) inset,
+             0 0 10px 4px color-mix(in oklch, #FF9FFC, transparent 85%) inset,
+             0px 4px 16px rgba(255, 159, 252, 0.05) inset,
+             0px 8px 24px rgba(255, 159, 252, 0.05) inset,
+             0px 16px 56px rgba(255, 159, 252, 0.05) inset`
           : `0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset,
              0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset,
              0px 4px 16px rgba(17, 17, 26, 0.05),
@@ -291,7 +288,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   };
 
   const glassSurfaceClasses =
-    'relative flex items-center justify-center transition-opacity duration-[260ms] ease-out';
+    'relative flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out';
 
   const focusVisibleClasses = isDarkMode
     ? 'focus-visible:outline-2 focus-visible:outline-[#0A84FF] focus-visible:outline-offset-2'
@@ -357,7 +354,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
         </defs>
       </svg>
 
-      <div className="w-full h-full flex items-center justify-center rounded-[inherit] relative z-10">
+      <div className="w-full h-full flex items-center justify-center p-2 rounded-[inherit] relative z-10">
         {children}
       </div>
     </div>

@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, ChevronRight } from 'lucide-react';
+import SpecularButton from './ui/SpecularButton';
+import GlassSurface from './ui/GlassSurface';
+import GradientText from './ui/GradientText';
+import { SpecularText } from './ui/SpecularText';
 import { LiquidMetalText } from './ui/LiquidMetalText';
-import ShinyButton from './ui/ShinyButton';
 
 export const HeroSection = () => {
   const { scrollY } = useScroll();
@@ -38,9 +41,41 @@ export const HeroSection = () => {
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 md:mt-8 2xl:mt-10"
         >
           <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline">
-            <ShinyButton className="px-6 py-4 xl:px-8 xl:py-5 2xl:px-10 2xl:py-6">
-              Explorar catálogo <ArrowRight className="arrow-icon w-5 h-5 ml-1" />
-            </ShinyButton>
+            <GlassSurface
+              width="fit-content"
+              height="fit-content"
+              borderRadius={999}
+              backgroundOpacity={0.4}
+              className="group cursor-pointer transition-all duration-300 hover:scale-105 hover:drop-shadow-[0_0_20px_rgba(255,159,252,0.5)] hover:brightness-110"
+              style={{ borderRadius: '999px' }}
+            >
+              <style>{`
+                @keyframes bounce-right {
+                  0%, 100% { transform: translateX(0); }
+                  50% { transform: translateX(6px); }
+                }
+                @keyframes text-pulse-soft {
+                  0%, 100% { color: #ffffff; filter: drop-shadow(0 0 0px transparent); }
+                  50% { color: #FF9FFC; filter: drop-shadow(0 0 8px rgba(255, 159, 252, 0.5)); }
+                }
+                .animate-text-pulse-soft {
+                  animation: text-pulse-soft 2.5s infinite ease-in-out;
+                }
+                .group:hover .arrow-icon {
+                  animation: bounce-right 1s infinite ease-in-out !important;
+                  color: #ffffff !important;
+                  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)) !important;
+                }
+              `}</style>
+              
+              {/* Animación fluida de llenado (Sweep) */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#FF9FFC]/40 to-[#FF9FFC]/60 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] rounded-full pointer-events-none" />
+              
+              <div className="relative z-10 flex items-center justify-center gap-3 px-6 py-3 xl:px-8 xl:py-4 2xl:px-10 2xl:py-5 font-inter text-sm xl:text-lg 2xl:text-xl font-medium w-full h-full text-white tracking-wide">
+                Explorar catálogo
+                <ArrowRight className="arrow-icon w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 animate-text-pulse-soft transition-colors duration-300" />
+              </div>
+            </GlassSurface>
           </a>
         </motion.div>
       </div>
