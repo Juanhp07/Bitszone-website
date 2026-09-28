@@ -73,8 +73,10 @@ export const ImmersivePlayer = ({
 
         {/* 1. LEFT: Tracklist */}
         <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-24 pb-24">
-           {/* Fade mask for top and bottom */}
-           <div className="absolute inset-0 z-20 pointer-events-none" style={{ background: 'linear-gradient(to bottom, #05050A 0%, transparent 15%, transparent 85%, #05050A 100%)' }} />
+           {/* Deep fade masks for Top, Bottom, and Right edges to avoid harsh cuts */}
+           <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-[#05050A] via-[#05050A]/80 to-transparent z-20 pointer-events-none" />
+           <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#05050A] via-[#05050A]/80 to-transparent z-20 pointer-events-none" />
+           <div className="absolute top-0 right-0 bottom-0 w-32 bg-gradient-to-l from-[#05050A] via-[#05050A]/80 to-transparent z-20 pointer-events-none" />
            
            <div className="w-full h-full overflow-y-auto flex flex-col justify-start pl-12 xl:pl-20 gap-4 md:gap-5 transition-all duration-700 pb-32" style={{ scrollbarWidth: 'none' }}>
              {album.tracks?.map((t, i) => {
@@ -85,7 +87,7 @@ export const ImmersivePlayer = ({
                    onClick={() => onPlayTrack && onPlayTrack(t, album)}
                    className={`text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 line-clamp-1 shrink-0 ${
                      isActive 
-                       ? 'text-[#a855f7] drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] translate-x-4' 
+                       ? 'text-[#a855f7] drop-shadow-[0_0_5px_rgba(168,85,247,0.4)] translate-x-4' 
                        : 'text-white/20 hover:text-white/50'
                    }`}
                  >
