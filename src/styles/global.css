@@ -172,3 +172,19 @@ html {
   scrollbar-width: thin !important;
   scrollbar-color: #ffffff transparent !important;
 }
+
+
+@keyframes storage-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes storage-pulse {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 8px rgba(168,85,247,0.5)); }
+  50% { filter: brightness(1.2) drop-shadow(0 0 15px rgba(168,85,247,0.8)); }
+}
+
+.animated-storage-bar {
+  background-size: 200% auto;
+  animation: storage-flow 3s linear infinite, storage-pulse 2s ease-in-out infinite;
+}

@@ -92,7 +92,7 @@ export const ArtistView = ({
                 onClick={() => onSelectAlbum(album)}
                 className="group cursor-pointer bg-white/5 hover:bg-white/10 p-4 rounded-xl transition-colors border border-white/5 hover:border-white/10"
               >
-                <div className="relative aspect-square mb-4 rounded-lg overflow-hidden shadow-lg">
+                <div className={`relative aspect-square mb-4 rounded-lg overflow-hidden shadow-lg transition-all duration-500 ${album.tracks?.every(t => isDownloaded(t.id)) ? 'border-2 border-[#a855f7]/60 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border border-transparent'}`}>
                   <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <div className="w-12 h-12 rounded-full bg-[#a855f7] flex items-center justify-center text-white shadow-lg translate-y-4 group-hover:translate-y-0 transition-all">

@@ -98,7 +98,7 @@ export const CatalogView = ({
       className={`${expandedSection ? 'w-full' : 'w-48'} shrink-0 flex flex-col gap-3 group cursor-pointer`}
       onClick={() => onSelectAlbum(album)}
     >
-      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-48 h-48'} rounded-xl overflow-hidden relative shadow-lg`}>
+      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-48 h-48'} rounded-xl overflow-hidden relative shadow-lg transition-all duration-500 ${album.tracks?.every(t => isDownloaded(t.id)) ? 'border-2 border-[#a855f7]/60 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border border-transparent'}`}>
         <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button 
