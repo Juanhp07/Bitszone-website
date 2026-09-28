@@ -108,14 +108,14 @@ export const ImmersivePlayer = ({
         </button>
 
         {/* 1. LEFT: Tracklist */}
-        <div className="absolute top-12 left-12 xl:left-20 z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">Pistas</div>
+        <div className="absolute top-28 left-12 xl:left-[5rem] z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">PISTAS</div>
         <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-36 pb-0">
            {/* Deep fade masks for Top, Bottom, and Right edges to avoid harsh cuts */}
            <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-[#05050A] via-[#05050A]/90 to-transparent z-20 pointer-events-none" />
-           <div className="absolute bottom-0 left-0 right-0 h-72 bg-gradient-to-t from-[#05050A] via-[#05050A]/95 to-transparent z-20 pointer-events-none" />
+           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#05050A] via-[#05050A]/95 to-transparent z-20 pointer-events-none" />
            <div className="absolute top-0 right-0 bottom-0 w-32 bg-gradient-to-l from-[#05050A] via-[#05050A]/80 to-transparent z-20 pointer-events-none" />
            
-           <div className="w-full h-full overflow-y-auto flex flex-col justify-start pl-12 xl:pl-[5rem] gap-4 md:gap-5 transition-all duration-700 pb-40 pt-4" style={{ scrollbarWidth: 'none' }}>
+           <div className="w-full h-full overflow-y-auto flex flex-col justify-start pl-12 xl:pl-[5rem] gap-4 md:gap-5 transition-all duration-700 pb-20 pt-4" style={{ scrollbarWidth: 'none' }}>
              {album.tracks?.map((t, i) => {
                const isActive = track.id === t.id;
                return (
