@@ -149,7 +149,7 @@ export const DownloadsView = ({
       
 
       {/* Hero Section */}
-      <div className="px-8 pt-16 pb-6 flex items-end gap-6 relative z-10 border-b border-white/5">
+      <div className="px-8 pt-8 pb-6 flex items-end gap-6 relative z-10 border-b border-white/5">
         <div className={`w-40 h-40 shrink-0 rounded-2xl bg-gradient-to-br shadow-2xl flex items-center justify-center ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`}>
           <Icon className="w-16 h-16 text-white" />
         </div>
@@ -171,7 +171,7 @@ export const DownloadsView = ({
         </div>
       </div>
 
-      <div className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-32">
+      <div className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-8">
         {type === 'downloads' && groupedTracks ? (
           <div className="flex flex-col gap-10 pb-10">
             {Object.values(groupedTracks).map(group => (

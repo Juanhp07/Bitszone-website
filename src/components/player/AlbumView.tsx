@@ -168,7 +168,7 @@ export const AlbumView = ({
           </div>
 
           {/* Tracklist */}
-          <div className="flex flex-col gap-1 pb-10">
+          <div className="flex flex-col gap-1 pb-8">
             {album.tracks?.map((track, index) => {
               const isPlayingTrack = nowPlayingTrackId === track.id && isPlaying;
               const isHovered = hoveredTrack === track.id;
