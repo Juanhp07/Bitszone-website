@@ -73,7 +73,8 @@ export const HeroSection = () => {
               className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 !shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:!shadow-[0_0_50px_rgba(85,16,141,0.5)] !border-none"
               borderRadius={40}
               borderWidth={0}
-              backgroundOpacity={0.15}
+              backgroundOpacity={0.25}
+              displace={15}
               blur={40}
               distortionScale={-30}
             >
@@ -88,14 +89,14 @@ export const HeroSection = () => {
               `}</style>
               <SpecularButton
                 radius={40}
-                tint="#FF9FFC"
-                tintOpacity={0.05}
-                blur={20}
+                tint="transparent"
+                tintOpacity={0}
+                blur={0}
                 lineColor="#FF9FFC"
                 baseColor="#000000"
                 intensity={4.0}
                 thickness={2}
-                className="px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
+                className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
               >
                 <div className="flex items-center justify-center gap-3 !text-white transition-all duration-300 ease-out group-hover:!text-[#c084fc] group-hover:drop-shadow-[0_0_12px_rgba(192,132,252,0.8)] font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
                   Explorar Catálogo
