@@ -40,15 +40,38 @@ export const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 md:mt-8 2xl:mt-10"
         >
-          <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline">
+          <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline group cursor-pointer transition-all duration-300 hover:scale-105 hover:drop-shadow-[0_0_35px_rgba(255,159,252,0.8)] hover:brightness-110">
             <GlassSurface
               width="fit-content"
               height="fit-content"
               borderRadius={999}
               backgroundOpacity={0.4}
-              className="group cursor-pointer transition-all duration-300 hover:scale-105 hover:drop-shadow-[0_0_20px_rgba(255,159,252,0.5)] hover:brightness-110"
+              blur={4}
+              className="relative z-10 transition-colors duration-500 ease-out group-hover:!bg-[rgba(10,0,20,0.3)]"
               style={{ borderRadius: '999px' }}
             >
+              {/* Contorno interactivo perfectamente alineado DENTRO del cristal */}
+              <div className="absolute inset-0 pointer-events-none z-20 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                <SpecularButton
+                  radius={999}
+                  tint="transparent"
+                  tintOpacity={0}
+                  blur={0}
+                  lineColor="#FF9FFC"
+                  baseColor="#000000"
+                  intensity={4.0}
+                  thickness={2}
+                  proximity={0}
+                  autoAnimate={true}
+                  speed={1.5}
+                  className="w-full h-full !m-0 !p-0 border-none !bg-transparent !shadow-none !backdrop-filter-none text-transparent"
+                >
+                  <span className="hidden"></span>
+                </SpecularButton>
+              </div>
+
+              {/* Efecto de olas del fondo real pasando a través del cristal oscuro */}
+              <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-[999px] pointer-events-none overflow-hidden mix-blend-screen bg-[rgba(255,159,252,0.05)]" />
               <style>{`
                 @keyframes bounce-right {
                   0%, 100% { transform: translateX(0); }
@@ -63,13 +86,10 @@ export const HeroSection = () => {
                 }
                 .group:hover .arrow-icon {
                   animation: bounce-right 1s infinite ease-in-out !important;
-                  color: #ffffff !important;
-                  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)) !important;
+                  color: #FF9FFC !important;
+                  filter: drop-shadow(0 0 12px rgba(255, 159, 252, 0.9)) !important;
                 }
               `}</style>
-              
-              {/* Animación fluida de llenado (Sweep) */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#FF9FFC]/40 to-[#FF9FFC]/60 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] rounded-full pointer-events-none" />
               
               <div className="relative z-10 flex items-center justify-center gap-3 px-6 py-3 xl:px-8 xl:py-4 2xl:px-10 2xl:py-5 font-inter text-sm xl:text-lg 2xl:text-xl font-medium w-full h-full text-white tracking-wide">
                 Explorar catálogo
