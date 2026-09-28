@@ -1,5 +1,6 @@
 import React from 'react';
 import { FileWarning, HardDrive, ClockAlert } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const problems = [
   {
@@ -24,25 +25,46 @@ const problems = [
 
 export const ProblemSection = () => {
   return (
-    <section className="py-32 px-6 md:px-16 w-full max-w-[1440px] mx-auto relative z-10 flex flex-col items-center">
+    <section className="py-48 md:py-64 px-6 md:px-16 w-full max-w-[1440px] mx-auto relative z-10 flex flex-col items-center">
       
       {/* Background glow */}
-      <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#a855f7]/5 blur-[120px] rounded-[100%] pointer-events-none -z-10"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#a855f7]/5 blur-[120px] rounded-[100%] pointer-events-none -z-10"></div>
 
       {/* Typography / Copywriting */}
-      <div className="text-center w-full max-w-[1200px] mx-auto mb-20">
+      <motion.div 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
+        className="text-center w-full max-w-[1200px] mx-auto mb-20 md:mb-32"
+      >
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2]">
           Toma el control absoluto <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c0a3e5] to-[#818cf8]">sin conexión de forma sencilla</span>
         </h2>
-      </div>
+      </motion.div>
 
-      {/* Static Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-6xl mx-auto">
+      {/* Animated Cards */}
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={{ visible: { transition: { staggerChildren: 0.2 } } }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-6xl mx-auto"
+      >
         {problems.map((item) => (
-          <div 
+          <motion.div 
             key={item.id} 
-            className="rounded-2xl p-8 bg-white/[0.03] flex flex-col"
+            variants={{
+              hidden: { opacity: 0, y: 40, scale: 0.95 },
+              visible: { 
+                opacity: 1, 
+                y: 0, 
+                scale: 1, 
+                transition: { type: "spring", stiffness: 50, damping: 15 } 
+              }
+            }}
+            className="rounded-2xl p-8 bg-white/[0.03] flex flex-col backdrop-blur-sm border border-white/5 hover:bg-white/[0.05] transition-colors"
           >
             {/* Icon Wrapper */}
             <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-6">
@@ -52,10 +74,9 @@ export const ProblemSection = () => {
             {/* Text Content */}
             <h3 className="text-white font-sora font-semibold text-xl mb-3">{item.title}</h3>
             <p className="text-[#A0A3BD] font-inter text-sm leading-relaxed">{item.description}</p>
-          </div>
+          </motion.div>
         ))}
-      </div>
-
+      </motion.div>
 
     </section>
   );

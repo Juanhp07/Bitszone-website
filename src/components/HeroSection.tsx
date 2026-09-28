@@ -1,7 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, ChevronRight } from 'lucide-react';
-import LiquidEther from './ui/LiquidEther';
 import SpecularButton from './ui/SpecularButton';
 import GlassSurface from './ui/GlassSurface';
 import GradientText from './ui/GradientText';
@@ -9,34 +8,12 @@ import { SpecularText } from './ui/SpecularText';
 import { LiquidMetalText } from './ui/LiquidMetalText';
 
 export const HeroSection = () => {
+  const { scrollY } = useScroll();
+  const fadeOutOpacity = useTransform(scrollY, [0, 150], [1, 0]);
+
   return (
     <section className="relative w-full mx-auto min-h-[100vh] flex flex-col justify-center px-8 md:px-16 2xl:px-24">
-      {/* Liquid Ether Animated Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <LiquidEther
-          colors={['#5227FF', '#FF9FFC', '#B497CF']}
-          mouseForce={30}
-          cursorSize={150}
-          isViscous={false}
-          viscous={30}
-          iterationsViscous={32}
-          iterationsPoisson={32}
-          resolution={0.5}
-          isBounce={false}
-          autoDemo={true}
-          autoSpeed={0.8}
-          autoIntensity={3.0}
-          takeoverDuration={0.25}
-          autoResumeDelay={2000}
-          autoRampDuration={0.6}
-          backgroundColor="#05050A"
-          lightMode={false}
-        />
-      </div>
-
-      {/* Smooth Gradient Transition to Section 2 */}
-      <div className="absolute -bottom-1 left-0 right-0 h-[300px] md:h-[500px] z-10 bg-gradient-to-t from-canvas via-canvas/90 to-transparent pointer-events-none"></div>
-
+      
       <div className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center flex-1 pt-24 md:pt-32 2xl:pt-48 -mt-16 md:-mt-24 2xl:-mt-32">
 
         {/* Huge Typography */}
@@ -114,8 +91,9 @@ export const HeroSection = () => {
         </motion.div>
       </div>
 
-      {/* Interactive Floating Text */}
-      <div 
+      {/* Interactive Floating Text - Fades out on scroll */}
+      <motion.div 
+        style={{ opacity: fadeOutOpacity }}
         className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-end z-40 cursor-pointer pointer-events-auto pb-6"
         onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
       >
@@ -133,7 +111,7 @@ export const HeroSection = () => {
         >
           Descubre más
         </motion.span>
-      </div>
+      </motion.div>
     </section>
   );
 };
