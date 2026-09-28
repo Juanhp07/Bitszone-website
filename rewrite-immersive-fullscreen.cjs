@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+const fs = require('fs');
+
+const playerCode = `import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
@@ -51,17 +53,17 @@ export const ImmersivePlayer = ({
       {/* Backdrop (though the modal is fullscreen, keeping this for transition) */}
       <div 
         onClick={onClose}
-        className={`fixed inset-0 bg-[#020202]/90 backdrop-blur-md z-[100] transition-opacity duration-500 ${
+        className={\`fixed inset-0 bg-[#020202]/90 backdrop-blur-md z-[100] transition-opacity duration-500 \${
           isExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        }\`}
       />
 
       {/* Fullscreen Modal Container */}
       <div 
         onClick={(e) => e.stopPropagation()}
-        className={`fixed z-[100] inset-0 w-full h-full overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] bg-[#05050A] flex ${
+        className={\`fixed z-[100] inset-0 w-full h-full overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] bg-[#05050A] flex \${
           isExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-        }`}
+        }\`}
       >
         {/* Close Button */}
         <button 
@@ -83,11 +85,11 @@ export const ImmersivePlayer = ({
                  <div 
                    key={t.id} 
                    onClick={() => onPlayTrack && onPlayTrack(t, album)}
-                   className={`text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 line-clamp-1 shrink-0 ${
+                   className={\`text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 line-clamp-1 shrink-0 \${
                      isActive 
                        ? 'text-[#a855f7] drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] translate-x-4' 
                        : 'text-white/20 hover:text-white/50'
-                   }`}
+                   }\`}
                  >
                    {t.title}
                  </div>
@@ -108,8 +110,8 @@ export const ImmersivePlayer = ({
                     return (
                       <div 
                         key={i} 
-                        className={`w-2 md:w-3 rounded-full transition-all duration-300 ${isPlayed ? 'bg-[#a855f7] shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'bg-white/10'}`} 
-                        style={{ height: `${h}%` }} 
+                        className={\`w-2 md:w-3 rounded-full transition-all duration-300 \${isPlayed ? 'bg-[#a855f7] shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'bg-white/10'}\`} 
+                        style={{ height: \`\${h}%\` }} 
                       />
                     );
                  })}
@@ -135,7 +137,7 @@ export const ImmersivePlayer = ({
                 {volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
               </button>
               <div className="flex-1 h-2 bg-white/10 rounded-full relative cursor-pointer group flex items-center">
-                <div className="absolute left-0 h-full bg-[#a855f7] rounded-full transition-all pointer-events-none" style={{ width: `${volume}%` }} />
+                <div className="absolute left-0 h-full bg-[#a855f7] rounded-full transition-all pointer-events-none" style={{ width: \`\${volume}%\` }} />
                 <input 
                   type="range" 
                   min="0" 
@@ -164,3 +166,7 @@ export const ImmersivePlayer = ({
     document.body
   );
 };
+`;
+
+fs.writeFileSync('src/components/player/ImmersivePlayer.tsx', playerCode);
+console.log('ImmersivePlayer updated to be fullscreen, with straight text, smaller font, and scrollable tracklist starting from the top.');
