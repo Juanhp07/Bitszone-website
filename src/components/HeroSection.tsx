@@ -1,11 +1,8 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, ChevronRight } from 'lucide-react';
-import SpecularButton from './ui/SpecularButton';
-import GlassSurface from './ui/GlassSurface';
-import GradientText from './ui/GradientText';
-import { SpecularText } from './ui/SpecularText';
 import { LiquidMetalText } from './ui/LiquidMetalText';
+import ShinyButton from './ui/ShinyButton';
 
 export const HeroSection = () => {
   const { scrollY } = useScroll();
@@ -41,52 +38,9 @@ export const HeroSection = () => {
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 md:mt-8 2xl:mt-10"
         >
           <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline">
-            <GlassSurface
-              width="fit-content"
-              height="fit-content"
-              className="flex items-center justify-center group transition-transform duration-300 hover:scale-105 !shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:!shadow-[0_0_50px_rgba(85,16,141,0.5)] !border-none"
-              borderRadius={999}
-              borderWidth={0}
-              backgroundOpacity={0.15}
-              blur={40}
-              distortionScale={-30}
-              style={{ borderRadius: '999px' }}
-            >
-              <style>{`
-                @keyframes bounce-right {
-                  0%, 100% { transform: translateX(0); }
-                  50% { transform: translateX(6px); }
-                }
-                @keyframes text-pulse-soft {
-                  0%, 100% { color: #ffffff; filter: drop-shadow(0 0 0px transparent); }
-                  50% { color: #d8b4fe; filter: drop-shadow(0 0 6px rgba(216, 180, 254, 0.4)); }
-                }
-                .animate-text-pulse-soft {
-                  animation: text-pulse-soft 2.5s infinite ease-in-out;
-                }
-                .group:hover .arrow-icon {
-                  animation: bounce-right 1s infinite ease-in-out !important;
-                  color: #d8b4fe !important;
-                  filter: drop-shadow(0 0 8px rgba(216, 180, 254, 0.5)) !important;
-                }
-              `}</style>
-              <SpecularButton
-                radius={999}
-                tint="transparent"
-                tintOpacity={0}
-                blur={40}
-                lineColor="#FF9FFC"
-                baseColor="#000000"
-                intensity={4.0}
-                thickness={2}
-                className="!bg-transparent px-6 py-4 xl:px-8 xl:py-5 2xl:px-10 2xl:py-6"
-              >
-                <div className="flex items-center justify-center gap-3 font-inter text-sm xl:text-lg 2xl:text-xl font-medium w-full h-full text-white">
-                  Explorar catálogo
-                  <ArrowRight className="arrow-icon w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 animate-text-pulse-soft transition-colors duration-300" />
-                </div>
-              </SpecularButton>
-            </GlassSurface>
+            <ShinyButton className="px-6 py-4 xl:px-8 xl:py-5 2xl:px-10 2xl:py-6">
+              Explorar catálogo <ArrowRight className="arrow-icon w-5 h-5 ml-1" />
+            </ShinyButton>
           </a>
         </motion.div>
       </div>
