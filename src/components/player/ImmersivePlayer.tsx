@@ -3,6 +3,39 @@ import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
 
+
+const MarqueeTitle = ({ text }: { text: string }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const textRef = React.useRef<HTMLSpanElement>(null);
+  const [isOverflowing, setIsOverflowing] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkOverflow = () => {
+      if (containerRef.current && textRef.current) {
+        setIsOverflowing(textRef.current.scrollWidth > containerRef.current.clientWidth);
+      }
+    };
+    checkOverflow();
+    // Delay check slightly to allow font rendering
+    setTimeout(checkOverflow, 100);
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [text]);
+
+  return (
+    <div ref={containerRef} className="overflow-hidden flex-1 relative" style={{ maskImage: isOverflowing ? 'linear-gradient(to right, black 85%, transparent 100%)' : 'none', WebkitMaskImage: isOverflowing ? 'linear-gradient(to right, black 85%, transparent 100%)' : 'none' }}>
+      <div className={`flex whitespace-nowrap ${isOverflowing ? 'animate-marquee' : ''}`}>
+        <span ref={textRef} className={isOverflowing ? 'pr-16' : 'truncate block w-full'}>
+          {text}
+        </span>
+        {isOverflowing && (
+          <span className="pr-16">{text}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const ImmersivePlayer = ({ 
   isExpanded,
   onClose,
@@ -68,7 +101,7 @@ export const ImmersivePlayer = ({
         
 
         {/* 1. LEFT: Tracklist */}
-        <div className="absolute top-12 left-12 xl:left-20 z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">Artistas</div>
+        <div className="absolute top-12 left-12 xl:left-20 z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">Pistas</div>
         <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-24 pb-24">
            {/* Deep fade masks for Top, Bottom, and Right edges to avoid harsh cuts */}
            <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-[#05050A] via-[#05050A]/80 to-transparent z-20 pointer-events-none" />
@@ -92,7 +125,7 @@ export const ImmersivePlayer = ({
                      <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest ${isActive ? 'text-[#a855f7]/60' : 'text-white/10'}`}>
                        {(t.trackNumber || i + 1).toString().padStart(2, '0')}
                      </span>
-                     <span className="line-clamp-1">{t.title}</span>
+                     <MarqueeTitle text={t.title} />
                    </div>
                  </div>
                )
