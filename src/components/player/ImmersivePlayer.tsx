@@ -8,29 +8,37 @@ const MarqueeTitle = ({ text }: { text: string }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const textRef = React.useRef<HTMLSpanElement>(null);
   const [isOverflowing, setIsOverflowing] = React.useState(false);
+  const [overflowAmount, setOverflowAmount] = React.useState(0);
 
   React.useEffect(() => {
     const checkOverflow = () => {
       if (containerRef.current && textRef.current) {
-        setIsOverflowing(textRef.current.scrollWidth > containerRef.current.clientWidth);
+        const cWidth = containerRef.current.clientWidth;
+        const tWidth = textRef.current.scrollWidth;
+        if (tWidth > cWidth) {
+          setIsOverflowing(true);
+          setOverflowAmount(tWidth - cWidth + 30); // 30px extra padding so it scrolls past the last letter
+        } else {
+          setIsOverflowing(false);
+          setOverflowAmount(0);
+        }
       }
     };
     checkOverflow();
-    // Delay check slightly to allow font rendering
     setTimeout(checkOverflow, 100);
     window.addEventListener('resize', checkOverflow);
     return () => window.removeEventListener('resize', checkOverflow);
   }, [text]);
 
   return (
-    <div ref={containerRef} className="overflow-hidden flex-1 relative" style={{ maskImage: isOverflowing ? 'linear-gradient(to right, black 85%, transparent 100%)' : 'none', WebkitMaskImage: isOverflowing ? 'linear-gradient(to right, black 85%, transparent 100%)' : 'none' }}>
-      <div className={`flex whitespace-nowrap ${isOverflowing ? 'animate-marquee' : ''}`}>
-        <span ref={textRef} className={isOverflowing ? 'pr-16' : 'truncate block w-full'}>
+    <div ref={containerRef} className="overflow-hidden flex-1 relative" style={{ maskImage: isOverflowing ? 'linear-gradient(to right, black 90%, transparent 100%)' : 'none', WebkitMaskImage: isOverflowing ? 'linear-gradient(to right, black 90%, transparent 100%)' : 'none' }}>
+      <div 
+        className={`whitespace-nowrap ${isOverflowing ? 'animate-marquee-pingpong' : ''}`}
+        style={isOverflowing ? { '--overflow-amount': `-${overflowAmount}px` } as React.CSSProperties : {}}
+      >
+        <span ref={textRef} className="inline-block truncate-none">
           {text}
         </span>
-        {isOverflowing && (
-          <span className="pr-16">{text}</span>
-        )}
       </div>
     </div>
   );
