@@ -74,13 +74,13 @@ export const Sidebar = ({
           className="relative w-full flex flex-col gap-3 p-4 rounded-2xl bg-gradient-to-b from-white/[0.04] to-transparent border border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.02] transition-all duration-300 group overflow-hidden"
         >
           {/* Top row: Icon + Text */}
-          <div className="flex items-center justify-between w-full relative z-10">
+          <div className="flex flex-col items-start w-full relative z-10 gap-1">
              <div className="flex items-center gap-2 text-white/40 group-hover:text-white/70 transition-colors duration-300">
                <HardDrive className="w-3.5 h-3.5" />
-               <span className="text-[10px] font-semibold uppercase tracking-widest">Almacenamiento</span>
+               <span className="text-[11px] font-semibold capitalize tracking-wide">Almacenamiento</span>
              </div>
-             <span className="text-white/80 text-[11px] font-medium tracking-wide font-mono">
-               {availableGB.toFixed(2)}GB <span className="text-white/30">/ 5.0GB</span>
+             <span className="text-white/80 text-[11px] font-medium tracking-wide font-mono pl-[22px]">
+               {availableGB.toFixed(2)}GB <span className="text-white/40">de 5.0GB</span>
              </span>
           </div>
           
