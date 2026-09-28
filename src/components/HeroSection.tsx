@@ -73,8 +73,10 @@ export const HeroSection = () => {
               className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:shadow-[0_0_50px_rgba(85,16,141,0.5)]"
               borderRadius={40}
               borderWidth={0}
-              backgroundOpacity={0.15}
-              blur={40}
+              backgroundOpacity={0.2}
+              brightness={0}
+              opacity={0.8}
+              blur={30}
               distortionScale={-30}
             >
               <style>{`
@@ -88,18 +90,18 @@ export const HeroSection = () => {
               `}</style>
               <SpecularButton
                 radius={40}
-                tint="#FF9FFC"
-                tintOpacity={0.08}
-                blur={20}
+                tint="#000000"
+                tintOpacity={0.2}
+                blur={10}
                 lineColor="#FF9FFC"
                 baseColor="transparent"
                 intensity={4.0}
                 thickness={2}
                 className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
               >
-                <div className="flex items-center justify-center gap-3 text-white transition-colors duration-300 ease-out group-hover:text-[#c084fc] font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
+                <div className="flex items-center justify-center gap-3 !text-white transition-all duration-300 ease-out group-hover:!text-[#c084fc] group-hover:drop-shadow-[0_0_12px_rgba(192,132,252,0.8)] font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
                   Explorar Catálogo
-                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-white transition-colors duration-300 ease-out group-hover:text-[#c084fc] group-hover:animate-bounce-right" />
+                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 !text-white transition-all duration-300 ease-out group-hover:!text-[#c084fc] group-hover:animate-bounce-right group-hover:drop-shadow-[0_0_12px_rgba(192,132,252,0.8)]" />
                 </div>
               </SpecularButton>
             </GlassSurface>
