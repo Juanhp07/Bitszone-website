@@ -76,6 +76,7 @@ export const ImmersivePlayer = ({
   onSeek?: (progress: number) => void
 }) => {
   if (!track || !album) return null;
+  const [activeTab, setActiveTab] = React.useState<"portada" | "letra">("portada");
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -164,17 +165,32 @@ export const ImmersivePlayer = ({
            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#05050A_100%)] opacity-80 z-10 pointer-events-none" />
 
            {/* Top Tabs (PORTADA / LETRA) */}
-           <div className="absolute top-10 left-1/2 -translate-x-1/2 z-30 flex items-center gap-10 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">
-              <button className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">Portada</button>
-              <button className="text-white/40 hover:text-white transition-colors">Letra</button>
+           <div className="absolute top-10 left-1/2 -translate-x-1/2 z-30 p-1.5 flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
+              {/* Sliding Background */}
+              <div 
+                className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-full bg-white/15 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm ${activeTab === 'letra' ? 'translate-x-full left-[calc(50%)]' : 'translate-x-0 left-1.5'}`}
+              />
+              <button 
+                onClick={() => setActiveTab('portada')}
+                className={`relative z-10 px-8 py-3 text-xs md:text-sm font-bold tracking-[0.2em] uppercase transition-colors ${activeTab === 'portada' ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-white/50 hover:text-white/80'}`}
+              >
+                Portada
+              </button>
+              <button 
+                onClick={() => setActiveTab('letra')}
+                className={`relative z-10 px-8 py-3 text-xs md:text-sm font-bold tracking-[0.2em] uppercase transition-colors ${activeTab === 'letra' ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-white/50 hover:text-white/80'}`}
+              >
+                Letra
+              </button>
            </div>
 
            {/* Floating Content: Info & Controls */}
            <div className="relative z-30 flex flex-col items-center justify-center w-full px-8">
-              <h2 className="text-4xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white mb-4 drop-shadow-lg text-center leading-tight">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(5,5,10,0.8)_0%,transparent_60%)] pointer-events-none -z-10" />
+              <h2 className="text-4xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white mb-4 drop-shadow-lg text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,1)]">
                 {album.title}
               </h2>
-              <p className="text-white/50 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center drop-shadow-md mb-16">
+              <p className="text-white/80 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center drop-shadow-md mb-16 [text-shadow:_0_2px_10px_rgba(0,0,0,1)]">
                 {album.artist}
               </p>
 
@@ -188,7 +204,7 @@ export const ImmersivePlayer = ({
                 </button>
 
                 <button 
-                  onClick={(e) => { e.stopPropagation(); onTogglePlay(); }}
+                  onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                   className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-md border border-white/10 shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:shadow-[0_0_50px_rgba(168,85,247,0.2)] group"
                 >
                   {isPlaying ? (
