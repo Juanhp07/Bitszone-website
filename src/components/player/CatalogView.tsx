@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { DownloadCloud } from 'lucide-react';
 import { Play, Pause, Download, Check, Loader2, ChevronLeft } from 'lucide-react';
 import type { Album, Track } from './types';
@@ -22,6 +23,16 @@ export const CatalogView = ({
   const { downloadTrack, isDownloaded } = useDownloads();
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowDownloadConfirm(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showDownloadConfirm]);
   const [isDownloadingAlbum, setIsDownloadingAlbum] = useState<number | null>(null);
   const [expandedSection, setExpandedSection] = useState<'canciones' | 'artistas' | 'destacados' | null>(null);
 
@@ -195,9 +206,9 @@ export const CatalogView = ({
       </section>
       )}
       
-      {showDownloadConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+      {showDownloadConfirm && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setShowDownloadConfirm(null)}>
+          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-[#a855f7]/20 flex items-center justify-center shrink-0">
                 <Download className="w-6 h-6 text-[#a855f7]" />
@@ -212,7 +223,8 @@ export const CatalogView = ({
               <button onClick={executeDownloadAlbum} className="px-4 py-2 rounded-lg font-medium bg-[#a855f7] hover:bg-[#b066f8] text-white transition-colors shadow-lg shadow-[#a855f7]/25">Descargar Todo</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>
