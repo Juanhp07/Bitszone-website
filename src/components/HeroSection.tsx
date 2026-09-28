@@ -80,8 +80,8 @@ export const HeroSection = () => {
               <SpecularButton
                 radius={40}
                 tint="transparent"
-                tintOpacity={0.25}
-                blur={40}
+                tintOpacity={0}
+                blur={0}
                 lineColor="#FF9FFC"
                 baseColor="#7012CE"
                 intensity={4.0}
@@ -89,8 +89,8 @@ export const HeroSection = () => {
                 className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
               >
                 <div className="flex items-center justify-center gap-3 text-white font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
-                  Explorar catálogo
-                  <ChevronRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-[#A0A3BD] transition-all duration-300 ease-out group-hover:text-[#c084fc] group-hover:translate-x-1" />
+                  Explorar Catálogo
+                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-[#A0A3BD] transition-all duration-300 ease-out group-hover:text-[#c084fc] group-hover:translate-x-1" />
                 </div>
               </SpecularButton>
             </GlassSurface>
