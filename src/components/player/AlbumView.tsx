@@ -158,7 +158,7 @@ export const AlbumView = ({
 
         <div className="mt-8">
           {/* Header */}
-          <div className="grid grid-cols-[50px_1fr_100px_120px] gap-4 px-4 py-2 text-white/50 text-sm font-medium border-b border-white/5 mb-4">
+          <div className="grid grid-cols-[50px_1fr_100px_120px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
             <div className="text-center">#</div>
             <div>Título</div>
             <div className="text-right">Reproducciones</div>

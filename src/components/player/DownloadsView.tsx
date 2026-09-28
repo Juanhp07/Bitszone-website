@@ -173,7 +173,7 @@ export const DownloadsView = ({
 
       <div className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-8">
         {type === 'downloads' && groupedTracks ? (
-          <div className="flex flex-col gap-10 pb-10">
+          <div className="flex flex-col gap-10">
             {Object.values(groupedTracks).map(group => (
               <div key={group.id} className="flex flex-col">
                 <div className="flex items-center gap-4 mb-4 px-4">
@@ -181,7 +181,7 @@ export const DownloadsView = ({
                   <h3 className="text-xl font-bold text-white">{group.title}</h3>
                 </div>
                 
-                <div className="grid grid-cols-[50px_1fr_100px_40px] gap-4 px-4 py-2 text-white/50 text-sm font-medium border-b border-white/5 mb-2">
+                <div className="grid grid-cols-[50px_1fr_100px_40px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
                   <div className="text-center">#</div>
                   <div>Título</div>
                   <div className="flex justify-end"><Clock className="w-4 h-4" /></div>
@@ -196,14 +196,14 @@ export const DownloadsView = ({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-[50px_1fr_100px_40px] gap-4 px-4 py-2 text-white/50 text-sm font-medium border-b border-white/5 mb-4">
+            <div className="grid grid-cols-[50px_1fr_100px_40px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
               <div className="text-center">#</div>
               <div>Título</div>
               <div className="flex justify-end"><Clock className="w-4 h-4" /></div>
               <div></div>
             </div>
 
-            <div className="flex flex-col gap-1 pb-10">
+            <div className="flex flex-col gap-1">
               {tracks.map((track, index) => renderTrack(track, index))}
             </div>
           </>
