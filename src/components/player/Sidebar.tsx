@@ -26,7 +26,7 @@ export const Sidebar = ({
         <button
           onClick={() => onViewChange("catalog")}
           className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${
-            currentView === "catalog"
+            ['catalog', 'album', 'artist'].includes(currentView)
               ? "text-white bg-white/10 shadow-sm"
               : "text-white/60 hover:text-white hover:bg-white/5"
           }`}
@@ -58,7 +58,7 @@ export const Sidebar = ({
             {newDownloadsCount > 0 && currentView !== "downloads" && (
               <span
                 key={newDownloadsCount}
-                className="absolute -top-2 -right-2 flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-gradient-to-r from-[#a855f7] to-[#3b82f6] text-white text-[10px] font-bold animate-sparkle"
+                className="absolute -top-2 -right-2 flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-[#a855f7] border border-white/20 text-white text-[10px] font-bold shadow-[0_0_10px_rgba(168,85,247,0.3)] animate-in zoom-in duration-300"
               >
                 {newDownloadsCount}
               </span>
