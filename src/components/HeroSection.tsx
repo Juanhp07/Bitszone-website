@@ -70,7 +70,7 @@ export const HeroSection = () => {
             <GlassSurface
               width="fit-content"
               height="fit-content"
-              className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:shadow-[0_0_50px_rgba(85,16,141,0.5)]"
+              className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 !shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:!shadow-[0_0_50px_rgba(85,16,141,0.5)] !border-none"
               borderRadius={40}
               borderWidth={0}
               backgroundOpacity={0.2}
@@ -94,7 +94,7 @@ export const HeroSection = () => {
                 tintOpacity={0.2}
                 blur={10}
                 lineColor="#FF9FFC"
-                baseColor="transparent"
+                baseColor="#000000"
                 intensity={4.0}
                 thickness={2}
                 className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
