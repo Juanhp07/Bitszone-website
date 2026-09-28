@@ -36,7 +36,7 @@ export const DownloadsView = ({
     return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
   };
   const formatSize = (sizeMb?: number, duration?: number) => {
-    const mb = sizeMb || ((duration || 0) / 1000 * 0.0390625);
+    const mb = sizeMb || ((duration || 0) / 1000 * 0.023);
     return mb.toFixed(1) + ' MB';
   };
 
@@ -120,9 +120,11 @@ export const DownloadsView = ({
           {formatDate(track.addedAt)}
         </div>
         
-        <div className="text-white/50 text-xs font-medium">
-          {formatSize(track.sizeMb, track.duration)}
-        </div>
+        {type === 'downloads' && (
+          <div className="text-white/50 text-xs font-medium">
+            {formatSize(track.sizeMb, track.duration)}
+          </div>
+        )}
         
         <div className="flex items-center justify-end gap-4">
           <div className="w-10 text-right text-white/50 text-sm">
@@ -220,11 +222,11 @@ export const DownloadsView = ({
                 </button>
               </div>
               
-              <div className="grid grid-cols-[50px_1fr_120px_100px_100px_40px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
+              <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_120px_100px_100px_40px]' : 'grid-cols-[50px_1fr_120px_100px_40px]'} gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3`}>
                 <div className="text-center">#</div>
                 <div>Título</div>
                 <div>Añadido el</div>
-                <div>Tamaño</div>
+                {type === 'downloads' && <div>Tamaño</div>}
                 <div className="flex justify-end"><Clock className="w-4 h-4" /></div>
                 <div></div>
               </div>
