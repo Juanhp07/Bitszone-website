@@ -232,7 +232,7 @@ export const DownloadsView = ({
               className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-white/70 hover:text-white transition-all font-semibold text-xs"
             >
               <Trash2 className="w-4 h-4" />
-              {type === 'downloads' ? 'Vaciar Mis descargas' : 'Vaciar Biblioteca'}
+              'Eliminar todo'
             </button>
           </div>
         )}
@@ -252,7 +252,7 @@ export const DownloadsView = ({
                   className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-white/50 hover:text-white transition-colors text-xs font-medium"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  Vaciar solo esta lista
+                  Eliminar lista
                 </button>
               </div>
               
@@ -395,7 +395,7 @@ export const DownloadsView = ({
                 disabled={confirmText.toUpperCase() !== 'CONFIRMAR'}
                 className="px-4 py-2 rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-500/25"
               >
-                Vaciar Todo
+                Eliminar todo
               </button>
             </div>
           </div>
