@@ -70,8 +70,7 @@ export const HeroSection = () => {
               className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 !shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:!shadow-[0_0_50px_rgba(85,16,141,0.5)] !border-none"
               borderRadius={40}
               borderWidth={0}
-              backgroundOpacity={0.25}
-              displace={15}
+              backgroundOpacity={0.15}
               blur={40}
               distortionScale={-30}
             >
@@ -100,7 +99,7 @@ export const HeroSection = () => {
                 radius={40}
                 tint="transparent"
                 tintOpacity={0}
-                blur={0}
+                blur={40}
                 lineColor="#FF9FFC"
                 baseColor="#000000"
                 intensity={4.0}
