@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CoverflowCarousel } from './ui/CoverflowCarousel';
-import LaserFlow from './ui/LaserFlow';
 
 const albums = [
   {
@@ -65,20 +64,6 @@ const albums = [
 export const FeatureSection = () => {
   return (
     <section className="relative w-full flex flex-col items-center min-h-[120vh]">
-      
-      {/* Inverted Laser Flow Connective Beam (shooting DOWN behind albums) */}
-      <div className="absolute top-[-60vh] left-0 w-full h-[120vh] z-0 pointer-events-none rotate-180 opacity-70">
-        <LaserFlow 
-          color="#5227FF" // Morado oscuro
-          backgroundColor="transparent"
-          verticalSizing={2.5}
-          horizontalSizing={2.0}
-          wispDensity={0.8}
-          fogIntensity={0.1} // Reducido para oscurecer y evitar blancos quemados
-          wispIntensity={1.0} // Reducido para suavizar la luz central
-        />
-      </div>
-
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -87,34 +72,29 @@ export const FeatureSection = () => {
         className="relative z-30 flex flex-col items-center pt-32 md:pt-48 text-center px-6 w-full"
       >
         <h2 className="flex flex-col items-center justify-center font-sans font-bold text-center w-full ">
-          <span className="text-white/70 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight">
+          <span className="text-white text-[10vw] sm:text-[8vw] lg:text-[70px] xl:text-[90px] tracking-tight leading-none">
             El que busca,
           </span>
-          <span className="text-white/70 text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal leading-tight mt-2">
+          <span className="text-white text-[10vw] sm:text-[8vw] lg:text-[70px] xl:text-[90px] tracking-tight leading-none mt-2 md:mt-4">
             encuentra su ritmo
           </span>
         </h2>
       </motion.div>
       
       {/* The Coverflow Carousel Wrapper */}
-      <div className="relative w-full z-20 flex-1 flex justify-center items-center mt-4 md:mt-8 mb-20 min-h-[600px]">
-        
+      <motion.div 
+        initial={{ x: "-100%", opacity: 0 }}
+        whileInView={{ x: 0, opacity: 1 }}
+        viewport={{ once: true, amount: 0.1, margin: "200px" }}
+        transition={{ type: "spring", stiffness: 60, damping: 20, duration: 1.0, delay: 0.1 }}
+        className="relative w-full z-20 flex-1 flex justify-center items-center mt-12 md:mt-20 mb-20 min-h-[600px]"
+      >
         {/* Glow point behind images, aligned to horizon */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-[#55108d]/20 blur-[100px] z-0 pointer-events-none"></div>
 
         <CoverflowCarousel items={albums} speed={1.5} spacing={220} />
-      </div>
+      </motion.div>
 
-      {/* Left Edge Fade + Blur */}
-      <div className="absolute inset-y-0 left-0 w-[10%] md:w-[15%] bg-gradient-to-r from-canvas via-canvas/80 to-transparent z-20 pointer-events-none"></div>
-      <div className="absolute inset-y-0 left-0 w-[10%] md:w-[15%] backdrop-blur-[6px] z-20 pointer-events-none [mask-image:linear-gradient(to_right,black_10%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,black_10%,transparent_100%)]"></div>
-
-      {/* Right Edge Fade + Blur */}
-      <div className="absolute inset-y-0 right-0 w-[10%] md:w-[15%] bg-gradient-to-l from-canvas via-canvas/80 to-transparent z-20 pointer-events-none"></div>
-      <div className="absolute inset-y-0 right-0 w-[10%] md:w-[15%] backdrop-blur-[6px] z-20 pointer-events-none [mask-image:linear-gradient(to_left,black_10%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_left,black_10%,transparent_100%)]"></div>
-      
-      {/* Bottom fade to blend with next section */}
-      <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-canvas to-transparent z-30 pointer-events-none"></div>
     </section>
   );
 };

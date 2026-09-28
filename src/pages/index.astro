@@ -5,22 +5,56 @@ import { HeroSection } from '../components/HeroSection';
 import { FeatureSection } from '../components/FeatureSection';
 import { ProblemSection } from '../components/ProblemSection';
 import { FAQSection } from '../components/FAQSection';
+import { SmoothScroll } from '../components/ui/SmoothScroll';
+import MoltenMetal from '../components/ui/MoltenMetal';
+import HeroBackgroundFade from '../components/ui/HeroBackgroundFade';
 ---
 
 <Layout title="Bitszone - Tu música sin conexión">
-  <Header client:load />
-  
-  <main>
-    <HeroSection client:load />
-    <FeatureSection client:visible />
-    <ProblemSection client:visible />
-    <FAQSection client:visible />
-  </main>
-
-  <footer class="w-full py-8 text-center text-[#A0A3BD] border-t border-white/5 mt-16 font-inter text-sm relative z-10">
-    <div class="max-w-[1920px] mx-auto px-8 md:px-16 2xl:px-24 flex flex-col md:flex-row justify-between items-center gap-4">
-      <p class="m-0">&copy; {new Date().getFullYear()} Bitszone. Todos los derechos reservados.</p>
-      <p class="m-0">Desarrollado por <span class="text-white font-semibold tracking-wide">J3T</span> & <span class="text-white font-semibold tracking-wide">JuanHP</span></p>
+  <SmoothScroll client:load>
+    
+    {/* Global Molten Metal Background */}
+    <div class="fixed inset-0 z-[-2] overflow-hidden pointer-events-none">
+      <MoltenMetal
+        client:load
+        color1="#5227FF"
+        color2="#FF9FFC"
+        color3="#B497CF"
+        speed={0.2}
+        scale={2.5}
+        detail={4}
+        glow={1.0}
+        coreSize={0.15}
+        swirl={1.2}
+        fold={-0.3}
+        blackPoint={0.15}
+        brightness={1.0}
+        colorMode="molten"
+        grain={true}
+        grainIntensity={0.03}
+        opacity={0.8}
+        backgroundColor="#05050A"
+        lightMode={false}
+      />
     </div>
-  </footer>
+
+    {/* Hero LiquidEther Curtain (Fades out fully on scroll) */}
+    <HeroBackgroundFade client:load />
+    
+    <Header client:load />
+    
+    <main class="relative z-10">
+      <HeroSection client:load />
+      <FeatureSection client:visible />
+      <ProblemSection client:visible />
+      <FAQSection client:visible />
+    </main>
+
+    <footer class="w-full py-8 text-center text-[#A0A3BD] border-t border-white/5 mt-16 font-inter text-sm relative z-10 bg-canvas/80 backdrop-blur-md">
+      <div class="max-w-[1920px] mx-auto px-8 md:px-16 2xl:px-24 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="m-0">&copy; {new Date().getFullYear()} Bitszone. Todos los derechos reservados.</p>
+        <p class="m-0">Desarrollado por <span class="text-white font-semibold tracking-wide">J3T</span> & <span class="text-white font-semibold tracking-wide">JuanHP</span></p>
+      </div>
+    </footer>
+  </SmoothScroll>
 </Layout>

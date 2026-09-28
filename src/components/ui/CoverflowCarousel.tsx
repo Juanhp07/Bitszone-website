@@ -78,7 +78,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       const rotateY = normalizedDistance * -65; 
       const scale = 1 - Math.abs(normalizedDistance) * 0.2;
       const zIndex = 100 - Math.abs(Math.round(normalizedDistance * 100));
-      const opacity = 1 - Math.abs(normalizedDistance) * 0.8;
+      const opacity = 1 - Math.abs(normalizedDistance) * 0.4;
       const translateZ = -Math.abs(normalizedDistance) * 250;
 
       const isCenter = Math.abs(normalizedDistance) < 0.15;
@@ -178,19 +178,6 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
           transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
-        /* Holographic Liquid Blur Aura */
-        .coverflow-inner::before {
-          content: '';
-          position: absolute;
-          inset: -15px;
-          background: var(--card-color);
-          filter: blur(35px);
-          opacity: 0;
-          transition: opacity 0.5s ease;
-          border-radius: 20px;
-          z-index: -1;
-        }
-        
         .coverflow-inner img {
           width: 100%;
           height: 100%;
@@ -198,10 +185,9 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
           border-radius: 12px;
           box-shadow: 0 10px 30px rgba(0,0,0,0.5);
           transition: box-shadow 0.4s ease;
-        }
-        
-        .coverflow-inner.glow-active::before {
-          opacity: 0.3; /* Liquid blur activates (reduced) */
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          transform: translateZ(0);
         }
         
         .coverflow-inner.glow-active img {
