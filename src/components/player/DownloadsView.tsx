@@ -232,7 +232,7 @@ export const DownloadsView = ({
               className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-white/70 hover:text-white transition-all font-semibold text-xs"
             >
               <Trash2 className="w-4 h-4" />
-              'Eliminar todo'
+              Eliminar todo
             </button>
           </div>
         )}
@@ -355,7 +355,7 @@ export const DownloadsView = ({
                 <Trash2 className="w-6 h-6 text-red-500" />
               </div>
               <h3 className="text-xl font-bold text-white">
-                {type === 'downloads' ? '¿Eliminar todas las descargas?' : '¿Vaciar favoritos?'}
+                {type === 'downloads' ? '¿Vaciar todas las descargas?' : '¿Vaciar todos los favoritos?'}
               </h3>
             </div>
             <p className="text-white/70 mb-4 leading-relaxed">
