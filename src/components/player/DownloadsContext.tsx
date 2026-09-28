@@ -36,6 +36,28 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
         const parsed = JSON.parse(savedDownloads);
         setDownloadedTracks(parsed);
         calculateBytes(parsed);
+        
+        // Background fetch real sizes if missing
+        let changed = false;
+        Promise.all(parsed.map(async (t: Track) => {
+          if (!t.sizeMb || t.sizeMb === (t.duration / 1000 * 0.023) || t.sizeMb === (t.duration / 1000 * 0.0390625)) {
+            try {
+              const res = await fetch(t.previewUrl, { method: 'HEAD' });
+              const len = res.headers.get('content-length');
+              if (len) {
+                t.sizeMb = parseInt(len, 10) / (1024 * 1024);
+                changed = true;
+              }
+            } catch(e) {}
+          }
+          return t;
+        })).then(updated => {
+          if (changed) {
+            setDownloadedTracks([...updated]);
+            localStorage.setItem('bz_downloads', JSON.stringify(updated));
+            calculateBytes(updated);
+          }
+        });
       } catch (e) {}
     }
 
@@ -55,11 +77,19 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   const downloadTrack = async (track: Track, album?: Album) => {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>(async (resolve) => {
+      let realSizeMb = track.sizeMb;
+      try {
+        const res = await fetch(track.previewUrl, { method: 'HEAD' });
+        const len = res.headers.get('content-length');
+        if (len) realSizeMb = parseInt(len, 10) / (1024 * 1024);
+      } catch(e) {}
+
       setTimeout(() => {
         setDownloadedTracks(prev => {
-          if (prev.find(t => t.id === track.id)) return prev;
-          const trackToSave = album ? { ...track, albumId: album.id, albumTitle: album.title, albumCover: album.coverUrl } : track;
+          const trackWithRealSize = { ...track, sizeMb: realSizeMb || track.sizeMb };
+          if (prev.find(t => t.id === trackWithRealSize.id)) return prev;
+          const trackToSave = { ...trackWithRealSize, albumId: album?.id || track.albumId, albumTitle: album?.title || track.albumTitle, albumCover: album?.coverUrl || track.albumCover, addedAt: track.addedAt || new Date().toISOString() };
           const updated = [...prev, trackToSave];
           localStorage.setItem('bz_downloads', JSON.stringify(updated));
           calculateBytes(updated);
@@ -91,7 +121,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
       if (exists) {
         updated = prev.filter(t => t.id !== track.id);
       } else {
-        const trackToSave = album ? { ...track, albumId: album.id, albumTitle: album.title, albumCover: album.coverUrl } : track;
+        const trackToSave = { ...track, albumId: album?.id || track.albumId, albumTitle: album?.title || track.albumTitle, albumCover: album?.coverUrl || track.albumCover, addedAt: track.addedAt || new Date().toISOString() };
         updated = [...prev, trackToSave];
       }
       localStorage.setItem('bz_favorites', JSON.stringify(updated));
