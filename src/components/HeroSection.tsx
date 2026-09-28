@@ -68,12 +68,12 @@ export const HeroSection = () => {
               width="fit-content"
               height="fit-content"
               className="flex items-center justify-center group transition-transform duration-300 hover:scale-105 !shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:!shadow-[0_0_50px_rgba(85,16,141,0.5)] !border-none"
-              borderRadius={24}
+              borderRadius={999}
               borderWidth={0}
               backgroundOpacity={0.15}
               blur={40}
               distortionScale={-30}
-              style={{ borderRadius: '24px' }}
+              style={{ borderRadius: '999px' }}
             >
               <style>{`
                 @keyframes bounce-right {
@@ -94,7 +94,7 @@ export const HeroSection = () => {
                 }
               `}</style>
               <SpecularButton
-                radius={24}
+                radius={999}
                 tint="transparent"
                 tintOpacity={0}
                 blur={40}
