@@ -149,83 +149,62 @@ export const ImmersivePlayer = ({
            </div>
         </div>
 
-        {/* 2. CENTER: Visualizer & Controls */}
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[35%] flex flex-col items-center justify-center z-30 pointer-events-none">
-           <h2 className="text-3xl md:text-4xl xl:text-5xl font-serif italic text-white drop-shadow-lg text-center line-clamp-1 px-4">{album.title}</h2>
-           <p className="text-white/40 text-xs md:text-sm mt-3 tracking-[0.3em] uppercase text-center">{album.artist}</p>
-        </div>
-        <div className="w-[35%] h-full flex flex-col items-center justify-center relative z-20">
+        {/* 2. RIGHT: Unified Cover, Info & Controls */}
+        <div className="w-[65%] h-full relative flex flex-col items-center justify-center">
+           {/* Background Cover Image */}
+           <img 
+             src={album.coverUrl} 
+             alt="Artist/Album Cover" 
+             className="absolute inset-0 w-full h-full object-cover opacity-50 z-0 grayscale-[20%] contrast-125" 
+           />
            
-           {/* Visualizer & Play Controls Container */}
-           <div className="relative flex items-center justify-center w-full h-[300px]">
-              {/* Interactive Seek Layer */}
-              <div 
-                 className="absolute inset-0 z-0 cursor-pointer"
-                 onClick={(e) => {
-                    if (!onSeek) return;
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const clickX = e.clientX - rect.left;
-                    const percent = Math.max(0, Math.min(1, clickX / rect.width));
-                    onSeek(percent);
-                 }}
-              />
-              {/* Bars */}
-              <div className="absolute inset-0 flex items-center justify-center gap-1.5 md:gap-2 opacity-90 pointer-events-none">
-                 {wave.map((h, i) => {
-                    const isPlayed = i <= activeBars;
-                    return (
-                      <div 
-                        key={i} 
-                        className={`w-2 md:w-3 rounded-full transition-all duration-300 ${isPlayed ? 'bg-[#a855f7] shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'bg-white/10'}`} 
-                        style={{ height: `${h}%` }} 
-                      />
-                    );
-                 })}
-              </div>
+           {/* Fades on all sides */}
+           <div className="absolute inset-0 bg-gradient-to-r from-[#05050A] via-transparent to-[#05050A] opacity-90 z-10 pointer-events-none" />
+           <div className="absolute inset-0 bg-gradient-to-b from-[#05050A] via-transparent to-[#05050A] opacity-90 z-10 pointer-events-none" />
+           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#05050A_100%)] opacity-80 z-10 pointer-events-none" />
+
+           {/* Top Tabs (PORTADA / LETRA) */}
+           <div className="absolute top-10 left-1/2 -translate-x-1/2 z-30 flex items-center gap-10 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">
+              <button className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">Portada</button>
+              <button className="text-white/40 hover:text-white transition-colors">Letra</button>
+           </div>
+
+           {/* Floating Content: Info & Controls */}
+           <div className="relative z-30 flex flex-col items-center justify-center w-full px-8">
+              <h2 className="text-4xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white mb-4 drop-shadow-lg text-center leading-tight">
+                {album.title}
+              </h2>
+              <p className="text-white/50 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center drop-shadow-md mb-16">
+                {album.artist}
+              </p>
 
               {/* Controls */}
-              <div className="relative z-10 flex items-center gap-8">
-                 <button onClick={(e) => { e.stopPropagation(); if(onPrev) onPrev(); }} className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white hover:scale-110 hover:bg-[#252525] transition-all shadow-xl">
-                   <SkipBack className="w-7 h-7 fill-current" />
-                 </button>
-                 <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="w-28 h-28 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white hover:scale-105 hover:bg-[#252525] transition-all shadow-2xl">
-                   {isPlaying ? <Pause className="w-12 h-12 fill-current" /> : <Play className="w-12 h-12 fill-current ml-2" />}
-                 </button>
-                 <button onClick={(e) => { e.stopPropagation(); if(onNext) onNext(); }} className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white hover:scale-110 hover:bg-[#252525] transition-all shadow-xl">
-                   <SkipForward className="w-7 h-7 fill-current" />
-                 </button>
-              </div>
-           </div>
+              <div className="flex items-center gap-8 md:gap-12">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onPrev(); }}
+                  className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group"
+                >
+                  <SkipBack className="w-5 h-5 md:w-7 md:h-7 group-hover:-translate-x-1 transition-transform" fill="currentColor" />
+                </button>
 
-           {/* Volume */}
-           <div className="absolute bottom-20 flex items-center gap-4 w-[70%] max-w-md">
-              <button onClick={onToggleMute} className="text-white/50 hover:text-white transition-colors focus:outline-none">
-                {volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-              </button>
-              <div className="flex-1 h-2 bg-white/10 rounded-full relative cursor-pointer group flex items-center">
-                <div className="absolute left-0 h-full bg-[#a855f7] rounded-full transition-all pointer-events-none" style={{ width: `${volume}%` }} />
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="100" 
-                  value={volume}
-                  onChange={(e) => setVolume && setVolume(parseFloat(e.target.value))}
-                  className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10"
-                />
-              </div>
-              <span className="text-white/40 text-sm font-medium w-10 text-right">{Math.round(volume)}%</span>
-           </div>
-        </div>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onTogglePlay(); }}
+                  className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-md border border-white/10 shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:shadow-[0_0_50px_rgba(168,85,247,0.2)] group"
+                >
+                  {isPlaying ? (
+                    <Pause className="w-8 h-8 md:w-10 md:h-10 group-hover:scale-95 transition-transform" fill="currentColor" />
+                  ) : (
+                    <Play className="w-8 h-8 md:w-10 md:h-10 ml-2 group-hover:scale-105 transition-transform" fill="currentColor" />
+                  )}
+                </button>
 
-        {/* 3. RIGHT: Cover & Tabs */}
-        <div className="w-[30%] h-full relative">
-           <div className="absolute inset-0 bg-gradient-to-r from-[#05050A] via-[#05050A]/40 to-transparent z-10 pointer-events-none" />
-           <div className="absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-[#05050A] to-transparent z-10 pointer-events-none" />
-           <img src={album.coverUrl} className="w-full h-full object-cover grayscale-[30%] contrast-125" alt="Artist/Album Cover" />
-           
-           <div className="absolute top-10 left-1/2 -translate-x-1/2 z-20 flex gap-8 text-xs font-bold tracking-[0.2em] uppercase">
-              <button className="text-white">Portada</button>
-              <button className="text-white/40 hover:text-white transition-colors">Letra</button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onNext(); }}
+                  className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group"
+                >
+                  <SkipForward className="w-5 h-5 md:w-7 md:h-7 group-hover:translate-x-1 transition-transform" fill="currentColor" />
+                </button>
+              </div>
            </div>
         </div>
       </div>
