@@ -90,16 +90,6 @@ export const FeatureSection = () => {
         <CoverflowCarousel items={albums} speed={1.5} spacing={220} />
       </div>
 
-      {/* Left Edge Fade + Blur */}
-      <div className="absolute inset-y-0 left-0 w-[10%] md:w-[15%] bg-gradient-to-r from-canvas via-canvas/80 to-transparent z-20 pointer-events-none"></div>
-      <div className="absolute inset-y-0 left-0 w-[10%] md:w-[15%] backdrop-blur-[6px] z-20 pointer-events-none [mask-image:linear-gradient(to_right,black_10%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,black_10%,transparent_100%)]"></div>
-
-      {/* Right Edge Fade + Blur */}
-      <div className="absolute inset-y-0 right-0 w-[10%] md:w-[15%] bg-gradient-to-l from-canvas via-canvas/80 to-transparent z-20 pointer-events-none"></div>
-      <div className="absolute inset-y-0 right-0 w-[10%] md:w-[15%] backdrop-blur-[6px] z-20 pointer-events-none [mask-image:linear-gradient(to_left,black_10%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_left,black_10%,transparent_100%)]"></div>
-      
-      {/* Bottom fade to blend with next section */}
-      <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-canvas to-transparent z-30 pointer-events-none"></div>
     </section>
   );
 };
