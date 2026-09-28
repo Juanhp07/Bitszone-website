@@ -131,7 +131,7 @@ export const DownloadsView = ({
         onMouseEnter={() => setHoveredTrack(track.id)}
         onMouseLeave={() => setHoveredTrack(null)}
         onClick={() => handlePlay(track)}
-        className="grid grid-cols-[50px_1fr_150px_100px_100px_40px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group hover:bg-white/5"
+        className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_150px_100px_100px_40px]' : 'grid-cols-[50px_1fr_150px_100px_40px]'} gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group hover:bg-white/5`}
       >
         <div className="text-center text-white/50 font-medium">
           {isHovered ? (
@@ -154,9 +154,11 @@ export const DownloadsView = ({
           <TimeAgo dateStr={track.addedAt} />
         </div>
         
-        <div className="text-white/50 text-xs font-medium">
-          {type === 'downloads' ? formatSize(track.sizeMb, track.duration) : ''}
-        </div>
+        {type === 'downloads' && (
+          <div className="text-white/50 text-xs font-medium">
+            {formatSize(track.sizeMb, track.duration)}
+          </div>
+        )}
         
         <div className="flex items-center justify-end gap-4">
           <div className="w-10 text-right text-white/50 text-sm">
@@ -254,11 +256,11 @@ export const DownloadsView = ({
                 </button>
               </div>
               
-              <div className="grid grid-cols-[50px_1fr_150px_100px_100px_40px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
+              <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_150px_100px_100px_40px]' : 'grid-cols-[50px_1fr_150px_100px_40px]'} gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3`}>
                 <div className="text-center">#</div>
                 <div>Título</div>
-                <div>Añadido el</div>
-                <div>{type === 'downloads' ? 'Tamaño' : ''}</div>
+                <div>Se añadió</div>
+                {type === 'downloads' && <div>Tamaño</div>}
                 <div className="flex justify-end"><Clock className="w-4 h-4" /></div>
                 <div></div>
               </div>
