@@ -31,8 +31,15 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   const targetProgress = useRef(0);
   const isDragging = useRef(false);
   const isHoveringCard = useRef(false);
+  
+  // Drag physics states
   const dragStartX = useRef(0);
   const dragStartProgress = useRef(0);
+  const dragLastX = useRef(0);
+  const dragLastTime = useRef(0);
+  const velocity = useRef(0);
+  const isFlicking = useRef(false);
+  const interactionCooldown = useRef(0); // Pauses auto-scroll after interaction
   
   // Duplicating items for infinite loop (5 sets ensures plenty of runway)
   const duplicatedItems = [...items, ...items, ...items, ...items, ...items];
@@ -40,9 +47,25 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
 
   const animate = useCallback(() => {
     if (!isDragging.current) {
-      if (!isHoveringCard.current) {
-        // Auto-scroll by increasing target (left to right)
-        targetProgress.current += speed;
+      if (isFlicking.current) {
+        targetProgress.current += velocity.current;
+        velocity.current *= 0.92; // Friction
+
+        if (Math.abs(velocity.current) < 0.5) {
+          isFlicking.current = false;
+          // Magnetic Snap to nearest card
+          const centerScreenX = containerWidth / 2;
+          const idealIndex = Math.round((centerScreenX + (totalWidth * 2) - targetProgress.current) / spacing);
+          targetProgress.current = centerScreenX + (totalWidth * 2) - (idealIndex * spacing);
+          interactionCooldown.current = 150; // Pause auto-scroll for ~2.5s
+        }
+      } else {
+        if (interactionCooldown.current > 0) {
+          interactionCooldown.current--;
+        } else if (!isHoveringCard.current) {
+          // Auto-scroll resumes
+          targetProgress.current += speed;
+        }
       }
       
       // Smoothly interpolate current progress towards target progress (Spring physics)
@@ -76,27 +99,32 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       let normalizedDistance = Math.max(-1, Math.min(1, distanceToCenter / maxDistance));
       
       const rotateY = normalizedDistance * -65; 
-      const scale = 1 - Math.abs(normalizedDistance) * 0.2;
       const zIndex = 100 - Math.abs(Math.round(normalizedDistance * 100));
-      const opacity = 1 - Math.abs(normalizedDistance) * 0.4;
       const translateZ = -Math.abs(normalizedDistance) * 250;
 
-      const isCenter = Math.abs(normalizedDistance) < 0.15;
+      const centerFactor = Math.max(0, 1 - Math.abs(normalizedDistance) / 0.15); // 0 to 1
       
       card.style.transform = `translateX(${currentX - centerScreenX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
       card.style.zIndex = zIndex.toString();
-      card.style.opacity = isCenter ? "1" : Math.max(0, opacity).toString();
+      card.style.opacity = "1"; // Todos los álbumes sólidos al 100%
       
       const inner = card.querySelector('.coverflow-inner') as HTMLDivElement;
       if (inner) {
         const baseScale = 1 - Math.abs(normalizedDistance) * 0.2;
-        const targetScale = isCenter ? 1.05 : baseScale;
+        const targetScale = baseScale + centerFactor * 0.05; // Llega a 1.05 en el centro
         inner.style.transform = `scale(${targetScale})`;
         
-        if (isCenter) {
-          inner.classList.add('glow-active');
-        } else {
-          inner.classList.remove('glow-active');
+        const img = inner.querySelector('img') as HTMLImageElement;
+        if (img) {
+          const shadowGlow = centerFactor * 0.1;
+          const shadowOpacity = 0.5 + centerFactor * 0.1;
+          img.style.boxShadow = `0 ${10 + centerFactor * 5}px 30px rgba(0,0,0,${shadowOpacity}), 0 0 ${centerFactor * 20}px rgba(255,255,255,${shadowGlow})`;
+        }
+        
+        const info = inner.querySelector('.info-panel') as HTMLDivElement;
+        if (info) {
+          info.style.opacity = centerFactor.toString();
+          info.style.transform = `translateX(-50%) translateY(${(1 - centerFactor) * 15}px)`;
         }
       }
     });
@@ -116,15 +144,33 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   // Dragging Handlers
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true;
+    isFlicking.current = false;
     dragStartX.current = e.clientX;
+    dragLastX.current = e.clientX;
+    dragLastTime.current = performance.now();
     dragStartProgress.current = targetProgress.current;
+    velocity.current = 0;
+    interactionCooldown.current = 0;
     document.body.style.cursor = 'grabbing';
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) return;
+    
+    const now = performance.now();
+    const dt = now - dragLastTime.current;
+    const dx = e.clientX - dragLastX.current;
+    
+    if (dt > 0) {
+      // Calculate velocity (pixels per frame assuming 60fps)
+      velocity.current = (dx / dt) * 16.6 * 1.5;
+    }
+    
+    dragLastX.current = e.clientX;
+    dragLastTime.current = now;
+
     const deltaX = e.clientX - dragStartX.current;
-    // Update both current and target to drag 1:1 instantly
+    // Drag exactly 1:1 visually
     targetProgress.current = dragStartProgress.current + deltaX * 1.5;
     progress.current = targetProgress.current; 
   };
@@ -132,6 +178,14 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   const handlePointerUp = () => {
     isDragging.current = false;
     document.body.style.cursor = 'default';
+    
+    // Trigger inertia/flicking or snap immediately if slow
+    if (Math.abs(velocity.current) > 1) {
+      isFlicking.current = true;
+    } else {
+      isFlicking.current = true;
+      velocity.current = 0; // Will trigger snap instantly
+    }
   };
 
   // Center Card Handler
@@ -145,6 +199,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     const distanceToCenter = futureX - centerScreenX;
     
     targetProgress.current -= distanceToCenter;
+    interactionCooldown.current = 150; // Pause auto-scroll for ~2.5s
   };
 
   return (
@@ -175,7 +230,6 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
           border-radius: 12px;
           cursor: pointer;
           transform-style: preserve-3d;
-          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
         .coverflow-inner img {
@@ -183,32 +237,19 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
           height: 100%;
           object-fit: cover;
           border-radius: 12px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-          transition: box-shadow 0.4s ease;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
           transform: translateZ(0);
         }
         
-        .coverflow-inner.glow-active img {
-          box-shadow: 0 0 20px rgba(255,255,255,0.1), 0 15px 30px rgba(0,0,0,0.6);
-        }
-        
         .info-panel {
           position: absolute;
-          bottom: -70px;
+          bottom: -90px;
           left: 50%;
           transform: translateX(-50%);
           text-align: center;
           width: 300px;
-          opacity: 0;
-          transition: opacity 0.4s ease, transform 0.4s ease;
           pointer-events: none;
-        }
-        
-        .coverflow-inner.glow-active .info-panel {
-          opacity: 1;
-          transform: translateX(-50%) translateY(-10px);
         }
       `}</style>
 
