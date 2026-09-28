@@ -156,7 +156,7 @@ export const ImmersivePlayer = ({
            <img 
              src={album.coverUrl} 
              alt="Artist/Album Cover" 
-             className="absolute inset-0 w-full h-full object-cover opacity-50 z-0 grayscale-[20%] contrast-125" 
+             className={`absolute inset-0 w-full h-full object-cover z-0 grayscale-[20%] contrast-125 transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-5 scale-105 blur-sm' : 'opacity-50 scale-100 blur-0'}`} 
            />
            
            {/* Fades on all sides */}
@@ -165,32 +165,36 @@ export const ImmersivePlayer = ({
            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#05050A_100%)] opacity-80 z-10 pointer-events-none" />
 
            {/* Top Tabs (PORTADA / LETRA) */}
-           <div className="absolute top-10 left-1/2 -translate-x-1/2 z-30 p-1.5 flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
+           <div className="absolute top-10 left-1/2 -translate-x-1/2 z-40 p-1 flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
               {/* Sliding Background */}
               <div 
-                className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-full bg-white/15 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm ${activeTab === 'letra' ? 'translate-x-full left-[calc(50%)]' : 'translate-x-0 left-1.5'}`}
+                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white/20 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm ${activeTab === 'letra' ? 'left-[calc(50%)]' : 'left-1'}`}
               />
               <button 
                 onClick={() => setActiveTab('portada')}
-                className={`relative z-10 px-8 py-3 text-xs md:text-sm font-bold tracking-[0.2em] uppercase transition-colors ${activeTab === 'portada' ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-white/50 hover:text-white/80'}`}
+                className={`relative z-10 px-6 py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase transition-colors duration-500 ${activeTab === 'portada' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
               >
                 Portada
               </button>
               <button 
                 onClick={() => setActiveTab('letra')}
-                className={`relative z-10 px-8 py-3 text-xs md:text-sm font-bold tracking-[0.2em] uppercase transition-colors ${activeTab === 'letra' ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-white/50 hover:text-white/80'}`}
+                className={`relative z-10 px-6 py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase transition-colors duration-500 ${activeTab === 'letra' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
               >
                 Letra
               </button>
            </div>
 
+           {/* Lyrics View Area */}
+           <div className={`absolute inset-0 flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100 translate-y-[-5vh]' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
+              <p className="text-white/40 text-sm md:text-base font-medium tracking-[0.2em] uppercase blur-[0.5px]">No hay letras disponibles</p>
+           </div>
+
            {/* Floating Content: Info & Controls */}
-           <div className="relative z-30 flex flex-col items-center justify-center w-full px-8">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(5,5,10,0.8)_0%,transparent_60%)] pointer-events-none -z-10" />
-              <h2 className="text-4xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white mb-4 drop-shadow-lg text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,1)]">
+           <div className={`relative z-30 flex flex-col items-center justify-center w-full px-8 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'translate-y-[30vh] scale-[0.85]' : 'translate-y-0 scale-100'}`}>
+              <h2 className="text-4xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white mb-4 text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)]">
                 {album.title}
               </h2>
-              <p className="text-white/80 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center drop-shadow-md mb-16 [text-shadow:_0_2px_10px_rgba(0,0,0,1)]">
+              <p className="text-white/70 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center mb-16 [text-shadow:_0_2px_10px_rgba(0,0,0,0.8)]">
                 {album.artist}
               </p>
 
