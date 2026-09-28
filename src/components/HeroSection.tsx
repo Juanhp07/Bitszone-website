@@ -90,7 +90,7 @@ export const HeroSection = () => {
               >
                 <div className="flex items-center justify-center gap-3 text-white font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
                   Explorar Catálogo
-                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-[#A0A3BD] transition-all duration-300 ease-out group-hover:text-[#c084fc] group-hover:translate-x-1" />
+                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-white transition-all duration-300 ease-out group-hover:text-[#c084fc] group-hover:translate-x-1" />
                 </div>
               </SpecularButton>
             </GlassSurface>
