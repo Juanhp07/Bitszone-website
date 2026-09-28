@@ -71,15 +71,15 @@ export const Sidebar = ({
       <div className="p-6">
         <button
           onClick={() => onViewChange("downloads")}
-          className="relative w-full flex flex-col gap-3 p-4 rounded-2xl bg-gradient-to-b from-white/[0.04] to-transparent border border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.02] transition-all duration-300 group overflow-hidden"
+          className="relative w-full flex flex-col gap-3 p-4 rounded-2xl bg-white/5 border border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.02] transition-all duration-300 group overflow-hidden"
         >
           {/* Top row: Icon + Text */}
           <div className="flex flex-col items-start w-full relative z-10 gap-1">
              <div className="flex items-center gap-2 text-white/40 group-hover:text-white/70 transition-colors duration-300">
                <HardDrive className="w-3.5 h-3.5" />
-               <span className="text-[11px] font-semibold capitalize tracking-wide">Almacenamiento</span>
+               <span className="text-xs font-semibold capitalize tracking-wide">Almacenamiento</span>
              </div>
-             <span className="text-white/80 text-[11px] font-medium tracking-wide font-mono pl-[22px]">
+             <span className="text-white/80 text-xs font-medium tracking-wide pl-[22px]">
                {availableGB.toFixed(2)}GB <span className="text-white/40">de 5.00GB</span>
              </span>
           </div>
@@ -101,13 +101,7 @@ export const Sidebar = ({
              </div>
           </div>
           
-          {/* Subtle background glow based on usage */}
-          <div 
-             className={`absolute -bottom-6 -right-6 w-24 h-24 blur-3xl rounded-full opacity-10 transition-all duration-700 group-hover:opacity-30 ${
-                availablePercent >= 50 ? "bg-green-500" : availablePercent >= 15 ? "bg-yellow-500" : "bg-red-500"
-             }`} 
-          />
-        </button>
+          </button>
       </div>
     </aside>
   );
