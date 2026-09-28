@@ -48,8 +48,10 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   }, []);
 
   const calculateBytes = (tracks: Track[]) => {
-    const bytes = tracks.length * 8 * 1024 * 1024;
-    setTotalBytes(bytes);
+    // Calculamos los megabytes usando el campo sizeMb o el estimado por duracion
+    const totalMb = tracks.reduce((sum, t) => sum + (t.sizeMb || (t.duration / 1000 * 0.0390625)), 0);
+    // Lo guardamos en bytes para no romper el tipado anterior que usa bytes
+    setTotalBytes(totalMb * 1024 * 1024);
   };
 
   const downloadTrack = async (track: Track, album?: Album) => {

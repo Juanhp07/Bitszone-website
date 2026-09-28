@@ -29,6 +29,17 @@ export const DownloadsView = ({
     }
   }, [type, clearNewDownloads]);
 
+  
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+  const formatSize = (sizeMb?: number, duration?: number) => {
+    const mb = sizeMb || ((duration || 0) / 1000 * 0.0390625);
+    return mb.toFixed(1) + ' MB';
+  };
+
   const formatDuration = (millis: number) => {
     const totalSeconds = Math.floor(millis / 1000);
     const m = Math.floor(totalSeconds / 60);
@@ -86,7 +97,7 @@ export const DownloadsView = ({
         onMouseEnter={() => setHoveredTrack(track.id)}
         onMouseLeave={() => setHoveredTrack(null)}
         onClick={() => handlePlay(track)}
-        className="grid grid-cols-[50px_1fr_100px_40px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group hover:bg-white/5"
+        className="grid grid-cols-[50px_1fr_120px_100px_100px_40px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group hover:bg-white/5"
       >
         <div className="text-center text-white/50 font-medium">
           {isHovered ? (
@@ -103,6 +114,14 @@ export const DownloadsView = ({
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-white/50 text-sm line-clamp-1 group-hover:text-white/80 transition-colors">{track.artist}</span>
           </div>
+        </div>
+        
+        <div className="text-white/50 text-xs font-medium truncate">
+          {formatDate(track.addedAt)}
+        </div>
+        
+        <div className="text-white/50 text-xs font-medium">
+          {formatSize(track.sizeMb, track.duration)}
         </div>
         
         <div className="flex items-center justify-end gap-4">
@@ -177,7 +196,7 @@ export const DownloadsView = ({
               className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-white/70 hover:text-white transition-all font-semibold text-xs"
             >
               <Trash2 className="w-4 h-4" />
-              {type === 'downloads' ? 'Vaciar Descargas' : 'Vaciar Biblioteca'}
+              {type === 'downloads' ? 'Vaciar Mis descargas' : 'Vaciar Biblioteca'}
             </button>
           </div>
         )}
@@ -201,9 +220,11 @@ export const DownloadsView = ({
                 </button>
               </div>
               
-              <div className="grid grid-cols-[50px_1fr_100px_40px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
+              <div className="grid grid-cols-[50px_1fr_120px_100px_100px_40px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
                 <div className="text-center">#</div>
                 <div>Título</div>
+                <div>Añadido el</div>
+                <div>Tamaño</div>
                 <div className="flex justify-end"><Clock className="w-4 h-4" /></div>
                 <div></div>
               </div>

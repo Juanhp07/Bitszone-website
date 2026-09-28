@@ -10,6 +10,8 @@ export interface Track {
   albumId?: number;
   albumTitle?: string;
   albumCover?: string;
+  addedAt?: string;
+  sizeMb?: number;
 }
 
 export interface Album {
