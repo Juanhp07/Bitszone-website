@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { DownloadCloud, Play, Heart, Clock, X, Trash2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Track, Album } from './types';
@@ -288,8 +289,8 @@ export const DownloadsView = ({
         </div>
       </div>
       
-      {albumToRemove && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setAlbumToRemove(null)}>
+      {albumToRemove && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setAlbumToRemove(null)}>
           <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
@@ -322,10 +323,11 @@ export const DownloadsView = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-      {trackToRemove && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setTrackToRemove(null)}>
+      {trackToRemove && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setTrackToRemove(null)}>
           <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
@@ -360,10 +362,11 @@ export const DownloadsView = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-      {showClearConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => { setShowClearConfirm(false); setConfirmText(''); }}>
+      {showClearConfirm && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => { setShowClearConfirm(false); setConfirmText(''); }}>
           <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-md w-full animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
@@ -414,7 +417,8 @@ export const DownloadsView = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
