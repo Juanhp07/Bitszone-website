@@ -10,9 +10,9 @@ import { LiquidMetalText } from './ui/LiquidMetalText';
 
 export const HeroSection = () => {
   return (
-    <section className="relative w-full mx-auto min-h-[100vh] flex flex-col justify-center overflow-hidden px-8 md:px-16 2xl:px-24">
+    <section className="relative w-full mx-auto min-h-[100vh] flex flex-col justify-center px-8 md:px-16 2xl:px-24">
       {/* Liquid Ether Animated Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <LiquidEther
           colors={['#5227FF', '#FF9FFC', '#B497CF']}
           mouseForce={30}
@@ -37,7 +37,7 @@ export const HeroSection = () => {
       {/* Smooth Gradient Transition to Section 2 */}
       <div className="absolute -bottom-1 left-0 right-0 h-[300px] md:h-[500px] z-10 bg-gradient-to-t from-canvas via-canvas/90 to-transparent pointer-events-none"></div>
 
-      <div className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center flex-1 pt-24 md:pt-32 2xl:pt-48">
+      <div className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center flex-1 pt-24 md:pt-32 2xl:pt-48 -mt-16 md:-mt-24 2xl:-mt-32">
 
         {/* Huge Typography */}
         <motion.h1
@@ -56,46 +56,83 @@ export const HeroSection = () => {
           />
         </motion.h1>
 
-      </div>
-
-      {/* CTA Button - Pushed to the bottom */}
-      <div className="relative z-20 w-full flex justify-center mt-12 pb-6 md:pb-8 xl:pb-12">
+        {/* CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 md:mt-8 2xl:mt-10"
         >
           <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline">
             <GlassSurface
               width="fit-content"
               height="fit-content"
-              className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:shadow-[0_0_50px_rgba(85,16,141,0.5)]"
-              borderRadius={40}
+              className="flex items-center justify-center group transition-transform duration-300 hover:scale-105 !shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:!shadow-[0_0_50px_rgba(85,16,141,0.5)] !border-none"
+              borderRadius={999}
               borderWidth={0}
               backgroundOpacity={0.15}
               blur={40}
               distortionScale={-30}
+              style={{ borderRadius: '999px' }}
             >
+              <style>{`
+                @keyframes bounce-right {
+                  0%, 100% { transform: translateX(0); }
+                  50% { transform: translateX(6px); }
+                }
+                @keyframes text-pulse-soft {
+                  0%, 100% { color: #ffffff; filter: drop-shadow(0 0 0px transparent); }
+                  50% { color: #d8b4fe; filter: drop-shadow(0 0 6px rgba(216, 180, 254, 0.4)); }
+                }
+                .animate-text-pulse-soft {
+                  animation: text-pulse-soft 2.5s infinite ease-in-out;
+                }
+                .group:hover .arrow-icon {
+                  animation: bounce-right 1s infinite ease-in-out !important;
+                  color: #d8b4fe !important;
+                  filter: drop-shadow(0 0 8px rgba(216, 180, 254, 0.5)) !important;
+                }
+              `}</style>
               <SpecularButton
-                radius={40}
+                radius={999}
                 tint="transparent"
-                tintOpacity={0.25}
+                tintOpacity={0}
                 blur={40}
                 lineColor="#FF9FFC"
-                baseColor="#7012CE"
+                baseColor="#000000"
                 intensity={4.0}
                 thickness={2}
-                className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
+                className="!bg-transparent px-6 py-4 xl:px-8 xl:py-5 2xl:px-10 2xl:py-6"
               >
-                <div className="flex items-center justify-center gap-3 text-white font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
+                <div className="flex items-center justify-center gap-3 font-inter text-sm xl:text-lg 2xl:text-xl font-medium w-full h-full text-white">
                   Explorar catálogo
-                  <ChevronRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 text-[#A0A3BD] transition-all duration-300 ease-out group-hover:text-[#c084fc] group-hover:translate-x-1" />
+                  <ArrowRight className="arrow-icon w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 animate-text-pulse-soft transition-colors duration-300" />
                 </div>
               </SpecularButton>
             </GlassSurface>
           </a>
         </motion.div>
+      </div>
+
+      {/* Interactive Floating Text */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-end z-40 cursor-pointer pointer-events-auto pb-6"
+        onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+      >
+        <motion.span 
+          animate={{ 
+            opacity: [0, 1, 0],
+            y: [15, -5, -25]
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="text-[#d8b4fe] text-[10px] md:text-xs xl:text-sm font-inter uppercase tracking-[0.4em] font-medium drop-shadow-[0_0_10px_rgba(112,18,206,0.8)] relative z-10"
+        >
+          Descubre más
+        </motion.span>
       </div>
     </section>
   );

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useRef, useState, useId } from 'react';
 
 export interface GlassSurfaceProps {
@@ -289,7 +291,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   };
 
   const glassSurfaceClasses =
-    'relative flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out';
+    'relative flex items-center justify-center transition-opacity duration-[260ms] ease-out';
 
   const focusVisibleClasses = isDarkMode
     ? 'focus-visible:outline-2 focus-visible:outline-[#0A84FF] focus-visible:outline-offset-2'
