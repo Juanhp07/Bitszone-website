@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Shuffle, Repeat, Heart } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Heart } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Album, Track } from './types';
 
@@ -14,7 +14,10 @@ export const MiniPlayer = ({
   onNext,
   onPrev,
   onSeek,
-  onVolumeChange
+  onVolumeChange,
+  onToggleMute,
+  onSelectAlbum,
+  onSelectArtist
 }: { 
   track: Track,
   album: Album,
@@ -26,7 +29,10 @@ export const MiniPlayer = ({
   onNext: () => void,
   onPrev: () => void,
   onSeek?: (progress: number) => void,
-  onVolumeChange?: (volume: number) => void
+  onVolumeChange?: (volume: number) => void,
+  onToggleMute?: () => void,
+  onSelectAlbum?: () => void,
+  onSelectArtist?: () => void
 }) => {
   const { isFavorite, toggleFavorite } = useDownloads();
 
@@ -56,9 +62,19 @@ export const MiniPlayer = ({
             <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
           </div>
         </div>
-        <div className="flex flex-col cursor-pointer" onClick={onExpand}>
-          <h4 className="text-white font-semibold text-sm line-clamp-1 hover:underline">{track.title}</h4>
-          <span className="text-white/60 text-xs mt-0.5 line-clamp-1 hover:underline">{track.artist}</span>
+        <div className="flex flex-col justify-center">
+          <h4 
+            onClick={(e) => { e.stopPropagation(); onSelectAlbum && onSelectAlbum(); }} 
+            className="text-white font-semibold text-sm line-clamp-1 hover:underline cursor-pointer"
+          >
+            {track.title}
+          </h4>
+          <span 
+            onClick={(e) => { e.stopPropagation(); onSelectArtist && onSelectArtist(); }} 
+            className="text-white/60 text-xs mt-0.5 line-clamp-1 hover:underline cursor-pointer"
+          >
+            {track.artist}
+          </span>
         </div>
         <button 
           className="ml-4 text-white/50 hover:text-white transition-colors"
@@ -118,7 +134,9 @@ export const MiniPlayer = ({
         <button className="text-white/50 hover:text-white transition-colors">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </button>
-        <Volume2 className="w-4 h-4 text-white/50" />
+                <button onClick={onToggleMute} className="text-white/50 hover:text-white transition-colors focus:outline-none">
+          {volume === 0 ? <VolumeX className="w-4 h-4" /> : volume < 50 ? <Volume1 className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        </button>
         <div className="w-24 h-1.5 bg-white/10 rounded-full relative group cursor-pointer flex items-center">
           <div className="absolute left-0 h-full bg-white group-hover:bg-[#a855f7] rounded-full transition-colors pointer-events-none" style={{ width: `${volume}%` }}></div>
           <input 

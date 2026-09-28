@@ -26,10 +26,23 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [nowPlayingTrack, setNowPlayingTrack] = useState<Track | null>(null);
   const [nowPlayingAlbum, setNowPlayingAlbum] = useState<Album | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(70);
+  const [volume, setVolume] = useState(100);
+  const [prevVolume, setPrevVolume] = useState(100);
   const [progress, setProgress] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const toggleMute = () => {
+    if (volume > 0) {
+      setPrevVolume(volume);
+      setVolume(0);
+      if (audioRef.current) audioRef.current.volume = 0;
+    } else {
+      setVolume(prevVolume > 0 ? prevVolume : 100);
+      if (audioRef.current) audioRef.current.volume = (prevVolume > 0 ? prevVolume : 100) / 100;
+    }
+  };
+
 
   useEffect(() => {
     if (!audioRef.current) {
@@ -296,6 +309,12 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   onVolumeChange={(v) => {
                     setVolume(v);
                     if (audioRef.current) audioRef.current.volume = v / 100;
+                  }}
+                  onToggleMute={toggleMute}
+                  onSelectAlbum={() => handleSelectAlbum(nowPlayingAlbum)}
+                  onSelectArtist={() => {
+                    setSelectedArtist({ name: nowPlayingAlbum.artist, img: nowPlayingAlbum.coverUrl, type: nowPlayingAlbum.artist.includes('Combo') || nowPlayingAlbum.artist.includes('Orquesta') ? 'Grupo Musical' : 'Artista' });
+                    setCurrentView('artist');
                   }}
                 />
               </div>
