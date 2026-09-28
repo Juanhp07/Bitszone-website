@@ -67,12 +67,13 @@ export const HeroSection = () => {
             <GlassSurface
               width="fit-content"
               height="fit-content"
-              className="rounded-[40px] flex items-center justify-center group transition-transform duration-300 hover:scale-105 !shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:!shadow-[0_0_50px_rgba(85,16,141,0.5)] !border-none"
-              borderRadius={40}
+              className="flex items-center justify-center group transition-transform duration-300 hover:scale-105 !shadow-[0_0_30px_rgba(85,16,141,0.2)] hover:!shadow-[0_0_50px_rgba(85,16,141,0.5)] !border-none"
+              borderRadius={24}
               borderWidth={0}
               backgroundOpacity={0.15}
               blur={40}
               distortionScale={-30}
+              style={{ borderRadius: '24px' }}
             >
               <style>{`
                 @keyframes bounce-right {
@@ -80,23 +81,20 @@ export const HeroSection = () => {
                   50% { transform: translateX(6px); }
                 }
                 @keyframes text-pulse-soft {
-                  0%, 100% { color: #ffffff; text-shadow: 0 0 0px transparent; }
-                  50% { color: #d8b4fe; text-shadow: 0 0 6px rgba(216, 180, 254, 0.4); }
-                }
-                .group:hover .group-hover\\:animate-bounce-right {
-                  animation: bounce-right 1s infinite ease-in-out;
+                  0%, 100% { color: #ffffff; filter: drop-shadow(0 0 0px transparent); }
+                  50% { color: #d8b4fe; filter: drop-shadow(0 0 6px rgba(216, 180, 254, 0.4)); }
                 }
                 .animate-text-pulse-soft {
                   animation: text-pulse-soft 2.5s infinite ease-in-out;
                 }
-                .group:hover .animate-text-pulse-soft {
-                  animation: none;
+                .group:hover .arrow-icon {
+                  animation: bounce-right 1s infinite ease-in-out !important;
                   color: #d8b4fe !important;
-                  text-shadow: 0 0 8px rgba(216, 180, 254, 0.5) !important;
+                  filter: drop-shadow(0 0 8px rgba(216, 180, 254, 0.5)) !important;
                 }
               `}</style>
               <SpecularButton
-                radius={40}
+                radius={24}
                 tint="transparent"
                 tintOpacity={0}
                 blur={40}
@@ -104,11 +102,11 @@ export const HeroSection = () => {
                 baseColor="#000000"
                 intensity={4.0}
                 thickness={2}
-                className="!bg-transparent px-8 py-3 xl:px-10 xl:py-4 2xl:px-12 2xl:py-5"
+                className="!bg-transparent px-6 py-4 xl:px-8 xl:py-5 2xl:px-10 2xl:py-6"
               >
                 <div className="flex items-center justify-center gap-3 font-inter text-sm xl:text-lg 2xl:text-xl font-medium w-full h-full text-white">
                   Explorar catálogo
-                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 animate-text-pulse-soft transition-colors duration-300 group-hover:animate-bounce-right" />
+                  <ArrowRight className="arrow-icon w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 animate-text-pulse-soft transition-colors duration-300" />
                 </div>
               </SpecularButton>
             </GlassSurface>
