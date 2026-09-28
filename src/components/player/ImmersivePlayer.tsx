@@ -123,7 +123,7 @@ export const ImmersivePlayer = ({
            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#05050A] via-[#05050A]/95 to-transparent z-20 pointer-events-none" />
            <div className="absolute top-0 right-0 bottom-0 w-32 bg-gradient-to-l from-[#05050A] via-[#05050A]/80 to-transparent z-20 pointer-events-none" />
            
-           <div className="w-full h-full overflow-y-auto flex flex-col justify-start pl-12 xl:pl-[5rem] gap-4 md:gap-5 transition-all duration-700 pb-20 pt-4" style={{ scrollbarWidth: 'none' }}>
+           <div className="w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-12 xl:pl-[5rem] gap-4 md:gap-5 transition-all duration-700 pb-20 pt-4" style={{ scrollbarWidth: 'none' }}>
              {album.tracks?.map((t, i) => {
                const isActive = track.id === t.id;
                return (

@@ -191,11 +191,11 @@ html {
 
 
 @keyframes marquee-pingpong {
-  0%, 10% { transform: translateX(0px); }
-  45%, 55% { transform: translateX(var(--overflow-amount, -50px)); }
-  90%, 100% { transform: translateX(0px); }
+  0%, 5% { transform: translateX(0px); }
+  48%, 52% { transform: translateX(var(--overflow-amount, -50px)); }
+  95%, 100% { transform: translateX(0px); }
 }
 .animate-marquee-pingpong {
-  animation: marquee-pingpong 20s ease-in-out infinite;
+  animation: marquee-pingpong 14s ease-in-out infinite;
   width: max-content;
 }
