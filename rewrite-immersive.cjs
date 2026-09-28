@@ -1,4 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+const fs = require('fs');
+
+const playerCode = `import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
@@ -51,17 +53,17 @@ export const ImmersivePlayer = ({
       {/* Backdrop */}
       <div 
         onClick={onClose}
-        className={`fixed inset-0 bg-[#020202]/90 backdrop-blur-md z-[100] transition-opacity duration-500 ${
+        className={\`fixed inset-0 bg-[#020202]/90 backdrop-blur-md z-[100] transition-opacity duration-500 \${
           isExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        }\`}
       />
 
       {/* Modal Container */}
       <div 
         onClick={(e) => e.stopPropagation()}
-        className={`fixed z-[100] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] h-[85vh] max-w-[1600px] max-h-[1000px] rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] bg-[#05050A] flex ${
+        className={\`fixed z-[100] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] h-[85vh] max-w-[1600px] max-h-[1000px] rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] bg-[#05050A] flex \${
           isExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-        }`}
+        }\`}
       >
         {/* Close Button */}
         <button 
@@ -83,11 +85,11 @@ export const ImmersivePlayer = ({
                  <div 
                    key={t.id} 
                    onClick={() => onPlayTrack && onPlayTrack(t, album)}
-                   className={`text-3xl md:text-4xl xl:text-5xl font-bold cursor-pointer transition-all duration-300 line-clamp-1 ${
+                   className={\`text-3xl md:text-4xl xl:text-5xl font-bold cursor-pointer transition-all duration-300 line-clamp-1 \${
                      isActive 
                        ? 'text-[#a855f7] drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] translate-x-4' 
                        : 'text-white/20 hover:text-white/50'
-                   }`}
+                   }\`}
                  >
                    {t.title}
                  </div>
@@ -108,8 +110,8 @@ export const ImmersivePlayer = ({
                     return (
                       <div 
                         key={i} 
-                        className={`w-2 md:w-3 rounded-full transition-all duration-300 ${isPlayed ? 'bg-[#a855f7] shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'bg-white/10'}`} 
-                        style={{ height: `${h}%` }} 
+                        className={\`w-2 md:w-3 rounded-full transition-all duration-300 \${isPlayed ? 'bg-[#a855f7] shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'bg-white/10'}\`} 
+                        style={{ height: \`\${h}%\` }} 
                       />
                     );
                  })}
@@ -135,7 +137,7 @@ export const ImmersivePlayer = ({
                 {volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
               </button>
               <div className="flex-1 h-2 bg-white/10 rounded-full relative cursor-pointer group flex items-center">
-                <div className="absolute left-0 h-full bg-[#a855f7] rounded-full transition-all pointer-events-none" style={{ width: `${volume}%` }} />
+                <div className="absolute left-0 h-full bg-[#a855f7] rounded-full transition-all pointer-events-none" style={{ width: \`\${volume}%\` }} />
                 <input 
                   type="range" 
                   min="0" 
@@ -164,3 +166,7 @@ export const ImmersivePlayer = ({
     document.body
   );
 };
+`;
+
+fs.writeFileSync('src/components/player/ImmersivePlayer.tsx', playerCode);
+console.log('ImmersivePlayer successfully completely rewritten to original design');

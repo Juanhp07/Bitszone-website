@@ -331,8 +331,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         togglePlay={togglePlay}
         onPlayTrack={handlePlayTrack}
         volume={volume}
-        setVolume={setVolume}
+        setVolume={(v) => {
+          setVolume(v);
+          if (audioRef.current) audioRef.current.volume = v / 100;
+        }}
         progress={progress}
+        onNext={handleNextTrack}
+        onPrev={handlePrevTrack}
+        onToggleMute={toggleMute}
       />
     </div>
     </DownloadsProvider>
