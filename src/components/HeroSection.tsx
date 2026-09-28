@@ -8,8 +8,6 @@ import GradientText from './ui/GradientText';
 import { SpecularText } from './ui/SpecularText';
 import { LiquidMetalText } from './ui/LiquidMetalText';
 
-import LaserFlow from './ui/LaserFlow';
-
 export const HeroSection = () => {
   return (
     <section className="relative w-full mx-auto min-h-[100vh] flex flex-col justify-center px-8 md:px-16 2xl:px-24">
@@ -114,19 +112,6 @@ export const HeroSection = () => {
             </GlassSurface>
           </a>
         </motion.div>
-      </div>
-
-      {/* Laser Flow Connecting Section 1 & 2 */}
-      <div className="absolute bottom-[-60vh] left-0 w-full h-[120vh] z-30 pointer-events-none">
-        <LaserFlow 
-          color="#7012CE"
-          backgroundColor="transparent"
-          verticalSizing={2.5}
-          horizontalSizing={2.0}
-          wispDensity={1.2}
-          fogIntensity={0.2}
-          wispIntensity={3.0}
-        />
       </div>
 
       {/* Interactive Floating Text */}

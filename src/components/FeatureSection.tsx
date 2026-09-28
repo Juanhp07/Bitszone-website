@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CoverflowCarousel } from './ui/CoverflowCarousel';
+import LaserFlow from './ui/LaserFlow';
 
 const albums = [
   {
@@ -63,7 +64,21 @@ const albums = [
 
 export const FeatureSection = () => {
   return (
-    <section className="relative overflow-hidden w-full bg-canvas flex flex-col items-center min-h-[120vh]">
+    <section className="relative w-full flex flex-col items-center min-h-[120vh]">
+      
+      {/* Inverted Laser Flow Connective Beam (shooting DOWN behind albums) */}
+      <div className="absolute top-[-60vh] left-0 w-full h-[120vh] z-0 pointer-events-none rotate-180 opacity-70">
+        <LaserFlow 
+          color="#5227FF" // Morado oscuro
+          backgroundColor="transparent"
+          verticalSizing={2.5}
+          horizontalSizing={2.0}
+          wispDensity={0.8}
+          fogIntensity={0.1} // Reducido para oscurecer y evitar blancos quemados
+          wispIntensity={1.0} // Reducido para suavizar la luz central
+        />
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -91,11 +106,11 @@ export const FeatureSection = () => {
       </div>
 
       {/* Left Edge Fade + Blur */}
-      <div className="absolute inset-y-0 left-0 w-[10%] md:w-[15%] bg-gradient-to-r from-[#08080C] via-[#08080C]/80 to-transparent z-20 pointer-events-none"></div>
+      <div className="absolute inset-y-0 left-0 w-[10%] md:w-[15%] bg-gradient-to-r from-canvas via-canvas/80 to-transparent z-20 pointer-events-none"></div>
       <div className="absolute inset-y-0 left-0 w-[10%] md:w-[15%] backdrop-blur-[6px] z-20 pointer-events-none [mask-image:linear-gradient(to_right,black_10%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,black_10%,transparent_100%)]"></div>
 
       {/* Right Edge Fade + Blur */}
-      <div className="absolute inset-y-0 right-0 w-[10%] md:w-[15%] bg-gradient-to-l from-[#08080C] via-[#08080C]/80 to-transparent z-20 pointer-events-none"></div>
+      <div className="absolute inset-y-0 right-0 w-[10%] md:w-[15%] bg-gradient-to-l from-canvas via-canvas/80 to-transparent z-20 pointer-events-none"></div>
       <div className="absolute inset-y-0 right-0 w-[10%] md:w-[15%] backdrop-blur-[6px] z-20 pointer-events-none [mask-image:linear-gradient(to_left,black_10%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_left,black_10%,transparent_100%)]"></div>
       
       {/* Bottom fade to blend with next section */}
