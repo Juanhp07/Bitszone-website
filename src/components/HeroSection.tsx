@@ -56,15 +56,12 @@ export const HeroSection = () => {
           />
         </motion.h1>
 
-      </div>
-
-      {/* CTA Button - Pushed to the bottom */}
-      <div className="relative z-20 w-full flex justify-center mt-12 pb-6 md:pb-8 xl:pb-12">
+        {/* CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 md:mt-12 2xl:mt-16"
         >
           <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline">
             <GlassSurface
@@ -83,8 +80,20 @@ export const HeroSection = () => {
                   0%, 100% { transform: translateX(0); }
                   50% { transform: translateX(6px); }
                 }
+                @keyframes text-pulse-soft {
+                  0%, 100% { color: #ffffff; text-shadow: 0 0 0px transparent; }
+                  50% { color: #d8b4fe; text-shadow: 0 0 6px rgba(216, 180, 254, 0.4); }
+                }
                 .group:hover .group-hover\\:animate-bounce-right {
                   animation: bounce-right 1s infinite ease-in-out;
+                }
+                .animate-text-pulse-soft {
+                  animation: text-pulse-soft 2.5s infinite ease-in-out;
+                }
+                .group:hover .animate-text-pulse-soft {
+                  animation: none;
+                  color: #d8b4fe !important;
+                  text-shadow: 0 0 8px rgba(216, 180, 254, 0.5) !important;
                 }
               `}</style>
               <SpecularButton
@@ -98,9 +107,9 @@ export const HeroSection = () => {
                 thickness={2}
                 className="!bg-transparent px-10 py-4 xl:px-14 xl:py-6 2xl:px-16 2xl:py-7"
               >
-                <div className="flex items-center justify-center gap-3 !text-white transition-all duration-300 ease-out group-hover:!text-[#c084fc] group-hover:drop-shadow-[0_0_12px_rgba(192,132,252,0.8)] font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full">
+                <div className="flex items-center justify-center gap-3 font-inter text-base xl:text-xl 2xl:text-2xl font-medium w-full h-full animate-text-pulse-soft transition-colors duration-300">
                   Explorar Catálogo
-                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 !text-white transition-all duration-300 ease-out group-hover:!text-[#c084fc] group-hover:animate-bounce-right group-hover:drop-shadow-[0_0_12px_rgba(192,132,252,0.8)]" />
+                  <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 2xl:w-8 2xl:h-8 animate-text-pulse-soft transition-colors duration-300 group-hover:animate-bounce-right" />
                 </div>
               </SpecularButton>
             </GlassSurface>
