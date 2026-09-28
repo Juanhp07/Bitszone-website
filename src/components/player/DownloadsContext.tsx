@@ -9,7 +9,7 @@ interface DownloadsContextType {
   totalBytes: number;
   
   favoriteTracks: Track[];
-  toggleFavorite: (track: Track) => void;
+  toggleFavorite: (track: Track, album?: Album) => void;
   toggleFavoriteAlbum: (album: Album) => void;
   isFavorite: (trackId: number) => boolean;
   
@@ -80,14 +80,15 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     return downloadedTracks.some(t => t.id === trackId);
   };
 
-  const toggleFavorite = (track: Track) => {
+  const toggleFavorite = (track: Track, album?: Album) => {
     setFavoriteTracks(prev => {
       const exists = prev.find(t => t.id === track.id);
       let updated;
       if (exists) {
         updated = prev.filter(t => t.id !== track.id);
       } else {
-        updated = [...prev, track];
+        const trackToSave = album ? { ...track, albumId: album.id, albumTitle: album.title, albumCover: album.coverUrl } : track;
+        updated = [...prev, trackToSave];
       }
       localStorage.setItem('bz_favorites', JSON.stringify(updated));
       return updated;
@@ -103,7 +104,9 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
       if (allFavorited) {
         updated = updated.filter(pt => !album.tracks!.some(t => t.id === pt.id));
       } else {
-        const tracksToAdd = album.tracks!.filter(t => !prev.some(pt => pt.id === t.id));
+        const tracksToAdd = album.tracks!
+          .filter(t => !prev.some(pt => pt.id === t.id))
+          .map(track => ({ ...track, albumId: album.id, albumTitle: album.title, albumCover: album.coverUrl }));
         updated = [...updated, ...tracksToAdd];
       }
       localStorage.setItem('bz_favorites', JSON.stringify(updated));

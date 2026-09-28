@@ -59,7 +59,7 @@ export const AlbumView = ({
 
   const handleFavorite = (e: React.MouseEvent, track: Track) => {
     e.stopPropagation();
-    toggleFavorite(track);
+    toggleFavorite(track, album);
   };
 
   const handleDownloadAlbum = async () => {

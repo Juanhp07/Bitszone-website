@@ -62,7 +62,7 @@ export const MiniPlayer = ({
         </div>
         <button 
           className="ml-4 text-white/50 hover:text-white transition-colors"
-          onClick={() => toggleFavorite(track)}
+          onClick={() => toggleFavorite(track, album)}
         >
           <Heart 
             className="w-5 h-5" 
