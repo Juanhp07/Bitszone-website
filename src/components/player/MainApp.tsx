@@ -339,6 +339,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         onNext={handleNextTrack}
         onPrev={handlePrevTrack}
         onToggleMute={toggleMute}
+        onSeek={(p) => {
+          if (audioRef.current && audioRef.current.duration) {
+            audioRef.current.currentTime = p * audioRef.current.duration;
+          }
+        }}
       />
     </div>
     </DownloadsProvider>

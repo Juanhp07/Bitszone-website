@@ -136,13 +136,13 @@ export const ImmersivePlayer = ({
 
               {/* Controls */}
               <div className="relative z-10 flex items-center gap-8">
-                 <button onClick={onPrev} className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white hover:scale-110 hover:bg-[#252525] transition-all shadow-xl">
+                 <button onClick={(e) => { e.stopPropagation(); if(onPrev) onPrev(); }} className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white hover:scale-110 hover:bg-[#252525] transition-all shadow-xl">
                    <SkipBack className="w-7 h-7 fill-current" />
                  </button>
-                 <button onClick={togglePlay} className="w-28 h-28 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white hover:scale-105 hover:bg-[#252525] transition-all shadow-2xl">
+                 <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="w-28 h-28 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white hover:scale-105 hover:bg-[#252525] transition-all shadow-2xl">
                    {isPlaying ? <Pause className="w-12 h-12 fill-current" /> : <Play className="w-12 h-12 fill-current ml-2" />}
                  </button>
-                 <button onClick={onNext} className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white hover:scale-110 hover:bg-[#252525] transition-all shadow-xl">
+                 <button onClick={(e) => { e.stopPropagation(); if(onNext) onNext(); }} className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center text-white hover:scale-110 hover:bg-[#252525] transition-all shadow-xl">
                    <SkipForward className="w-7 h-7 fill-current" />
                  </button>
               </div>
@@ -174,7 +174,7 @@ export const ImmersivePlayer = ({
            <div className="absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-[#05050A] to-transparent z-10 pointer-events-none" />
            <img src={album.coverUrl} className="w-full h-full object-cover grayscale-[30%] contrast-125" alt="Artist/Album Cover" />
            
-           <div className="absolute top-10 right-16 z-20 flex gap-8 text-xs font-bold tracking-[0.2em] uppercase">
+           <div className="absolute top-10 left-1/2 -translate-x-1/2 z-20 flex gap-8 text-xs font-bold tracking-[0.2em] uppercase">
               <button className="text-white">Portada</button>
               <button className="text-white/40 hover:text-white transition-colors">Letra</button>
            </div>
