@@ -47,7 +47,7 @@ export const HeroSection = () => {
           className="flex flex-col items-center justify-center text-center w-full font-sans font-bold"
         >
           <span className="text-white text-[11vw] sm:text-[9vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px] tracking-tight leading-none z-10">
-            Tus canciones sin conexión
+            Tus músicas sin conexión
           </span>
           <LiquidMetalText
             text="descarga sin límites"
