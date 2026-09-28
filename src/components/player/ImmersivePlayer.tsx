@@ -16,7 +16,8 @@ export const ImmersivePlayer = ({
   progress = 0,
   onNext,
   onPrev,
-  onToggleMute
+  onToggleMute,
+  onSeek
 }: { 
   isExpanded: boolean,
   onClose: () => void,
@@ -30,7 +31,8 @@ export const ImmersivePlayer = ({
   progress?: number,
   onNext?: () => void,
   onPrev?: () => void,
-  onToggleMute?: () => void
+  onToggleMute?: () => void,
+  onSeek?: (progress: number) => void
 }) => {
   if (!track || !album) return null;
 
@@ -63,15 +65,10 @@ export const ImmersivePlayer = ({
           isExpanded ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
         }`}
       >
-        {/* Close Button */}
-        <button 
-          onClick={onClose}
-          className="absolute top-8 right-8 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/80 text-white/50 hover:text-white transition-colors border border-white/10"
-        >
-          <X className="w-6 h-6" />
-        </button>
+        
 
         {/* 1. LEFT: Tracklist */}
+        <div className="absolute top-12 left-12 xl:left-20 z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">Artistas</div>
         <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-24 pb-24">
            {/* Deep fade masks for Top, Bottom, and Right edges to avoid harsh cuts */}
            <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-[#05050A] via-[#05050A]/80 to-transparent z-20 pointer-events-none" />
@@ -85,13 +82,18 @@ export const ImmersivePlayer = ({
                  <div 
                    key={t.id} 
                    onClick={() => onPlayTrack && onPlayTrack(t, album)}
-                   className={`text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 line-clamp-1 shrink-0 ${
+                   className={`text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
                      isActive 
                        ? 'text-[#a855f7] drop-shadow-[0_0_5px_rgba(168,85,247,0.4)] translate-x-4' 
                        : 'text-white/20 hover:text-white/50'
                    }`}
                  >
-                   {t.title}
+                   <div className="flex items-center gap-4 md:gap-6">
+                     <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest ${isActive ? 'text-[#a855f7]/60' : 'text-white/10'}`}>
+                       {(t.trackNumber || i + 1).toString().padStart(2, '0')}
+                     </span>
+                     <span className="line-clamp-1">{t.title}</span>
+                   </div>
                  </div>
                )
              })}
@@ -99,10 +101,25 @@ export const ImmersivePlayer = ({
         </div>
 
         {/* 2. CENTER: Visualizer & Controls */}
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[35%] flex flex-col items-center justify-center z-30 pointer-events-none">
+           <h2 className="text-3xl md:text-4xl xl:text-5xl font-serif italic text-white drop-shadow-lg text-center line-clamp-1 px-4">{album.title}</h2>
+           <p className="text-white/40 text-xs md:text-sm mt-3 tracking-[0.3em] uppercase text-center">{album.artist}</p>
+        </div>
         <div className="w-[35%] h-full flex flex-col items-center justify-center relative z-20">
            
            {/* Visualizer & Play Controls Container */}
            <div className="relative flex items-center justify-center w-full h-[300px]">
+              {/* Interactive Seek Layer */}
+              <div 
+                 className="absolute inset-0 z-0 cursor-pointer"
+                 onClick={(e) => {
+                    if (!onSeek) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const percent = Math.max(0, Math.min(1, clickX / rect.width));
+                    onSeek(percent);
+                 }}
+              />
               {/* Bars */}
               <div className="absolute inset-0 flex items-center justify-center gap-1.5 md:gap-2 opacity-90 pointer-events-none">
                  {wave.map((h, i) => {
@@ -154,6 +171,7 @@ export const ImmersivePlayer = ({
         {/* 3. RIGHT: Cover & Tabs */}
         <div className="w-[30%] h-full relative">
            <div className="absolute inset-0 bg-gradient-to-r from-[#05050A] via-[#05050A]/40 to-transparent z-10 pointer-events-none" />
+           <div className="absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-[#05050A] to-transparent z-10 pointer-events-none" />
            <img src={album.coverUrl} className="w-full h-full object-cover grayscale-[30%] contrast-125" alt="Artist/Album Cover" />
            
            <div className="absolute top-10 right-16 z-20 flex gap-8 text-xs font-bold tracking-[0.2em] uppercase">
