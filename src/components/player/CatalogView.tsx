@@ -53,7 +53,7 @@ export const CatalogView = ({
   const renderList = (items: any[], isExpanded: boolean, renderItem: (item: any, i: number) => React.ReactNode) => {
     if (isExpanded) {
       return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 pb-20">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 pb-8">
           {items.map(renderItem)}
         </div>
       );

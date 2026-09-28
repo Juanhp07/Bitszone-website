@@ -231,7 +231,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               
               
               <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-                <div className="pt-24 pb-12 min-h-full">
+                <div className="pt-20 pb-0 min-h-full flex flex-col">
                   {currentView === 'catalog' && (
                     <CatalogView 
                       albums={albums} 
