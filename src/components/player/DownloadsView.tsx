@@ -3,9 +3,43 @@ import { DownloadCloud, Play, Heart, Clock, X, Trash2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Track, Album } from './types';
 
+const TimeAgo = ({ dateStr }: { dateStr?: string }) => {
+  const [now, setNow] = useState(Date.now());
+  
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!dateStr) return <span title="Desconocido">-</span>;
+
+  const d = new Date(dateStr);
+  const diffSeconds = Math.floor((now - d.getTime()) / 1000);
+  
+  const exactDate = d.toLocaleString('es-ES', { 
+    day: 'numeric', month: 'short', year: 'numeric', 
+    hour: '2-digit', minute: '2-digit', second: '2-digit' 
+  }).replace(',', '');
+
+  let displayDate = '';
+  if (diffSeconds < 60) {
+    displayDate = `hace ${Math.max(0, diffSeconds)} segundos`;
+  } else if (diffSeconds < 3600) {
+    const m = Math.floor(diffSeconds / 60);
+    displayDate = `hace ${m} minuto${m !== 1 ? 's' : ''}`;
+  } else if (diffSeconds < 86400) {
+    const h = Math.floor(diffSeconds / 3600);
+    displayDate = `hace ${h} hora${h !== 1 ? 's' : ''}`;
+  } else {
+    displayDate = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  return <span title={exactDate}>{displayDate}</span>;
+};
+
 export const DownloadsView = ({ 
   type = 'downloads', 
-  title = "Mis descargas", 
+  title = "Canciones descargadas", 
   icon: Icon = DownloadCloud,
   onPlayTrack
 }: { 
@@ -117,7 +151,7 @@ export const DownloadsView = ({
         </div>
         
         <div className="text-white/50 text-xs font-medium truncate">
-          {formatDate(track.addedAt)}
+          <TimeAgo dateStr={track.addedAt} />
         </div>
         
         <div className="text-white/50 text-xs font-medium">

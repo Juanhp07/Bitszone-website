@@ -256,7 +256,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     />
                   )}
                   {currentView === 'downloads' && <DownloadsView type="downloads" onPlayTrack={handlePlayTrack} />}
-                  {currentView === 'library' && <DownloadsView type="favorites" title="Tus Favoritos" icon={Heart} onPlayTrack={handlePlayTrack} />}
+                  {currentView === 'library' && <DownloadsView type="favorites" title="Canciones favoritas" icon={Heart} onPlayTrack={handlePlayTrack} />}
                   {currentView === 'artist' && selectedArtist && (
                     <ArtistView 
                       artist={selectedArtist} 
