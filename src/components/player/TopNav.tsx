@@ -33,9 +33,10 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOp
       {/* Center: Logo */}
       <div className="flex-1 flex items-center justify-center">
         
-        <div 
-          onClick={() => onViewChange('catalog')}
-          className="cursor-pointer"
+        <button 
+          onClick={() => window.location.reload()}
+          className="cursor-pointer hover:opacity-80 hover:scale-105 active:scale-95 transition-all duration-300 border-none bg-transparent"
+          aria-label="Recargar página"
         >
           <SpecularText
             text="Bitszone"
@@ -50,7 +51,7 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOp
             strokeWidth={1.5}
             glowSize={50}
           />
-        </div>
+        </button>
 
       </div>
 
