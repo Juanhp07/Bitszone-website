@@ -173,7 +173,7 @@ export const DownloadsView = ({
           <div className="pb-2">
             <button 
               onClick={() => setShowClearConfirm(true)}
-              className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest font-bold text-[11px] shadow-lg shadow-red-500/5 hover:shadow-red-500/20 hover:border-red-500/0 hover:-translate-y-0.5 active:translate-y-0"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-white/70 hover:text-white transition-all uppercase tracking-widest font-bold text-[10px]"
             >
               <Trash2 className="w-4 h-4" />
               Vaciar lista
@@ -207,7 +207,7 @@ export const DownloadsView = ({
       </div>
       {trackToRemove && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
                 {type === 'downloads' ? <Trash2 className="w-6 h-6 text-red-500" /> : <X className="w-6 h-6 text-red-500" />}
@@ -245,7 +245,7 @@ export const DownloadsView = ({
       )}
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-[#18181b] border border-red-500/20 rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-red-500/10 animate-in fade-in zoom-in duration-200">
+          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-md w-full animate-in fade-in zoom-in duration-200">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
                 <Trash2 className="w-6 h-6 text-red-500" />
@@ -263,7 +263,8 @@ export const DownloadsView = ({
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="Escribe CONFIRMAR"
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500/50 mb-6 font-mono text-center tracking-widest uppercase"
+              autoFocus
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:border-white/20 mb-6 transition-colors"
             />
             <div className="flex gap-3 justify-end">
               <button 
