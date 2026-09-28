@@ -6,12 +6,40 @@ import { FeatureSection } from '../components/FeatureSection';
 import { ProblemSection } from '../components/ProblemSection';
 import { FAQSection } from '../components/FAQSection';
 import { SmoothScroll } from '../components/ui/SmoothScroll';
-import { Global3DScene } from '../components/ui/Global3DScene';
+import MoltenMetal from '../components/ui/MoltenMetal';
+import HeroBackgroundFade from '../components/ui/HeroBackgroundFade';
 ---
 
 <Layout title="Bitszone - Tu música sin conexión">
   <SmoothScroll client:load>
-    <Global3DScene client:load />
+    
+    {/* Global Molten Metal Background */}
+    <div class="fixed inset-0 z-[-2] overflow-hidden pointer-events-none">
+      <MoltenMetal
+        client:load
+        color1="#5227FF"
+        color2="#FF9FFC"
+        color3="#B497CF"
+        speed={0.2}
+        scale={2.5}
+        detail={4}
+        glow={0.8}
+        coreSize={0.15}
+        swirl={1.2}
+        fold={-0.3}
+        blackPoint={0.15}
+        brightness={0.8}
+        colorMode="molten"
+        grain={true}
+        grainIntensity={0.03}
+        opacity={0.6}
+        backgroundColor="#05050A"
+        lightMode={false}
+      />
+    </div>
+
+    {/* Hero LiquidEther Curtain (Fades out fully on scroll) */}
+    <HeroBackgroundFade client:load />
     
     <Header client:load />
     
