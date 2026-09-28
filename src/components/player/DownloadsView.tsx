@@ -55,6 +55,21 @@ export const DownloadsView = ({
   const [albumToRemove, setAlbumToRemove] = useState<{ id: string, title: string } | null>(null);
   const [confirmText, setConfirmText] = useState("");
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (albumToRemove) setAlbumToRemove(null);
+        if (trackToRemove) setTrackToRemove(null);
+        if (showClearConfirm) {
+          setShowClearConfirm(false);
+          setConfirmText("");
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [albumToRemove, trackToRemove, showClearConfirm]);
+
   const tracks = type === 'downloads' ? downloadedTracks : favoriteTracks;
 
   useEffect(() => {
@@ -274,8 +289,8 @@ export const DownloadsView = ({
       </div>
       
       {albumToRemove && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setAlbumToRemove(null)}>
+          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
                 <Trash2 className="w-6 h-6 text-red-500" />
@@ -310,8 +325,8 @@ export const DownloadsView = ({
         </div>
       )}
       {trackToRemove && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setTrackToRemove(null)}>
+          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
                 {type === 'downloads' ? <Trash2 className="w-6 h-6 text-red-500" /> : <X className="w-6 h-6 text-red-500" />}
@@ -348,8 +363,8 @@ export const DownloadsView = ({
         </div>
       )}
       {showClearConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-md w-full animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => { setShowClearConfirm(false); setConfirmText(''); }}>
+          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-md w-full animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
                 <Trash2 className="w-6 h-6 text-red-500" />
