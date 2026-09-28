@@ -8,6 +8,8 @@ import GradientText from './ui/GradientText';
 import { SpecularText } from './ui/SpecularText';
 import { LiquidMetalText } from './ui/LiquidMetalText';
 
+import LaserFlow from './ui/LaserFlow';
+
 export const HeroSection = () => {
   return (
     <section className="relative w-full mx-auto min-h-[100vh] flex flex-col justify-center px-8 md:px-16 2xl:px-24">
@@ -114,20 +116,24 @@ export const HeroSection = () => {
         </motion.div>
       </div>
 
-      {/* Scroll Indicator & Inverted Laser Flow Connecting Section 1 & 2 */}
+      {/* Laser Flow Connecting Section 1 & 2 */}
+      <div className="absolute bottom-[-60vh] left-0 w-full h-[120vh] z-30 pointer-events-none">
+        <LaserFlow 
+          color="#7012CE"
+          backgroundColor="transparent"
+          verticalSizing={2.5}
+          horizontalSizing={2.0}
+          wispDensity={1.2}
+          fogIntensity={0.2}
+          wispIntensity={3.0}
+        />
+      </div>
+
+      {/* Interactive Floating Text */}
       <div 
-        className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-end z-40 cursor-pointer pointer-events-auto"
+        className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-end z-40 cursor-pointer pointer-events-auto pb-6"
         onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
       >
-        {/* Horizontal Extreme-to-Extreme Glow (T-Shape Top) */}
-        <div className="absolute bottom-0 left-0 right-0 h-[150px] bg-gradient-to-t from-[#5227FF]/40 via-[#5227FF]/10 to-transparent blur-[30px] pointer-events-none" />
-        <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#B497CF]/50 to-transparent shadow-[0_0_20px_rgba(180,151,207,0.8)] pointer-events-none" />
-
-        {/* Vertical Laser Beam shooting DOWN into Section 2 */}
-        <div className="absolute top-[100%] left-1/2 -translate-x-1/2 w-[3px] h-[80vh] bg-gradient-to-b from-[#B497CF]/90 via-[#5227FF]/60 to-transparent blur-[1.5px] shadow-[0_0_20px_5px_rgba(82,39,255,0.5)] pointer-events-none" />
-        <div className="absolute top-[100%] left-1/2 -translate-x-1/2 w-[40px] h-[90vh] bg-gradient-to-b from-[#5227FF]/40 to-transparent blur-[20px] pointer-events-none" />
-
-        {/* Blinking and floating text */}
         <motion.span 
           animate={{ 
             opacity: [0, 1, 0],
@@ -138,7 +144,7 @@ export const HeroSection = () => {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="text-[#B497CF] text-[10px] md:text-xs xl:text-sm font-inter uppercase tracking-[0.4em] font-medium drop-shadow-[0_0_12px_rgba(180,151,207,0.6)] relative z-10 mb-6"
+          className="text-[#d8b4fe] text-[10px] md:text-xs xl:text-sm font-inter uppercase tracking-[0.4em] font-medium drop-shadow-[0_0_10px_rgba(112,18,206,0.8)] relative z-10"
         >
           Descubre más
         </motion.span>
