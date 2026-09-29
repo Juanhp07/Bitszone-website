@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Heart } from 'lucide-react';
+import { useDownloads } from './DownloadsContext';
 
 
 const MarqueeTitle = ({ text }: { text: string }) => {
@@ -87,6 +88,14 @@ export const ImmersivePlayer = ({
   }, [isExpanded, onClose]);
 
   // Waveform pattern
+  const formatTime = (ms?: number) => {
+    if (!ms) return "0:00";
+    const totalSeconds = Math.floor(ms / 1000);
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
   const wave = [15, 30, 50, 80, 60, 40, 70, 100, 85, 60, 30, 45, 90, 75, 50, 35, 65, 85, 100, 80, 50, 35, 20, 15];
   const activeBars = Math.floor(progress * wave.length);
 
@@ -190,16 +199,16 @@ export const ImmersivePlayer = ({
            </div>
 
            {/* Floating Content: Info & Controls */}
-           <div className={`relative z-30 flex flex-col items-center justify-center w-full px-8 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'translate-y-[30vh] scale-[0.85]' : 'translate-y-0 scale-100'}`}>
-              <h2 className="text-4xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white mb-4 text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)]">
+           <div className={`relative z-30 flex flex-col items-center justify-center w-full px-8 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'translate-y-[28vh] scale-[0.65]' : 'translate-y-0 scale-100'}`}>
+              <h2 className={`text-4xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white drop-shadow-lg text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)] transition-all duration-[1200ms] ${activeTab === 'letra' ? 'mb-2' : 'mb-4'}`}>
                 {album.title}
               </h2>
-              <p className="text-white/70 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center mb-16 [text-shadow:_0_2px_10px_rgba(0,0,0,0.8)]">
+              <p className={`text-white/70 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center [text-shadow:_0_2px_10px_rgba(0,0,0,0.8)] transition-all duration-[1200ms] ${activeTab === 'letra' ? 'mb-8' : 'mb-12'}`}>
                 {album.artist}
               </p>
 
               {/* Controls */}
-              <div className="flex items-center gap-8 md:gap-12">
+              <div className="flex items-center gap-8 md:gap-12 mb-10">
                 <button 
                   onClick={(e) => { e.stopPropagation(); onPrev(); }}
                   className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group"
@@ -224,6 +233,26 @@ export const ImmersivePlayer = ({
                 >
                   <SkipForward className="w-5 h-5 md:w-7 md:h-7 group-hover:translate-x-1 transition-transform" fill="currentColor" />
                 </button>
+              </div>
+
+              {/* Simple Timeline Progress Bar */}
+              <div className="w-full max-w-xl flex items-center gap-4 text-xs font-bold text-white/50 tracking-wider">
+                 <span className="w-10 text-right">{formatTime(progress * track.duration)}</span>
+                 <div 
+                   className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden cursor-pointer relative group"
+                   onClick={(e) => {
+                      e.stopPropagation();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const p = (e.clientX - rect.left) / rect.width;
+                      onSeek?.(p);
+                   }}
+                 >
+                    <div 
+                      className="absolute top-0 left-0 h-full bg-[#a855f7] rounded-full pointer-events-none group-hover:brightness-125 transition-all duration-100" 
+                      style={{ width: `${progress * 100}%` }} 
+                    />
+                 </div>
+                 <span className="w-10">{formatTime(track.duration)}</span>
               </div>
            </div>
         </div>
