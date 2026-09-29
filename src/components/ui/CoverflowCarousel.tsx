@@ -24,7 +24,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
 }) => {
   const [containerRef, { width: containerWidth }] = useMeasure<HTMLDivElement>();
   
-  const requestRef = useRef<number>();
+  const requestRef = useRef<number>(0);
   
   // Physics and interaction state
   const progress = useRef(0);

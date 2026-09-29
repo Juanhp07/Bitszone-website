@@ -504,7 +504,7 @@ export const PlayerApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: stri
             blur={0.8} 
             fade={0.25} 
             smoothing={20}
-            logoRef={logoRef}
+            logoRef={logoRef as any}
           />
         )}
       </div>

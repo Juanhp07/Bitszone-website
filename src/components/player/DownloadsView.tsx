@@ -57,7 +57,7 @@ export const DownloadsView = ({
   const [confirmText, setConfirmText] = useState("");
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: any) => {
       if (e.key === 'Escape') {
         if (albumToRemove) setAlbumToRemove(null);
         if (trackToRemove) setTrackToRemove(null);
@@ -105,7 +105,7 @@ export const DownloadsView = ({
   const handlePlay = (track: Track) => {
     if (onPlayTrack) {
       const dummyAlbum: Album = {
-        id: 'playlist',
+        id: 999999, // 'playlist'
         title: title,
         artist: 'Varios Artistas',
         coverUrl: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&h=500&fit=crop',

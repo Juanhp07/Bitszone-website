@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Stars, Sparkles } from '@react-three/drei';
+// @ts-ignore
 import * as THREE from 'three';
 
 // Scene Controller to handle Scroll-Driven Camera
