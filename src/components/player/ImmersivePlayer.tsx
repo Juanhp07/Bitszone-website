@@ -219,21 +219,17 @@ export const ImmersivePlayer = ({
                <VolumeX className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" />
              </button>
            </div>
-           {/* Background Cover Image */}
-           <img 
-             src={album.coverUrl} 
-             alt="Artist/Album Cover" 
-             className={`absolute inset-0 w-full h-full object-cover z-0 grayscale-[20%] contrast-125 transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-5 scale-105 blur-sm' : 'opacity-50 scale-100 blur-0'}`} 
-             style={{ 
-               maskImage: 'linear-gradient(to right, transparent 0%, black 25%, black 100%)',
-               WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 25%, black 100%)'
-             }}
-           />
-           
-           {/* Fades on all sides */}
-           <div className="absolute inset-0 bg-gradient-to-r from-[#05050A] via-transparent to-[#05050A] opacity-90 z-10 pointer-events-none" />
-           <div className="absolute inset-0 bg-gradient-to-b from-[#05050A] via-transparent to-[#05050A] opacity-90 z-10 pointer-events-none" />
-           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#05050A_100%)] opacity-80 z-10 pointer-events-none" />
+           {/* Background Cover Image with Fades */}
+           <div className="absolute inset-0 z-0 pointer-events-none" style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 100%)' }}>
+             <img 
+               src={album.coverUrl} 
+               alt="Artist/Album Cover" 
+               className={`absolute inset-0 w-full h-full object-cover grayscale-[20%] contrast-125 transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-5 scale-105 blur-sm' : 'opacity-50 scale-100 blur-0'}`} 
+             />
+             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#05050A] opacity-90" />
+             <div className="absolute inset-0 bg-gradient-to-b from-[#05050A] via-transparent to-[#05050A] opacity-90" />
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#05050A_100%)] opacity-80" />
+           </div>
 
            {/* Top Tabs (PORTADA / LETRA) */}
            <div className="absolute top-10 left-1/2 -translate-x-1/2 z-40 p-1 flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
