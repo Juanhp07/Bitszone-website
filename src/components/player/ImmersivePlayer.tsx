@@ -148,9 +148,12 @@ export const ImmersivePlayer = ({
                    }`}
                  >
                    <div className="flex items-center gap-4 md:gap-6">
-                     <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest ${isActive ? 'text-[#a855f7]/60' : 'text-white/10'}`}>
-                       {(t.trackNumber || i + 1).toString().padStart(2, '0')}
-                     </span>
+                     <div className="flex items-center gap-3">
+                       {isFavorite(t.id) && <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7]" fill="currentColor" />}
+                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest ${isActive ? 'text-[#a855f7]/60' : 'text-white/10'}`}>
+                         {(t.trackNumber || i + 1).toString().padStart(2, '0')}
+                       </span>
+                     </div>
                      <MarqueeTitle text={t.title} />
                    </div>
                  </div>
