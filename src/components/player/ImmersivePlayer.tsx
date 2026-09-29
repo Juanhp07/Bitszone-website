@@ -78,6 +78,7 @@ export const ImmersivePlayer = ({
 }) => {
   if (!track || !album) return null;
   const [activeTab, setActiveTab] = React.useState<"portada" | "letra">("portada");
+  const { isFavorite } = useDownloads();
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
