@@ -213,14 +213,28 @@ export const ImmersivePlayer = ({
              <button onClick={() => setVolume && setVolume(100)} className="mb-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon">
                <Volume2 className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" />
              </button>
-             <div className="flex flex-col gap-[6px]">
+             <div 
+               className="flex flex-col gap-[6px]"
+               onWheel={(e) => {
+                 e.stopPropagation();
+                 if (!setVolume) return;
+                 const delta = e.deltaY;
+                 const currentVol = volume || 0;
+                 let newVol = currentVol;
+                 if (delta > 0) newVol = Math.max(0, currentVol - 10);
+                 if (delta < 0) newVol = Math.min(100, currentVol + 10);
+                 if (newVol !== currentVol) {
+                   setVolume(newVol);
+                 }
+               }}
+             >
                {Array.from({ length: 10 }).map((_, i) => {
                  const level = (10 - i) * 10;
                  const isActive = (volume || 0) >= level;
                  return (
                    <button
                      key={level}
-                     onClick={(e) => { e.stopPropagation(); setVolume && setVolume(level); }} onMouseEnter={() => setVolume && setVolume(level)}
+                     onClick={(e) => { e.stopPropagation(); setVolume && setVolume(level); }}
                      className="p-1 flex items-center justify-center group/line"
                    >
                      <div className={`w-6 h-1 rounded-full transition-all duration-100 ${isActive ? 'bg-[#a855f7] shadow-[0_0_8px_rgba(168,85,247,0.6)]' : 'bg-white/20 group-hover/line:bg-white/60 group-hover/line:scale-y-150'}`} />
