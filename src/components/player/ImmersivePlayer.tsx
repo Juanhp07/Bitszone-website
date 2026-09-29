@@ -131,7 +131,7 @@ export const ImmersivePlayer = ({
       >
         
         {/* Dynamic Gradient from Album Colors (Focused on Tracklist) */}
-        <div className="absolute top-0 left-0 bottom-0 w-[50%] z-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-0 bottom-0 w-[60%] z-0 pointer-events-none overflow-hidden" style={{ maskImage: 'linear-gradient(to right, black 0%, black 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, black 0%, black 60%, transparent 100%)' }}>
            <img 
              src={album.coverUrl} 
              className="w-full h-full object-cover blur-[100px] saturate-[2.5] opacity-60 scale-150 transform origin-left" 
@@ -224,6 +224,10 @@ export const ImmersivePlayer = ({
              src={album.coverUrl} 
              alt="Artist/Album Cover" 
              className={`absolute inset-0 w-full h-full object-cover z-0 grayscale-[20%] contrast-125 transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-5 scale-105 blur-sm' : 'opacity-50 scale-100 blur-0'}`} 
+             style={{ 
+               maskImage: 'linear-gradient(to right, transparent 0%, black 25%, black 100%)',
+               WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 25%, black 100%)'
+             }}
            />
            
            {/* Fades on all sides */}
