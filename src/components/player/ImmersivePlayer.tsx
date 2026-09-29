@@ -111,7 +111,7 @@ export const ImmersivePlayer = ({
   const activeBars = Math.floor(progress * wave.length);
 
 
-  const waveSvg = "data:image/svg+xml,%3Csvg width='24' height='12' viewBox='0 0 24 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 6C4 0 8 12 12 6C16 0 20 12 24 6' stroke='%23ffffff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E";
+  const waveSvg = "data:image/svg+xml,%3Csvg width='24' height='20' viewBox='0 0 24 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10C4 4 8 16 12 10C16 4 20 16 24 10' stroke='%23ffffff' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E";
 
   return createPortal(
     <>
@@ -343,7 +343,7 @@ export const ImmersivePlayer = ({
               </div>
 
               {/* Squiggly Timeline Progress Bar */}
-              <div className={`w-full max-w-xl flex items-center gap-4 font-bold text-white/50 tracking-wider transition-all duration-[1200ms] ${activeTab === 'letra' ? 'text-lg md:text-xl' : 'text-xs'}`}>
+              <div className={`w-full max-w-xl flex items-center gap-4 font-bold text-white/50 tracking-wider transition-all duration-[1200ms] ${activeTab === 'letra' ? 'text-lg md:text-xl' : 'text-sm md:text-base'}`}>
                  <span className={`text-right transition-all duration-[1200ms] ${activeTab === 'letra' ? 'w-16' : 'w-10'}`}>{formatTime(progress * track.duration)}</span>
                  
                  <div 
@@ -356,7 +356,7 @@ export const ImmersivePlayer = ({
                    }}
                  >
                     {/* Unplayed straight line */}
-                    <div className="absolute left-0 right-0 h-[4px] bg-white/30 rounded-full" />
+                    <div className="absolute left-0 right-0 h-[6px] bg-white/30 rounded-full" />
                     
                     {/* Played wavy line clipping container */}
                     <div className="absolute left-0 top-0 bottom-0 overflow-hidden" style={{ width: `${progress * 100}%` }}>
@@ -366,7 +366,7 @@ export const ImmersivePlayer = ({
                            backgroundImage: `url("${waveSvg}")`,
                            backgroundRepeat: 'repeat-x',
                            backgroundPosition: 'left center',
-                           backgroundSize: '24px 12px',
+                           backgroundSize: '24px 20px',
                            maskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)',
                            WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)'
                          }}
@@ -375,7 +375,7 @@ export const ImmersivePlayer = ({
                     
                     {/* The Dot (Handle) */}
                     <div 
-                       className="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
+                       className="absolute w-5 h-5 bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.9)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
                        style={{ left: `${progress * 100}%` }}
                     />
                  </div>
