@@ -265,15 +265,15 @@ export const ImmersivePlayer = ({
            </div>
 
            {/* Lyrics View Area */}
-           <div className={`absolute top-[15vh] left-0 right-0 h-[45vh] flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
+           <div className={`absolute top-[150px] left-0 right-0 bottom-[300px] flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
               
               {isSomewhereIBelong ? (
                 <div 
                   className="w-full h-full overflow-y-auto px-8 py-16 flex flex-col items-center gap-6"
                   style={{ 
                     scrollbarWidth: 'none',
-                    maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)'
+                    maskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)'
                   }}
                 >
                   {activeLyrics.map((line, i) => (
