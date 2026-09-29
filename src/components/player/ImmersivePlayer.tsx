@@ -158,8 +158,8 @@ export const ImmersivePlayer = ({
              className="w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-12 xl:pl-[5rem] transition-all duration-700 pb-20 pt-2" 
              style={{ 
                scrollbarWidth: 'none',
-               maskImage: 'linear-gradient(to bottom, transparent 0px, black 120px, black calc(100% - 120px), transparent 100%)',
-               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 120px, black calc(100% - 120px), transparent 100%)'
+               maskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)',
+               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)'
              }}>
              {album.tracks?.map((t, i) => {
                const isActive = track.id === t.id;
@@ -169,8 +169,8 @@ export const ImmersivePlayer = ({
                    onClick={() => onPlayTrack && onPlayTrack(t, album)}
                    className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
                      isActive 
-                       ? 'text-[#a855f7] drop-shadow-[0_0_5px_rgba(168,85,247,0.4)] translate-x-4' 
-                       : 'text-white/20 hover:text-white/50'
+                       ? 'text-[#c084fc] drop-shadow-[0_0_12px_rgba(192,132,252,0.8)] translate-x-4' 
+                       : 'text-white/40 hover:text-white/80'
                    }`}
                  >
                    <div className="flex items-center gap-4 md:gap-6">
@@ -184,7 +184,7 @@ export const ImmersivePlayer = ({
                            fill={isFavorite(t.id) ? "currentColor" : "none"} 
                          />
                        </button>
-                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#a855f7]/60' : 'text-white/10'}`}>
+                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#c084fc]/80' : 'text-white/30'}`}>
                          {(t.trackNumber || i + 1).toString().padStart(2, '0')}
                        </span>
                      </div>
