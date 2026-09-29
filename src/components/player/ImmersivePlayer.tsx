@@ -283,11 +283,11 @@ export const ImmersivePlayer = ({
               
               {isSomewhereIBelong ? (
                 <div 
-                  className="w-full h-full overflow-y-auto px-8 py-8 flex flex-col items-center gap-4"
+                  className="w-full h-full overflow-y-auto px-8 py-[120px] flex flex-col items-center gap-4"
                   style={{ 
                     scrollbarWidth: 'none',
-                    maskImage: 'linear-gradient(to bottom, transparent 0%, black 35%, black 65%, transparent 100%)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 35%, black 65%, transparent 100%)'
+                    maskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)'
                   }}
                 >
                   {activeLyrics.map((line, i) => (
