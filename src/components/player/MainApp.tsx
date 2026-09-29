@@ -119,8 +119,12 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const handlePrevTrack = () => {
     if (!nowPlayingAlbum || !nowPlayingTrack) return;
     
-    // Si la canción ha avanzado más de 5 segundos, la reiniciamos
-    if (audioRef.current && audioRef.current.currentTime > 5) {
+    // El UI muestra un tiempo escalado basado en track.duration.
+    // Necesitamos verificar si el tiempo visual ha pasado de 5 segundos (5000 ms).
+    const visualTimeMs = progress * (nowPlayingTrack.duration || 0);
+    
+    // Si la canción ha avanzado más de 5 segundos (visuales), la reiniciamos
+    if (audioRef.current && visualTimeMs > 5000) {
       audioRef.current.currentTime = 0;
       setProgress(0);
       
