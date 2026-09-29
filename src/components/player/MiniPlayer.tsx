@@ -47,7 +47,7 @@ export const MiniPlayer = ({
   };
 
 
-  const waveSvg = "data:image/svg+xml,%3Csvg width='24' height='12' viewBox='0 0 24 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 6C4 0 8 12 12 6C16 0 20 12 24 6' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E";
+  const waveSvg = "data:image/svg+xml,%3Csvg width='24' height='12' viewBox='0 0 24 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 6C4 0 8 12 12 6C16 0 20 12 24 6' stroke='%23ffffff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E";
 
   return (
     <div className="w-full h-[90px] bg-transparent shrink-0 flex items-center justify-between px-6 relative overflow-hidden group/player rounded-none">
@@ -127,7 +127,7 @@ export const MiniPlayer = ({
           <span className="text-[11px] font-medium text-white/50 tabular-nums w-10 text-right">{formatTime(currentSecs)}</span>
           <div className="flex-1 h-6 relative group flex items-center cursor-pointer">
             {/* Unplayed straight line */}
-            <div className="absolute left-0 right-0 h-[2px] bg-white/20 rounded-full pointer-events-none" />
+            <div className="absolute left-0 right-0 h-[4px] bg-white/30 rounded-full pointer-events-none" />
             
             {/* Played wavy line clipping container */}
             <div className="absolute left-0 top-0 bottom-0 overflow-hidden pointer-events-none" style={{ width: `${progress * 100}%` }}>

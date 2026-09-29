@@ -101,7 +101,7 @@ export const ImmersivePlayer = ({
   const activeBars = Math.floor(progress * wave.length);
 
 
-  const waveSvg = "data:image/svg+xml,%3Csvg width='24' height='12' viewBox='0 0 24 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 6C4 0 8 12 12 6C16 0 20 12 24 6' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E";
+  const waveSvg = "data:image/svg+xml,%3Csvg width='24' height='12' viewBox='0 0 24 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 6C4 0 8 12 12 6C16 0 20 12 24 6' stroke='%23ffffff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E";
 
   return createPortal(
     <>
@@ -170,7 +170,7 @@ export const ImmersivePlayer = ({
                    className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
                      isActive 
                        ? 'text-[#c084fc] drop-shadow-[0_0_12px_rgba(192,132,252,0.8)] translate-x-4' 
-                       : 'text-white/40 hover:text-white/80'
+                       : 'text-white/80 hover:text-white'
                    }`}
                  >
                    <div className="flex items-center gap-4 md:gap-6">
@@ -184,7 +184,7 @@ export const ImmersivePlayer = ({
                            fill={isFavorite(t.id) ? "currentColor" : "none"} 
                          />
                        </button>
-                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#c084fc]/80' : 'text-white/30'}`}>
+                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#c084fc]/80' : 'text-white/50'}`}>
                          {(t.trackNumber || i + 1).toString().padStart(2, '0')}
                        </span>
                      </div>
@@ -310,7 +310,7 @@ export const ImmersivePlayer = ({
                    }}
                  >
                     {/* Unplayed straight line */}
-                    <div className="absolute left-0 right-0 h-[2px] bg-white/20 rounded-full" />
+                    <div className="absolute left-0 right-0 h-[4px] bg-white/30 rounded-full" />
                     
                     {/* Played wavy line clipping container */}
                     <div className="absolute left-0 top-0 bottom-0 overflow-hidden" style={{ width: `${progress * 100}%` }}>
@@ -320,14 +320,16 @@ export const ImmersivePlayer = ({
                            backgroundImage: `url("${waveSvg}")`,
                            backgroundRepeat: 'repeat-x',
                            backgroundPosition: 'left center',
-                           backgroundSize: '24px 12px'
+                           backgroundSize: '24px 12px',
+                           maskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)',
+                           WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)'
                          }}
                        />
                     </div>
                     
                     {/* The Dot (Handle) */}
                     <div 
-                       className="absolute w-3.5 h-3.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
+                       className="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
                        style={{ left: `${progress * 100}%` }}
                     />
                  </div>
