@@ -1,6 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { CoverflowCarousel } from './ui/CoverflowCarousel';
+import { Scroll3DGallery } from './ui/Scroll3DGallery';
 
 const albums = [
   {
@@ -63,38 +62,8 @@ const albums = [
 
 export const FeatureSection = () => {
   return (
-    <section className="relative w-full flex flex-col items-center min-h-[120vh]">
-      <motion.div 
-        initial={{ opacity: 0, x: -150, rotate: -5, scale: 0.95 }}
-        whileInView={{ opacity: 1, x: 0, rotate: 0, scale: 1 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.9, type: "spring", bounce: 0.2 }}
-        className="relative z-30 flex flex-col items-center pt-32 md:pt-48 text-center px-6 w-full"
-      >
-        <h2 className="flex flex-col items-center justify-center font-sans font-bold text-center w-full ">
-          <span className="text-white text-[10vw] sm:text-[8vw] lg:text-[70px] xl:text-[90px] tracking-tight leading-none">
-            El que busca,
-          </span>
-          <span className="text-white text-[10vw] sm:text-[8vw] lg:text-[70px] xl:text-[90px] tracking-tight leading-none mt-2 md:mt-4">
-            encuentra su ritmo
-          </span>
-        </h2>
-      </motion.div>
-      
-      {/* The Coverflow Carousel Wrapper */}
-      <motion.div 
-        initial={{ x: "-100%", opacity: 0 }}
-        whileInView={{ x: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.1, margin: "200px" }}
-        transition={{ type: "spring", stiffness: 60, damping: 20, duration: 1.0, delay: 0.1 }}
-        className="relative w-full z-20 flex-1 flex justify-center items-center mt-12 md:mt-20 mb-20 min-h-[600px]"
-      >
-        {/* Glow point behind images, aligned to horizon */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-[#55108d]/20 blur-[100px] z-0 pointer-events-none"></div>
-
-        <CoverflowCarousel items={albums} speed={1.5} spacing={220} />
-      </motion.div>
-
+    <section className="relative w-full z-20">
+      <Scroll3DGallery albums={albums} />
     </section>
   );
 };
