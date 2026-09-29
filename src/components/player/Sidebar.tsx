@@ -33,7 +33,7 @@ export const Sidebar = ({
           }`}
         >
           <Home className="w-5 h-5" />
-          Inicio
+          Inicio 2.0
         </button>
         <button
           onClick={() => onViewChange("library")}
