@@ -47,7 +47,7 @@ const MarqueeTitle = ({ text }: { text: string }) => {
 
 
 const somewhereIBelongLyrics = [
-  {time:14.5,text:"(When this began)"},{time:17.5,text:"I had nothing to say"},{time:20,text:"And I get lost in the nothingness inside of me"},{time:23.5,text:"(I was confused)"},{time:26,text:"And I let it all out to find"},{time:29,text:"That I'm not the only person with these things in mind"},{time:32.5,text:"(Inside of me)"},{time:34.5,text:"But all the vacancy the words revealed"},{time:38,text:"Is the only real thing that I've got left to feel"},{time:41.5,text:"(Nothing to lose)"},{time:43.5,text:"Just stuck, hollow and alone"},{time:46.5,text:"And the fault is my own"},{time:48.5,text:"And the fault is my own"},{time:51.5,text:"I wanna heal, I wanna feel"},{time:54,text:"What I thought was never real"},{time:56.5,text:"I wanna let go of the pain I've felt so long"},{time:59.5,text:"(Erase all the pain 'til it's gone)"},{time:62,text:"I wanna heal, I wanna feel"},{time:64.5,text:"Like I'm close to something real"},{time:67.5,text:"I wanna find something I've wanted all along"},{time:70.5,text:"Somewhere I belong"},{time:75,text:"And I've got nothing to say"},{time:78,text:"I can't believe I didn't fall right down on my face"},{time:81.5,text:"(I was confused)"},{time:83.5,text:"Looking everywhere only to find"},{time:86.5,text:"That it's not the way I had imagined it all in my mind"},{time:90,text:"(So what am I?)"},{time:92,text:"What do I have but negativity?"},{time:95.5,text:"'Cause I can't justify the way everyone is looking at me"},{time:99,text:"(Nothing to lose)"},{time:101.5,text:"Nothing to gain, hollow and alone"},{time:104.5,text:"And the fault is my own"},{time:106.5,text:"And the fault is my own"},{time:109,text:"I wanna heal, I wanna feel"},{time:112,text:"What I thought was never real"},{time:114.5,text:"I wanna let go of the pain I've felt so long"},{time:117.5,text:"(Erase all the pain 'til it's gone)"},{time:120,text:"I wanna heal, I wanna feel"},{time:122.5,text:"Like I'm close to something real"},{time:125.5,text:"I wanna find something I've wanted all along"},{time:128.5,text:"Somewhere I belong"},{time:133.5,text:"I will never know myself until I do this on my own"},{time:138.5,text:"And I will never feel anything else until my wounds are healed"},{time:144.5,text:"I will never be anything 'til I break away from me"},{time:150,text:"I will break away, I'll find myself today"},{time:156,text:"I wanna heal, I wanna feel"},{time:159,text:"What I thought was never real"},{time:161.5,text:"I wanna let go of the pain I've felt so long"},{time:164.5,text:"(Erase all the pain 'til it's gone)"},{time:167,text:"I wanna heal, I wanna feel"},{time:169.5,text:"Like I'm close to something real"},{time:172.5,text:"I wanna find something I've wanted all along"},{time:175.5,text:"Somewhere I belong"},{time:181.5,text:"I wanna heal, I wanna feel like I'm somewhere I belong"},{time:192.5,text:"I wanna heal, I wanna feel like I'm somewhere I belong"},{time:202.5,text:"Somewhere I belong"}
+  {time:43.71,text:"When it began"},{time:45.15,text:"I had nothing to say"},{time:46.82,text:"And I get lost in the nothingness inside of me"},{time:49.70,text:"(I was confused)"},{time:50.59,text:"And I let it all out to find"},{time:52.60,text:"That I'm not the only person with these things in mind"},{time:55.53,text:"(Inside of me)"},{time:56.45,text:"But all that they can see the words revealed"},{time:58.68,text:"Is the only real thing that I've got left to feel"},{time:61.45,text:"(Nothing to lose)"},{time:62.36,text:"Just stuck, hollow and alone"},{time:64.44,text:"And the fault is my own, and the fault is my own"},{time:67.53,text:"I wanna heal, I wanna feel, what I thought was never real"},{time:73.34,text:"I wanna let go of the pain I've felt so long"},{time:77.30,text:"(Erase all the pain till it's gone)"},{time:79.29,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time:85.20,text:"I wanna find something I've wanted all along"},{time:90.09,text:"Somewhere I belong"},{time:92.49,text:"And I've got nothing to say"},{time:94.07,text:"I can't believe I didn't fall right down on my face"},{time:97.06,text:"(I was confused)"},{time:98.00,text:"Looking everywhere only to find"},{time:100.08,text:"That it's not the way I have imagined it all in my mind"},{time:102.93,text:"(So what am I)"},{time:103.93,text:"What do I have but negativity"},{time:105.85,text:"'Cause I can't justify the way everyone is looking at me"},{time:108.80,text:"(Nothing to lose)"},{time:109.81,text:"Nothing to gain, hollow and alone"},{time:111.80,text:"And the fault is my own, and the fault is my own"},{time:114.80,text:"I wanna heal, I wanna feel, what I thought was never real"},{time:120.66,text:"I wanna let go of the pain I've felt so long"},{time:124.58,text:"(Erase all the pain till it's gone)"},{time:126.62,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time:132.62,text:"I wanna find something I've wanted all along"},{time:137.49,text:"Somewhere I belong"},{time:139.83,text:"I will never know myself until I do this on my own"},{time:145.68,text:"And I will never feel anything else until my wounds are healed"},{time:151.58,text:"I will never be anything till I break away from me"},{time:157.46,text:"I will break away, I'll find myself today"},{time:167.15,text:"I wanna heal, I wanna feel, what I thought was never real"},{time:173.99,text:"I wanna let go of the pain I've felt so long"},{time:178.11,text:"(Erase all the pain till it's gone)"},{time:179.95,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time:185.86,text:"I wanna find something I've wanted all along"},{time:190.82,text:"Somewhere I belong"},{time:193.22,text:"(I wanna heal, I wanna feel like I'm somewhere I belong)"},{time:198.93,text:"(I wanna heal, I wanna feel like I'm somewhere I belong)"},{time:208.66,text:"Somewhere I belong"}
 ];
 
 export const ImmersivePlayer = ({ 
@@ -88,7 +88,7 @@ export const ImmersivePlayer = ({
 
   const isSomewhereIBelong = track.title === "Somewhere I Belong";
   const activeLyrics = isSomewhereIBelong ? somewhereIBelongLyrics : [];
-  const currentSecs = progress * (track.duration / 1000) - 26; // Offset to 40.5s start // Offset to match the audio timing perfectly
+  const currentSecs = progress * (track.duration / 1000); // Offset to match the audio timing perfectly
 
   const activeLineIndex = React.useMemo(() => {
     return activeLyrics.reduce((acc, line, i) => {
@@ -280,12 +280,12 @@ export const ImmersivePlayer = ({
            </div>
 
            {/* Lyrics View Area */}
-           <div className={`absolute top-0 left-0 right-0 h-[60vh] flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
+           <div className={`absolute top-0 left-0 right-0 h-[45vh] flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
               
               {isSomewhereIBelong ? (
                 <div 
                   ref={lyricsContainerRef}
-                  className="w-full h-full overflow-y-auto px-8 py-[25vh] flex flex-col items-center gap-4"
+                  className="w-full h-full overflow-y-auto px-8 py-[18vh] flex flex-col items-center gap-4"
                   style={{ 
                     scrollbarWidth: 'none',
                     maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
@@ -304,10 +304,10 @@ export const ImmersivePlayer = ({
                         }}
                         className={`text-center transition-all duration-500 ease-out cursor-pointer font-bold ${
                           isActive 
-                            ? 'text-2xl md:text-4xl text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] scale-110' 
+                            ? 'text-xl md:text-3xl text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] scale-110' 
                             : isPassed 
-                              ? 'text-lg md:text-2xl text-white/40 hover:text-white/70' 
-                              : 'text-lg md:text-2xl text-white/20 hover:text-white/50'
+                              ? 'text-base md:text-xl text-white/40 hover:text-white/70' 
+                              : 'text-base md:text-xl text-white/20 hover:text-white/50'
                         }`}
                       >
                         {line.text}
