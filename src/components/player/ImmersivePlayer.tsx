@@ -197,7 +197,7 @@ export const ImmersivePlayer = ({
         </div>
 
         {/* 2. RIGHT: Unified Cover, Info & Controls */}
-        <div className="w-[65%] h-full relative flex flex-col items-center justify-center group">
+        <div className="w-[65%] h-full relative flex flex-col items-center justify-end pb-12 xl:pb-16 group">
            {/* Vertical Volume Control (Appears on Hover) */}
            <div className="absolute right-8 xl:right-12 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
              <button onClick={() => setVolume && setVolume(100)} className="mb-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon">
@@ -260,7 +260,7 @@ export const ImmersivePlayer = ({
            </div>
 
            {/* Floating Content: Info & Controls */}
-           <div className={`relative z-30 flex flex-col items-center justify-center w-full px-8 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'translate-y-[28vh] scale-[0.65]' : 'translate-y-0 scale-100'}`}>
+           <div className={`relative z-30 flex flex-col items-center justify-center w-full px-8 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'translate-y-4 scale-[0.8] opacity-30' : 'translate-y-0 scale-100 opacity-100'}`}>
               <h2 className={`text-4xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white drop-shadow-lg text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)] transition-all duration-[1200ms] ${activeTab === 'letra' ? 'mb-2' : 'mb-4'}`}>
                 {album.title}
               </h2>
