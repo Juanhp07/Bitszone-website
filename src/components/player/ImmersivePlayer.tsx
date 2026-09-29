@@ -83,25 +83,10 @@ export const ImmersivePlayer = ({
 }) => {
   if (!track || !album) return null;
   const [activeTab, setActiveTab] = React.useState<"portada" | "letra">("portada");
-  const lyricsContainerRef = React.useRef<HTMLDivElement>(null);
-  const activeLineRef = React.useRef<HTMLParagraphElement>(null);
 
   const isSomewhereIBelong = track.title === "Somewhere I Belong";
   const activeLyrics = isSomewhereIBelong ? somewhereIBelongLyrics : [];
-  const currentSecs = progress * (track.duration / 1000); // Offset to match the audio timing perfectly
-
-  const activeLineIndex = React.useMemo(() => {
-    return activeLyrics.reduce((acc, line, i) => {
-      if (currentSecs >= line.time) return i;
-      return acc;
-    }, -1);
-  }, [currentSecs, activeLyrics]);
-
-  React.useEffect(() => {
-    if (activeTab === 'letra' && activeLineRef.current && lyricsContainerRef.current) {
-      activeLineRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [activeLineIndex, activeTab]);
+  
 
   const { isFavorite, toggleFavorite } = useDownloads();
 
@@ -280,40 +265,25 @@ export const ImmersivePlayer = ({
            </div>
 
            {/* Lyrics View Area */}
-           <div className={`absolute top-0 left-0 right-0 h-[45vh] flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
+           <div className={`absolute top-0 left-0 right-0 h-[55vh] flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
               
               {isSomewhereIBelong ? (
                 <div 
-                  ref={lyricsContainerRef}
-                  className="w-full h-full overflow-y-auto px-8 py-[18vh] flex flex-col items-center gap-4"
+                  className="w-full h-full overflow-y-auto px-8 py-12 flex flex-col items-center gap-4"
                   style={{ 
                     scrollbarWidth: 'none',
                     maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
                     WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)'
                   }}
                 >
-                  {activeLyrics.map((line, i) => {
-                    const isActive = i === activeLineIndex;
-                    const isPassed = i < activeLineIndex;
-                    return (
-                      <p 
-                        key={i}
-                        ref={isActive ? activeLineRef : null}
-                        onClick={() => {
-                           // If we wanted click-to-seek we would do it here, but no seek API is provided.
-                        }}
-                        className={`text-center transition-all duration-500 ease-out cursor-pointer font-bold ${
-                          isActive 
-                            ? 'text-xl md:text-3xl text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] scale-110' 
-                            : isPassed 
-                              ? 'text-base md:text-xl text-white/40 hover:text-white/70' 
-                              : 'text-base md:text-xl text-white/20 hover:text-white/50'
-                        }`}
-                      >
-                        {line.text}
-                      </p>
-                    );
-                  })}
+                  {activeLyrics.map((line, i) => (
+                    <p 
+                      key={i}
+                      className="text-center text-lg md:text-xl text-white/70 hover:text-white transition-colors duration-300 font-medium tracking-wide max-w-2xl px-4"
+                    >
+                      {line.text}
+                    </p>
+                  ))}
                 </div>
               ) : (
                 <p className="text-white/40 text-sm md:text-base font-medium tracking-[0.2em] uppercase blur-[0.5px]">No hay letras disponibles</p>
