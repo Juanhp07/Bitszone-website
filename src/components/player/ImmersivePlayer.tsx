@@ -251,7 +251,7 @@ export const ImmersivePlayer = ({
               <div className="w-full max-w-xl flex items-center gap-4 text-xs font-bold text-white/50 tracking-wider">
                  <span className="w-10 text-right">{formatTime(progress * track.duration)}</span>
                  <div 
-                   className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden cursor-pointer relative group"
+                   className="flex-1 h-2.5 md:h-3 bg-white/10 rounded-full overflow-hidden cursor-pointer relative group"
                    onClick={(e) => {
                       e.stopPropagation();
                       const rect = e.currentTarget.getBoundingClientRect();
