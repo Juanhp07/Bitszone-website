@@ -88,7 +88,7 @@ export const ImmersivePlayer = ({
 
   const isSomewhereIBelong = track.title === "Somewhere I Belong";
   const activeLyrics = isSomewhereIBelong ? somewhereIBelongLyrics : [];
-  const currentSecs = progress * (track.duration / 1000);
+  const currentSecs = progress * (track.duration / 1000) + 2.5; // Offset to match the audio timing perfectly
 
   const activeLineIndex = React.useMemo(() => {
     return activeLyrics.reduce((acc, line, i) => {
@@ -195,7 +195,7 @@ export const ImmersivePlayer = ({
                    className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
                      isActive 
                        ? 'text-[#c084fc] drop-shadow-[0_0_12px_rgba(192,132,252,0.8)] translate-x-4' 
-                       : 'text-white/60 hover:text-white/90'
+                       : 'text-white/50 hover:text-white/80'
                    }`}
                  >
                    <div className="flex items-center gap-4 md:gap-6">
@@ -280,7 +280,7 @@ export const ImmersivePlayer = ({
            </div>
 
            {/* Lyrics View Area */}
-           <div className={`absolute inset-0 flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100 translate-y-[-5vh]' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
+           <div className={`absolute top-0 left-0 right-0 bottom-[220px] xl:bottom-[280px] flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
               
               {isSomewhereIBelong ? (
                 <div 
