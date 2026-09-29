@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import { User } from 'lucide-react';
 import { SpecularText } from '../ui/SpecularText';
 
 export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOpen }: { currentView: string, onViewChange: (view: any) => void, onToggleSidebar: () => void, isSidebarOpen: boolean }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <header className="h-20 w-full bg-transparent flex items-center px-8 relative z-20 shrink-0">
       <style>{`
@@ -57,11 +59,25 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOp
 
       {/* Right: Acceder */}
       <div className="flex-1 flex items-center justify-end">
-        <button className="px-5 py-2 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2 text-white">
+        <button onClick={() => setIsModalOpen(true)} className="px-5 py-2 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2 text-white">
           <User className="w-4 h-4" />
           Acceder
         </button>
       </div>
+    
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}>
+          <div className="relative max-w-lg w-full max-h-[80vh] flex items-center justify-center animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="absolute -top-12 right-0 p-2 text-white/50 hover:text-white transition-colors"
+            >
+              <X className="w-8 h-8" />
+            </button>
+            <img src="/acceder-image.png" alt="Acceder Modal" className="rounded-xl object-contain max-h-[80vh] shadow-2xl" />
+          </div>
+        </div>
+      )}
     </header>
   );
 };

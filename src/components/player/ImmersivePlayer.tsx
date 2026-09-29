@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Heart } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 
 
@@ -32,7 +32,7 @@ const MarqueeTitle = ({ text }: { text: string }) => {
   }, [text]);
 
   return (
-    <div ref={containerRef} className="overflow-hidden flex-1 relative" style={{ maskImage: isOverflowing ? 'linear-gradient(to right, black 90%, transparent 100%)' : 'none', WebkitMaskImage: isOverflowing ? 'linear-gradient(to right, black 90%, transparent 100%)' : 'none' }}>
+    <div ref={containerRef} className="overflow-hidden flex-1 relative px-4 -mx-4 py-4 -my-4" style={{ maskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)' }}>
       <div 
         className={`whitespace-nowrap ${isOverflowing ? 'animate-marquee-pingpong' : ''}`}
         style={isOverflowing ? { '--overflow-amount': `-${overflowAmount}px` } as React.CSSProperties : {}}
@@ -83,6 +83,16 @@ export const ImmersivePlayer = ({
 }) => {
   if (!track || !album) return null;
   const [activeTab, setActiveTab] = React.useState<"portada" | "letra">("portada");
+  const volumeRef = React.useRef<HTMLDivElement>(null);
+  const isDraggingVol = React.useRef(false);
+  const handleVolumeDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!setVolume || !volumeRef.current) return;
+    const rect = volumeRef.current.getBoundingClientRect();
+    let p = 1 - ((e.clientY - rect.top) / rect.height);
+    p = Math.max(0, Math.min(1, p));
+    const newVol = Math.round(p * 20) * 5;
+    setVolume(newVol);
+  };
 
   const isSomewhereIBelong = track.title === "Somewhere I Belong";
   const activeLyrics = isSomewhereIBelong ? somewhereIBelongLyrics : [];
@@ -111,14 +121,14 @@ export const ImmersivePlayer = ({
   const activeBars = Math.floor(progress * wave.length);
 
 
-  const waveSvg = "data:image/svg+xml,%3Csvg width='24' height='20' viewBox='0 0 24 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10C4 4 8 16 12 10C16 4 20 16 24 10' stroke='%23ffffff' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E";
+  const waveSvg = "data:image/svg+xml,%3Csvg width='80' height='20' viewBox='0 0 80 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10C13 2 27 18 40 10C53 2 67 18 80 10' stroke='%23ffffff' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E";
 
   return createPortal(
     <>
       <style>{`
         @keyframes wave-slide {
           from { background-position-x: 0px; }
-          to { background-position-x: -24px; }
+          to { background-position-x: -80px; }
         }
         .animate-wave-slide {
           animation: wave-slide 1s linear infinite;
@@ -155,17 +165,17 @@ export const ImmersivePlayer = ({
 
         <button 
           onClick={onClose}
-          className="absolute top-10 left-12 xl:left-[5rem] z-50 flex items-center gap-2 md:gap-3 text-white/30 hover:text-white/80 transition-all group py-2"
+          className="absolute top-8 left-8 md:top-10 md:left-12 xl:left-[5rem] z-50 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white backdrop-blur-md border border-white/5 transition-all group cursor-pointer shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+          title="Minimizar Reproductor"
         >
-          <ChevronDown className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-y-1 transition-transform" />
-          <span className="text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase mt-0.5">Ocultar Reproductor</span>
+          <Minimize2 className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-90 transition-transform" />
         </button>
 
         {/* 1. LEFT: Tracklist */}
         <div className="absolute top-[110px] left-12 xl:left-[5rem] z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">PISTAS</div>
         <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-[140px] pb-0">
            <div 
-             className="w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-12 xl:pl-[5rem] transition-all duration-700 pb-20 pt-2" 
+             className="w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-12 xl:pl-[5rem] pr-6 xl:pr-12 transition-all duration-700 pb-20 pt-2" 
              style={{ 
                scrollbarWidth: 'none',
                maskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)',
@@ -179,7 +189,7 @@ export const ImmersivePlayer = ({
                    onClick={() => onPlayTrack && onPlayTrack(t, album)}
                    className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
                      isActive 
-                       ? 'text-[#c084fc] drop-shadow-[0_0_12px_rgba(192,132,252,0.8)] translate-x-4' 
+                       ? 'text-[#a855f7] drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] translate-x-4' 
                        : 'text-white/50 hover:text-white/80'
                    }`}
                  >
@@ -194,7 +204,7 @@ export const ImmersivePlayer = ({
                            fill={isFavorite(t.id) ? "currentColor" : "none"} 
                          />
                        </button>
-                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#c084fc]/80' : 'text-white/40'}`}>
+                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#a855f7]/80' : 'text-white/40'}`}>
                          {(t.trackNumber || i + 1).toString().padStart(2, '0')}
                        </span>
                      </div>
@@ -214,30 +224,47 @@ export const ImmersivePlayer = ({
                <Volume2 className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" />
              </button>
              <div 
-               className="flex flex-col gap-[6px]"
+               ref={volumeRef}
+               className="flex flex-col gap-[3px] py-1 touch-none"
+               onPointerDown={(e) => {
+                 isDraggingVol.current = true;
+                 handleVolumeDrag(e);
+                 e.currentTarget.setPointerCapture(e.pointerId);
+               }}
+               onPointerMove={(e) => {
+                 if (isDraggingVol.current) handleVolumeDrag(e);
+               }}
+               onPointerUp={(e) => {
+                 isDraggingVol.current = false;
+                 e.currentTarget.releasePointerCapture(e.pointerId);
+               }}
+               onPointerCancel={(e) => {
+                 isDraggingVol.current = false;
+                 e.currentTarget.releasePointerCapture(e.pointerId);
+               }}
                onWheel={(e) => {
                  e.stopPropagation();
                  if (!setVolume) return;
                  const delta = e.deltaY;
                  const currentVol = volume || 0;
                  let newVol = currentVol;
-                 if (delta > 0) newVol = Math.max(0, currentVol - 10);
-                 if (delta < 0) newVol = Math.min(100, currentVol + 10);
+                 if (delta > 0) newVol = Math.max(0, currentVol - 5);
+                 if (delta < 0) newVol = Math.min(100, currentVol + 5);
                  if (newVol !== currentVol) {
                    setVolume(newVol);
                  }
                }}
              >
-               {Array.from({ length: 10 }).map((_, i) => {
-                 const level = (10 - i) * 10;
+               {Array.from({ length: 20 }).map((_, i) => {
+                 const level = (20 - i) * 5;
                  const isActive = (volume || 0) >= level;
                  return (
                    <button
                      key={level}
                      onClick={(e) => { e.stopPropagation(); setVolume && setVolume(level); }}
-                     className="p-1 flex items-center justify-center group/line"
+                     className="py-[2px] px-1 flex items-center justify-center group/line cursor-pointer"
                    >
-                     <div className={`w-6 h-1 rounded-full transition-all duration-100 ${isActive ? 'bg-[#a855f7] shadow-[0_0_8px_rgba(168,85,247,0.6)]' : 'bg-white/20 group-hover/line:bg-white/60 group-hover/line:scale-y-150'}`} />
+                     <div className={`w-6 h-1 rounded-full transition-all duration-100 ${isActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20 group-hover/line:bg-white/60 group-hover/line:scale-y-150'}`} />
                    </button>
                  );
                })}
@@ -266,13 +293,13 @@ export const ImmersivePlayer = ({
               />
               <button 
                 onClick={() => setActiveTab('portada')}
-                className={`relative z-10 px-6 py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase transition-colors duration-500 ${activeTab === 'portada' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                className={`relative z-10 w-[110px] md:w-[130px] flex items-center justify-center py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-500 ${activeTab === 'portada' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
               >
                 Portada
               </button>
               <button 
                 onClick={() => setActiveTab('letra')}
-                className={`relative z-10 px-6 py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase transition-colors duration-500 ${activeTab === 'letra' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                className={`relative z-10 w-[110px] md:w-[130px] flex items-center justify-center py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-500 ${activeTab === 'letra' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
               >
                 Letra
               </button>
@@ -325,12 +352,32 @@ export const ImmersivePlayer = ({
 
                 <button 
                   onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                  className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-md border border-white/10 shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:shadow-[0_0_50px_rgba(168,85,247,0.2)] group"
+                  className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center rounded-full text-white transition-all border border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(255,255,255,0.3)] group relative overflow-hidden"
                 >
+                  {/* Spinning Vinyl Cover */}
+                  <div 
+                    className="absolute inset-0 w-full h-full rounded-full animate-spin"
+                    style={{ animationDuration: '12s', animationPlayState: isPlaying ? 'running' : 'paused' }}
+                  >
+                    <img src={album.coverUrl} className="w-full h-full object-cover scale-110" alt="" />
+                  </div>
+                  
+                  {/* Frosted Glass Overlay (claro con blur) */}
+                  <div className="absolute inset-0 bg-white/20 backdrop-blur-md transition-colors group-hover:bg-white/30" />
+                  
+                  {/* Vinyl Grooves Details */}
+                  <div className="absolute inset-1.5 md:inset-2 rounded-full border border-white/30 mix-blend-overlay pointer-events-none" />
+                  <div className="absolute inset-4 md:inset-6 rounded-full border border-white/20 mix-blend-overlay pointer-events-none" />
+                  
+                  {/* Vinyl Center Label */}
+                  <div className="absolute w-10 h-10 md:w-14 md:h-14 rounded-full bg-black/40 backdrop-blur-xl border-[2px] border-black/10 shadow-[0_0_25px_12px_rgba(0,0,0,0.35)] pointer-events-none" />
+                  <div className="absolute w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white/10 shadow-inner pointer-events-none" />
+
+                  {/* Play/Pause Icon */}
                   {isPlaying ? (
-                    <Pause className="w-8 h-8 md:w-10 md:h-10 group-hover:scale-95 transition-transform" fill="currentColor" />
+                    <Pause className="w-8 h-8 md:w-10 md:h-10 relative z-10 group-hover:scale-95 transition-transform drop-shadow-md" fill="currentColor" />
                   ) : (
-                    <Play className="w-8 h-8 md:w-10 md:h-10 ml-2 group-hover:scale-105 transition-transform" fill="currentColor" />
+                    <Play className="w-8 h-8 md:w-10 md:h-10 ml-2 relative z-10 group-hover:scale-105 transition-transform drop-shadow-md" fill="currentColor" />
                   )}
                 </button>
 
@@ -356,7 +403,7 @@ export const ImmersivePlayer = ({
                    }}
                  >
                     {/* Unplayed straight line */}
-                    <div className="absolute left-0 right-0 h-[6px] bg-white/30 rounded-full" />
+                    <div className="absolute right-0 h-[6px] bg-white/30 rounded-full" style={{ left: `${progress * 100}%` }} />
                     
                     {/* Played wavy line clipping container */}
                     <div className="absolute left-0 top-0 bottom-0 overflow-hidden" style={{ width: `${progress * 100}%` }}>
@@ -366,7 +413,7 @@ export const ImmersivePlayer = ({
                            backgroundImage: `url("${waveSvg}")`,
                            backgroundRepeat: 'repeat-x',
                            backgroundPosition: 'left center',
-                           backgroundSize: '24px 20px',
+                           backgroundSize: '80px 20px',
                            maskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)',
                            WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)'
                          }}

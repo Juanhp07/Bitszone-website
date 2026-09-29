@@ -119,6 +119,14 @@ export const AlbumView = ({
             <span>{album.year}</span>
             <span>•</span>
             <span>{album.trackCount} canciones</span>
+            <span>•</span>
+            <span className="text-white/50">
+              {album.totalDuration ? (
+                Math.floor(album.totalDuration / 3600000) > 0
+                  ? `${Math.floor(album.totalDuration / 3600000)} h ${Math.floor((album.totalDuration % 3600000) / 60000)} min`
+                  : `${Math.floor(album.totalDuration / 60000)} min ${Math.floor((album.totalDuration % 60000) / 1000)} s`
+              ) : ''}
+            </span>
           </div>
         </div>
       </div>

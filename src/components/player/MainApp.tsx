@@ -96,14 +96,80 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     setSelectedAlbumFull(fullAlbum);
   };
 
-  const handlePlayTrack = (track: Track, album: Album) => {
+  const findWorkingUrl = async (track: Track, album: Album): Promise<string> => {
+    const rawTitle = track.title;
+    const noFeat = rawTitle.replace(/\s*[\(\[]feat\..*?[\)\]]/i, '');
+    const cleanChars = rawTitle.replace(/[?¿!¡]/g, '');
+    
+    const toTitleCase = (str: string) => str.replace(/\w\S*/g, (txt: string) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+    
+    const bases = [
+      rawTitle, toTitleCase(rawTitle),
+      noFeat, toTitleCase(noFeat),
+      cleanChars,
+      rawTitle.toUpperCase(), rawTitle.toLowerCase(),
+      "What Do You Mean Remix", "Where Are U Now",
+      rawTitle + " (Remastered)", rawTitle + " (2018 Remaster)", rawTitle + " (1987 Version)"
+    ];
+    
+    const numStr = track.trackNumber ? track.trackNumber.toString().padStart(2, '0') : '01';
+    const numStrRaw = track.trackNumber ? track.trackNumber.toString() : '1';
+    
+    const prefixes = [
+      '',
+      `${numStr} - `, `${numStr} `, `${numStr}. `,
+      `${numStrRaw} - `, `${numStrRaw} `, `${numStrRaw}. `
+    ];
+    
+    const urls = [];
+    for (const b of bases) {
+      for (const p of prefixes) {
+        urls.push(`${p}${b}`);
+      }
+    }
+    
+    const unique = [...new Set(urls)];
+    const baseUrl = track.previewUrl.substring(0, track.previewUrl.lastIndexOf('/') + 1);
+    
+    // First try the original
+    try {
+      const res = await fetch(track.previewUrl, { method: 'HEAD' });
+      if (res.status === 200) return track.previewUrl;
+    } catch(e) {}
+    
+    // Then try fallbacks concurrently in batches
+    for (let i = 0; i < unique.length; i += 10) {
+      const batch = unique.slice(i, i + 10);
+      const batchUrls = batch.flatMap(u => [baseUrl + encodeURIComponent(u) + '.mp3', baseUrl + encodeURIComponent(u) + '.m4a']);
+      
+      const results = await Promise.all(batchUrls.map(async u => {
+        try {
+          const r = await fetch(u, { method: 'HEAD' });
+          if (r.status === 200) return u;
+        } catch(e) {}
+        return null;
+      }));
+      
+      const found = results.find(r => r !== null);
+      if (found) return found;
+    }
+    
+    return track.previewUrl; // Fallback to original if all fail
+  };
+
+  const handlePlayTrack = async (track: Track, album: Album) => {
     setNowPlayingTrack(track);
     setNowPlayingAlbum(album);
+    
     if (audioRef.current) {
-      if (audioRef.current.src !== track.previewUrl) {
-        audioRef.current.src = track.previewUrl;
+      audioRef.current.pause();
+      
+      const workingUrl = await findWorkingUrl(track, album);
+      
+      if (audioRef.current.src !== workingUrl) {
+        audioRef.current.src = workingUrl;
       }
-      audioRef.current.play();
+      audioRef.current.play().catch(console.error);
       setIsPlaying(true);
     }
   };
@@ -119,12 +185,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const handlePrevTrack = () => {
     if (!nowPlayingAlbum || !nowPlayingTrack) return;
     
-    // Solución extrema a prueba de fallos:
-    // Solo leemos el currentTime nativo del elemento de audio.
-    // Dado que el audio real es un preview de 30 segundos y el UI escala esto a la duración total,
-    // 5 segundos visuales equivalen aproximadamente a 0.5 a 0.8 segundos de tiempo de reproducción real.
-    // Usaremos un umbral estricto de 0.5 segundos reales.
-    if (audioRef.current && audioRef.current.currentTime >= 0.5) {
+    // Convert current audio progress to visual seconds
+    const visualSecondsElapsed = progress * (nowPlayingTrack.duration / 1000);
+
+    // Rule: If playing for more than 5 seconds, restart song. If less than 5 seconds, go to previous track.
+    if (audioRef.current && visualSecondsElapsed >= 5) {
       audioRef.current.currentTime = 0;
       setProgress(0);
       

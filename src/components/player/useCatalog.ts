@@ -25,16 +25,43 @@ export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
 
         // Convertir la lista plana de tracks a una lista de álbumes únicos
         const albumsMap = new Map<string, Album>();
+
+        const ALBUM_YEARS: Record<string, string> = {
+          'Thriller': '1982',
+          'Ahora Mas Que Nunca': '2001',
+          'Meteora': '2003',
+          'Hollywood\'s Bleeding': '2019',
+          'CALM': '2020',
+          'Face Value': '1981',
+          'Make Yourself': '1999',
+          'Pablo Honey': '1993',
+          'True': '2013',
+          'UTOPIA': '2023',
+          'Whitesnake': '1987',
+          'Yeezus': '2013',
+          'Unorthodox Jukebox': '2012',
+          'Purpose': '2015'
+        };
         
         tracks.forEach(t => {
           const albumKey = t.album;
+          
+          // Filtrar álbumes o carpetas que comiencen con "_"
+          if (albumKey && albumKey.startsWith('_')) {
+            return;
+          }
+          if (t.audio_url && t.audio_url.includes('/_')) {
+            return;
+          }
+          
           if (!albumsMap.has(albumKey)) {
             albumsMap.set(albumKey, {
               id: albumKey, // Usamos el nombre del álbum como ID temporal
               title: t.album,
               artist: t.artist,
               coverUrl: t.image_url,
-              year: '1982', // Hardcodeado por ahora para Thriller, o sacar de DB
+              year: ALBUM_YEARS[albumKey] || '2023', // Asignado dinámicamente
+              totalDuration: 0,
               genre: 'Pop/Rock',
               trackCount: 0, // Lo calculamos luego
               tracks: []
@@ -52,9 +79,10 @@ export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
                         sizeMb: t.size_mb || t.size || (t.duration / 1000 * 0.023)
           });
           album.trackCount = album.tracks!.length;
+          album.totalDuration = (album.totalDuration || 0) + t.duration;
         });
 
-        setAlbums(Array.from(albumsMap.values()));
+        setAlbums(Array.from(albumsMap.values()).filter(a => a.trackCount > 0));
       } catch (error) {
         console.error("Error fetching catalog from Supabase", error);
       } finally {

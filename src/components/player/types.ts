@@ -22,6 +22,7 @@ export interface Album {
   year: string;
   genre: string;
   trackCount: number;
+  totalDuration?: number;
   tracks?: Track[];
 }
 
