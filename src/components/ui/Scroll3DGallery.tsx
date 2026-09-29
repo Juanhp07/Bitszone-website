@@ -20,7 +20,6 @@ function FloatingAlbum({ album, index, total, scrollYProgress }: { album: AlbumD
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
-  // Restauramos la ESFERA COMPLETA matemática
   const basePosition = useMemo(() => {
     const goldenRatio = (1 + Math.sqrt(5)) / 2;
     const y = 1 - (index / (total - 1)) * 2;
@@ -52,22 +51,17 @@ function FloatingAlbum({ album, index, total, scrollYProgress }: { album: AlbumD
     
     const time = clock.getElapsedTime();
     
-    // Inclinación fija (Tilt X): Levanta el Polo Sur para que ningún álbum quede en el fondo absoluto
     const tiltX = 0.4; 
-    // Rotación constante (Spin Y): Le da vida a la esfera
     const angleY = time * 0.25; 
     
-    // 1. Aplicamos la inclinación X
     let tmpY = basePosition.y * Math.cos(tiltX) - basePosition.z * Math.sin(tiltX);
     let tmpZ = basePosition.y * Math.sin(tiltX) + basePosition.z * Math.cos(tiltX);
     let tmpX = basePosition.x;
 
-    // 2. Aplicamos la rotación Y
     const finalX = tmpX * Math.cos(angleY) - tmpZ * Math.sin(angleY);
     const finalZ = tmpX * Math.sin(angleY) + tmpZ * Math.cos(angleY);
     const finalY = tmpY;
     
-    // Origen SIEMPRE desde la cámara (para que la animación de entrada/salida sea perfecta)
     const startZ = 30; 
     const currentZ = startZ - (startZ - finalZ) * easeP;
     
@@ -123,7 +117,6 @@ function CameraController({ scrollYProgress }: { scrollYProgress: MotionValue<nu
   useFrame(({ camera }) => {
     if (!controlsRef.current) return;
     
-    // Regreso ultrasuave de la cámara a su posición central
     if (scrollYProgress.get() < 0.95) {
       camera.position.lerp(new THREE.Vector3(0, 0, 25), 0.02);
       controlsRef.current.target.lerp(new THREE.Vector3(0, 0, 0), 0.02); 
@@ -154,24 +147,27 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
+  // El título empieza grande (1.8x) y se achica a su tamaño normal (1x) al hacer scroll.
   const titleScale = useTransform(scrollYProgress, [0, 0.3], [1.8, 1]);
-  const titleY = useTransform(scrollYProgress, [0, 0.3], [120, 0]);
-  const titleOpacity = useTransform(scrollYProgress, [0.5, 0.7], [1, 0]);
+  const titleOpacity = useTransform(scrollYProgress, [0.3, 0.5], [1, 0]);
 
   return (
     <div ref={containerRef} className="relative w-full h-[500vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col">
         
-        {/* ZONA SUPERIOR: Título centrado */}
-        <div className="w-full pt-12 md:pt-16 pb-0 flex-shrink-0 relative z-20 flex flex-col items-center justify-center">
+        {/* ZONA SUPERIOR: Le damos un min-h-[30vh] para que cuando el texto esté en 1.8x de tamaño, 
+            no se desborde ni choque con el Canvas 3D (esto previene los problemas de capas y parpadeos) */}
+        <div className="w-full pt-8 md:pt-12 pb-0 flex-shrink-0 relative z-20 flex flex-col items-center justify-center min-h-[30vh]">
           <motion.div 
             style={{ 
               scale: titleScale, 
-              y: titleY,
               opacity: titleOpacity,
-              willChange: "opacity, transform" 
+              // Propiedades para evitar el jitter/parpadeo de sub-píxeles al escalar texto en navegadores
+              WebkitFontSmoothing: "antialiased",
+              backfaceVisibility: "hidden",
+              willChange: "transform, opacity"
             }}
-            className="flex flex-col items-center pointer-events-none"
+            className="flex flex-col items-center pointer-events-none origin-center"
           >
             <h2 className="text-4xl md:text-6xl font-bold text-white text-center tracking-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
               El que busca, <br /> encuentra su ritmo
@@ -179,9 +175,9 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
           </motion.div>
         </div>
 
-        {/* ZONA INFERIOR: Canvas subido con margin-top negativo (-10vh o -15vh) para acortar la distancia con el título */}
+        {/* ZONA INFERIOR: Como la zona superior es más pequeña, el canvas sube naturalmente sin forzar márgenes negativos */}
         <div 
-          className="w-full flex-1 relative z-10 -mt-[12vh] pointer-events-auto cursor-grab active:cursor-grabbing"
+          className="w-full flex-1 relative z-10 pointer-events-auto cursor-grab active:cursor-grabbing"
           style={{
             WebkitMaskImage: 'linear-gradient(to bottom, transparent 2%, black 15%, black 85%, transparent 100%)',
             maskImage: 'linear-gradient(to bottom, transparent 2%, black 15%, black 85%, transparent 100%)'
