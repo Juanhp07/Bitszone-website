@@ -119,9 +119,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const handlePrevTrack = () => {
     if (!nowPlayingAlbum || !nowPlayingTrack) return;
     
-    // If song has played for more than 3 seconds (or ~5%), restart the current song
-    if (audioRef.current && audioRef.current.currentTime > 3) {
+    // Si la canción ha avanzado más de 5 segundos, la reiniciamos
+    if (audioRef.current && audioRef.current.currentTime > 5) {
       audioRef.current.currentTime = 0;
+      setProgress(0);
+      
       // Ensure it plays if it was paused
       if (!isPlaying) {
         audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
