@@ -57,12 +57,35 @@ const albums = [
     title: "25th Anniversary",
     artist: "El Gran Combo de Puerto Rico",
     color: "#dc2626"
+  },
+  {
+    src: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/29/df/5c/29df5c2d-3dee-1e74-9a38-0740459035f6/25CRGIM48251.rgb.jpg/500x500bb.jpg",
+    alt: "Whitesnake - Whitesnake",
+    title: "Whitesnake",
+    artist: "Whitesnake",
+    color: "#facc15"
+  },
+  {
+    src: "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/f5/63/03/f56303f8-65cc-cd3c-07e1-8869c9b136ec/077779326159.jpg/500x500bb.jpg",
+    alt: "Megadeth - Rust In Peace",
+    title: "Rust In Peace",
+    artist: "Megadeth",
+    color: "#3b82f6"
+  },
+  {
+    src: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/d2/d8/d6/d2d8d6ad-85d4-7024-9726-e1f312beb522/603497889754.jpg/500x500bb.jpg",
+    alt: "Phil Collins - Face Value",
+    title: "Face Value",
+    artist: "Phil Collins",
+    color: "#d4d4d8"
   }
 ];
 
 export const FeatureSection = () => {
   return (
-    <section className="relative w-full z-20">
+    // Agregamos un gran espacio vacío debajo (mb-[30vh] md:mb-[40vh])
+    // para que la transición hacia la sección 3 sea lenta, intuitiva y fluida.
+    <section className="relative w-full z-20 mb-[30vh] md:mb-[40vh]">
       <Scroll3DGallery albums={albums} />
     </section>
   );
