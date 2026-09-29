@@ -268,7 +268,7 @@ export const ImmersivePlayer = ({
               {/* Controls */}
               <div className="flex items-center gap-8 md:gap-12 mb-10">
                 <button 
-                  onClick={(e) => { e.stopPropagation(); onPrev(); }}
+                  onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
                   className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group"
                 >
                   <SkipBack className="w-5 h-5 md:w-7 md:h-7 group-hover:-translate-x-1 transition-transform" fill="currentColor" />
@@ -286,7 +286,7 @@ export const ImmersivePlayer = ({
                 </button>
 
                 <button 
-                  onClick={(e) => { e.stopPropagation(); onNext(); }}
+                  onClick={(e) => { e.stopPropagation(); onNext?.(); }}
                   className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group"
                 >
                   <SkipForward className="w-5 h-5 md:w-7 md:h-7 group-hover:translate-x-1 transition-transform" fill="currentColor" />

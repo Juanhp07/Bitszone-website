@@ -59,9 +59,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       setIsPlaying(false);
       setProgress(0);
       if (nowPlayingAlbum && nowPlayingTrack) {
-        const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack.id);
-        if (currentIndex < nowPlayingAlbum.tracks.length - 1) {
-          const nextTrack = nowPlayingAlbum.tracks[currentIndex + 1];
+        const currentIndex = nowPlayingAlbum.tracks?.findIndex(t => t.id === nowPlayingTrack.id) ?? -1;
+        if (currentIndex !== -1 && currentIndex < (nowPlayingAlbum.tracks?.length || 0) - 1) {
+          const nextTrack = nowPlayingAlbum.tracks![currentIndex + 1];
           setNowPlayingTrack(nextTrack);
           if (audioRef.current) {
             audioRef.current.src = nextTrack.previewUrl;
@@ -110,9 +110,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const handleNextTrack = () => {
     if (!nowPlayingAlbum || !nowPlayingTrack) return;
-    const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack.id);
-    if (currentIndex < nowPlayingAlbum.tracks.length - 1) {
-      handlePlayTrack(nowPlayingAlbum.tracks[currentIndex + 1], nowPlayingAlbum);
+    const currentIndex = nowPlayingAlbum.tracks?.findIndex(t => t.id === nowPlayingTrack.id) ?? -1;
+    if (currentIndex !== -1 && currentIndex < (nowPlayingAlbum.tracks?.length || 0) - 1) {
+      handlePlayTrack(nowPlayingAlbum.tracks![currentIndex + 1], nowPlayingAlbum);
     }
   };
 
@@ -134,9 +134,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       return;
     }
 
-    const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack.id);
+    const currentIndex = nowPlayingAlbum.tracks?.findIndex(t => t.id === nowPlayingTrack.id) ?? -1;
     if (currentIndex > 0) {
-      handlePlayTrack(nowPlayingAlbum.tracks[currentIndex - 1], nowPlayingAlbum);
+      handlePlayTrack(nowPlayingAlbum.tracks![currentIndex - 1], nowPlayingAlbum);
     } else {
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
@@ -169,7 +169,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? 'opacity-50' : 'opacity-0'}`}
         style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
       >
-        <div className="absolute inset-0 bg-cover bg-center blur-[150px] scale-110 opacity-70" style={{ backgroundImage: currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? `url(${(selectedAlbumFull || selectedAlbum).coverUrl})` : 'none' }}></div>
+        <div className="absolute inset-0 bg-cover bg-center blur-[150px] scale-110 opacity-70" style={{ backgroundImage: currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? `url(${(selectedAlbumFull || selectedAlbum)?.coverUrl})` : 'none' }}></div>
       </div>
 
       {/* Dynamic Artist Background Glow */}
