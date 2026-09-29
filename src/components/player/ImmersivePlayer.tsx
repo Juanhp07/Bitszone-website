@@ -170,7 +170,7 @@ export const ImmersivePlayer = ({
                    className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
                      isActive 
                        ? 'text-[#c084fc] drop-shadow-[0_0_12px_rgba(192,132,252,0.8)] translate-x-4' 
-                       : 'text-white/80 hover:text-white'
+                       : 'text-white/60 hover:text-white/90'
                    }`}
                  >
                    <div className="flex items-center gap-4 md:gap-6">
@@ -184,7 +184,7 @@ export const ImmersivePlayer = ({
                            fill={isFavorite(t.id) ? "currentColor" : "none"} 
                          />
                        </button>
-                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#c084fc]/80' : 'text-white/50'}`}>
+                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#c084fc]/80' : 'text-white/40'}`}>
                          {(t.trackNumber || i + 1).toString().padStart(2, '0')}
                        </span>
                      </div>

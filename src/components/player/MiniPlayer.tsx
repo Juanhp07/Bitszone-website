@@ -137,14 +137,16 @@ export const MiniPlayer = ({
                    backgroundImage: `url("${waveSvg}")`,
                    backgroundRepeat: 'repeat-x',
                    backgroundPosition: 'left center',
-                   backgroundSize: '24px 12px'
+                   backgroundSize: '24px 12px',
+                   maskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)',
+                   WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)'
                  }}
                />
             </div>
             
             {/* The Dot (Handle) */}
             <div 
-               className="absolute w-2.5 h-2.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
+               className="absolute w-3 h-3 md:w-3.5 md:h-3.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
                style={{ left: `${progress * 100}%` }}
             />
             
