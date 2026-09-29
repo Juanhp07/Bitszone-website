@@ -88,7 +88,7 @@ export const ImmersivePlayer = ({
 
   const isSomewhereIBelong = track.title === "Somewhere I Belong";
   const activeLyrics = isSomewhereIBelong ? somewhereIBelongLyrics : [];
-  const currentSecs = progress * (track.duration / 1000) + 2.5; // Offset to match the audio timing perfectly
+  const currentSecs = progress * (track.duration / 1000) - 26; // Offset to 40.5s start // Offset to match the audio timing perfectly
 
   const activeLineIndex = React.useMemo(() => {
     return activeLyrics.reduce((acc, line, i) => {
@@ -280,12 +280,12 @@ export const ImmersivePlayer = ({
            </div>
 
            {/* Lyrics View Area */}
-           <div className={`absolute top-0 left-0 right-0 bottom-[220px] xl:bottom-[280px] flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
+           <div className={`absolute top-0 left-0 right-0 h-[60vh] flex flex-col items-center justify-center z-20 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
               
               {isSomewhereIBelong ? (
                 <div 
                   ref={lyricsContainerRef}
-                  className="w-full h-full max-h-[60vh] overflow-y-auto px-8 py-[30vh] flex flex-col items-center gap-6"
+                  className="w-full h-full overflow-y-auto px-8 py-[25vh] flex flex-col items-center gap-4"
                   style={{ 
                     scrollbarWidth: 'none',
                     maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
@@ -304,10 +304,10 @@ export const ImmersivePlayer = ({
                         }}
                         className={`text-center transition-all duration-500 ease-out cursor-pointer font-bold ${
                           isActive 
-                            ? 'text-3xl md:text-5xl text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] scale-110' 
+                            ? 'text-2xl md:text-4xl text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] scale-110' 
                             : isPassed 
-                              ? 'text-xl md:text-3xl text-white/40 hover:text-white/70' 
-                              : 'text-xl md:text-3xl text-white/20 hover:text-white/50'
+                              ? 'text-lg md:text-2xl text-white/40 hover:text-white/70' 
+                              : 'text-lg md:text-2xl text-white/20 hover:text-white/50'
                         }`}
                       >
                         {line.text}
