@@ -100,8 +100,20 @@ export const ImmersivePlayer = ({
   const wave = [15, 30, 50, 80, 60, 40, 70, 100, 85, 60, 30, 45, 90, 75, 50, 35, 65, 85, 100, 80, 50, 35, 20, 15];
   const activeBars = Math.floor(progress * wave.length);
 
+
+  const waveSvg = "data:image/svg+xml,%3Csvg width='24' height='12' viewBox='0 0 24 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 6C4 0 8 12 12 6C16 0 20 12 24 6' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E";
+
   return createPortal(
     <>
+      <style>{`
+        @keyframes wave-slide {
+          from { background-position-x: 0px; }
+          to { background-position-x: -24px; }
+        }
+        .animate-wave-slide {
+          animation: wave-slide 1s linear infinite;
+        }
+      `}</style>
       {/* Backdrop (though the modal is fullscreen, keeping this for transition) */}
       <div 
         onClick={onClose}
@@ -118,6 +130,15 @@ export const ImmersivePlayer = ({
         }`}
       >
         
+        {/* Dynamic Gradient from Album Colors (Focused on Tracklist) */}
+        <div className="absolute top-0 left-0 bottom-0 w-[50%] z-0 pointer-events-none overflow-hidden">
+           <img 
+             src={album.coverUrl} 
+             className="w-full h-full object-cover blur-[100px] saturate-[2.5] opacity-60 scale-150 transform origin-left" 
+             alt=""
+           />
+           <div className="absolute inset-0 bg-gradient-to-r from-[#05050A]/20 via-[#05050A]/60 to-[#05050A]" />
+        </div>
 
         <button 
           onClick={onClose}
@@ -130,12 +151,13 @@ export const ImmersivePlayer = ({
         {/* 1. LEFT: Tracklist */}
         <div className="absolute top-[110px] left-12 xl:left-[5rem] z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">PISTAS</div>
         <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-[140px] pb-0">
-           {/* Deep fade masks for Top, Bottom, and Right edges to avoid harsh cuts */}
-           <div className="absolute top-0 left-0 right-0 h-[120px] bg-gradient-to-b from-[#05050A] via-[#05050A]/90 to-transparent z-20 pointer-events-none" />
-           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#05050A] via-[#05050A]/95 to-transparent z-20 pointer-events-none" />
-           <div className="absolute top-0 right-0 bottom-0 w-32 bg-gradient-to-l from-[#05050A] via-[#05050A]/80 to-transparent z-20 pointer-events-none" />
-           
-           <div className="w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-12 xl:pl-[5rem] transition-all duration-700 pb-20 pt-2" style={{ scrollbarWidth: 'none' }}>
+           <div 
+             className="w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-12 xl:pl-[5rem] transition-all duration-700 pb-20 pt-2" 
+             style={{ 
+               scrollbarWidth: 'none',
+               maskImage: 'linear-gradient(to bottom, transparent 0px, black 120px, black calc(100% - 120px), transparent 100%)',
+               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 120px, black calc(100% - 120px), transparent 100%)'
+             }}>
              {album.tracks?.map((t, i) => {
                const isActive = track.id === t.id;
                return (
@@ -271,11 +293,12 @@ export const ImmersivePlayer = ({
                 </button>
               </div>
 
-              {/* Simple Timeline Progress Bar */}
+              {/* Squiggly Timeline Progress Bar */}
               <div className={`w-full max-w-xl flex items-center gap-4 font-bold text-white/50 tracking-wider transition-all duration-[1200ms] ${activeTab === 'letra' ? 'text-lg md:text-xl' : 'text-xs'}`}>
                  <span className={`text-right transition-all duration-[1200ms] ${activeTab === 'letra' ? 'w-16' : 'w-10'}`}>{formatTime(progress * track.duration)}</span>
+                 
                  <div 
-                   className="flex-1 h-2.5 md:h-3 bg-white/10 rounded-full overflow-hidden cursor-pointer relative group"
+                   className="flex-1 h-8 flex items-center relative cursor-pointer group"
                    onClick={(e) => {
                       e.stopPropagation();
                       const rect = e.currentTarget.getBoundingClientRect();
@@ -283,11 +306,29 @@ export const ImmersivePlayer = ({
                       onSeek?.(p);
                    }}
                  >
+                    {/* Unplayed straight line */}
+                    <div className="absolute left-0 right-0 h-[2px] bg-white/20 rounded-full" />
+                    
+                    {/* Played wavy line clipping container */}
+                    <div className="absolute left-0 top-0 bottom-0 overflow-hidden" style={{ width: `${progress * 100}%` }}>
+                       <div 
+                         className={`absolute left-0 top-0 bottom-0 w-[200vw] ${isPlaying ? 'animate-wave-slide' : ''}`}
+                         style={{
+                           backgroundImage: `url("${waveSvg}")`,
+                           backgroundRepeat: 'repeat-x',
+                           backgroundPosition: 'left center',
+                           backgroundSize: '24px 12px'
+                         }}
+                       />
+                    </div>
+                    
+                    {/* The Dot (Handle) */}
                     <div 
-                      className="absolute top-0 left-0 h-full bg-[#a855f7] rounded-full pointer-events-none group-hover:brightness-125 transition-all duration-100" 
-                      style={{ width: `${progress * 100}%` }} 
+                       className="absolute w-3.5 h-3.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
+                       style={{ left: `${progress * 100}%` }}
                     />
                  </div>
+
                  <span className={`transition-all duration-[1200ms] ${activeTab === 'letra' ? 'w-16' : 'w-10'}`}>{formatTime(track.duration)}</span>
               </div>
            </div>
