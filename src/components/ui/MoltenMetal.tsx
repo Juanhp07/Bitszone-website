@@ -95,11 +95,26 @@ void main() {
   mat2 camRot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
   p = camRot * p;
 
-  vec2 drift = vec2(0.0);
   if (uEnableMouse) {
-    drift = (uMouse - 0.5) * uMouseStrength * 2.0;
+    vec2 mouseP = dynamicScale * ((uMouse - 0.5) * vec2(iResolution.x / iResolution.y, 1.0)) - 0.5;
+    mouseP.x += sin(uScroll * 3.14159 * 2.0) * 1.2;
+    mouseP.y -= uScroll * 4.0;
+    mouseP = camRot * mouseP;
+
+    vec2 diff = p - mouseP;
+    float dist = length(diff);
+    
+    float vortexStr = uMouseStrength * 1.5;
+    float pull = vortexStr / (dist * dist + 0.1) * 0.05;
+    float twist = vortexStr / (dist + 0.5) * 2.5;
+    
+    p -= normalize(diff) * min(pull, dist * 0.9);
+    
+    diff = p - mouseP;
+    float s = sin(twist);
+    float c = cos(twist);
+    p = mouseP + vec2(diff.x * c - diff.y * s, diff.x * s + diff.y * c);
   }
-  p += drift;
 
   vec2 i = p;
   float c = 0.0;
