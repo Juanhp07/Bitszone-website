@@ -31,6 +31,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [progress, setProgress] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playRequestIdRef = useRef(0);
 
   const toggleMute = () => {
     if (volume > 0) {
@@ -96,7 +97,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     setSelectedAlbumFull(fullAlbum);
   };
 
-  const findWorkingUrl = async (track: Track, album: Album): Promise<string> => {
+  const findWorkingUrl = async (track: Track, album: Album): Promise<string | null> => {
     const rawTitle = track.title;
     const noFeat = rawTitle.replace(/\s*[\(\[]feat\..*?[\)\]]/i, '');
     const cleanChars = rawTitle.replace(/[?¿!¡]/g, '');
@@ -109,7 +110,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       cleanChars,
       rawTitle.toUpperCase(), rawTitle.toLowerCase(),
       "What Do You Mean Remix", "Where Are U Now",
-      rawTitle + " (Remastered)", rawTitle + " (2018 Remaster)", rawTitle + " (1987 Version)"
+      rawTitle + " (Remastered)", rawTitle + " (2018 Remaster)", rawTitle + " (1987 Version)",
+      rawTitle + " (2015 Remaster)", rawTitle + " (Remaster)", 
+      rawTitle + " (Avicii By Avicii)", rawTitle.replace(' (Avicii By Avicii)', ''), rawTitle.replace(' ?', ''), rawTitle.replace('?', '')
     ];
     
     const numStr = track.trackNumber ? track.trackNumber.toString().padStart(2, '0') : '01';
@@ -154,23 +157,50 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       if (found) return found;
     }
     
-    return track.previewUrl; // Fallback to original if all fail
+    return null; // Return null if all fail so we can skip
   };
 
-  const handlePlayTrack = async (track: Track, album: Album) => {
+      const handlePlayTrack = async (track: Track, album: Album) => {
+    playRequestIdRef.current += 1;
+    const currentRequestId = playRequestIdRef.current;
+
     setNowPlayingTrack(track);
     setNowPlayingAlbum(album);
     
     if (audioRef.current) {
       audioRef.current.pause();
+      setIsPlaying(false);
       
       const workingUrl = await findWorkingUrl(track, album);
+      
+      // Abort if user clicked another track while we were finding the URL
+      if (currentRequestId !== playRequestIdRef.current) {
+         return;
+      }
+      
+      if (!workingUrl) {
+        console.warn("Track unplayable, skipping:", track.title);
+        audioRef.current.removeAttribute('src'); // Clear the src so we don't accidentally play the previous track
+        audioRef.current.load();
+        
+        const currentIndex = album.tracks?.findIndex(t => t.id === track.id) ?? -1;
+        if (currentIndex !== -1 && currentIndex < (album.tracks?.length || 0) - 1) {
+          // Play next track automatically only if we haven't switched tracks
+          setTimeout(() => {
+            if (currentRequestId === playRequestIdRef.current) {
+              handlePlayTrack(album.tracks![currentIndex + 1], album);
+            }
+          }, 500);
+        }
+        return;
+      }
       
       if (audioRef.current.src !== workingUrl) {
         audioRef.current.src = workingUrl;
       }
-      audioRef.current.play().catch(console.error);
-      setIsPlaying(true);
+      audioRef.current.play().then(() => {
+         if (currentRequestId === playRequestIdRef.current) setIsPlaying(true);
+      }).catch(console.error);
     }
   };
 
