@@ -7,6 +7,7 @@ import { CatalogView } from './CatalogView';
 import { AlbumView } from './AlbumView';
 import { DownloadsView } from './DownloadsView';
 import { ImmersivePlayer } from './ImmersivePlayer';
+import { LyricsSidebar } from './LyricsSidebar';
 import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
@@ -18,6 +19,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string, type?: string} | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
+  const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
@@ -350,8 +352,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
         {/* Full-bleed Main Content container */}
         <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
-            {/* Actual scrollable content */}
-            <div className="flex-1 relative flex flex-col min-h-0 z-10">
+            {/* Split area for main scrollable content + right sidebar */}
+            <div className="flex-1 relative flex min-h-0 z-10">
+              {/* Actual scrollable content */}
+              <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
               
               
               <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
@@ -397,6 +401,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
               {/* Right side gradient */}
               <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+              </div>
+
+              {/* Right Lyrics Sidebar */}
+              <div className={`h-full pt-20 shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
+                <div className="w-80 h-full">
+                  <LyricsSidebar track={nowPlayingTrack} album={nowPlayingAlbum} progress={progress} />
+                </div>
+              </div>
             </div>
 
             {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
@@ -410,6 +422,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   progress={progress}
                   volume={volume}
                   onExpand={() => setIsPlayerExpanded(true)}
+                  isLyricsOpen={isLyricsOpen}
+                  onToggleLyrics={() => setIsLyricsOpen(!isLyricsOpen)}
                   onNext={handleNextTrack}
                   onPrev={handlePrevTrack}
                   onSeek={(p) => {

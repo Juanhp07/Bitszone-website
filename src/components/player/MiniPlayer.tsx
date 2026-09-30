@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Heart } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Heart, Mic2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Album, Track } from './types';
 
@@ -17,7 +17,9 @@ export const MiniPlayer = ({
   onVolumeChange,
   onToggleMute,
   onSelectAlbum,
-  onSelectArtist
+  onSelectArtist,
+  isLyricsOpen,
+  onToggleLyrics
 }: { 
   track: Track,
   album: Album,
@@ -32,7 +34,9 @@ export const MiniPlayer = ({
   onVolumeChange?: (volume: number) => void,
   onToggleMute?: () => void,
   onSelectAlbum?: () => void,
-  onSelectArtist?: () => void
+  onSelectArtist?: () => void,
+  isLyricsOpen?: boolean,
+  onToggleLyrics?: () => void
 }) => {
   const { isFavorite, toggleFavorite } = useDownloads();
 
@@ -167,8 +171,11 @@ export const MiniPlayer = ({
 
       {/* Right: Volume & Extra */}
       <div className="flex items-center justify-end gap-4 w-[30%] min-w-[200px] relative z-10">
-        <button className="text-white/50 hover:text-white transition-colors">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <button 
+          onClick={onToggleLyrics}
+          className={`transition-colors ${isLyricsOpen ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}
+        >
+          <Mic2 className="w-4 h-4" />
         </button>
                 <button onClick={onToggleMute} className="text-white/50 hover:text-white transition-colors focus:outline-none">
           {volume === 0 ? <VolumeX className="w-4 h-4" /> : volume < 50 ? <Volume1 className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
