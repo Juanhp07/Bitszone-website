@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { useMeasure } from 'react-use';
+import useMeasure from '../../hooks/useMeasure';
 
 export type CoverflowItem = {
   src: string;

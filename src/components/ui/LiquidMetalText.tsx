@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useId } from "react";
-import { useMeasure } from "react-use";
+import useMeasure from "../../hooks/useMeasure";
 
 interface LiquidMetalTextProps {
   text: string;
