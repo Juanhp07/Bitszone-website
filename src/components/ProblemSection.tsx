@@ -390,7 +390,8 @@ export const ProblemSection = () => {
                   perspective={1200}
                   tiltLimit={15}
                   spotlight={true}
-                  className="relative backdrop-blur-[40px] rounded-[32px] overflow-hidden group h-[480px] flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),inset_0_0_0_1px_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.2)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08),0_12px_40px_rgba(0,0,0,0.5)] cursor-pointer transition-shadow duration-500"
+                  spotlightColor={card.border.replace("0.5", "0.2")}
+                  className="relative backdrop-blur-[40px] rounded-[32px] overflow-hidden group h-[480px] flex flex-col cursor-pointer"
                   style={{ background: `linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(9,9,11,0.1) 15%, rgba(9,9,11,0.6) 50%, rgba(9,9,11,0.95) 100%), ${card.glowColor}` }}
                 >
                 {/* Raycast ambient glow base */}

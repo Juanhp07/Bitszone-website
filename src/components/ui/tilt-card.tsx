@@ -4,21 +4,14 @@ import { useRef, useState, useCallback } from "react"
 import { cn } from "../../lib/utils"
 
 export interface TiltCardProps {
-  /** Maximum tilt angle in degrees */
   tiltLimit?: number
-  /** Scale factor on hover */
   scale?: number
-  /** Perspective distance in pixels */
   perspective?: number
-  /** Tilt direction: "gravitate" follows cursor, "evade" tilts away */
   effect?: "gravitate" | "evade"
-  /** Show a spotlight that follows the cursor on hover */
   spotlight?: boolean
-  /** Additional class name */
+  spotlightColor?: string
   className?: string
-  /** Additional inline styles */
   style?: React.CSSProperties
-  /** Card content */
   children?: React.ReactNode
 }
 
@@ -28,6 +21,7 @@ export function TiltCard({
   perspective = 1200,
   effect = "evade",
   spotlight = true,
+  spotlightColor = "rgba(255,255,255,0.08)",
   className,
   style,
   children,
@@ -77,28 +71,30 @@ export function TiltCard({
       onPointerEnter={handlePointerEnter}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className={cn("will-change-transform relative overflow-hidden", className)}
+      className={cn("will-change-transform relative overflow-hidden transition-all duration-500", className)}
       style={{
         transform,
-        transition: "transform 0.2s ease-out",
+        transition: "transform 0.2s ease-out, box-shadow 0.5s ease",
         transformStyle: "preserve-3d",
+        boxShadow: isHovered 
+          ? `inset 0 0 0 1px rgba(255,255,255,0.08), 0 20px 50px ${spotlightColor.replace(/0\.\d+\)$/, "0.4)")}` 
+          : "inset 0 1px 1px rgba(255,255,255,0.1), inset 0 0 0 1px rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.2)",
         ...style,
       }}
     >
       {children}
       {spotlight && (
         <div
-          className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+          className="pointer-events-none absolute inset-0 z-10 overflow-hidden mix-blend-overlay"
           style={{ opacity: isHovered ? 1 : 0, transition: "opacity 0.3s" }}
         >
           <div
-            className="absolute w-[200%] h-[200%] rounded-full opacity-100 dark:opacity-50"
+            className="absolute w-[200%] h-[200%] rounded-full opacity-100"
             style={{
               left: `${spotlightPos.x}%`,
               top: `${spotlightPos.y}%`,
               transform: "translate(-50%, -50%)",
-              background:
-                "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 40%)",
+              background: `radial-gradient(circle, ${spotlightColor} 0%, transparent 40%)`,
             }}
           />
         </div>
