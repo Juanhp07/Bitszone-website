@@ -57,8 +57,16 @@ export const HeroSection = () => {
               className="relative z-10 transition-colors duration-500 ease-out group-hover:!bg-[rgba(10,0,20,0.3)]"
               style={{ borderRadius: '999px' }}
             >
-              {/* Contorno interactivo perfectamente alineado DENTRO del cristal */}
-              <div className="absolute inset-0 pointer-events-none z-20 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                              {/* Efecto de borde rotativo (solo en hover) */}
+                <div className="absolute inset-0 pointer-events-none z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[999px] overflow-hidden">
+                  <div className="absolute inset-[-200%] w-[400%] h-[400%] [animation:rotate-gradient_4s_linear_infinite]">
+                    <div className="absolute inset-0 [background:conic-gradient(from_calc(270deg-(90deg*0.5)),transparent_0,rgba(255,159,252,0.8)_90deg,transparent_90deg)]" />
+                  </div>
+                  <div className="absolute inset-[1.5px] rounded-[999px] bg-[rgba(10,0,20,0.8)] backdrop-blur-[8px]" />
+                </div>
+
+                {/* Contorno interactivo perfectamente alineado DENTRO del cristal */}
+                <div className="absolute inset-0 pointer-events-none z-20 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
                 <SpecularButton
                   radius={999}
                   tint="transparent"

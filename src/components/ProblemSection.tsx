@@ -325,35 +325,50 @@ export const ProblemSection = () => {
         Usa tus herramientas favoritas y administra tus pistas descargadas sin depender de tu conexión a internet.
       </motion.p>
 
-      {/* Segmented Control Animado al Scroll */}
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.3 }}
-        className="flex items-center p-1.5 rounded-full bg-[#0E0E10] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.4)] mb-14"
-      >
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveTab(cat)}
-            className={`relative px-6 py-2.5 rounded-full text-[14px] md:text-[15px] font-medium transition-colors duration-300 ${
-              activeTab === cat ? 'text-white' : 'text-[#8b8d98] hover:text-[#c4c5cc]'
-            }`}
-          >
-            {activeTab === cat && (
-              <motion.div
-                layoutId="raycast-pill"
-                className="absolute inset-0 bg-[#252528] rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_8px_rgba(0,0,0,0.2)]"
-                transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              />
-            )}
-            <span className="relative z-10">{cat}</span>
-          </button>
-        ))}
-      </motion.div>
-
-      {/* Raycast Style Cards Grid con animaciones Stagger al hacer scroll */}
+      {/* Segmented Control Animado al Scroll (Glassmorphism NavBar) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.3 }}
+          className="flex items-center gap-1.5 py-1.5 px-1.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_0_0_1px_rgba(255,255,255,0.03)] transition-all duration-300 bg-[rgba(10,0,20,0.3)] backdrop-blur-[20px] mb-14"
+        >
+          {categories.map((cat) => {
+            const isActive = activeTab === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveTab(cat)}
+                className={`relative cursor-pointer text-[14px] md:text-[15px] font-semibold px-6 py-2.5 rounded-full transition-colors duration-300 ${
+                  isActive ? 'text-white' : 'text-[#8b8d98] hover:text-[#e0e0e0]'
+                }`}
+              >
+                <span className="relative z-10">{cat}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="liquid-pill"
+                    className="absolute inset-0 w-full h-full rounded-full -z-10 bg-gradient-to-b from-[rgba(168,85,247,0.15)] to-transparent backdrop-blur-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_12px_rgba(0,0,0,0.4)]"
+                    initial={false}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 30,
+                      mass: 0.8
+                    }}
+                  >
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-t-full bg-[#a855f7] shadow-[0_0_8px_rgba(168,85,247,0.8)]">
+                      <div className="absolute w-12 h-6 rounded-full blur-md -top-2 -left-2 bg-[rgba(168,85,247,0.4)]" />
+                      <div className="absolute w-8 h-6 rounded-full blur-md -top-1 bg-[rgba(168,85,247,0.4)]" />
+                      <div className="absolute w-4 h-4 rounded-full blur-sm top-0 left-2 bg-[rgba(168,85,247,0.4)]" />
+                    </div>
+                  </motion.div>
+                )}
+              </button>
+            );
+          })}
+        </motion.div>
+  
+        {/* Raycast Style Cards Grid con animaciones Stagger al hacer scroll */}
       <div className="w-full max-w-[1200px] px-6">
         <AnimatePresence mode="wait">
           <motion.div
