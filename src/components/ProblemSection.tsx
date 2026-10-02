@@ -327,17 +327,6 @@ export const ProblemSection = () => {
           </h2>
       </motion.div>
 
-      {/* Subtítulo Animado */}
-      <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-        className="text-[#8e8d98] font-inter text-[16px] md:text-[18px] max-w-2xl text-center mb-10 px-6"
-      >
-        Usa tus herramientas favoritas y administra tus pistas descargadas sin depender de tu conexión a internet.
-      </motion.p>
-
       {/* Segmented Control Animado al Scroll (Glassmorphism NavBar) */}
         <motion.div 
             initial={{ opacity: 0, y: 30 }}
