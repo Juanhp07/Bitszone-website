@@ -160,7 +160,6 @@ export function MagneticSelect({
               width: CHIP,
               height: CHIP,
               zIndex: on ? 20 : 10,
-              boxShadow: on ? `0 10px 30px ${items[i].color}80` : 'none',
             }}
             onClick={() => choose(i)}
             initial={false}
@@ -188,11 +187,11 @@ export function MagneticSelect({
               className="absolute inset-0 rounded-full flex items-center justify-center hover:scale-[1.045]"
               style={{
                 translate: `${lean.x.toFixed(2)}px ${lean.y.toFixed(2)}px`,
-                transitionProperty: "translate, transform, background-color",
+                transitionProperty: "translate, transform, background-color, box-shadow",
                 transitionDuration: "260ms",
                 transitionTimingFunction: "cubic-bezier(0.18, 0.89, 0.32, 1.28)",
-                // Aplicamos gradiente alineado a la paleta Bitszone si está encendido
                 background: on ? `linear-gradient(135deg, ${items[i].color}, #00FFFF)` : '#1c1c20',
+                boxShadow: on ? `0 10px 25px ${items[i].color}90, inset 0 2px 4px rgba(255,255,255,0.3)` : 'inset 0 1px 1px rgba(255,255,255,0.05)',
               }}
             >
               {/* Absolutamente el MISMO tamaño de fuente para todos (text-[13px]).
