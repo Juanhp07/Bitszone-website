@@ -308,10 +308,22 @@ export const ProblemSection = () => {
         transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
         className="text-center w-full max-w-[1200px] mx-auto mb-6 px-6"
       >
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2]">
-          Hay una función para eso. <br className="hidden md:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d8b4fe] to-[#a855f7]">Controla tu biblioteca offline.</span>
-        </h2>
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2] text-center flex flex-col md:inline-block items-center justify-center">
+            <span>Hay una función para eso.</span>
+            <br className="hidden md:block" />
+            <span className="inline-flex items-center flex-wrap justify-center mt-2 md:mt-0">
+              <span className="mr-3">Controla tu</span>
+              <span className="text-scroller">
+                <span className="scroller-inner">
+                  <span className="scroller-word text-transparent bg-clip-text bg-gradient-to-r from-[#d8b4fe] to-[#a855f7]">biblioteca offline.</span>
+                  <span className="scroller-word text-transparent bg-clip-text bg-gradient-to-r from-[#d8b4fe] to-[#a855f7]">experiencia sonora.</span>
+                  <span className="scroller-word text-transparent bg-clip-text bg-gradient-to-r from-[#d8b4fe] to-[#a855f7]">colección musical.</span>
+                  <span className="scroller-word text-transparent bg-clip-text bg-gradient-to-r from-[#d8b4fe] to-[#a855f7]">gestión de pistas.</span>
+                  <span className="scroller-word text-transparent bg-clip-text bg-gradient-to-r from-[#d8b4fe] to-[#a855f7]">biblioteca offline.</span>
+                </span>
+              </span>
+            </span>
+          </h2>
       </motion.div>
 
       {/* Subtítulo Animado */}

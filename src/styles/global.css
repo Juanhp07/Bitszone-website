@@ -199,3 +199,47 @@ html {
   animation: marquee-pingpong 14s ease-in-out infinite;
   width: max-content;
 }
+
+@keyframes spin_words {
+  0%, 20% { transform: translateY(0); }
+  25%, 45% { transform: translateY(-1.2em); }
+  50%, 70% { transform: translateY(-2.4em); }
+  75%, 95% { transform: translateY(-3.6em); }
+  100% { transform: translateY(-4.8em); }
+}
+
+.text-scroller {
+  display: inline-grid;
+  overflow: hidden;
+  position: relative;
+  height: 1.2em; /* match line height */
+  vertical-align: bottom;
+}
+
+.text-scroller::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    rgba(10, 0, 20, 1) 0%,
+    transparent 15%,
+    transparent 85%,
+    rgba(10, 0, 20, 1) 100%
+  );
+  z-index: 20;
+  pointer-events: none;
+}
+
+.scroller-inner {
+  display: flex;
+  flex-direction: column;
+  animation: spin_words 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.scroller-word {
+  display: flex;
+  align-items: center;
+  height: 1.2em;
+  padding-left: 0.15em;
+  padding-right: 0.15em;
+}
