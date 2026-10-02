@@ -1,5 +1,6 @@
 import { ArtistView } from "./ArtistView";
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from "framer-motion";
 import { TopNav } from './TopNav';
 import { Sidebar } from './Sidebar';
 import { MiniPlayer } from './MiniPlayer';
@@ -8,6 +9,7 @@ import { AlbumView } from './AlbumView';
 import { DownloadsView } from './DownloadsView';
 import { ImmersivePlayer } from './ImmersivePlayer';
 import { LyricsSidebar } from './LyricsSidebar';
+import { ToastContainer } from './ToastContainer';
 import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
@@ -20,6 +22,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
   
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
@@ -61,15 +67,48 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     const handleEnded = () => {
       setIsPlaying(false);
       setProgress(0);
+      
+      if (repeatMode === 'one') {
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
+        }
+        return;
+      }
+      
+      if (isShuffle && nowPlayingAlbum && nowPlayingAlbum.tracks && nowPlayingAlbum.tracks.length > 1) {
+        let randomIndex = Math.floor(Math.random() * nowPlayingAlbum.tracks.length);
+        const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack?.id);
+        while (randomIndex === currentIndex) {
+          randomIndex = Math.floor(Math.random() * nowPlayingAlbum.tracks.length);
+        }
+        const nextTrack = nowPlayingAlbum.tracks[randomIndex];
+        setNowPlayingTrack(nextTrack);
+        if (audioRef.current) {
+          audioRef.current.src = nextTrack.previewUrl.replace('localhost:54321', '127.0.0.1:54321');
+          audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
+        }
+        return;
+      }
+
       if (nowPlayingAlbum && nowPlayingTrack) {
         const currentIndex = nowPlayingAlbum.tracks?.findIndex(t => t.id === nowPlayingTrack.id) ?? -1;
-        if (currentIndex !== -1 && currentIndex < (nowPlayingAlbum.tracks?.length || 0) - 1) {
-          const nextTrack = nowPlayingAlbum.tracks![currentIndex + 1];
-          setNowPlayingTrack(nextTrack);
-          if (audioRef.current) {
-            audioRef.current.src = nextTrack.previewUrl;
-            audioRef.current.play();
-            setIsPlaying(true);
+        if (currentIndex !== -1) {
+          if (currentIndex < (nowPlayingAlbum.tracks?.length || 0) - 1) {
+            const nextTrack = nowPlayingAlbum.tracks![currentIndex + 1];
+            setNowPlayingTrack(nextTrack);
+            if (audioRef.current) {
+              audioRef.current.src = nextTrack.previewUrl.replace('localhost:54321', '127.0.0.1:54321');
+              audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
+            }
+          } else if (repeatMode === 'all') {
+            // Loop back to the first track
+            const firstTrack = nowPlayingAlbum.tracks![0];
+            setNowPlayingTrack(firstTrack);
+            if (audioRef.current) {
+              audioRef.current.src = firstTrack.previewUrl.replace('localhost:54321', '127.0.0.1:54321');
+              audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
+            }
           }
         }
       }
@@ -84,7 +123,89 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         audioRef.current.removeEventListener('ended', handleEnded);
       }
     };
-  }, [nowPlayingAlbum, nowPlayingTrack]);
+  }, [nowPlayingAlbum, nowPlayingTrack, isShuffle, repeatMode]);
+
+  
+  // Keyboard Shortcuts Refs
+  const togglePlayRef = useRef<(() => void) | null>(null);
+  const handlePrevRef = useRef<(() => void) | null>(null);
+  const handleNextRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    togglePlayRef.current = togglePlay;
+    handlePrevRef.current = handlePrevTrack;
+    handleNextRef.current = handleNextTrack;
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in input or using browser shortcuts (Ctrl/Cmd/Alt)
+      if (
+        (e.target instanceof HTMLInputElement && e.target.type !== 'range') || 
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement).isContentEditable ||
+        e.ctrlKey || 
+        e.metaKey || 
+        e.altKey
+      ) {
+        return;
+      }
+
+      switch(e.code) {
+        case 'Space':
+          e.preventDefault();
+          togglePlayRef.current?.();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          handlePrevRef.current?.();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          handleNextRef.current?.();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setVolume(v => Math.min(100, v + 5));
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          setVolume(v => Math.max(0, v - 5));
+          break;
+        case 'KeyL':
+          e.preventDefault();
+          setIsLyricsOpen(prev => !prev);
+          break;
+        case 'Escape':
+          e.preventDefault();
+          setIsShortcutsOpen(false);
+          setIsConfigOpen(false);
+          break;
+        case 'KeyF':
+          e.preventDefault();
+          setIsPlayerExpanded(prev => !prev);
+          break;
+        case 'KeyR':
+        case 'Keyr':
+          e.preventDefault();
+          setRepeatMode(m => m === 'off' ? 'all' : m === 'all' ? 'one' : 'off');
+          break;
+        case 'KeyA':
+        case 'Keya':
+          e.preventDefault();
+          setIsShuffle(prev => !prev);
+          break;
+        case 'KeyS':
+        case 'Keys':
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent('toggle-favorite-current'));
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, []);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -208,20 +329,32 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const handleNextTrack = () => {
     if (!nowPlayingAlbum || !nowPlayingTrack) return;
+    
+    if (isShuffle && nowPlayingAlbum.tracks && nowPlayingAlbum.tracks.length > 1) {
+      let randomIndex = Math.floor(Math.random() * nowPlayingAlbum.tracks.length);
+      const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack?.id);
+      while (randomIndex === currentIndex) {
+        randomIndex = Math.floor(Math.random() * nowPlayingAlbum.tracks.length);
+      }
+      handlePlayTrack(nowPlayingAlbum.tracks[randomIndex], nowPlayingAlbum);
+      return;
+    }
+
     const currentIndex = nowPlayingAlbum.tracks?.findIndex(t => t.id === nowPlayingTrack.id) ?? -1;
-    if (currentIndex !== -1 && currentIndex < (nowPlayingAlbum.tracks?.length || 0) - 1) {
-      handlePlayTrack(nowPlayingAlbum.tracks![currentIndex + 1], nowPlayingAlbum);
+    if (currentIndex !== -1) {
+      if (currentIndex < (nowPlayingAlbum.tracks?.length || 0) - 1) {
+        handlePlayTrack(nowPlayingAlbum.tracks![currentIndex + 1], nowPlayingAlbum);
+      } else if (repeatMode === 'all') {
+        handlePlayTrack(nowPlayingAlbum.tracks![0], nowPlayingAlbum);
+      }
     }
   };
 
   const handlePrevTrack = () => {
     if (!nowPlayingAlbum || !nowPlayingTrack) return;
     
-    // Convert current audio progress to visual seconds
-    const visualSecondsElapsed = progress * (nowPlayingTrack.duration / 1000);
-
     // Rule: If playing for more than 5 seconds, restart song. If less than 5 seconds, go to previous track.
-    if (audioRef.current && visualSecondsElapsed >= 5) {
+    if (audioRef.current && audioRef.current.currentTime >= 5) {
       audioRef.current.currentTime = 0;
       setProgress(0);
       
@@ -256,6 +389,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   return (
     <DownloadsProvider>
+      <ToastContainer />
     <div className="w-full h-screen bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative">
       {/* Unified Global Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-[#050505] to-blue-900/20 pointer-events-none z-0"></div>
@@ -346,7 +480,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         {/* Sidebar Flush Left with toggle transition */}
         <div className={`h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
           <div className="w-64 h-full">
-            <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+            <Sidebar currentView={currentView} onViewChange={setCurrentView} isShortcutsOpen={isShortcutsOpen} onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)} onToggleConfig={() => setIsConfigOpen(!isConfigOpen)} />
           </div>
         </div>
 
@@ -358,7 +492,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
               
               
-              <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+              <main id="main-scroll-container" className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                 <div className="pt-20 pb-0 min-h-full flex flex-col">
                   {currentView === 'catalog' && (
                     <CatalogView 
@@ -383,8 +517,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       togglePlay={togglePlay}
                     />
                   )}
-                  {currentView === 'downloads' && <DownloadsView type="downloads" onPlayTrack={handlePlayTrack} />}
-                  {currentView === 'library' && <DownloadsView type="favorites" title="Canciones favoritas" icon={Heart} onPlayTrack={handlePlayTrack} />}
+                  {currentView === 'downloads' && <DownloadsView type="downloads" albums={albums} onPlayTrack={handlePlayTrack} onSelectAlbum={handleSelectAlbum} />}
+                  {currentView === 'library' && <DownloadsView type="favorites" albums={albums} title="Canciones favoritas" icon={Heart} onPlayTrack={handlePlayTrack} onSelectAlbum={handleSelectAlbum} />}
                   {currentView === 'artist' && selectedArtist && (
                     <ArtistView 
                       artist={selectedArtist} 
@@ -415,6 +549,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             {nowPlayingTrack && nowPlayingAlbum && (
               <div className="shrink-0 z-30 border-t border-white/5 bg-black/40 backdrop-blur-3xl">
                 <MiniPlayer 
+                  isShuffle={isShuffle}
+                  repeatMode={repeatMode}
+                  onToggleShuffle={() => setIsShuffle(!isShuffle)}
+                  onToggleRepeat={() => setRepeatMode(m => m === "off" ? "all" : m === "all" ? "one" : "off")}
                   track={nowPlayingTrack}
                   album={nowPlayingAlbum}
                   isPlaying={isPlaying}
@@ -448,6 +586,12 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       </div>
 
       <ImmersivePlayer 
+        isShuffle={isShuffle}
+        repeatMode={repeatMode}
+        onToggleShuffle={() => setIsShuffle(!isShuffle)}
+        onToggleRepeat={() => setRepeatMode(m => m === "off" ? "all" : m === "all" ? "one" : "off")}
+        activeTab={isLyricsOpen ? "letra" : "portada"}
+        onTabChange={(tab) => setIsLyricsOpen(tab === "letra")}
         isExpanded={isPlayerExpanded}
         onClose={() => setIsPlayerExpanded(false)}
         track={nowPlayingTrack}
@@ -456,11 +600,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         togglePlay={togglePlay}
         onPlayTrack={handlePlayTrack}
         volume={volume}
+        progress={progress}
         setVolume={(v) => {
           setVolume(v);
           if (audioRef.current) audioRef.current.volume = v / 100;
         }}
-        progress={progress}
         onNext={handleNextTrack}
         onPrev={handlePrevTrack}
         onToggleMute={toggleMute}
@@ -470,6 +614,103 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           }
         }}
       />
+
+      {/* Modals */}
+      <AnimatePresence>
+        {isConfigOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.25 } }}
+            exit={{ opacity: 0, transition: { duration: 0.1 } }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-8"
+          >
+            <div className="absolute inset-0 cursor-pointer" onClick={() => setIsConfigOpen(false)} />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 450, damping: 30 } }}
+              exit={{ opacity: 0, scale: 0.95, y: 15, transition: { duration: 0.1, ease: "easeOut" } }}
+              className="w-full max-w-5xl h-[85vh] bg-[#050505] border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative z-10 flex flex-col overflow-hidden"
+            >
+              {/* Config Header */}
+              <div className="p-8 pb-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.02]">
+                <h2 className="text-3xl font-bold text-white tracking-wide">Configuración</h2>
+                <button 
+                  onClick={() => setIsConfigOpen(false)} 
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+              
+              {/* Config Body */}
+              <div className="flex-1 overflow-y-auto p-12 flex items-center justify-center">
+                <div className="text-center flex flex-col items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white/20 mb-2">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  </div>
+                  <p className="text-white/40 text-lg font-medium tracking-wide">La configuración está actualmente vacía.</p>
+                  <p className="text-white/20 text-sm">Las opciones del sistema aparecerán aquí.</p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {isShortcutsOpen && (
+          <motion.div className="fixed inset-0 z-[9999]">
+            <div className="absolute inset-0" onClick={() => setIsShortcutsOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="absolute left-[270px] bottom-[105px] w-64 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)]"
+            >
+            <h3 className="text-white text-[11px] font-bold mb-4 uppercase tracking-[0.15em]">Atajos de teclado</h3>
+            <div className="flex flex-col gap-3 text-xs text-white/60">
+               <div className="flex justify-between items-center">
+                 <span>Reproducir / Pausar</span>
+                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">Espacio</kbd>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span>Anterior / Siguiente</span>
+                 <div className="flex gap-1">
+                   <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">←</kbd>
+                   <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">→</kbd>
+                 </div>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span>Subir / Bajar volumen</span>
+                 <div className="flex gap-1">
+                   <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">↑</kbd>
+                   <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">↓</kbd>
+                 </div>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span>Expandir reproductor</span>
+                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">F</kbd>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span>Mostrar letra</span>
+                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">L</kbd>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span>Modo repetir</span>
+                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">R</kbd>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span>Modo aleatorio</span>
+                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">A</kbd>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span>Agregar a favoritos</span>
+                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">S</kbd>
+               </div>
+            </div>
+          </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
     </DownloadsProvider>
   );

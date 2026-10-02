@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Heart, Mic2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Repeat1, Heart, Mic2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Album, Track } from './types';
 
@@ -19,7 +19,11 @@ export const MiniPlayer = ({
   onSelectAlbum,
   onSelectArtist,
   isLyricsOpen,
-  onToggleLyrics
+  onToggleLyrics,
+  isShuffle,
+  repeatMode,
+  onToggleShuffle,
+  onToggleRepeat
 }: { 
   track: Track,
   album: Album,
@@ -36,9 +40,21 @@ export const MiniPlayer = ({
   onSelectAlbum?: () => void,
   onSelectArtist?: () => void,
   isLyricsOpen?: boolean,
-  onToggleLyrics?: () => void
+  onToggleLyrics?: () => void,
+  isShuffle?: boolean,
+  repeatMode?: "off" | "all" | "one",
+  onToggleShuffle?: () => void,
+  onToggleRepeat?: () => void
 }) => {
   const { isFavorite, toggleFavorite } = useDownloads();
+  
+  React.useEffect(() => {
+    const handleToggleFavorite = () => {
+      if (track) toggleFavorite(track, album);
+    };
+    window.addEventListener('toggle-favorite-current', handleToggleFavorite);
+    return () => window.removeEventListener('toggle-favorite-current', handleToggleFavorite);
+  }, [track, album, toggleFavorite]);
 
   const durationSecs = Math.floor((track.duration || 0) / 1000);
   const currentSecs = Math.floor(durationSecs * progress);
@@ -67,14 +83,14 @@ export const MiniPlayer = ({
       {/* Decorative gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-transparent pointer-events-none opacity-30"></div>
       
-      <div className="absolute left-[-50px] top-[-50px] bottom-[-50px] w-[600px] pointer-events-none z-0 opacity-50 saturate-150" style={{ backgroundImage: `url(${album.coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(60px)', maskImage: 'linear-gradient(to right, black 5%, transparent 70%)', WebkitMaskImage: 'linear-gradient(to right, black 5%, transparent 70%)' }} />
+      <div className="absolute left-[-50px] top-[-50px] bottom-[-50px] w-[600px] pointer-events-none z-0 opacity-50 saturate-150" style={{ backgroundImage: `url(${(track.albumCover || album.coverUrl)})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(60px)', maskImage: 'linear-gradient(to right, black 5%, transparent 70%)', WebkitMaskImage: 'linear-gradient(to right, black 5%, transparent 70%)' }} />
       {/* Left: Now Playing Info */}
       <div className="flex items-center gap-4 w-[30%] min-w-[200px] relative z-10">
         <div 
           onClick={onExpand}
           className="w-14 h-14 rounded-md overflow-hidden bg-white/10 cursor-pointer relative group shadow-md"
         >
-          <img src={album.coverUrl} alt="Cover" className="w-full h-full object-cover group-hover:opacity-50 transition-opacity" />
+          <img src={(track.albumCover || album.coverUrl)} alt="Cover" className="w-full h-full object-cover group-hover:opacity-50 transition-opacity" />
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
           </div>
@@ -108,7 +124,10 @@ export const MiniPlayer = ({
       {/* Center: Playback Controls */}
       <div className="flex flex-col items-center gap-2 flex-1 max-w-[600px] relative z-10">
         <div className="flex items-center gap-6">
-          <button className="text-white/40 hover:text-white transition-colors">
+          <button 
+            className={`transition-colors ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
+            onClick={onToggleShuffle}
+          >
             <Shuffle className="w-4 h-4" />
           </button>
           <button className="text-white/70 hover:text-white transition-colors" onClick={onPrev}>
@@ -123,8 +142,11 @@ export const MiniPlayer = ({
           <button className="text-white/70 hover:text-white transition-colors" onClick={onNext}>
             <SkipForward className="w-5 h-5" fill="currentColor" />
           </button>
-          <button className="text-white/40 hover:text-white transition-colors">
-            <Repeat className="w-4 h-4" />
+          <button 
+            className={`transition-colors ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
+            onClick={onToggleRepeat}
+          >
+            {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
           </button>
         </div>
         

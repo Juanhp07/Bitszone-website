@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Play, Download, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Play, Download, Check, Loader2, Heart } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Album } from './types';
 
@@ -17,7 +17,17 @@ export const ArtistView = ({
 }) => {
   // Filtrar los álbumes que pertenecen a este artista
 
-  const { downloadTrack, isDownloaded } = useDownloads();
+  const { downloadTrack, isDownloaded, isFavorite, toggleFavoriteAlbum } = useDownloads();
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const container = document.getElementById('main-scroll-container');
+    if (!container) return;
+    const handleScroll = () => setScrollY(container.scrollTop);
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
 
@@ -57,14 +67,43 @@ export const ArtistView = ({
     <div className="h-full flex flex-col relative">
       
 
-      {/* Hero Section */}
-      <div className="px-8 pt-8 pb-6 flex items-end gap-6 relative z-10">
+      {/* Sticky Header */}
+      <div 
+        className="sticky top-20 z-50 flex items-center h-[80px] px-8 transition-all duration-300 w-full" 
+        style={{ 
+          background: scrollY > 10 ? 'linear-gradient(90deg, rgba(45, 10, 70, 0.6) 0%, rgba(15, 15, 20, 0.95) 100%)' : 'transparent', 
+          backdropFilter: scrollY > 10 ? 'blur(20px)' : 'none', 
+          borderBottom: scrollY > 10 ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent', 
+          marginBottom: '-80px' 
+        }}
+      >
         <button 
           onClick={onBack}
-          className="absolute top-8 left-8 w-10 h-10 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center transition-colors border border-white/10"
+          className="flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-colors border border-white/10 shadow-lg shrink-0 group"
         >
-          <ArrowLeft className="w-5 h-5 text-white" />
+          <ArrowLeft className="w-4 h-4" />
+          <span className="font-bold tracking-wide uppercase text-[11px] mt-0.5">Volver</span>
         </button>
+        
+        <div 
+          className="flex-1 flex items-center gap-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ml-6" 
+          style={{ 
+            opacity: scrollY > 200 ? 1 : 0, 
+            transform: `translateY(${scrollY > 200 ? '0' : '15px'})`, 
+            pointerEvents: scrollY > 200 ? 'auto' : 'none' 
+          }}
+        >
+           <img src={artist.img} className="w-10 h-10 rounded-full shadow-md object-cover" alt={artist.name} />
+           <div className="flex flex-col">
+             <span className="text-white font-bold text-sm leading-tight line-clamp-1">{artist.name}</span>
+             <span className="text-white/60 text-xs font-medium leading-tight">{artist.type || "Artista"}</span>
+           </div>
+        </div>
+      </div>
+
+      {/* Hero Section */}
+      <div className="px-8 pt-8 pb-6 flex items-end gap-6 relative z-10">
+        
 
         <div className="w-52 h-52 shrink-0 rounded-full shadow-2xl overflow-hidden mt-12 relative border-4 border-[#05050A]">
           <img src={artist.img} alt={artist.name} className="w-full h-full object-cover" />
@@ -74,7 +113,7 @@ export const ArtistView = ({
           <span className="text-white/70 text-sm font-semibold tracking-widest uppercase">Artista</span>
           <h1 className="text-6xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{artist.name}</h1>
           <div className="flex items-center gap-2 mt-2 text-white/80 font-medium">
-            <span>{artistAlbums.length} álbumes</span>
+            <span>{artistAlbums.length} {artistAlbums.length === 1 ? "álbum" : "álbumes"}</span>
           </div>
         </div>
       </div>
@@ -92,7 +131,7 @@ export const ArtistView = ({
                 onClick={() => onSelectAlbum(album)}
                 className="group cursor-pointer bg-white/5 hover:bg-white/10 p-4 rounded-xl transition-colors border border-white/5 hover:border-white/10"
               >
-                <div className={`relative aspect-square mb-4 rounded-lg overflow-hidden shadow-lg transition-all duration-500 ${album.tracks?.every(t => isDownloaded(t.id)) ? 'border-2 border-[#a855f7]/60 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border border-transparent'}`}>
+                <div className={`relative aspect-square mb-4 rounded-lg overflow-hidden shadow-lg transition-all duration-500 `}>
                   <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <div className="w-12 h-12 rounded-full bg-[#a855f7] flex items-center justify-center text-white shadow-lg translate-y-4 group-hover:translate-y-0 transition-all">
@@ -115,8 +154,40 @@ export const ArtistView = ({
                   </button>
                 )}
                 </div>
-                <h3 className="font-bold text-white mb-1 truncate">{album.title}</h3>
-                <p className="text-sm text-white/50 truncate">{album.artist}</p>
+                <div className="flex items-start justify-between gap-2 mt-1">
+                  <div className="flex flex-col min-w-0">
+                    <h3 className="font-bold text-white text-sm line-clamp-1">{album.title}</h3>
+                    <p className="text-xs text-white/50 truncate mt-0.5">{album.artist}</p>
+                  </div>
+                  {(() => {
+                    const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
+                    return (
+                      <button 
+                         onClick={(e) => { e.stopPropagation(); toggleFavoriteAlbum(album); }}
+                         className={`shrink-0 p-1 -mt-0.5 -mr-1 rounded-full transition-colors hover:scale-110 ${isEntireAlbumFavorited ? 'text-[#a855f7]' : 'text-white/30 hover:text-white'}`}
+                      >
+                         <Heart className="w-4 h-4" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
+                      </button>
+                    );
+                  })()}
+                </div>
+                {(() => {
+                  const downloadedCount = album.tracks?.filter(t => isDownloaded(t.id)).length || 0;
+                  const totalCount = album.tracks?.length || 0;
+                  const isComplete = downloadedCount > 0 && downloadedCount === totalCount;
+                  const isPartial = downloadedCount > 0 && downloadedCount < totalCount;
+                  
+                  if (isComplete || isPartial) {
+                    return (
+                      <div className="mt-2 w-max px-2.5 py-1 rounded-full bg-[#a855f7]/15 backdrop-blur-md border border-[#a855f7]/20 flex items-center justify-center shadow-sm">
+                        <span className="text-[#c084fc] text-[9px] font-bold tracking-wider uppercase">
+                          {isComplete ? 'Descarga Completa' : 'Descarga Parcial'}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             ))}
           </div>

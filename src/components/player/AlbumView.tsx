@@ -24,6 +24,16 @@ export const AlbumView = ({
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const container = document.getElementById('main-scroll-container');
+    if (!container) return;
+    const handleScroll = () => setScrollY(container.scrollTop);
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -34,8 +44,17 @@ export const AlbumView = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showDownloadConfirm]);
-  const [isDownloadingAlbum, setIsDownloadingAlbum] = useState(false);
-  const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum } = useDownloads();
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum } = useDownloads();
+  const isDownloadingAlbum = downloadingAlbums.includes(String(album?.id));
+
+useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowMoreMenu(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
 
   if (loading) {
       return (
@@ -73,20 +92,10 @@ export const AlbumView = ({
     toggleFavorite(track, album);
   };
 
-  const handleDownloadAlbum = async () => {
+  
+  const handleDownloadAlbum = () => {
     setShowDownloadConfirm(false);
-    if (!album.tracks) return;
-    
-    setIsDownloadingAlbum(true);
-    const tracksToDownload = album.tracks.filter(t => !isDownloaded(t.id));
-    
-    for (const track of tracksToDownload) {
-      setDownloadingIds(prev => [...prev, track.id]);
-      await downloadTrack(track, album);
-      setDownloadingIds(prev => prev.filter(id => id !== track.id));
-    }
-    
-    setIsDownloadingAlbum(false);
+    downloadAlbum(album);
   };
 
   const isEntireAlbumDownloaded = album.tracks?.every(t => isDownloaded(t.id)) ?? false;
@@ -96,44 +105,97 @@ export const AlbumView = ({
     <div className="h-full flex flex-col relative">
       
 
-      {/* Hero Section */}
-      <div className="px-8 pt-8 pb-6 flex items-end gap-6 relative z-10">
+      {/* Sticky Header */}
+      <div 
+        className="sticky top-20 z-50 flex items-center h-[80px] px-8 transition-all duration-300 w-full" 
+        style={{ 
+          background: scrollY > 10 ? 'linear-gradient(90deg, rgba(45, 10, 70, 0.6) 0%, rgba(15, 15, 20, 0.95) 100%)' : 'transparent', 
+          backdropFilter: scrollY > 10 ? 'blur(20px)' : 'none', 
+          borderBottom: scrollY > 10 ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent', 
+          marginBottom: '-80px' 
+        }}
+      >
         <button 
           onClick={() => onViewChange('catalog')}
-          className="absolute top-8 left-8 w-10 h-10 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center transition-colors border border-white/10"
+          className="flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-colors border border-white/10 shadow-lg shrink-0 group"
         >
-          <ArrowLeft className="w-5 h-5 text-white" />
+          <ArrowLeft className="w-4 h-4" />
+          <span className="font-bold tracking-wide uppercase text-[11px] mt-0.5">Volver</span>
         </button>
-
-        <div className={`w-52 h-52 shrink-0 rounded-2xl shadow-2xl overflow-hidden mt-12 relative group transition-all duration-500 ${isEntireAlbumDownloaded ? 'border-2 border-[#a855f7]/60 shadow-[0_0_20px_rgba(168,85,247,0.3)]' : 'border border-transparent'}`}>
-          <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        </div>
         
-        <div className="flex flex-col gap-2 pb-2">
-          <span className="text-white/70 text-sm font-semibold tracking-widest uppercase">Álbum</span>
-          <h1 className="text-6xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{album.title}</h1>
-          <div className="flex items-center gap-2 mt-2 text-white/80 font-medium">
-            <span className="text-white">{album.artist}</span>
-            <span>•</span>
-            <span>{album.year}</span>
-            <span>•</span>
-            <span>{album.trackCount} canciones</span>
-            <span>•</span>
-            <span className="text-white/50">
-              {album.totalDuration ? (
-                Math.floor(album.totalDuration / 3600000) > 0
-                  ? `${Math.floor(album.totalDuration / 3600000)} h ${Math.floor((album.totalDuration % 3600000) / 60000)} min`
-                  : `${Math.floor(album.totalDuration / 60000)} min ${Math.floor((album.totalDuration % 60000) / 1000)} s`
-              ) : ''}
-            </span>
-          </div>
+        <div 
+          className="flex-1 flex items-center gap-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ml-6" 
+          style={{ 
+            opacity: scrollY > 200 ? 1 : 0, 
+            transform: `translateY(${scrollY > 200 ? '0' : '15px'})`, 
+            pointerEvents: scrollY > 200 ? 'auto' : 'none' 
+          }}
+        >
+           <img src={album.coverUrl} className="w-10 h-10 rounded-md shadow-md object-cover" alt={album.title} />
+           <div className="flex flex-col">
+             <span className="text-white font-bold text-sm leading-tight line-clamp-1">{album.title}</span>
+             <span className="text-white/60 text-xs font-medium leading-tight">{album.artist}</span>
+           </div>
         </div>
       </div>
 
-      <div className="px-8 relative z-10 flex-1">
+      {/* Hero Section */}
+      <div className="px-8 pt-8 pb-6 flex items-end justify-between relative z-10">
+        <div className="flex items-end gap-6">
+          <div className="w-52 h-52 shrink-0 rounded-2xl shadow-2xl overflow-hidden mt-12 relative group transition-all duration-500">
+            <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          </div>
+          
+          <div className="flex flex-col gap-2 pb-2">
+            <span className="text-white/70 text-sm font-semibold tracking-widest uppercase">Álbum</span>
+            <h1 className="text-6xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{album.title}</h1>
+            <div className="flex items-center gap-2 mt-2 text-white/80 font-medium">
+              <span className="text-white">{album.artist}</span>
+              <span>•</span>
+              <span>{album.year}</span>
+              <span>•</span>
+              <span>{album.trackCount} {album.trackCount === 1 ? "canción" : "canciones"}</span>
+              <span>•</span>
+              <span className="text-white/50">
+                {album.totalDuration ? (
+                  Math.floor(album.totalDuration / 3600000) > 0
+                    ? `${Math.floor(album.totalDuration / 3600000)} h ${Math.floor((album.totalDuration % 3600000) / 60000)} min`
+                    : `${Math.floor(album.totalDuration / 60000)} min ${Math.floor((album.totalDuration % 60000) / 1000)} s`
+                ) : ''}
+              </span>
+            </div>
+            {(() => {
+              if (isDownloadingAlbum) {
+                return (
+                  <div className="mt-3 w-max px-3 py-1.5 rounded-full bg-blue-500/15 backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400 mr-1.5" />
+                    <span className="text-blue-400 text-xs font-bold tracking-wider uppercase">
+                      Descargando...
+                    </span>
+                  </div>
+                );
+              }
+              const downloadedCount = album.tracks?.filter(t => isDownloaded(t.id)).length || 0;
+              const totalCount = album.tracks?.length || 0;
+              const isComplete = downloadedCount > 0 && downloadedCount === totalCount;
+              const isPartial = downloadedCount > 0 && downloadedCount < totalCount;
+              if (isComplete || isPartial) {
+                return (
+                  <div className="mt-3 w-max px-3 py-1.5 rounded-full bg-[#a855f7]/15 backdrop-blur-md border border-[#a855f7]/20 flex items-center justify-center shadow-sm">
+                    <span className="text-[#c084fc] text-xs font-bold tracking-wider uppercase">
+                      {isComplete ? 'Descarga Completa' : 'Descarga Parcial'}
+                    </span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+          </div>
+        </div>
+
         {/* Actions */}
-        <div className="flex items-center gap-6 py-4">
+        <div className="flex items-center gap-6 pb-2">
           <button 
             className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] hover:scale-105 rounded-full flex items-center justify-center text-white transition-all shadow-[0_8px_20px_rgba(168,85,247,0.3)]"
             onClick={() => {
@@ -153,8 +215,6 @@ export const AlbumView = ({
           <button onClick={() => toggleFavoriteAlbum(album)} className={`transition-colors ${isEntireAlbumFavorited ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}>
             <Heart className="w-8 h-8" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
           </button>
-          <button className="text-white/50 hover:text-white transition-colors">
-            </button>
 
           <button 
             className="text-white/50 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -170,11 +230,49 @@ export const AlbumView = ({
             )}
           </button>
 
-          <button className="text-white/50 hover:text-white transition-colors">
-            <MoreHorizontal className="w-8 h-8" />
-          </button>
+          <div className="relative z-50">
+            <button 
+              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              className="text-white/50 hover:text-white transition-colors"
+            >
+              <MoreHorizontal className="w-8 h-8" />
+            </button>
+            {showMoreMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowMoreMenu(false)} />
+                <div className="absolute top-full right-0 mt-2 w-56 bg-[#18181b] border border-white/10 rounded-xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.8)] z-50">
+                  <button 
+                    onClick={() => { toggleFavoriteAlbum(album); setShowMoreMenu(false); }}
+                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors border-b border-white/5 relative z-10"
+                  >
+                    {isEntireAlbumFavorited ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
+                    <Heart className="w-4 h-4" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
+                  </button>
+                  <button 
+                    onClick={() => { 
+                      if (!isEntireAlbumDownloaded) {
+                        setShowDownloadConfirm(true);
+                      } else {
+                        if (album.tracks) {
+                          album.tracks.forEach(track => removeDownload(track.id, true));
+                          window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${album.title}' eliminado de Descargas` }));
+                        }
+                      }
+                      setShowMoreMenu(false); 
+                    }}
+                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors relative z-10"
+                  >
+                    {isEntireAlbumDownloaded ? 'Eliminar descarga' : 'Descargar álbum'}
+                    {isEntireAlbumDownloaded ? <Check className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
+      </div>
 
+      <div className="px-8 relative z-10 flex-1">
         <div className="mt-8">
           {/* Header */}
           <div className="grid grid-cols-[50px_1fr_100px_120px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
@@ -189,7 +287,7 @@ export const AlbumView = ({
           {/* Tracklist */}
           <div className="flex flex-col gap-1 pb-8">
             {album.tracks?.map((track, index) => {
-              const isPlayingTrack = nowPlayingTrackId === track.id && isPlaying;
+              const isPlayingTrack = nowPlayingTrackId === track.id;
               const isHovered = hoveredTrack === track.id;
               const downloaded = isDownloaded(track.id);
               const isDownloading = downloadingIds.includes(track.id);
@@ -207,10 +305,11 @@ export const AlbumView = ({
                 >
                   <div className="text-center text-white/50 font-medium">
                     {isPlayingTrack ? (
-                      <div className="w-4 h-4 flex items-end justify-center gap-[2px] mx-auto">
-                        <div className="w-1 h-3 bg-[#a855f7] animate-[bounce_1s_infinite]"></div>
-                        <div className="w-1 h-4 bg-[#a855f7] animate-[bounce_1.2s_infinite]"></div>
-                        <div className="w-1 h-2 bg-[#a855f7] animate-[bounce_0.8s_infinite]"></div>
+                      <div className="flex items-end justify-center gap-[2.5px] h-4 w-4 mx-auto">
+                        <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-2 animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
+                        <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-4 animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
+                        <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-3 animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
+                        <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[10px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
                       </div>
                     ) : isHovered ? (
                       <Play className="w-4 h-4 text-white mx-auto" fill="currentColor" />

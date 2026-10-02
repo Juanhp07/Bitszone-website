@@ -3,8 +3,8 @@ import type { Track, Album } from './types';
 
 interface DownloadsContextType {
   downloadedTracks: Track[];
-  downloadTrack: (track: Track, album?: Album) => Promise<void>;
-  removeDownload: (trackId: number) => void;
+  downloadTrack: (track: Track, album?: Album, silent?: boolean) => Promise<void>;
+  removeDownload: (trackId: number, silent?: boolean) => void;
   isDownloaded: (trackId: number) => boolean;
   totalBytes: number;
   
@@ -17,6 +17,9 @@ interface DownloadsContextType {
   clearNewDownloads: () => void;
   removeAlbumFromDownloads: (albumId: string) => void;
   removeAlbumFromFavorites: (albumId: string) => void;
+  downloadingAlbums: string[];
+  downloadAlbum: (album: Album) => void;
+  cancelAlbumDownload: (albumId: string) => void;
   clearDownloads: () => void;
   clearFavorites: () => void;
 }
@@ -28,6 +31,8 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   const [favoriteTracks, setFavoriteTracks] = useState<Track[]>([]);
   const [totalBytes, setTotalBytes] = useState(0);
   const [newDownloadsCount, setNewDownloadsCount] = useState(0);
+  const [downloadingAlbums, setDownloadingAlbums] = useState<string[]>([]);
+  const cancelRef = React.useRef<Record<string, boolean>>({});
   
   useEffect(() => {
     const savedDownloads = localStorage.getItem('bz_downloads');
@@ -76,7 +81,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     setTotalBytes(totalMb * 1024 * 1024);
   };
 
-  const downloadTrack = async (track: Track, album?: Album) => {
+  const downloadTrack = async (track: Track, album?: Album, silent: boolean = false) => {
     return new Promise<void>(async (resolve) => {
       let realSizeMb = track.sizeMb;
       try {
@@ -96,16 +101,23 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
           return updated;
         });
         setNewDownloadsCount(prev => prev + 1);
+        if (!silent) {
+          window.dispatchEvent(new CustomEvent('show-toast', { detail: `Canción '${track.title}' descargada` }));
+        }
         resolve();
       }, 1500);
     });
   };
 
-  const removeDownload = (trackId: number) => {
+  const removeDownload = (trackId: number, silent: boolean = false) => {
     setDownloadedTracks(prev => {
+      const removedTrack = prev.find(t => t.id === trackId);
       const updated = prev.filter(t => t.id !== trackId);
       localStorage.setItem('bz_downloads', JSON.stringify(updated));
       calculateBytes(updated);
+      if (!silent && removedTrack) {
+        window.dispatchEvent(new CustomEvent('show-toast', { detail: `Canción '${removedTrack.title}' eliminada de Descargas` }));
+      }
       return updated;
     });
   };
@@ -115,6 +127,9 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   const toggleFavorite = (track: Track, album?: Album) => {
+    const isFav = isFavorite(track.id);
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: isFav ? `Canción '${track.title}' eliminada de Favoritos` : `Canción '${track.title}' agregada a Favoritos` }));
+    
     setFavoriteTracks(prev => {
       const exists = prev.find(t => t.id === track.id);
       let updated;
@@ -132,10 +147,14 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   
   const toggleFavoriteAlbum = (album: Album) => {
     if (!album.tracks) return;
+    
+    const allFavorited = album.tracks.every(t => favoriteTracks.some(pt => pt.id === t.id));
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: allFavorited ? `Álbum '${album.title}' eliminado de Favoritos` : `Álbum '${album.title}' agregado a Favoritos` }));
+
     setFavoriteTracks(prev => {
       let updated = [...prev];
-      const allFavorited = album.tracks!.every(t => prev.some(pt => pt.id === t.id));
-      if (allFavorited) {
+      const isAllFav = album.tracks!.every(t => prev.some(pt => pt.id === t.id));
+      if (isAllFav) {
         updated = updated.filter(pt => !album.tracks!.some(t => t.id === pt.id));
       } else {
         const tracksToAdd = album.tracks!
@@ -153,6 +172,31 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   const clearNewDownloads = () => setNewDownloadsCount(0);
+
+  
+  const downloadAlbum = async (album: Album) => {
+    if (!album.tracks) return;
+    const albumId = String(album.id);
+    cancelRef.current[albumId] = false;
+    setDownloadingAlbums(prev => [...prev, albumId]);
+    
+    const tracksToDownload = album.tracks.filter(t => !isDownloaded(t.id));
+    for (const track of tracksToDownload) {
+      if (cancelRef.current[albumId]) break;
+      await downloadTrack(track, album, true);
+    }
+    
+    if (!cancelRef.current[albumId]) {
+      window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${album.title}' descargado` }));
+    }
+    setDownloadingAlbums(prev => prev.filter(id => id !== albumId));
+  };
+
+  const cancelAlbumDownload = (albumId: string) => {
+    cancelRef.current[albumId] = true;
+    setDownloadingAlbums(prev => prev.filter(id => id !== albumId));
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Descarga cancelada' }));
+  };
 
   const removeAlbumFromDownloads = (albumId: string) => {
     setDownloadedTracks(prev => {
@@ -186,7 +230,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     <DownloadsContext.Provider value={{ 
       downloadedTracks, downloadTrack, removeDownload, isDownloaded, totalBytes,
       favoriteTracks, toggleFavorite, toggleFavoriteAlbum, isFavorite,
-      newDownloadsCount, clearNewDownloads, removeAlbumFromDownloads, removeAlbumFromFavorites, clearDownloads, clearFavorites
+      newDownloadsCount, clearNewDownloads, removeAlbumFromDownloads, removeAlbumFromFavorites, clearDownloads, clearFavorites, downloadingAlbums, downloadAlbum, cancelAlbumDownload
     }}>
       {children}
     </DownloadsContext.Provider>

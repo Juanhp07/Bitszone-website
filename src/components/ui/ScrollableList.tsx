@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export const ScrollableList = ({ children }: { children: React.ReactNode }) => {
+export const ScrollableList = ({ children, chevronTop }: { children: React.ReactNode, chevronTop?: number }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(false);
@@ -59,9 +59,10 @@ export const ScrollableList = ({ children }: { children: React.ReactNode }) => {
       {showLeft && (
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-[calc(50%-12px)] -translate-y-1/2 z-10 p-3 bg-black/80 hover:bg-black text-white rounded-full backdrop-blur-sm transition-all shadow-2xl opacity-90 hover:opacity-100 hover:scale-110 -ml-5 border border-white/10"
+          className={`absolute left-0 -translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
+          style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(-40%, -50%)` } : undefined}
         >
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} />
         </button>
       )}
       
@@ -77,9 +78,10 @@ export const ScrollableList = ({ children }: { children: React.ReactNode }) => {
       {showRight && (
         <button
           onClick={() => scroll('right')}
-          className="absolute right-0 top-[calc(50%-12px)] -translate-y-1/2 z-10 p-3 bg-black/80 hover:bg-black text-white rounded-full backdrop-blur-sm transition-all shadow-2xl opacity-90 hover:opacity-100 hover:scale-110 -mr-5 border border-white/10"
+          className={`absolute right-0 translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
+          style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(40%, -50%)` } : undefined}
         >
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} />
         </button>
       )}
     </div>

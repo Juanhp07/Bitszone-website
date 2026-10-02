@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { DownloadCloud } from 'lucide-react';
-import { Play, Pause, Download, Check, Loader2, ChevronLeft } from 'lucide-react';
+import { Play, Pause, Download, Check, Loader2, ChevronLeft, Heart } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 import { ScrollableList } from '../ui/ScrollableList';
@@ -20,7 +20,7 @@ export const CatalogView = ({
   onSelectArtist?: (artist: {name: string, img: string, type?: string}) => void
 }) => {
   const [hoveredAlbum, setHoveredAlbum] = useState<string | number | null>(null);
-  const { downloadTrack, isDownloaded } = useDownloads();
+  const { downloadTrack, isDownloaded, isFavorite, toggleFavoriteAlbum } = useDownloads();
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
 
@@ -71,7 +71,7 @@ export const CatalogView = ({
   });
   const dynamicArtists = Array.from(artistsMap.values());
 
-  const renderList = (items: any[], isExpanded: boolean, renderItem: (item: any, i: number) => React.ReactNode) => {
+  const renderList = (items: any[], isExpanded: boolean, renderItem: (item: any, i: number) => React.ReactNode, chevronTop?: number) => {
     if (isExpanded) {
       return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 pb-8">
@@ -80,7 +80,7 @@ export const CatalogView = ({
       );
     }
     return (
-      <ScrollableList>
+      <ScrollableList chevronTop={chevronTop}>
         {items.map(renderItem)}
       </ScrollableList>
     );
@@ -102,13 +102,19 @@ export const CatalogView = ({
     setIsDownloadingAlbum(null);
   };
 
-  const renderAlbumCard = (album: Album, showTrackTitle: boolean = false) => (
+  const renderAlbumCard = (album: Album, showTrackTitle: boolean = false) => {
+    const downloadedCount = album.tracks?.filter(t => isDownloaded(t.id)).length || 0;
+    const totalCount = album.tracks?.length || 0;
+    const isComplete = downloadedCount > 0 && downloadedCount === totalCount;
+    const isPartial = downloadedCount > 0 && downloadedCount < totalCount;
+
+    return (
     <div 
       key={album.id}
       className={`${expandedSection ? 'w-full' : 'w-48'} shrink-0 flex flex-col gap-3 group cursor-pointer`}
       onClick={() => onSelectAlbum(album)}
     >
-      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-48 h-48'} rounded-xl overflow-hidden relative shadow-lg transition-all duration-500 ${album.tracks?.every(t => isDownloaded(t.id)) ? 'border-2 border-[#a855f7]/60 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border border-transparent'}`}>
+      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-48 h-48'} rounded-xl overflow-hidden relative shadow-lg transition-all duration-500`}>
         <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button 
@@ -139,15 +145,38 @@ export const CatalogView = ({
           </button>
         )}
       </div>
-      <div className="flex flex-col">
-        <h3 className="text-white font-semibold text-sm line-clamp-1">{showTrackTitle && album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
-        <span className="text-white/50 text-xs mt-1">{album.artist}</span>
+      <div className="flex flex-col mt-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-col min-w-0">
+            <h3 className="text-white font-semibold text-sm line-clamp-1">{showTrackTitle && album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
+            <span className="text-white/50 text-xs mt-0.5 truncate">{album.artist}</span>
+          </div>
+          {(() => {
+            const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
+            return (
+              <button 
+                 onClick={(e) => { e.stopPropagation(); toggleFavoriteAlbum(album); }}
+                 className={`shrink-0 p-1 -mt-0.5 -mr-1 rounded-full transition-colors hover:scale-110 ${isEntireAlbumFavorited ? 'text-[#a855f7]' : 'text-white/30 hover:text-white'}`}
+              >
+                 <Heart className="w-4 h-4" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
+              </button>
+            );
+          })()}
+        </div>
+        {(isComplete || isPartial) && (
+          <div className="mt-2 w-max px-2.5 py-1 rounded-full bg-[#a855f7]/15 backdrop-blur-md border border-[#a855f7]/20 flex items-center justify-center shadow-sm">
+            <span className="text-[#c084fc] text-[9px] font-bold tracking-wider uppercase">
+              {isComplete ? 'Descarga Completa' : 'Descarga Parcial'}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
+  };
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-6">
       {(!expandedSection || expandedSection === 'canciones') && (
       <section className="px-8 pt-8">
         <div className="flex items-center justify-between mb-6">
@@ -163,12 +192,12 @@ export const CatalogView = ({
             <button onClick={() => setExpandedSection('canciones')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
-        {renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true))}
+        {renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 96)}
       </section>
       )}
 
       {(!expandedSection || expandedSection === 'artistas') && (
-      <section className="px-8 pt-4">
+      <section className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             {expandedSection && (
@@ -193,12 +222,12 @@ export const CatalogView = ({
               <span className="text-white/50 text-xs mt-1">{artist.type || 'Artista'}</span>
             </div>
           </div>
-        ))}
+        ), 80)}
       </section>
       )}
 
       {(!expandedSection || expandedSection === 'destacados') && (
-      <section className="px-8 pt-4">
+      <section className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             {expandedSection && (
@@ -212,7 +241,7 @@ export const CatalogView = ({
             <button onClick={() => setExpandedSection('destacados')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
-        {renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album))}
+        {renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 96)}
       </section>
       )}
       

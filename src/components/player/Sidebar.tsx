@@ -1,14 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive } from "lucide-react";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings } from "lucide-react";
 import { useDownloads } from "./DownloadsContext";
 
 export const Sidebar = ({
   currentView,
   onViewChange,
+  onToggleShortcuts,
+  onToggleConfig,
+  isShortcutsOpen
 }: {
   currentView: string;
   onViewChange: (view: any) => void;
+  onToggleShortcuts: () => void;
+  onToggleConfig: () => void;
+  isShortcutsOpen: boolean;
 }) => {
   const { totalBytes, newDownloadsCount } = useDownloads();
 
@@ -85,24 +91,39 @@ export const Sidebar = ({
         </button>
       </div>
 
-      <div className="p-6">
-        <button
-          onClick={() => onViewChange("downloads")}
-          className="relative w-full flex flex-col gap-3 p-4 rounded-2xl bg-white/5 border border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.02] transition-all duration-300 group overflow-hidden"
-        >
-          {/* Top row: Icon + Text */}
-          <div className="flex flex-col items-start w-full relative z-10 gap-1">
+      <div className="mt-auto flex flex-col pb-4">
+        {/* Buttons (Atajos / Configuración) */}
+        <div className="px-4 pb-4 flex flex-col gap-1 relative">
+           <button 
+             onClick={onToggleShortcuts}
+             className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${isShortcutsOpen ? "text-white bg-white/10" : "text-white/60 hover:text-white hover:bg-white/5"}`}
+           >
+             <Keyboard className="w-5 h-5 shrink-0" />
+             <span>Atajos</span>
+           </button>
+           
+           <button 
+             onClick={onToggleConfig}
+             className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors text-white/60 hover:text-white hover:bg-white/5"
+           >
+             <Settings className="w-5 h-5 shrink-0" />
+             <span>Configuración</span>
+           </button>
+        </div>
+
+        {/* Storage display */}
+        <div className="w-full pt-5 pb-2 border-t border-white/[0.08] relative group cursor-pointer" onClick={() => onViewChange("downloads")}>
+           <div className="px-6 flex flex-col items-start w-full relative z-10 gap-1 mb-3">
              <div className="flex items-center gap-2 text-white/40 group-hover:text-white/70 transition-colors duration-300">
-               <HardDrive className="w-3.5 h-3.5" />
-               <span className="text-xs font-semibold capitalize tracking-wide">Almacenamiento</span>
+               <HardDrive className="w-4 h-4" />
+               <span className="text-[11px] font-bold capitalize tracking-[0.1em]">Almacenamiento</span>
              </div>
-             <span className="text-white/80 text-xs font-medium tracking-wide pl-[22px]">
-               {availableGB.toFixed(2)}GB <span className="text-white/40">de 5.00GB</span>
+             <span className="text-white/80 text-xs font-bold tracking-wide pl-[24px]">
+               {availableGB.toFixed(2)}GB <span className="text-white/40 font-medium">de 5.00GB</span>
              </span>
           </div>
           
-          {/* Modern Slim Progress Bar */}
-          <div className="w-full h-1.5 bg-black/40 rounded-full overflow-hidden relative z-10 shadow-inner">
+          <div className="mx-6 h-3.5 bg-white/5 rounded-full overflow-hidden relative shadow-inner">
              <div 
                 className={`h-full rounded-full transition-all duration-700 relative animated-storage-bar ${
                   availablePercent >= 50
@@ -117,8 +138,7 @@ export const Sidebar = ({
                 <div className="absolute top-0 left-0 bottom-0 w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
              </div>
           </div>
-          
-          </button>
+        </div>
       </div>
     </aside>
   );
