@@ -1,41 +1,42 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { MagneticSelect } from './ui/MagneticSelect';
+import { ShaderBackground } from './ui/waves-shader';
 
 const faqs = [
   {
     question: "¿Qué es Bitszone y cómo se diferencia de otras plataformas?",
-    answer: "Bitszone está diseñado específicamente para el control total de tu biblioteca musical offline, eliminando la dependencia de la red y evitando problemas de caché.",
+    answer: "Bitszone está diseñado específicamente para el control total de tu biblioteca musical offline, eliminando la dependencia de la red y evitando problemas de caché. Literalmente descargas la música bit a bit a tu almacenamiento local.",
     color: "#A020F0"
   },
   {
     question: "¿Cómo funciona el modo offline y las descargas garantizadas?",
-    answer: "Nuestro sistema de sincronización asegura que cada byte del archivo esté en tu dispositivo antes de marcarlo como disponible, sin archivos temporales rotos.",
+    answer: "Nuestro sistema de sincronización asegura que cada byte del archivo esté en tu dispositivo antes de marcarlo como disponible. Sin búfer invisible, sin archivos temporales rotos que fallan cuando más los necesitas.",
     color: "#8A2BE2"
   },
   {
     question: "¿Cómo gestiono el espacio de almacenamiento y la memoria caché?",
-    answer: "Tienes un panel dedicado con visibilidad real de cuánto ocupa cada playlist o álbum, con opciones para liberar espacio con un solo clic.",
+    answer: "Tienes un panel de control nativo con visibilidad real de cuánto ocupa cada playlist o álbum. Podrás limpiar, auditar y liberar espacio con un solo clic, sin que la app decida por ti.",
     color: "#7B68EE"
   },
   {
     question: "¿Qué calidad de audio ofrece Bitszone?",
-    answer: "Soportamos múltiples formatos, incluyendo FLAC para audiófilos y opciones comprimidas de alta eficiencia para ahorrar espacio.",
+    answer: "Soportamos múltiples formatos sin compresión oculta. Incluye FLAC para los puristas del sonido y opciones altamente optimizadas (AAC/Opus) si necesitas ahorrar espacio drásticamente.",
     color: "#4169E1"
   },
   {
     question: "¿Tengo que pagar por las funciones offline?",
-    answer: "Nuestra capa offline premium requiere una suscripción activa, pero ofrecemos un nivel básico que permite descargas limitadas.",
+    answer: "La capa offline premium y la fidelidad Hi-Res requieren una suscripción activa, la cual nos permite mantener los servidores. Sin embargo, ofrecemos un nivel básico que permite descargas limitadas.",
     color: "#00BFFF"
   },
   {
     question: "¿Puedo sincronizar mi música entre varios dispositivos?",
-    answer: "Sí, todos los dispositivos conectados a tu cuenta sincronizan el estado de la biblioteca y tus preferencias de descarga automáticamente.",
+    answer: "Sí, absolutamente. Todos los dispositivos conectados a tu cuenta sincronizan en la nube el estado de tu biblioteca, listas y tus preferencias de descarga automáticamente en tiempo real.",
     color: "#00CED1"
   },
   {
     question: "¿Funciona con Android Auto y Apple CarPlay?",
-    answer: "Por supuesto. Bitszone se integra nativamente para brindarte acceso total a tu música descargada directamente desde el tablero de tu auto.",
+    answer: "Por supuesto. Bitszone se integra nativamente con los sistemas de tu vehículo para brindarte acceso total y seguro a toda tu música descargada directamente desde la pantalla del tablero.",
     color: "#00FFFF"
   }
 ];
@@ -44,135 +45,183 @@ export const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number>(0);
   const containerRef = useRef<HTMLElement>(null);
 
-  // Scroll parallax: Modificado para que vaya en conjunto con el efecto del fondo (hacia arriba)
+  // Animación de transición del fondo basada en el scroll
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "end start"]
+    offset: ["start end", "center center"]
   });
 
-  // Hacemos que toda la sección se deslice suavemente hacia arriba como el fondo
-  const y = useTransform(scrollYProgress, [0, 1], [150, -100]);
-  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
+  // El nuevo fondo aparece gradualmente mientras haces scroll
+  const backgroundOpacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
 
   return (
-    <motion.section 
+    <section 
+      id="faq"
       ref={containerRef}
-      style={{ opacity, y }}
-      className="py-24 lg:py-32 px-6 container mx-auto relative z-10 min-h-[90vh] flex flex-col items-center justify-center"
+      className="py-24 lg:py-32 px-6 w-full relative min-h-screen flex items-center justify-center"
     >
-      
-      {/* 1. Título Centrado con Efecto de Parpadeo (Pulse) */}
+      {/* Fondo Shader Animado que se extiende hasta envolver completamente el CinematicFooter */}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="text-center w-full max-w-4xl mx-auto mb-14 lg:mb-20"
+        className="absolute left-0 w-full z-0 pointer-events-none"
+        style={{ 
+          top: '30%',          
+          bottom: '-120vh',    // Combina con el mt-[30vh] y min-h-[90vh] del footer
+          opacity: backgroundOpacity,
+          // Máscara CSS nativa para un difuminado perfecto y sin cortes en la parte superior
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 600px)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 600px)'
+        }}
       >
-        <h2 className="text-4xl md:text-5xl lg:text-7xl font-sora font-extrabold tracking-tight text-white leading-[1.1]">
-          Tus preguntas.<br/>
-          {/* Efecto animate-pulse agregado al texto con gradiente */}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A020F0] to-[#00FFFF] animate-pulse drop-shadow-[0_0_15px_rgba(160,32,240,0.4)] inline-block">
-            Nuestras respuestas.
-          </span>
-        </h2>
+        <ShaderBackground className="w-full h-full" />
       </motion.div>
 
-      {/* 2. Clúster Interactivo */}
-      <div className="w-full flex justify-center items-center mb-14 lg:mb-20 relative z-30">
-        <div className="scale-[1.6] sm:scale-[1.8] lg:scale-[2.2] origin-center transition-transform duration-500 hover:scale-[1.7] sm:hover:scale-[1.9] lg:hover:scale-[2.3]">
-          <MagneticSelect 
-            items={faqs.map(f => ({ color: f.color, label: f.question }))}
-            selectedIndex={openIndex}
-            onSelect={(idx) => {
-              if (idx !== null) setOpenIndex(idx);
-            }}
-            pull={55}
-            give={50}
-            bounce={55}
-          />
-        </div>
-      </div>
-
-      {/* 3. Tarjeta Editorial "Bento" Redimensionada (Sleeker and smaller) */}
-      <div className="w-full max-w-4xl relative z-20">
+      <div className="w-full max-w-[1400px] relative z-10">
         
-        {/* Cascarón de Cristal (Ajustado a proporciones más pequeñas y compactas) */}
-        <div 
-          className="relative overflow-hidden rounded-[1.5rem] lg:rounded-[2rem] transition-colors duration-1000"
-          style={{
-            background: 'rgba(12, 10, 16, 0.4)', 
-            backdropFilter: 'blur(48px)',
-            WebkitBackdropFilter: 'blur(48px)',
-            border: '1px solid rgba(255, 255, 255, 0.04)',
-            boxShadow: `
-              0 20px 40px -10px rgba(0,0,0,0.8), 
-              inset 0 1px 0px rgba(255,255,255,0.06)
-            `
-          }}
+        {/* Encabezado Principal */}
+        <motion.div 
+          initial={{ opacity: 0, y: 80 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center w-full mb-20 lg:mb-28 flex flex-col items-center"
         >
-          {/* Luz superior sutil del cascarón */}
-          <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-sora font-extrabold tracking-tighter text-white leading-[1.05]">
+            Tu música.<br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A020F0] via-[#4169E1] to-[#00FFFF] animate-pulse drop-shadow-[0_0_20px_rgba(160,32,240,0.3)] inline-block mt-2">
+              Nuestras respuestas.
+            </span>
+          </h2>
+        </motion.div>
 
-          {/* Área interna de transición cruzada (Crossfade) - Altura mínima fija para evitar saltos */}
-          <div className="p-8 lg:p-12 min-h-[260px] flex flex-col justify-center">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={openIndex}
-                initial={{ opacity: 0, y: 10, filter: 'blur(8px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, y: -10, filter: 'blur(8px)', transition: { duration: 0.2 } }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full flex flex-col h-full"
-              >
-                
-                {/* Header de la tarjeta: Número y línea decorativa */}
-                <div className="flex items-center gap-4 mb-6 md:mb-8 md:w-5/12">
-                  <span 
-                    className="font-jetbrains text-xs font-bold tracking-[0.15em] transition-colors duration-500"
-                    style={{ color: faqs[openIndex].color }}
-                  >
-                    0{openIndex + 1}
-                  </span>
-                  <div 
-                    className="h-[1px] flex-grow opacity-20 transition-colors duration-500"
-                    style={{ background: faqs[openIndex].color }}
-                  />
-                </div>
+        {/* Layout Apple Bento: 2 Tarjetas Masivas Lado a Lado */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 w-full">
+          
+          {/* Bento Card 1: El Controlador (Izquierda, sin estilo de tarjeta) */}
+          <motion.div
+            initial={{ opacity: 0, y: 120 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="col-span-1 lg:col-span-5 relative p-10 flex flex-col items-center justify-center min-h-[450px] lg:min-h-[550px]"
+          >
+            
+            <h3 className="font-jetbrains text-xs font-bold tracking-[0.2em] text-white/30 uppercase absolute top-10 text-center">
+              Selecciona una Pregunta
+            </h3>
 
-                {/* Cuadrícula de contenido: Pregunta (Izquierda) y Respuesta (Derecha) */}
-                <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 lg:gap-16 items-start">
+            {/* El Clúster Magnético en el centro absoluto */}
+            <div className="relative z-20 scale-[1.6] sm:scale-[1.8] lg:scale-[2.1] mt-8 transition-transform duration-500 hover:scale-[1.7] sm:hover:scale-[1.9] lg:hover:scale-[2.2]">
+              <MagneticSelect 
+                items={faqs.map(f => ({ color: f.color, label: f.question }))}
+                selectedIndex={openIndex}
+                onSelect={(idx) => {
+                  if (idx !== null) setOpenIndex(idx);
+                }}
+                pull={55}
+                give={50}
+                bounce={55}
+              />
+            </div>
+            
+          </motion.div>
+
+          {/* Bento Card 2: El Visor de Respuestas (Derecha) */}
+          <motion.div
+            initial={{ opacity: 0, y: 150 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="col-span-1 lg:col-span-7 relative overflow-hidden rounded-[2rem] lg:rounded-[2.5rem] flex flex-col min-h-[450px] lg:min-h-[550px]"
+            style={{
+              background: 'rgba(12, 10, 16, 0.4)', 
+              backdropFilter: 'blur(48px)',
+              WebkitBackdropFilter: 'blur(48px)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              boxShadow: '0 30px 60px -15px rgba(0,0,0,0.8), inset 0 1px 0px rgba(255,255,255,0.05)'
+            }}
+          >
+            <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+            <div className="p-10 lg:p-14 flex-grow flex flex-col h-full relative z-10">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={openIndex}
+                  initial={{ opacity: 0, x: 20, filter: 'blur(8px)' }}
+                  animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, x: -20, filter: 'blur(8px)', transition: { duration: 0.2 } }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full flex flex-col h-full justify-between"
+                >
                   
-                  <div className="md:col-span-5 flex flex-col">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-sora font-semibold text-white leading-[1.3] tracking-tight">
-                      {faqs[openIndex].question}
-                    </h3>
+                  {/* Encabezado de la Tarjeta */}
+                  <div className="flex items-center justify-between w-full mb-12">
+                    <div className="flex items-center gap-5">
+                      
+                      {/* Efecto: Bolita idéntica a la selección (Cluster) volando desde la izquierda */}
+                      <motion.div 
+                        initial={{ x: -200, scale: 0.5, opacity: 0 }} 
+                        animate={{ x: 0, scale: 1, opacity: 1 }} 
+                        transition={{ type: "spring", stiffness: 350, damping: 25, delay: 0.1 }}
+                        className="w-12 h-12 rounded-full flex items-center justify-center relative flex-shrink-0"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${faqs[openIndex].color}, #00FFFF)`,
+                          boxShadow: `0 10px 25px ${faqs[openIndex].color}90, inset 0 2px 4px rgba(255,255,255,0.3)`
+                        }}
+                      >
+                        <span className="font-sora font-bold text-white text-[15px] relative z-10">
+                          {openIndex + 1}
+                        </span>
+                      </motion.div>
+
+                      <motion.div 
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                        className="h-[2px] w-12 rounded-full origin-left" 
+                        style={{ background: faqs[openIndex].color, opacity: 0.6 }} 
+                      />
+                    </div>
+                    
+                    <span className="font-jetbrains text-xs tracking-[0.2em] text-white/20 uppercase hidden sm:block">
+                      FAQ / Bitszone
+                    </span>
                   </div>
 
-                  <div className="md:col-span-7 flex flex-col relative z-10">
-                    <p className="text-[#8e8d98] font-inter text-base lg:text-lg leading-[1.7] font-light">
+                  {/* Contenido (Pregunta y Respuesta) */}
+                  <div className="flex-grow flex flex-col justify-center">
+                    <h3 className="text-3xl md:text-4xl lg:text-[2.75rem] font-sora font-semibold text-white leading-[1.2] tracking-tight mb-8 drop-shadow-lg">
+                      {faqs[openIndex].question}
+                    </h3>
+                    
+                    <p className="text-[#a1a0ab] font-inter text-lg lg:text-xl leading-[1.8] font-light max-w-2xl">
                       {faqs[openIndex].answer}
                     </p>
                   </div>
-                  
-                </div>
 
-                {/* Resplandor interno sutil ligado a la respuesta */}
-                <div 
-                  className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full mix-blend-screen opacity-10 pointer-events-none transition-colors duration-1000"
-                  style={{ 
-                    background: `radial-gradient(circle, ${faqs[openIndex].color} 0%, transparent 70%)`,
-                    filter: 'blur(50px)'
-                  }}
-                />
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-              </motion.div>
+            {/* Iluminación Dinámica Ambiental en la esquina inferior */}
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={openIndex}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 0.15, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+                className="absolute -bottom-32 -right-32 w-[600px] h-[600px] rounded-full mix-blend-screen pointer-events-none"
+                style={{ 
+                  background: `radial-gradient(circle, ${faqs[openIndex].color} 0%, transparent 70%)`,
+                  filter: 'blur(80px)'
+                }}
+              />
             </AnimatePresence>
-          </div>
+
+          </motion.div>
 
         </div>
       </div>
-
-    </motion.section>
+    </section>
   );
 };

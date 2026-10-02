@@ -148,12 +148,18 @@ export function MagneticSelect({
         const wait = far * 0.022;
 
         return (
-          <motion.button
+          <motion.div
             key={i}
-            className="absolute rounded-full flex items-center justify-center cursor-pointer transition-shadow"
-            role="radio"
-            aria-checked={on}
-            aria-label={items[i]?.label}
+            initial={{ opacity: 0, scale: 0, filter: 'blur(15px) brightness(200%)' }}
+            whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px) brightness(100%)' }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+              delay: i * 0.1, // Sequential appearance
+            }}
+            className="absolute"
             style={{
               left: px - minX + H_PAD,
               top: py - minY + H_PAD,
@@ -161,47 +167,46 @@ export function MagneticSelect({
               height: CHIP,
               zIndex: on ? 20 : 10,
             }}
-            onClick={() => choose(i)}
-            initial={false}
-            animate={{
-              x: ux * push,
-              y: uy * push,
-              scaleX: on ? grow : 1 - cower * fall,
-              scaleY: on ? grow : 1 - cower * fall,
-              rotate: ux * tilt * fall,
-            }}
-            transition={{
-              x: { ...swing(k, 0.9), delay: wait },
-              y: { ...swing(k, 0.9), delay: wait },
-              scaleX: { ...swing(k * 1.24, 0.8), delay: wait },
-              scaleY: { ...swing(k * 0.86, 0.95), delay: wait },
-              rotate: { ...swing(k * 0.8, 1), delay: wait },
-            }}
           >
-            {/* 
-              This inner element matches Bencho's .mag-skin
-              It handles the lean and hover scale with a very specific springy cubic-bezier
-              so it "trembles" or follows the cursor smoothly.
-            */}
-            <span
-              className="absolute inset-0 rounded-full flex items-center justify-center hover:scale-[1.045]"
-              style={{
-                translate: `${lean.x.toFixed(2)}px ${lean.y.toFixed(2)}px`,
-                transitionProperty: "translate, transform, background-color, box-shadow",
-                transitionDuration: "260ms",
-                transitionTimingFunction: "cubic-bezier(0.18, 0.89, 0.32, 1.28)",
-                background: on ? `linear-gradient(135deg, ${items[i].color}, #00FFFF)` : '#1c1c20',
-                boxShadow: on ? `0 10px 25px ${items[i].color}90, inset 0 2px 4px rgba(255,255,255,0.3)` : 'inset 0 1px 1px rgba(255,255,255,0.05)',
+            <motion.button
+              className="absolute inset-0 rounded-full flex items-center justify-center cursor-pointer transition-shadow w-full h-full"
+              role="radio"
+              aria-checked={on}
+              aria-label={items[i]?.label}
+              onClick={() => choose(i)}
+              initial={false}
+              animate={{
+                x: ux * push,
+                y: uy * push,
+                scaleX: on ? grow : 1 - cower * fall,
+                scaleY: on ? grow : 1 - cower * fall,
+                rotate: ux * tilt * fall,
+              }}
+              transition={{
+                x: { ...swing(k, 0.9), delay: wait },
+                y: { ...swing(k, 0.9), delay: wait },
+                scaleX: { ...swing(k * 1.24, 0.8), delay: wait },
+                scaleY: { ...swing(k * 0.86, 0.95), delay: wait },
+                rotate: { ...swing(k * 0.8, 1), delay: wait },
               }}
             >
-              {/* Absolutamente el MISMO tamaño de fuente para todos (text-[13px]).
-                  El tamaño visual crece un 28% gracias a la propiedad 'grow' del padre, 
-                  evitando que el número activo se vea desproporcionadamente gordo. */}
-              <span className={`font-sora font-bold transition-colors duration-300 text-[13px] ${on ? 'text-white' : 'text-white/60'}`}>
-                {i + 1}
+              <span
+                className="absolute inset-0 rounded-full flex items-center justify-center hover:scale-[1.045]"
+                style={{
+                  translate: `${lean.x.toFixed(2)}px ${lean.y.toFixed(2)}px`,
+                  transitionProperty: "translate, transform, background-color, box-shadow",
+                  transitionDuration: "260ms",
+                  transitionTimingFunction: "cubic-bezier(0.18, 0.89, 0.32, 1.28)",
+                  background: on ? `linear-gradient(135deg, ${items[i].color}, #00FFFF)` : '#1c1c20',
+                  boxShadow: on ? `0 10px 25px ${items[i].color}90, inset 0 2px 4px rgba(255,255,255,0.3)` : 'inset 0 1px 1px rgba(255,255,255,0.05)',
+                }}
+              >
+                <span className={`font-sora font-bold transition-colors duration-300 text-[13px] ${on ? 'text-white' : 'text-white/60'}`}>
+                  {i + 1}
+                </span>
               </span>
-            </span>
-          </motion.button>
+            </motion.button>
+          </motion.div>
         );
       })}
     </div>
