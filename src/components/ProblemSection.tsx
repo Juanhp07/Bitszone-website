@@ -7,7 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TiltCard } from './ui/tilt-card';
 
 // Datos estilo Raycast
-const categories = ["Reproducción", "Gestión", "Descargas"];
+const categories = ["Reproducción", "Descargas"];
+const categoryLabels = {
+  "Reproducción": "Reproducción",
+  "Descargas": "Descargas y Espacio"
+};
 
 const LargeWifiOff = ({ className, strokeWidth = 1 }: { className?: string, strokeWidth?: number }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -162,8 +166,8 @@ const benefitsData = {
       glowColor: "radial-gradient(circle at 50% 120%, rgba(168,85,247,0.25) 0%, transparent 70%)",
       visual: (
         <div className="relative w-full h-full flex items-center justify-center">
-          <FileWarning size={140} className="text-purple-500/30 absolute blur-[8px]" />
-          <FileWarning size={140} strokeWidth={1} className="text-purple-400/80 drop-shadow-[0_0_30px_rgba(168,85,247,0.6)]" />
+          <FileWarning size={110} className="text-purple-500/30 absolute blur-[8px]" />
+          <FileWarning size={110} strokeWidth={1} className="text-purple-400/80 drop-shadow-[0_0_30px_rgba(168,85,247,0.6)]" />
         </div>
       )
     },
@@ -177,8 +181,8 @@ const benefitsData = {
       glowColor: "radial-gradient(circle at 50% 120%, rgba(59,130,246,0.25) 0%, transparent 70%)",
       visual: (
         <div className="relative w-full h-full flex items-center justify-center">
-          <Speaker size={140} className="text-blue-500/30 absolute blur-[8px]" />
-          <Speaker size={140} strokeWidth={1} className="text-blue-400/80 drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]" />
+          <Speaker size={110} className="text-blue-500/30 absolute blur-[8px]" />
+          <Speaker size={110} strokeWidth={1} className="text-blue-400/80 drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]" />
         </div>
       )
     },
@@ -192,55 +196,8 @@ const benefitsData = {
       glowColor: "radial-gradient(circle at 50% 120%, rgba(34,197,94,0.25) 0%, transparent 70%)",
       visual: (
         <div className="relative w-full h-full flex flex-col items-center justify-center">
-          <LargeWifiOff className="w-[140px] h-[140px] text-green-500/30 absolute blur-[8px]" strokeWidth={1} />
-          <LargeWifiOff className="w-[140px] h-[140px] text-green-400/80 drop-shadow-[0_0_30px_rgba(34,197,94,0.6)]" strokeWidth={1} />
-        </div>
-      )
-    }
-  ],
-  "Gestión": [
-    {
-      id: "g1",
-      title: "Control de Espacio",
-      description: "Monitorea cuánto almacenamiento ocupa tu biblioteca y adminístralo fácilmente sin complicaciones.",
-      icon: <AnimatedHardDrive />,
-      gradient: "from-orange-500/30 to-orange-500/10",
-      border: "rgba(249,115,22,0.5)",
-      glowColor: "radial-gradient(circle at 50% 120%, rgba(249,115,22,0.25) 0%, transparent 70%)",
-      visual: (
-        <div className="relative w-full h-full flex flex-col items-center justify-center">
-           <HardDrive size={140} className="text-orange-500/30 absolute blur-[8px]" />
-           <HardDrive size={140} strokeWidth={1} className="text-orange-400/80 drop-shadow-[0_0_30px_rgba(249,115,22,0.6)]" />
-        </div>
-      )
-    },
-    {
-      id: "g2",
-      title: "Metadatos Locales",
-      description: "Tus letras, portadas y créditos se guardan junto con el audio para una experiencia completa.",
-      icon: <AnimatedTags />,
-      gradient: "from-pink-500/30 to-pink-500/10",
-      border: "rgba(236,72,153,0.5)",
-      glowColor: "radial-gradient(circle at 50% 120%, rgba(236,72,153,0.25) 0%, transparent 70%)",
-      visual: (
-        <div className="relative w-full h-full flex items-center justify-center">
-           <Tags size={140} className="text-pink-500/30 absolute blur-[8px]" />
-           <Tags size={140} strokeWidth={1} className="text-pink-400/80 drop-shadow-[0_0_30px_rgba(236,72,153,0.6)]" />
-        </div>
-      )
-    },
-    {
-      id: "g3",
-      title: "Limpieza Inteligente",
-      description: "Borra automáticamente las canciones que llevas meses sin escuchar para liberar espacio.",
-      icon: <AnimatedTrash />,
-      gradient: "from-red-500/30 to-red-500/10",
-      border: "rgba(239,68,68,0.5)",
-      glowColor: "radial-gradient(circle at 50% 120%, rgba(239,68,68,0.25) 0%, transparent 70%)",
-      visual: (
-        <div className="relative w-full h-full flex items-center justify-center">
-           <Trash2 size={140} className="text-red-500/30 absolute blur-[8px]" />
-           <Trash2 size={140} strokeWidth={1} className="text-red-400/80 drop-shadow-[0_0_30px_rgba(239,68,68,0.6)]" />
+          <LargeWifiOff className="w-[110px] h-[110px] text-green-500/30 absolute blur-[8px]" strokeWidth={1} />
+          <LargeWifiOff className="w-[110px] h-[110px] text-green-400/80 drop-shadow-[0_0_30px_rgba(34,197,94,0.6)]" strokeWidth={1} />
         </div>
       )
     }
@@ -256,8 +213,8 @@ const benefitsData = {
       glowColor: "radial-gradient(circle at 50% 120%, rgba(16,185,129,0.25) 0%, transparent 70%)",
       visual: (
         <div className="relative w-full h-full flex items-center justify-center">
-           <ShieldCheck size={140} className="text-emerald-500/30 absolute blur-[8px]" />
-           <ShieldCheck size={140} strokeWidth={1} className="text-emerald-400/80 drop-shadow-[0_0_30px_rgba(16,185,129,0.6)]" />
+           <ShieldCheck size={110} className="text-emerald-500/30 absolute blur-[8px]" />
+           <ShieldCheck size={110} strokeWidth={1} className="text-emerald-400/80 drop-shadow-[0_0_30px_rgba(16,185,129,0.6)]" />
         </div>
       )
     },
@@ -271,23 +228,23 @@ const benefitsData = {
       glowColor: "radial-gradient(circle at 50% 120%, rgba(6,182,212,0.25) 0%, transparent 70%)",
       visual: (
         <div className="relative w-full h-full flex items-center justify-center">
-           <DownloadCloud size={140} className="text-cyan-500/30 absolute blur-[8px]" />
-           <DownloadCloud size={140} strokeWidth={1} className="text-cyan-400/80 drop-shadow-[0_0_30px_rgba(6,182,212,0.6)]" />
+           <DownloadCloud size={110} className="text-cyan-500/30 absolute blur-[8px]" />
+           <DownloadCloud size={110} strokeWidth={1} className="text-cyan-400/80 drop-shadow-[0_0_30px_rgba(6,182,212,0.6)]" />
         </div>
       )
     },
     {
-      id: "d3",
-      title: "Ahorro de Datos",
-      description: "Configura las descargas para que solo sucedan por Wi-Fi y protege tu plan de datos móvil.",
-      icon: <AnimatedWifi />,
-      gradient: "from-indigo-500/30 to-indigo-500/10",
-      border: "rgba(99,102,241,0.5)",
-      glowColor: "radial-gradient(circle at 50% 120%, rgba(99,102,241,0.25) 0%, transparent 70%)",
+      id: "g1",
+      title: "Control de Espacio",
+      description: "Monitorea cuánto almacenamiento ocupa tu biblioteca y adminístralo fácilmente sin complicaciones.",
+      icon: <AnimatedHardDrive />,
+      gradient: "from-orange-500/30 to-orange-500/10",
+      border: "rgba(249,115,22,0.5)",
+      glowColor: "radial-gradient(circle at 50% 120%, rgba(249,115,22,0.25) 0%, transparent 70%)",
       visual: (
-        <div className="relative w-full h-full flex items-center justify-center">
-           <Wifi size={140} className="text-indigo-500/30 absolute blur-[8px]" />
-           <Wifi size={140} strokeWidth={1} className="text-indigo-400/80 drop-shadow-[0_0_30px_rgba(99,102,241,0.6)]" />
+        <div className="relative w-full h-full flex flex-col items-center justify-center">
+           <HardDrive size={110} className="text-orange-500/30 absolute blur-[8px]" />
+           <HardDrive size={110} strokeWidth={1} className="text-orange-400/80 drop-shadow-[0_0_30px_rgba(249,115,22,0.6)]" />
         </div>
       )
     }
@@ -341,11 +298,11 @@ export const ProblemSection = () => {
               <button
                 key={cat}
                 onClick={() => setActiveTab(cat)}
-                className={`relative cursor-pointer text-[14px] md:text-[15px] font-semibold px-6 py-2.5 rounded-full transition-colors duration-300 ${
+                className={`relative cursor-pointer text-[14px] md:text-[15px] font-semibold px-8 py-2.5 min-w-[110px] md:min-w-[160px] rounded-full transition-colors duration-300 ${
                   isActive ? 'text-white' : 'text-[#8b8d98] hover:text-[#e0e0e0]'
                 }`}
               >
-                <span className="relative z-10">{cat}</span>
+                <span className="relative z-10">{categoryLabels[cat as keyof typeof categoryLabels]}</span>
                 {isActive && (
                   <motion.div
                     layoutId="liquid-pill"
@@ -372,95 +329,102 @@ export const ProblemSection = () => {
   
         {/* Raycast Style Cards Grid con animaciones Stagger al hacer scroll */}
       <div className="w-full max-w-[1200px] px-6">
-        <AnimatePresence mode="wait">
+        <div className="w-full relative">
           <motion.div
-            key={activeTab}
-            initial="hidden"
-            whileInView="visible" viewport={{ once: true, margin: "-100px" }}
-            exit={{ opacity: 0, y: -20, scale: 0.98, transition: { duration: 0.2 } }}
-            variants={{
-              hidden: { opacity: 0 },
-              visible: { 
-                opacity: 1,
-                transition: { staggerChildren: 0.15 }
-              }
-            }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start w-full"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
           >
-            {benefitsData[activeTab as keyof typeof benefitsData].map((card) => (
-              <motion.div 
-                key={card.id} 
-                variants={{
-                  hidden: { opacity: 0, y: 60, scale: 0.95 },
-                  visible: { 
-                    opacity: 1, 
-                    y: 0, 
-                    scale: 1,
-                    transition: { type: "spring", stiffness: 50, damping: 15 }
-                  }
-                }}
-              >
-                <TiltCard
-                  effect="evade"
-                  scale={1.03}
-                  perspective={1200}
-                  tiltLimit={15}
-                  spotlight={true}
-                  spotlightColor={card.border.replace("0.5", "0.2")}
-                  className="relative backdrop-blur-[32px] rounded-[32px] overflow-hidden group h-[480px] flex flex-col cursor-pointer"
-                  style={{ background: `linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(10,5,20,0.1) 20%, rgba(10,5,20,0.2) 50%, rgba(10,5,20,0.4) 100%), ${card.glowColor}` }}
+            {(() => {
+              const cards = benefitsData[activeTab as keyof typeof benefitsData];
+              const getLayout = (tab: string) => {
+                // Returns [col1CardTop, col2CardTop, col3CardTop]
+                if (tab === "Reproducción") return [false, true, false];
+                if (tab === "Descargas") return [true, false, true];
+                return [false, true, false];
+              };
+              const [c1Top, c2Top, c3Top] = getLayout(activeTab);
+
+              const renderSlot = (isCard: boolean, cardData: any, slotId: string) => (
+                <div
+                  className={`relative w-full overflow-hidden rounded-[32px] transition-[height] duration-500 ease-in-out ${
+                    isCard ? 'h-[400px] lg:h-[420px]' : 'hidden md:block h-[140px] lg:h-[160px] bg-white/[0.02] backdrop-blur-md pointer-events-none'
+                  }`}
+                  key={`slot-${slotId}`} // Key must be constant for the slot so it never unmounts, only updates props!
                 >
-                {/* Raycast ambient glow base */}
-                <div 
-                  className="absolute inset-0 transition-opacity duration-700 opacity-50 group-hover:opacity-100"
-                  style={{ background: card.glowColor }}
-                />
+                  <AnimatePresence>
+                    {isCard && cardData && (
+                      <motion.div
+                        key={`content-${cardData.id}`} // Key changes when card data changes or when it toggles
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="absolute inset-x-0 top-0 h-[400px] lg:h-[420px]"
+                      >
+                        <TiltCard
+                          effect="evade"
+                          scale={1.03}
+                          perspective={1200}
+                          tiltLimit={15}
+                          spotlight={true}
+                          spotlightColor={cardData.border.replace("0.5", "0.2")}
+                          className="w-full h-full relative backdrop-blur-[32px] overflow-hidden group flex flex-col cursor-pointer"
+                          style={{ background: `linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(10,5,20,0.1) 20%, rgba(10,5,20,0.2) 50%, rgba(10,5,20,0.4) 100%), ${cardData.glowColor}` }}
+                        >
+                          <div className="absolute inset-0 transition-opacity duration-700 opacity-50 group-hover:opacity-100" style={{ background: cardData.glowColor }} />
+                          
+                          <div className="flex items-center p-8 relative z-10 gap-5">
+                            <div className="w-14 h-14 rounded-[16px] bg-white/[0.04] flex items-center justify-center p-[5px] backdrop-blur-3xl" style={{ boxShadow: `inset 0 0 0 1.5px ${cardData.border}, 0 4px 12px rgba(0,0,0,0.3)` }}>
+                              <div className={`w-full h-full rounded-[10px] bg-gradient-to-b ${cardData.gradient} flex items-center justify-center relative overflow-hidden shadow-inner backdrop-blur-3xl`}>
+                                <div className="relative z-10">{cardData.icon}</div>
+                                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                              </div>
+                            </div>
+                          </div>
 
-                {/* Header (Nested Squircle Icon) con sombras hiper-realistas */}
-                <div className="flex items-center p-8 relative z-10 gap-5">
-                  <div 
-                    className="w-14 h-14 rounded-[16px] bg-white/[0.04] flex items-center justify-center p-[5px] backdrop-blur-3xl"
-                    style={{ boxShadow: `inset 0 0 0 1.5px ${card.border}, 0 4px 12px rgba(0,0,0,0.3)` }}
-                  >
-                    <div 
-                      className={`w-full h-full rounded-[10px] bg-gradient-to-b ${card.gradient} flex items-center justify-center relative overflow-hidden shadow-inner backdrop-blur-3xl`}
-                      
-                    >
-                      <div className="relative z-10">
-                        {card.icon}
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    </div>
+                          <div className="px-8 relative z-10">
+                            <h3 className="text-[20px] lg:text-[24px] font-sora font-semibold text-white/95 tracking-tight mb-2 drop-shadow-sm">{cardData.title}</h3>
+                            <p className="text-[#6b6b75] text-[15px] lg:text-[16px] leading-[1.6] font-inter font-medium group-hover:text-[#8e8d98] transition-colors duration-300">{cardData.description}</p>
+                          </div>
+
+                          <div className="flex-1 mt-6 relative overflow-hidden flex items-end justify-center pb-4">
+                            <motion.div className="w-full h-full relative z-10 flex items-center justify-center" whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+                              {cardData.visual}
+                            </motion.div>
+                          </div>
+                        </TiltCard>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+
+              return (
+                <>
+                  {/* Columna Izquierda */}
+                  <div className="flex flex-col gap-4 lg:gap-6 h-full">
+                    {renderSlot(c1Top, cards[0], "col1-top")}
+                    {renderSlot(!c1Top, cards[0], "col1-bottom")}
                   </div>
-                </div>
-
-                {/* Typography (High contrast like Image 2) */}
-                <div className="px-8 relative z-10">
-                  <h3 className="text-[20px] font-sora font-semibold text-white/95 tracking-tight mb-2 drop-shadow-sm">
-                    {card.title}
-                  </h3>
-                  <p className="text-[#6b6b75] text-[15px] leading-[1.6] font-inter font-medium group-hover:text-[#8e8d98] transition-colors duration-300">
-                    {card.description}
-                  </p>
-                </div>
-
-                {/* Bottom Visual Infographic (Huge Arc style) */}
-                <div className="flex-1 mt-6 relative overflow-hidden flex items-end justify-center pb-4">
                   
+                  {/* Columna Central */}
+                  <div className="flex flex-col gap-4 lg:gap-6 h-full">
+                    {renderSlot(c2Top, cards[1], "col2-top")}
+                    {renderSlot(!c2Top, cards[1], "col2-bottom")}
+                  </div>
                   
-                  <motion.div 
-                    className="w-full h-full relative z-10 flex items-center justify-center"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
-                    {card.visual}
-                  </motion.div>
-                </div>
-              </TiltCard>
-              </motion.div>
-            ))}
+                  {/* Columna Derecha */}
+                  <div className="flex flex-col gap-4 lg:gap-6 h-full">
+                    {renderSlot(c3Top, cards[2], "col3-top")}
+                    {renderSlot(!c3Top, cards[2], "col3-bottom")}
+                  </div>
+                </>
+              );
+            })()}
           </motion.div>
-        </AnimatePresence>
+        </div>
         </div>
 
     </section>
