@@ -388,7 +388,7 @@ export const ProblemSection = () => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
-            exit={{ opacity: 0, y: -20, scale: 0.98 }}
+            exit={{ opacity: 0, y: -20, scale: 0.98, transition: { duration: 0.2 } }}
             variants={{
               hidden: { opacity: 0 },
               visible: { 
@@ -418,8 +418,8 @@ export const ProblemSection = () => {
                   tiltLimit={15}
                   spotlight={true}
                   spotlightColor={card.border.replace("0.5", "0.2")}
-                  className="relative backdrop-blur-[40px] rounded-[32px] overflow-hidden group h-[480px] flex flex-col cursor-pointer"
-                  style={{ background: `linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(9,9,11,0.1) 15%, rgba(9,9,11,0.6) 50%, rgba(9,9,11,0.95) 100%), ${card.glowColor}` }}
+                  className="relative backdrop-blur-[80px] rounded-[32px] overflow-hidden group h-[480px] flex flex-col cursor-pointer"
+                  style={{ background: `linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(10,0,20,0.1) 20%, rgba(10,0,20,0.3) 50%, rgba(10,0,20,0.6) 100%), ${card.glowColor}` }}
                 >
                 {/* Raycast ambient glow base */}
                 <div 

@@ -75,7 +75,7 @@ export function TiltCard({
       style={{
         transform,
         transition: "transform 0.2s ease-out, box-shadow 0.5s ease",
-        transformStyle: "preserve-3d",
+        
         boxShadow: isHovered 
           ? `inset 0 0 0 1px rgba(255,255,255,0.08), 0 15px 35px ${spotlightColor.replace(/0\.\d+\)$/, "0.18)")}` 
           : "inset 0 1px 1px rgba(255,255,255,0.1), inset 0 0 0 1px rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.2)",
