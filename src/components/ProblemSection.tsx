@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   FileWarning, HardDrive, 
   Speaker, WifiOff, Tags, Trash2, DownloadCloud, ShieldCheck, Wifi, Cloud
@@ -295,17 +295,18 @@ const benefitsData = {
 };
 
 export const ProblemSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
   const [activeTab, setActiveTab] = useState(categories[0]);
 
   return (
-    <section className="py-32 md:py-48 w-full max-w-[1440px] mx-auto relative z-10 flex flex-col items-center">
+    <section ref={sectionRef} className="py-32 md:py-48 w-full max-w-[1440px] mx-auto relative z-10 flex flex-col items-center">
       <IconStyles />
       {/* Header Central con el título animado */}
       <motion.div 
-        initial={{ opacity: 0, y: 50, scale: 0.95 }}
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="text-center w-full max-w-[1200px] mx-auto mb-6 px-6"
       >
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2] text-center flex flex-col md:inline-block items-center justify-center">
@@ -328,10 +329,10 @@ export const ProblemSection = () => {
 
       {/* Subtítulo Animado */}
       <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.8, delay: 0.1, type: "spring" }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         className="text-[#8e8d98] font-inter text-[16px] md:text-[18px] max-w-2xl text-center mb-10 px-6"
       >
         Usa tus herramientas favoritas y administra tus pistas descargadas sin depender de tu conexión a internet.
@@ -339,10 +340,10 @@ export const ProblemSection = () => {
 
       {/* Segmented Control Animado al Scroll (Glassmorphism NavBar) */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.3 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.3 }}
           className="flex items-center gap-1.5 py-1.5 px-1.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_0_0_1px_rgba(255,255,255,0.03)] transition-all duration-300 bg-[rgba(10,0,20,0.3)] backdrop-blur-[20px] mb-14"
         >
           {categories.map((cat) => {
@@ -386,8 +387,7 @@ export const ProblemSection = () => {
           <motion.div
             key={activeTab}
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
+            whileInView="visible" viewport={{ once: true, margin: "-100px" }}
             exit={{ opacity: 0, y: -20, scale: 0.98, transition: { duration: 0.2 } }}
             variants={{
               hidden: { opacity: 0 },
@@ -418,8 +418,8 @@ export const ProblemSection = () => {
                   tiltLimit={15}
                   spotlight={true}
                   spotlightColor={card.border.replace("0.5", "0.2")}
-                  className="relative backdrop-blur-[80px] rounded-[32px] overflow-hidden group h-[480px] flex flex-col cursor-pointer"
-                  style={{ background: `linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(10,0,20,0.1) 20%, rgba(10,0,20,0.3) 50%, rgba(10,0,20,0.6) 100%), ${card.glowColor}` }}
+                  className="relative backdrop-blur-[32px] rounded-[32px] overflow-hidden group h-[480px] flex flex-col cursor-pointer"
+                  style={{ background: `linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(10,5,20,0.1) 20%, rgba(10,5,20,0.2) 50%, rgba(10,5,20,0.4) 100%), ${card.glowColor}` }}
                 >
                 {/* Raycast ambient glow base */}
                 <div 
@@ -472,7 +472,7 @@ export const ProblemSection = () => {
             ))}
           </motion.div>
         </AnimatePresence>
-      </div>
+        </div>
 
     </section>
   );

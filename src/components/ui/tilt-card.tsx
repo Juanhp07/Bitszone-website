@@ -71,7 +71,7 @@ export function TiltCard({
       onPointerEnter={handlePointerEnter}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className={cn("will-change-transform relative overflow-hidden transition-all duration-500", className)}
+      className={cn("relative overflow-hidden transition-all duration-500", className)}
       style={{
         transform,
         transition: "transform 0.2s ease-out, box-shadow 0.5s ease",
