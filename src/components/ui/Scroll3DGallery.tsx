@@ -91,6 +91,8 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
           className="absolute inset-0 z-10 pointer-events-auto"
           style={{
             opacity: useTransform(smoothScrollYProgress, [0.15, 0.3], [0, 1]),
+            scale: useTransform(smoothScrollYProgress, [0.15, 0.3], [0.6, 1]),
+            y: useTransform(smoothScrollYProgress, [0.15, 0.3], [150, 0]),
             WebkitMaskImage: 'linear-gradient(to bottom, transparent 2%, black 10%, black 90%, transparent 100%)',
             maskImage: 'linear-gradient(to bottom, transparent 2%, black 10%, black 90%, transparent 100%)'
           }}

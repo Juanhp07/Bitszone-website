@@ -842,7 +842,11 @@ class InfiniteGridMenu {
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => resolve(img);
-            img.src = item.image;
+            img.onerror = () => {
+              console.warn("Failed to load image:", item.image);
+              resolve(img);
+            };
+            img.src = `https://corsproxy.io/?${encodeURIComponent(item.image)}`;
           })
       )
     ).then(images => {
