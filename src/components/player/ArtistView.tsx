@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Play, Download, Check, Loader2, Heart, HeartOff, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Play, Download, Check, Loader2, Heart, HeartOff, AlertCircle, X } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Album } from './types';
 
@@ -134,6 +134,16 @@ export const ArtistView = ({
               >
                 <div className={`relative aspect-square mb-4 rounded-lg overflow-hidden shadow-lg transition-all duration-500 `}>
                   <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  {downloadingAlbums?.includes(String(album.id)) && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
+                      className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-blue-400 hover:bg-black/80 transition-colors z-20 group/cancel"
+                      title="Cancelar descarga"
+                    >
+                      <Loader2 className="w-4 h-4 animate-spin group-hover/cancel:hidden" />
+                      <X className="w-4 h-4 hidden group-hover/cancel:block text-red-400" />
+                    </button>
+                  )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <div className="w-12 h-12 rounded-full bg-[#a855f7] flex items-center justify-center text-white shadow-lg translate-y-4 group-hover:translate-y-0 transition-all">
                       <Play className="w-6 h-6 ml-1" fill="currentColor" />

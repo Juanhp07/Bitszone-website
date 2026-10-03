@@ -238,7 +238,7 @@ export const DownloadsView = ({
 
         <div className="flex items-center justify-center">
           {type === 'downloads' ? (
-            <FuseButton fuse="outline" 
+            <FuseButton fuse="outline" commitOn="fuseEnd" 
               
               label=""
               undoLabel=""
@@ -572,7 +572,7 @@ export const DownloadsView = ({
                     <Play className="w-4 h-4" fill="currentColor" />
                     Reproducir
                   </button>
-                  <FuseButton fuse="outline" 
+                  <FuseButton fuse="outline" commitOn="fuseEnd" 
               
                       label="Eliminar"
                       undoLabel="Deshacer"
@@ -637,7 +637,7 @@ export const DownloadsView = ({
                     <button onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5">
                       <Play className="w-5 h-5 ml-1" fill="currentColor" />
                     </button>
-                    <FuseButton fuse="outline" 
+                    <FuseButton fuse="outline" commitOn="fuseEnd" 
               
                       label=""
                       undoLabel=""
@@ -691,6 +691,16 @@ export const DownloadsView = ({
                 >
                   <div className="w-full aspect-square rounded-xl overflow-hidden relative shadow-lg bg-white/5">
                     <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    {downloadingAlbums?.includes(String(album.id)) && (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: album.id, title: album.title }); }}
+                        className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-blue-400 hover:bg-black/80 transition-colors z-20 group/cancel"
+                        title="Cancelar descarga"
+                      >
+                        <Loader2 className="w-4 h-4 animate-spin group-hover/cancel:hidden" />
+                        <X className="w-4 h-4 hidden group-hover/cancel:block text-red-400" />
+                      </button>
+                    )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button 
                         className="${type === 'licenses' ? 'bg-yellow-500 hover:bg-yellow-400' : type === 'playlists' ? 'bg-green-500 hover:bg-green-400' : 'bg-[#a855f7] hover:bg-[#b066f8]'} w-14 h-14 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"

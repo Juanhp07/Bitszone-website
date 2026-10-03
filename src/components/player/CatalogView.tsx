@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { DownloadCloud } from 'lucide-react';
-import { Play, Pause, Download, Check, Loader2, ChevronLeft, Heart, AlertCircle, HeartOff } from 'lucide-react';
+import { Play, Pause, Download, Check, Loader2, ChevronLeft, Heart, AlertCircle, HeartOff, X } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 import { ScrollableList } from '../ui/ScrollableList';
@@ -117,6 +117,16 @@ export const CatalogView = ({
     >
       <div className={`${expandedSection ? 'w-full aspect-square' : 'w-48 h-48'} rounded-xl overflow-hidden relative shadow-lg transition-all duration-500`}>
         <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        {downloadingAlbums?.includes(String(album.id)) && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
+            className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-blue-400 hover:bg-black/80 transition-colors z-20 group/cancel"
+            title="Cancelar descarga"
+          >
+            <Loader2 className="w-4 h-4 animate-spin group-hover/cancel:hidden" />
+            <X className="w-4 h-4 hidden group-hover/cancel:block text-red-400" />
+          </button>
+        )}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button 
             className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
