@@ -43,6 +43,11 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   // Desaparece antes de que las bolas se vayan (0.65 a 0.75)
   const menuTextOpacity = useTransform(smoothScrollYProgress, [0.35, 0.45, 0.65, 0.75], [0, 1, 1, 0]);
 
+  // PROGRESS DE ENTRADA INDIVIDUAL: Para que las bolas escalen desde el centro hacia afuera
+  // Empieza en 0.25 (cuando ya está subiendo) y termina en 0.40
+  // Desaparecen desde 0.70 a 0.85
+  const introProgress = useTransform(smoothScrollYProgress, [0.25, 0.40, 0.70, 0.85], [0, 1, 1, 0]);
+
   return (
     <div ref={containerRef} className="relative w-full h-[250vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
@@ -96,7 +101,8 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
               title: a.title,
               description: a.artist
             }))}
-            scale={1.0}
+            scale={0.8}
+            scrollProgress={introProgress}
           />
         </motion.div>
 

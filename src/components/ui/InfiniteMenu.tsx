@@ -722,6 +722,7 @@ class InfiniteGridMenu {
 
   public smoothRotationVelocity = 0;
   public scaleFactor = 1.0;
+  public introProgress = 1.0;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -846,7 +847,7 @@ class InfiniteGridMenu {
               console.warn("Failed to load image via proxy:", item.image);
               resolve(img);
             };
-            img.src = `https://wsrv.nl/?url=${encodeURIComponent(item.image)}&default=${encodeURIComponent(item.image)}`;
+            img.src = `/api/proxy?url=${encodeURIComponent(item.image)}`;
           })
       )
     ).then(images => {
@@ -906,7 +907,27 @@ class InfiniteGridMenu {
 
     positions.forEach((p, ndx) => {
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
-      const finalScale = s * scale;
+      
+      // Calculate bouncy intro animation based on scroll progress
+      let introScale = 1.0;
+      if (this.introProgress !== undefined && this.introProgress < 1.0) {
+        // Create a ripple delay based on index
+        const delay = (ndx / this.DISC_INSTANCE_COUNT) * 0.4; // 0 to 0.4
+        // Calculate local progress (0 to 1) for this specific ball
+        const pLocal = Math.max(0, Math.min(1, (this.introProgress - delay) * (1 / 0.6)));
+        
+        // EaseOutBack function
+        if (pLocal === 0) {
+          introScale = 0.001; // Avoid exact 0 for matrices
+        } else {
+          const c1 = 1.70158;
+          const c3 = c1 + 1;
+          introScale = 1 + c3 * Math.pow(pLocal - 1, 3) + c1 * Math.pow(pLocal - 1, 2);
+          introScale = Math.max(0.001, introScale);
+        }
+      }
+
+      const finalScale = s * scale * introScale;
       const matrix = mat4.create();
 
       mat4.multiply(matrix, matrix, mat4.fromTranslation(mat4.create(), vec3.negate(vec3.create(), p)));
@@ -1066,12 +1087,24 @@ interface InfiniteMenuProps {
   items?: MenuItem[];
   scale?: number;
   backgroundColor?: string;
+  scrollProgress?: any; // MotionValue<number>
 }
 
-const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgroundColor = 'transparent' }) => {
+const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgroundColor = 'transparent', scrollProgress }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null) as MutableRefObject<HTMLCanvasElement | null>;
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null);
   const [isMoving, setIsMoving] = useState<boolean>(false);
+  const sketchRef = useRef<InfiniteGridMenu | null>(null);
+
+  useEffect(() => {
+    if (scrollProgress && sketchRef.current) {
+      return scrollProgress.on('change', (v: number) => {
+        if (sketchRef.current) {
+          sketchRef.current.introProgress = v;
+        }
+      });
+    }
+  }, [scrollProgress]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1092,6 +1125,10 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
         sk => sk.run(),
         scale
       );
+      if (scrollProgress) {
+        sketch.introProgress = scrollProgress.get();
+      }
+      sketchRef.current = sketch;
     }
 
     const handleResize = () => {
