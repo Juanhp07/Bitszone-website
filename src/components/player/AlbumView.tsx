@@ -50,7 +50,7 @@ export const AlbumView = ({
   const moreMenuRef = useRef<HTMLButtonElement>(null);
   const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0 });
   const [openTrackMenu, setOpenTrackMenu] = useState<number | null>(null);
-  const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0 });
+  const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0, isUpward: false });
   const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isDownloadingAlbum = downloadingAlbums.includes(String(album?.id));
 
@@ -402,7 +402,13 @@ useEffect(() => {
                       onClick={(e) => {
                         e.stopPropagation();
                         const rect = e.currentTarget.getBoundingClientRect();
-                        setTrackMenuPos({ top: rect.bottom, left: rect.left });
+                        const spaceBelow = window.innerHeight - rect.bottom;
+                        const isUpward = spaceBelow < 250;
+                        setTrackMenuPos({ 
+                          top: isUpward ? rect.top : rect.bottom, 
+                          left: rect.left,
+                          isUpward 
+                        });
                         setOpenTrackMenu(openTrackMenu === track.id ? null : track.id);
                       }}
                       className="text-white/40 hover:text-white transition-colors p-3 -m-3"
@@ -447,7 +453,7 @@ useEffect(() => {
           <div className="fixed inset-0 z-[9998]" onClick={() => setOpenTrackMenu(null)} />
           <div 
             style={{ top: trackMenuPos.top, left: trackMenuPos.left - 240 }}
-            className="fixed mt-2 w-[280px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30"
+            className={`fixed w-[280px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${trackMenuPos.isUpward ? '-translate-y-full -mt-2' : 'mt-2'}`}
           >
             <button 
               onClick={(e) => { e.stopPropagation(); toggleFavorite(album!.tracks!.find(t => t.id === openTrackMenu)!); setOpenTrackMenu(null); }}
