@@ -57,7 +57,7 @@ export const DownloadsView = ({
   onSelectAlbum?: (a: Album) => void,
   albums?: Album[]
 }) => {
-  const { downloadedTracks, licensedTracks, favoriteTracks, removeDownload, toggleFavorite, removeLicensedTrack, isLicensed, toggleFavoriteAlbum, isFavorite, isDownloaded, clearNewDownloads, totalBytes, clearDownloads, clearFavorites, removeAlbumFromDownloads, removeAlbumFromFavorites, downloadingAlbums, cancelAlbumDownload } = useDownloads();
+  const { downloadedTracks, licensedTracks, favoriteTracks, clearLicenses, removeAlbumFromLicenses, removeDownload, toggleFavorite, removeLicensedTrack, isLicensed, toggleFavoriteAlbum, isFavorite, isDownloaded, clearNewDownloads, totalBytes, clearDownloads, clearFavorites, removeAlbumFromDownloads, removeAlbumFromFavorites, downloadingAlbums, cancelAlbumDownload } = useDownloads();
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [trackToRemove, setTrackToRemove] = useState<Track | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -464,6 +464,10 @@ export const DownloadsView = ({
               onHold={() => {
                 if (type === 'downloads') {
                   clearDownloads();
+                } else if (type === 'licenses') {
+                  clearLicenses();
+                } else if (type === 'playlists') {
+                  window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Todas las listas de reproducción fueron eliminadas' }));
                 } else {
                   clearFavorites();
                 }
@@ -641,10 +645,15 @@ export const DownloadsView = ({
                       undoWindow={2000}
                       className="!h-10 rounded-full border border-white/20 font-medium text-sm transition-all duration-300 hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
                       onCommit={() => {
+                        const id = groupedTracks[selectedAlbumId].id;
                         if (type === 'downloads') {
-                          removeAlbumFromDownloads(groupedTracks[selectedAlbumId].id);
+                          removeAlbumFromDownloads(id);
+                        } else if (type === 'licenses') {
+                          removeAlbumFromLicenses(id);
+                        } else if (type === 'playlists') {
+                          window.dispatchEvent(new CustomEvent('show-toast', { detail: `Lista de reproducción '${groupedTracks[selectedAlbumId].title}' eliminada` }));
                         } else {
-                          removeAlbumFromFavorites(groupedTracks[selectedAlbumId].id);
+                          removeAlbumFromFavorites(id);
                         }
                       }}
                     />
@@ -712,6 +721,10 @@ export const DownloadsView = ({
                       onCommit={() => {
                         if (type === 'downloads') {
                           removeAlbumFromDownloads(group.id);
+                        } else if (type === 'licenses') {
+                          removeAlbumFromLicenses(group.id);
+                        } else if (type === 'playlists') {
+                          window.dispatchEvent(new CustomEvent('show-toast', { detail: `Lista de reproducción '${group.title}' eliminada` }));
                         } else {
                           removeAlbumFromFavorites(group.id);
                         }

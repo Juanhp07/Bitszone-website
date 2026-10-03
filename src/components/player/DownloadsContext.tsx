@@ -26,6 +26,8 @@ interface DownloadsContextType {
   cancelAlbumDownload: (albumId: string) => void;
   clearDownloads: () => void;
   clearFavorites: () => void;
+  clearLicenses: () => void;
+  removeAlbumFromLicenses: (albumId: string) => void;
 }
 
 const DownloadsContext = createContext<DownloadsContextType | undefined>(undefined);
@@ -274,7 +276,23 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   const clearFavorites = () => {
     setFavoriteTracks([]);
     localStorage.setItem('bz_favorites', JSON.stringify([]));
-    window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Toda la biblioteca ha sido eliminada' }));
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Todas tus canciones favoritas fueron eliminadas' }));
+  };
+
+  const clearLicenses = () => {
+    setLicensedTracks([]);
+    localStorage.setItem('bz_licenses', JSON.stringify([]));
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Todas las canciones con licencia fueron eliminadas' }));
+  };
+
+  const removeAlbumFromLicenses = (albumId: string) => {
+    setLicensedTracks(prev => {
+      const albumTitle = prev.find(t => (t.albumId ? String(t.albumId) : 'unknown') === albumId)?.albumTitle || 'Álbum';
+      const updated = prev.filter(t => (t.albumId ? String(t.albumId) : 'unknown') !== albumId);
+      localStorage.setItem('bz_licenses', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${albumTitle}' eliminado de Licencias` }));
+      return updated;
+    });
   };
 
   return (
@@ -282,7 +300,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
       downloadedTracks, downloadTrack, removeDownload, isDownloaded, totalBytes,
       favoriteTracks, toggleFavorite, toggleFavoriteAlbum, isFavorite,
       licensedTracks, addLicensedTrack, removeLicensedTrack, isLicensed,
-      newDownloadsCount, clearNewDownloads, removeAlbumFromDownloads, removeAlbumFromFavorites, clearDownloads, clearFavorites, downloadingAlbums, downloadAlbum, cancelAlbumDownload
+      newDownloadsCount, clearNewDownloads, removeAlbumFromDownloads, removeAlbumFromFavorites, clearDownloads, clearFavorites, clearLicenses, removeAlbumFromLicenses, downloadingAlbums, downloadAlbum, cancelAlbumDownload
     }}>
       {children}
     </DownloadsContext.Provider>
