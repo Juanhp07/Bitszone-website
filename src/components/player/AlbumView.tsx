@@ -306,11 +306,11 @@ useEffect(() => {
           <div className="grid grid-cols-[50px_1fr_120px_100px_100px_80px_100px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
             <div className="text-left">#</div>
             <div className="text-left">TÍTULO</div>
-            <div className="text-left">REPRODUCCIONES</div>
-            <div className="text-left">DESCARGAR</div>
-            <div className="text-left">FAVORITOS</div>
-            <div className="text-left">TIEMPO</div>
-            <div className="text-left">OPCIONES</div>
+            <div className="text-center">REPRODUCCIONES</div>
+            <div className="text-center">DESCARGAR</div>
+            <div className="text-center">FAVORITOS</div>
+            <div className="text-center">TIEMPO</div>
+            <div className="text-center">OPCIONES</div>
           </div>
 
           {/* Tracklist */}
@@ -359,9 +359,9 @@ useEffect(() => {
                     </div>
                   </div>
                   
-                  <div className="text-left text-white/50 text-sm flex items-center">{getPlays(track.id)}</div>
+                  <div className="text-center text-white/50 text-sm flex items-center justify-center">{getPlays(track.id)}</div>
                   
-                  <div className="flex items-center justify-start">
+                  <div className="flex items-center justify-center">
                     <button 
                       onClick={(e) => handleDownload(e, track)}
                       className="text-white/40 hover:text-white transition-colors"
@@ -377,7 +377,7 @@ useEffect(() => {
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-start">
+                  <div className="flex items-center justify-center">
                     <button 
                       onClick={(e) => handleFavorite(e, track)}
                       className={`group/favbtn transition-colors ${favorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/40 hover:text-white'}`}
@@ -393,11 +393,11 @@ useEffect(() => {
                     </button>
                   </div>
 
-                  <div className="text-left text-white/50 text-sm flex items-center justify-start">
+                  <div className="text-center text-white/50 text-sm flex items-center justify-center">
                     {formatDuration(track.duration)}
                   </div>
                   
-                  <div className="flex items-center justify-start relative">
+                  <div className="flex items-center justify-center relative">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
