@@ -266,7 +266,7 @@ export const DownloadsView = ({
             <button 
               onClick={(e) => {
                 e.stopPropagation();
-                removeLicensedTrack(track.id);
+                setTrackToRemove(track);
               }}
               className="group/favbtn text-yellow-500 hover:text-yellow-400 opacity-100 transition-all p-2"
               title="Quitar licencia"
@@ -850,6 +850,33 @@ export const DownloadsView = ({
       
       
       
+    {trackToRemove && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setTrackToRemove(null)} />
+          <div className="relative bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-yellow-300" />
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-6 h-6 text-yellow-500" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">¿Quitar licencia?</h3>
+                <p className="text-sm text-white/60 mt-1">Se eliminará "{trackToRemove.title}" de tus canciones con licencia.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setTrackToRemove(null)} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+                Cancelar
+              </button>
+              <button onClick={() => { removeLicensedTrack(trackToRemove.id); setTrackToRemove(null); }} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors">
+                Sí, quitar
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     {showCancelConfirm && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCancelConfirm(null)} />
