@@ -14,65 +14,93 @@ interface Scroll3DGalleryProps {
   albums: AlbumData[];
 }
 
-
-
 export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
-  return (
-    <div className="relative w-full min-h-screen flex flex-col items-center justify-center pt-32 pb-24">
-      {/* TÍTULO */}
-      <motion.div 
-        initial={{ opacity: 0, y: 80 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="text-center w-full mb-16 lg:mb-24 flex flex-col items-center relative z-20"
-      >
-        <h2 className="text-4xl md:text-5xl lg:text-7xl font-sora font-extrabold tracking-tighter text-white leading-[1.05]">
-          El que busca, <br /> 
-          <motion.span 
-            animate={{ 
-              textShadow: [
-                "0px 0px 10px rgba(255,159,252,0.4)", 
-                "0px 0px 25px rgba(255,159,252,1)", 
-                "0px 0px 10px rgba(255,159,252,0.4)"
-              ],
-              color: ["#ffffff", "#FF9FFC", "#ffffff"]
-            }}
-            transition={{ 
-              duration: 2.5, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
-            }}
-            className="inline-block mt-2"
-          >
-            encuentra su ritmo
-          </motion.span>
-        </h2>
-      </motion.div>
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
 
-      {/* INFINITE MENU 3D */}
-      <motion.div 
-        initial={{ opacity: 0, y: 120, scale: 0.8 }}
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full relative z-10 pointer-events-auto h-[70vh] min-h-[600px]"
-        style={{
-          WebkitMaskImage: 'linear-gradient(to right, transparent 2%, black 10%, black 90%, transparent 100%)',
-          maskImage: 'linear-gradient(to right, transparent 2%, black 10%, black 90%, transparent 100%)'
-        }}
-      >
-        <InfiniteMenu 
-          items={albums.map(a => ({
-            image: a.src,
-            link: '#',
-            title: a.title,
-            description: a.artist
-          }))}
-          scale={1.2}
-        />
-      </motion.div>
+  const smoothScrollYProgress = useSpring(scrollYProgress, {
+    stiffness: 50,
+    damping: 30,
+    mass: 1,
+    restDelta: 0.001
+  });
+
+  // TÍTULO: Sale de 0 a 0.20
+  const titleScale = useTransform(smoothScrollYProgress, [0, 0.20], [1.2, 0.8]);
+  const titleY = useTransform(smoothScrollYProgress, [0, 0.20], [0, -300]);
+  const titleOpacity = useTransform(smoothScrollYProgress, [0, 0.15], [1, 0]);
+  
+  // MENU (Bolas): Entra de 0.20 a 0.40, se queda hasta 0.70, sale de 0.70 a 0.90
+  const menuY = useTransform(smoothScrollYProgress, [0.20, 0.40, 0.70, 0.90], [300, 0, 0, -300]);
+  const menuScale = useTransform(smoothScrollYProgress, [0.20, 0.40, 0.70, 0.90], [0.6, 1, 1, 0.6]);
+  const menuOpacity = useTransform(smoothScrollYProgress, [0.20, 0.35, 0.75, 0.90], [0, 1, 1, 0]);
+  
+  // TEXTO DEL MENÚ: Aparece suavemente solo cuando las bolas ya están asentadas (0.35 a 0.45)
+  // Desaparece antes de que las bolas se vayan (0.65 a 0.75)
+  const menuTextOpacity = useTransform(smoothScrollYProgress, [0.35, 0.45, 0.65, 0.75], [0, 1, 1, 0]);
+
+  return (
+    <div ref={containerRef} className="relative w-full h-[250vh]">
+      <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
+        
+        {/* TÍTULO */}
+        <div className="absolute top-[35vh] left-0 w-full z-20 flex flex-col items-center pointer-events-none">
+          <motion.div 
+            style={{ 
+              scale: titleScale, 
+              y: titleY,
+              opacity: titleOpacity,
+              WebkitFontSmoothing: "antialiased"
+            }}
+            className="flex-col items-center origin-center"
+          >
+            <h2 className="text-4xl md:text-6xl font-bold text-white text-center tracking-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+              El que busca, <br /> 
+              <motion.span 
+                animate={{ 
+                  textShadow: [
+                    "0px 0px 10px rgba(255,159,252,0.4)", 
+                    "0px 0px 25px rgba(255,159,252,1)", 
+                    "0px 0px 10px rgba(255,159,252,0.4)"
+                  ],
+                  color: ["#ffffff", "#FF9FFC", "#ffffff"]
+                }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                className="inline-block mt-2"
+              >
+                encuentra su ritmo
+              </motion.span>
+            </h2>
+          </motion.div>
+        </div>
+
+        {/* CANVAS 3D / INFINITE MENU */}
+        <motion.div 
+          className="absolute inset-0 z-10 pointer-events-auto"
+          style={{
+            opacity: menuOpacity,
+            scale: menuScale,
+            y: menuY,
+            // Pasamos la opacidad del texto como una variable CSS
+            '--menu-text-opacity': menuTextOpacity
+          } as any}
+        >
+          <InfiniteMenu 
+            items={albums.map(a => ({
+              image: a.src,
+              link: '#',
+              title: a.title,
+              description: a.artist
+            }))}
+            scale={1.0}
+          />
+        </motion.div>
+
+      </div>
     </div>
   );
 };
-

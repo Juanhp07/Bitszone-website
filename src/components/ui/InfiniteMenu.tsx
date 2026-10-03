@@ -843,10 +843,10 @@ class InfiniteGridMenu {
             img.crossOrigin = 'anonymous';
             img.onload = () => resolve(img);
             img.onerror = () => {
-              console.warn("Failed to load image:", item.image);
+              console.warn("Failed to load image via proxy:", item.image);
               resolve(img);
             };
-            img.src = `https://images.weserv.nl/?url=${encodeURIComponent(item.image)}&default=${encodeURIComponent(item.image)}`;
+            img.src = `https://wsrv.nl/?url=${encodeURIComponent(item.image)}&default=${encodeURIComponent(item.image)}`;
           })
       )
     ).then(images => {
@@ -1126,7 +1126,7 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
       />
 
       {activeItem && (
-        <>
+        <div style={{ opacity: 'var(--menu-text-opacity, 1)' }} className="pointer-events-none absolute inset-0 z-20">
           <h2
             className={`
           select-none
@@ -1143,8 +1143,8 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
           ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
           ${
             isMoving
-              ? 'opacity-0 pointer-events-none duration-[100ms] translate-x-[-10px]'
-              : 'opacity-100 pointer-events-auto duration-[500ms] translate-x-0'
+              ? 'opacity-0 duration-[100ms] translate-x-[-10px]'
+              : 'opacity-100 duration-[500ms] translate-x-0'
           }
         `}
           >
@@ -1164,14 +1164,14 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
           ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
           ${
             isMoving
-              ? 'opacity-0 pointer-events-none duration-[100ms] translate-x-[10px] -translate-y-1/2'
-              : 'opacity-100 pointer-events-auto duration-[500ms] translate-x-0 -translate-y-1/2'
+              ? 'opacity-0 duration-[100ms] translate-x-[10px] -translate-y-1/2'
+              : 'opacity-100 duration-[500ms] translate-x-0 -translate-y-1/2'
           }
         `}
           >
             {activeItem.description}
           </p>
-        </>
+        </div>
       )}
     </div>
   );
