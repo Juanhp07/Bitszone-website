@@ -337,88 +337,104 @@ export const ProblemSection = () => {
             viewport={{ once: true, margin: "-100px" }}
           >
             {(() => {
-              const cards = benefitsData[activeTab as keyof typeof benefitsData];
-              const getLayout = (tab: string) => {
-                // Returns [col1CardTop, col2CardTop, col3CardTop]
-                if (tab === "Reproducción") return [false, true, false];
-                if (tab === "Descargas") return [true, false, true];
-                return [false, true, false];
-              };
-              const [c1Top, c2Top, c3Top] = getLayout(activeTab);
+              const rCards = benefitsData["Reproducción"];
+              const dCards = benefitsData["Descargas"];
 
-              const renderSlot = (isCard: boolean, cardData: any, slotId: string) => (
-                <div
-                  className={`relative w-full overflow-hidden rounded-[32px] transition-[height] duration-500 ease-in-out ${
-                    isCard ? 'h-[400px] lg:h-[420px]' : 'hidden md:block h-[140px] lg:h-[160px] bg-white/[0.02] backdrop-blur-md pointer-events-none'
-                  }`}
-                  key={`slot-${slotId}`} // Key must be constant for the slot so it never unmounts, only updates props!
-                >
-                  <AnimatePresence>
-                    {isCard && cardData && (
-                      <motion.div
-                        key={`content-${cardData.id}`} // Key changes when card data changes or when it toggles
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25, ease: "easeInOut" }}
-                        className="absolute inset-x-0 top-0 h-[400px] lg:h-[420px]"
-                      >
-                        <TiltCard
-                          effect="evade"
-                          scale={1.03}
-                          perspective={1200}
-                          tiltLimit={15}
-                          spotlight={true}
-                          spotlightColor={cardData.border.replace("0.5", "0.2")}
-                          className="w-full h-full relative backdrop-blur-[32px] overflow-hidden group flex flex-col cursor-pointer"
-                          style={{ background: `linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(10,5,20,0.1) 20%, rgba(10,5,20,0.2) 50%, rgba(10,5,20,0.4) 100%), ${cardData.glowColor}` }}
-                        >
-                          <div className="absolute inset-0 transition-opacity duration-700 opacity-50 group-hover:opacity-100" style={{ background: cardData.glowColor }} />
-                          
-                          <div className="flex items-center p-8 relative z-10 gap-5">
-                            <div className="w-14 h-14 rounded-[16px] bg-white/[0.04] flex items-center justify-center p-[5px] backdrop-blur-3xl" style={{ boxShadow: `inset 0 0 0 1.5px ${cardData.border}, 0 4px 12px rgba(0,0,0,0.3)` }}>
-                              <div className={`w-full h-full rounded-[10px] bg-gradient-to-b ${cardData.gradient} flex items-center justify-center relative overflow-hidden shadow-inner backdrop-blur-3xl`}>
-                                <div className="relative z-10">{cardData.icon}</div>
-                                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              const renderSmartSlot = (cardData: any, category: string, slotId: string) => {
+                const isActive = activeTab === category;
+                return (
+                  <div
+                    className={`relative w-full overflow-hidden rounded-[32px] transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] cursor-pointer ${
+                      isActive ? 'h-[400px] lg:h-[420px]' : 'hidden md:block h-[100px] lg:h-[120px] bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.04)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
+                    }`}
+                    onClick={() => setActiveTab(category)}
+                    key={`slot-${slotId}`}
+                  >
+                    <TiltCard
+                      effect="evade"
+                      scale={isActive ? 1.03 : 1.01}
+                      perspective={1200}
+                      tiltLimit={isActive ? 15 : 5}
+                      spotlight={true}
+                      spotlightColor={cardData.border.replace("0.5", "0.2")}
+                      className={`w-full h-full relative backdrop-blur-[32px] overflow-hidden group flex flex-col ${isActive ? '' : 'items-center justify-center'}`}
+                      style={isActive ? { background: `linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(10,5,20,0.1) 20%, rgba(10,5,20,0.2) 50%, rgba(10,5,20,0.4) 100%), ${cardData.glowColor}` } : {}}
+                    >
+                      <AnimatePresence mode="wait">
+                        {isActive ? (
+                          <motion.div
+                            key="full"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.25, ease: "easeInOut" }}
+                            className="absolute inset-x-0 top-0 h-[400px] lg:h-[420px]"
+                          >
+                            <div className="absolute inset-0 transition-opacity duration-700 opacity-50 group-hover:opacity-100" style={{ background: cardData.glowColor }} />
+                            
+                            <div className="flex items-center p-8 relative z-10 gap-5">
+                              <div className="w-14 h-14 rounded-[16px] bg-white/[0.04] flex items-center justify-center p-[5px] backdrop-blur-3xl" style={{ boxShadow: `inset 0 0 0 1.5px ${cardData.border}, 0 4px 12px rgba(0,0,0,0.3)` }}>
+                                <div className={`w-full h-full rounded-[10px] bg-gradient-to-b ${cardData.gradient} flex items-center justify-center relative overflow-hidden shadow-inner backdrop-blur-3xl`}>
+                                  <div className="relative z-10">{cardData.icon}</div>
+                                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          <div className="px-8 relative z-10">
-                            <h3 className="text-[20px] lg:text-[24px] font-sora font-semibold text-white/95 tracking-tight mb-2 drop-shadow-sm">{cardData.title}</h3>
-                            <p className="text-[#6b6b75] text-[15px] lg:text-[16px] leading-[1.6] font-inter font-medium group-hover:text-[#8e8d98] transition-colors duration-300">{cardData.description}</p>
-                          </div>
+                            <div className="px-8 relative z-10">
+                              <h3 className="text-[20px] lg:text-[24px] font-sora font-semibold text-white/95 tracking-tight mb-2 drop-shadow-sm">{cardData.title}</h3>
+                              <p className="text-[#6b6b75] text-[15px] lg:text-[16px] leading-[1.6] font-inter font-medium group-hover:text-[#8e8d98] transition-colors duration-300">{cardData.description}</p>
+                            </div>
 
-                          <div className="flex-1 mt-6 relative overflow-hidden flex items-end justify-center pb-4">
-                            <motion.div className="w-full h-full relative z-10 flex items-center justify-center" whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
-                              {cardData.visual}
-                            </motion.div>
-                          </div>
-                        </TiltCard>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
+                            <div className="flex-1 mt-6 relative overflow-hidden flex items-end justify-center pb-4">
+                              <motion.div className="w-full h-full relative z-10 flex items-center justify-center" whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+                                {cardData.visual}
+                              </motion.div>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="mini"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 flex items-center justify-center gap-4 px-6 opacity-50 group-hover:opacity-100 transition-opacity duration-300"
+                          >
+                            <div className="scale-75 group-hover:scale-90 transition-transform duration-300">
+                              <div className="w-12 h-12 rounded-[12px] bg-white/[0.02] flex items-center justify-center p-[4px]" style={{ boxShadow: `inset 0 0 0 1px ${cardData.border}` }}>
+                                <div className={`w-full h-full rounded-[8px] bg-gradient-to-b ${cardData.gradient} flex items-center justify-center`}>
+                                  {cardData.icon}
+                                </div>
+                              </div>
+                            </div>
+                            <span className="text-white/70 font-sora text-[16px] font-semibold tracking-tight">{cardData.title}</span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </TiltCard>
+                  </div>
+                );
+              };
 
               return (
                 <>
                   {/* Columna Izquierda */}
                   <div className="flex flex-col gap-4 lg:gap-6 h-full">
-                    {renderSlot(c1Top, cards[0], "col1-top")}
-                    {renderSlot(!c1Top, cards[0], "col1-bottom")}
+                    {renderSmartSlot(dCards[0], "Descargas", "col1-top")}
+                    {renderSmartSlot(rCards[0], "Reproducción", "col1-bottom")}
                   </div>
                   
                   {/* Columna Central */}
                   <div className="flex flex-col gap-4 lg:gap-6 h-full">
-                    {renderSlot(c2Top, cards[1], "col2-top")}
-                    {renderSlot(!c2Top, cards[1], "col2-bottom")}
+                    {renderSmartSlot(rCards[1], "Reproducción", "col2-top")}
+                    {renderSmartSlot(dCards[1], "Descargas", "col2-bottom")}
                   </div>
                   
                   {/* Columna Derecha */}
                   <div className="flex flex-col gap-4 lg:gap-6 h-full">
-                    {renderSlot(c3Top, cards[2], "col3-top")}
-                    {renderSlot(!c3Top, cards[2], "col3-bottom")}
+                    {renderSmartSlot(dCards[2], "Descargas", "col3-top")}
+                    {renderSmartSlot(rCards[2], "Reproducción", "col3-bottom")}
                   </div>
                 </>
               );
