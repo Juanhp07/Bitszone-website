@@ -400,7 +400,7 @@ export const DownloadsView = ({
       {/* Hero Section */}
       <div className="px-8 pt-8 pb-6 flex items-center justify-between relative z-40 border-b border-white/5">
         <div className="flex items-center gap-6">
-          <div className={`w-40 h-40 shrink-0 rounded-2xl flex items-center justify-center ${type === 'licenses' ? 'bg-yellow-500' : type === 'playlists' ? 'bg-green-500' : 'bg-[#a855f7]'}`}>
+          <div className={`w-40 h-40 shrink-0 rounded-2xl flex items-center justify-center ${type === 'licenses' ? 'bg-yellow-500' : type === 'playlists' ? 'bg-green-500' : type === 'downloads' ? 'bg-blue-500' : 'bg-[#a855f7]'}`}>
             <Icon className={`w-16 h-16 text-white custom-icon-${type}`} />
           </div>
           
@@ -463,6 +463,7 @@ export const DownloadsView = ({
             } ${
               type === 'licenses' ? 'bg-yellow-500/20 border-yellow-500/30' : 
               type === 'playlists' ? 'bg-green-500/20 border-green-500/30' : 
+              type === 'downloads' ? 'bg-blue-500/20 border-blue-500/30' : 
               'bg-[#a855f7]/20 border-[#a855f7]/30'
             }`}
           />
@@ -473,6 +474,7 @@ export const DownloadsView = ({
               viewMode === 'canciones' ? (
                 type === 'licenses' ? 'text-yellow-400' : 
                 type === 'playlists' ? 'text-green-400' : 
+                type === 'downloads' ? 'text-blue-400' : 
                 'text-[#c084fc]'
               ) : 'text-white/50 hover:text-white'
             }`}
@@ -485,6 +487,7 @@ export const DownloadsView = ({
               viewMode === 'albumes' ? (
                 type === 'licenses' ? 'text-yellow-400' : 
                 type === 'playlists' ? 'text-green-400' : 
+                type === 'downloads' ? 'text-blue-400' : 
                 'text-[#c084fc]'
               ) : 'text-white/50 hover:text-white'
             }`}
@@ -510,7 +513,7 @@ export const DownloadsView = ({
             <div className="fixed inset-0 z-[9998]" onClick={() => setShowSort(false)} />
             <div 
               style={{ top: sortPos.top, left: sortPos.left }}
-              className={`fixed mt-4 w-[280px] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : 'border-[#a855f7]/20'}`}>
+              className={`fixed mt-4 w-[280px] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : type === 'downloads' ? 'border-blue-500/20' : 'border-[#a855f7]/20'}`}>
               {[
                 { id: 'default', label: 'Por defecto' },
                 { id: 'recent', label: 'Añadidos recientemente' },
@@ -521,7 +524,7 @@ export const DownloadsView = ({
                 <button 
                   key={opt.id}
                   onClick={() => { setSortBy(opt.id as any); setShowSort(false); }}
-                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap ${sortBy === opt.id ? 'bg-white/10 text-white font-medium' : `text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : 'hover:bg-[#a855f7]/10'}`}`}
+                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap ${sortBy === opt.id ? 'bg-white/10 text-white font-medium' : `text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : type === 'downloads' ? 'hover:bg-blue-500/10' : 'hover:bg-[#a855f7]/10'}`}`}
                 >
                   {opt.label}
                 </button>
@@ -555,7 +558,7 @@ export const DownloadsView = ({
           {showSuggestions && suggestions.length > 0 && typeof document !== 'undefined' && createPortal(
             <div 
               style={{ top: searchPos.top, left: searchPos.left, width: searchPos.width }}
-              className={`fixed mt-4 border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : 'border-[#a855f7]/20'}`}>
+              className={`fixed mt-4 border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : type === 'downloads' ? 'border-blue-500/20' : 'border-[#a855f7]/20'}`}>
               {suggestions.map((sug, idx) => (
                 <button 
                   key={idx}
@@ -563,7 +566,7 @@ export const DownloadsView = ({
                     setSearchQuery(sug);
                     setShowSuggestions(false);
                   }}
-                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap overflow-hidden text-ellipsis text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : 'hover:bg-[#a855f7]/10'}`}
+                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap overflow-hidden text-ellipsis text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : type === 'downloads' ? 'hover:bg-blue-500/10' : 'hover:bg-[#a855f7]/10'}`}
                 >
                   {sug}
                 </button>
@@ -671,7 +674,7 @@ export const DownloadsView = ({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className={`w-10 h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}>
+                    <button onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className={`w-10 h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : type === 'downloads' ? 'hover:bg-blue-500 hover:border-blue-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}>
                       <Play className="w-5 h-5 ml-1" fill="currentColor" />
                     </button>
                     <FuseButton fuse="outline" commitOn="fuseEnd" 
@@ -740,7 +743,7 @@ export const DownloadsView = ({
                     )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button 
-                        className="${type === 'licenses' ? 'bg-yellow-500 hover:bg-yellow-400' : type === 'playlists' ? 'bg-green-500 hover:bg-green-400' : 'bg-[#a855f7] hover:bg-[#b066f8]'} w-14 h-14 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
+                        className="${type === 'licenses' ? 'bg-yellow-500 hover:bg-yellow-400' : type === 'playlists' ? 'bg-green-500 hover:bg-green-400' : type === 'downloads' ? 'bg-blue-500 hover:bg-blue-400' : 'bg-[#a855f7] hover:bg-[#b066f8]'} w-14 h-14 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (album.tracks && album.tracks.length > 0) {
