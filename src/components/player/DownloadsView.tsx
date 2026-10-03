@@ -202,7 +202,7 @@ export const DownloadsView = ({
         onMouseEnter={() => setHoveredTrack(track.id)}
         onMouseLeave={() => setHoveredTrack(null)}
         onClick={() => handlePlay(track)}
-        className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_150px_100px_100px_40px]' : 'grid-cols-[50px_1fr_150px_100px_40px]'} gap-4 px-4 py-2 items-center rounded-xl cursor-pointer group hover:bg-white/5 transition-colors`}
+        className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_50px]' : 'grid-cols-[50px_1fr_130px_80px_50px]'} gap-4 px-4 py-2 items-center rounded-xl cursor-pointer group hover:bg-white/5 transition-colors`}
       >
         <div className="text-center text-white/50 font-medium">
           {isHovered ? (
@@ -231,11 +231,11 @@ export const DownloadsView = ({
           </div>
         )}
         
-        <div className="text-right text-white/50 text-sm flex items-center justify-end">
+        <div className="text-left text-white/50 text-sm flex items-center justify-start">
           {formatDuration(track.duration)}
         </div>
 
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-start">
           {type === 'downloads' ? (
             <FuseButton fuse="outline" commitOn="fuseEnd" 
               
@@ -245,7 +245,7 @@ export const DownloadsView = ({
               background="transparent"
               color="rgba(255,255,255,0.3)"
               fuseColor="#ef4444"
-              undoWindow={3000}
+              undoWindow={2000}
               className="transition-all duration-300 !w-8 !h-8 !min-w-[32px] !px-0 rounded-full border border-transparent hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
               icon={<Trash2 className="w-4 h-4" />}
               onCommit={() => removeDownload(track.id)}
@@ -614,7 +614,7 @@ export const DownloadsView = ({
                       background="transparent"
                       color="#ffffff"
                       fuseColor="#ef4444"
-                      undoWindow={3000}
+                      undoWindow={2000}
                       className="!h-10 rounded-full border border-white/20 font-medium text-sm transition-all duration-300 hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
                       onCommit={() => {
                         if (type === 'downloads') {
@@ -628,13 +628,13 @@ export const DownloadsView = ({
               </div>
             </div>
             
-            <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_150px_100px_100px_40px]' : 'grid-cols-[50px_1fr_150px_100px_40px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-2`}>
+            <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_50px]' : 'grid-cols-[50px_1fr_130px_80px_50px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-2`}>
               <div className="text-center">#</div>
               <div>TÍTULO</div>
               <div>AÑADIDO</div>
               {type === 'downloads' && <div>TAMAÑO</div>}
-              <div className="text-right">TIEMPO</div>
-              <div className="text-center">{type === 'downloads' ? 'DEL' : 'FAV'}</div>
+              <div className="text-left">TIEMPO</div>
+              <div className="text-left">{type === 'downloads' ? 'DEL' : 'FAV'}</div>
             </div>
 
             <div className="flex flex-col gap-0.5">
@@ -683,7 +683,7 @@ export const DownloadsView = ({
                       background="transparent"
                       color="rgba(255,255,255,0.4)"
                       fuseColor="#ef4444"
-                      undoWindow={3000}
+                      undoWindow={2000}
                       className="!w-10 !h-10 !min-w-[40px] !px-0 rounded-full border border-transparent transition-colors duration-300 hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
                       onCommit={() => {
                         if (type === 'downloads') {
@@ -696,13 +696,13 @@ export const DownloadsView = ({
                   </div>
                 </div>
                 
-                <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_150px_100px_100px_40px]' : 'grid-cols-[50px_1fr_150px_100px_40px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
+                <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_50px]' : 'grid-cols-[50px_1fr_130px_80px_50px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
                   <div className="text-center">#</div>
                   <div>TÍTULO</div>
                   <div>AÑADIDO</div>
                   {type === 'downloads' && <div>TAMAÑO</div>}
-                  <div className="text-right">TIEMPO</div>
-                  <div className="text-center">{type === 'downloads' ? 'DEL' : 'FAV'}</div>
+                  <div className="text-left">TIEMPO</div>
+                  <div className="text-left">{type === 'downloads' ? 'DEL' : 'FAV'}</div>
                 </div>
 
                 <div className="flex flex-col gap-0.5">
