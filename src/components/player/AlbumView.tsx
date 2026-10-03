@@ -269,7 +269,7 @@ useEffect(() => {
                 <div className="fixed inset-0 z-[9998]" onClick={() => setShowMoreMenu(false)} />
                 <div 
                   style={{ top: moreMenuPos.top, left: moreMenuPos.left - 180 }}
-                  className="fixed mt-4 w-[220px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30"
+                  className="fixed mt-8 w-[220px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30"
                 >
                   <button 
                     onClick={() => { toggleFavoriteAlbum(album); setShowMoreMenu(false); }}
