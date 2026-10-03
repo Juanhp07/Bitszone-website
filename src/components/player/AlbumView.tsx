@@ -49,12 +49,14 @@ export const AlbumView = ({
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const moreMenuRef = useRef<HTMLButtonElement>(null);
   const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0 });
+  const [openTrackMenu, setOpenTrackMenu] = useState<number | null>(null);
+  const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0 });
   const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isDownloadingAlbum = downloadingAlbums.includes(String(album?.id));
 
 useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowMoreMenu(false);
+      if (e.key === 'Escape') { setShowMoreMenu(false); setOpenTrackMenu(null); }
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
@@ -301,13 +303,14 @@ useEffect(() => {
       <div className="px-8 relative z-10 flex-1">
         <div className="mt-8">
           {/* Header */}
-          <div className="grid grid-cols-[50px_1fr_100px_120px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
-            <div className="text-center">#</div>
-            <div>Título</div>
-            <div className="text-right">Reproducciones</div>
-            <div className="flex items-center justify-end gap-6">
-               <Clock className="w-4 h-4" />
-            </div>
+          <div className="grid grid-cols-[50px_1fr_120px_50px_50px_60px_50px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
+            <div className="text-left">#</div>
+            <div className="text-left">TÍTULO</div>
+            <div className="text-left">REPRODUCCIONES</div>
+            <div className="text-left">DL</div>
+            <div className="text-left">FAV</div>
+            <div className="text-left">TIEMPO</div>
+            <div className="text-left">OPC</div>
           </div>
 
           {/* Tracklist */}
@@ -325,11 +328,11 @@ useEffect(() => {
                   onMouseEnter={() => setHoveredTrack(track.id)}
                   onMouseLeave={() => setHoveredTrack(null)}
                   onClick={() => onPlayTrack(track, album)}
-                  className={`grid grid-cols-[50px_1fr_100px_120px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group ${
+                  className={`grid grid-cols-[50px_1fr_120px_50px_50px_60px_50px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group ${
                     nowPlayingTrackId === track.id ? 'bg-white/10' : 'hover:bg-white/5'
                   }`}
                 >
-                  <div className="text-center text-white/50 font-medium">
+                  <div className="text-left text-white/50 font-medium flex items-center">
                     {isPlayingTrack ? (
                       <div className="flex items-end justify-center gap-[2.5px] h-4 w-4 mx-auto">
                         <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-2 animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
@@ -356,9 +359,9 @@ useEffect(() => {
                     </div>
                   </div>
                   
-                  <div className="text-right text-white/50 text-sm">{getPlays(track.id)}</div>
+                  <div className="text-left text-white/50 text-sm flex items-center">{getPlays(track.id)}</div>
                   
-                  <div className="flex items-center justify-end gap-5">
+                  <div className="flex items-center justify-start">
                     <button 
                       onClick={(e) => handleDownload(e, track)}
                       className="text-white/40 hover:text-white transition-colors"
@@ -369,9 +372,12 @@ useEffect(() => {
                       ) : downloaded ? (
                         <CheckCircle className="w-4 h-4 text-[#a855f7]" strokeWidth={2.5} />
                       ) : (
-                        isHovered && <Download className="w-4 h-4" />
+                        <Download className="w-4 h-4" />
                       )}
                     </button>
+                  </div>
+
+                  <div className="flex items-center justify-start">
                     <button 
                       onClick={(e) => handleFavorite(e, track)}
                       className={`group/favbtn transition-colors ${favorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/40 hover:text-white'}`}
@@ -382,12 +388,27 @@ useEffect(() => {
                           <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" />
                         </>
                       ) : (
-                        isHovered && <Heart className="w-4 h-4" fill="none" />
+                        <Heart className="w-4 h-4" fill="none" />
                       )}
                     </button>
-                    <div className="w-10 text-right text-white/50 text-sm">
-                      {formatDuration(track.duration)}
-                    </div>
+                  </div>
+
+                  <div className="text-left text-white/50 text-sm flex items-center justify-start">
+                    {formatDuration(track.duration)}
+                  </div>
+                  
+                  <div className="flex items-center justify-start relative">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setTrackMenuPos({ top: rect.bottom, left: rect.left });
+                        setOpenTrackMenu(openTrackMenu === track.id ? null : track.id);
+                      }}
+                      className="text-white/40 hover:text-white transition-colors"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               );
