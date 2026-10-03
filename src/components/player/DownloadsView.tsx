@@ -400,7 +400,7 @@ export const DownloadsView = ({
       {/* Hero Section */}
       <div className="px-8 pt-8 pb-6 flex items-center justify-between relative z-40 border-b border-white/5">
         <div className="flex items-center gap-6">
-          <div className={`w-40 h-40 shrink-0 rounded-2xl bg-gradient-to-br flex items-center justify-center ${gradientClass || (type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600')}`}>
+          <div className={`w-40 h-40 shrink-0 rounded-2xl flex items-center justify-center ${type === 'licenses' ? 'bg-yellow-500' : type === 'playlists' ? 'bg-green-500' : 'bg-[#a855f7]'}`}>
             <Icon className={`w-16 h-16 text-white custom-icon-${type}`} />
           </div>
           
@@ -671,7 +671,7 @@ export const DownloadsView = ({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5">
+                    <button onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className={`w-10 h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}>
                       <Play className="w-5 h-5 ml-1" fill="currentColor" />
                     </button>
                     <FuseButton fuse="outline" commitOn="fuseEnd" 
