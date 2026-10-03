@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, Download, Check, Loader2, AlertCircle , Trash2 } from 'lucide-react';
+import { Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, Download, Check, CheckCircle, Loader2, AlertCircle , Trash2 } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 
@@ -47,6 +47,8 @@ export const AlbumView = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showDownloadConfirm]);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const moreMenuRef = useRef<HTMLButtonElement>(null);
+  const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0 });
   const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isDownloadingAlbum = downloadingAlbums.includes(String(album?.id));
 
@@ -242,7 +244,7 @@ useEffect(() => {
             {isDownloadingAlbum ? (
               <Loader2 className="w-8 h-8 animate-spin text-[#a855f7]" />
             ) : isEntireAlbumDownloaded ? (
-              <Check className="w-8 h-8 text-[#a855f7]" />
+              <CheckCircle className="w-8 h-8 text-[#a855f7]" strokeWidth={2.5} />
             ) : (
               <Download className="w-8 h-8" />
             )}
@@ -250,20 +252,28 @@ useEffect(() => {
 
           <div className="relative z-50">
             <button 
-              onClick={() => setShowMoreMenu(!showMoreMenu)}
-              className="text-white/50 hover:text-white transition-colors"
+              ref={moreMenuRef}
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setMoreMenuPos({ top: rect.bottom, left: rect.left });
+                setShowMoreMenu(!showMoreMenu);
+              }}
+              className="text-white/50 hover:text-white transition-colors group relative z-50"
             >
               <MoreHorizontal className="w-8 h-8" />
             </button>
-            {showMoreMenu && (
+            {showMoreMenu && typeof document !== 'undefined' && createPortal(
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowMoreMenu(false)} />
-                <div className="absolute top-full right-0 mt-2 w-56 bg-[#18181b] border border-white/10 rounded-xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.8)] z-50">
+                <div className="fixed inset-0 z-[9998]" onClick={() => setShowMoreMenu(false)} />
+                <div 
+                  style={{ top: moreMenuPos.top, left: moreMenuPos.left - 180 }}
+                  className="fixed mt-4 w-[220px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30"
+                >
                   <button 
                     onClick={() => { toggleFavoriteAlbum(album); setShowMoreMenu(false); }}
-                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors border-b border-white/5 relative z-10"
+                    className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
                   >
-                    {isEntireAlbumFavorited ? 'Eliminar de tu Biblioteca' : 'Agregar a tu Biblioteca'}
+                    {isEntireAlbumFavorited ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
                     <Heart className="w-4 h-4" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
                   </button>
                   <button 
@@ -275,13 +285,14 @@ useEffect(() => {
                       }
                       setShowMoreMenu(false); 
                     }}
-                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors relative z-10"
+                    className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
                   >
                     {isEntireAlbumDownloaded ? 'Eliminar descarga' : 'Descargar álbum'}
-                    {isEntireAlbumDownloaded ? <Check className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+                    {isEntireAlbumDownloaded ? <CheckCircle className="w-4 h-4" strokeWidth={2.5} /> : <Download className="w-4 h-4" />}
                   </button>
                 </div>
-              </>
+              </>,
+              document.body
             )}
           </div>
         </div>
@@ -356,7 +367,7 @@ useEffect(() => {
                       {isDownloading ? (
                         <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" />
                       ) : downloaded ? (
-                        <Check className="w-4 h-4 text-[#a855f7]" />
+                        <CheckCircle className="w-4 h-4 text-[#a855f7]" strokeWidth={2.5} />
                       ) : (
                         isHovered && <Download className="w-4 h-4" />
                       )}

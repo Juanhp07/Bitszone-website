@@ -716,7 +716,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">A</kbd>
                </div>
                <div className="flex justify-between items-center">
-                 <span>Agregar a tu Biblioteca</span>
+                 <span>Agregar a favoritos</span>
                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">S</kbd>
                </div>
             </div>
