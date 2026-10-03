@@ -700,7 +700,7 @@ export const DownloadsView = ({
               {type === 'licenses' && <div className="text-center">EXPIRACIÓN</div>}
               {type === 'licenses' && <div className="text-center">HASTA</div>}
               <div className="text-center">TIEMPO</div>
-              <div className="text-center">{type === 'downloads' ? 'DEL' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
+              <div className="text-center">{type === 'downloads' ? 'ELIMINAR' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
             </div>
 
             <div className="flex flex-col gap-0.5">
@@ -774,7 +774,7 @@ export const DownloadsView = ({
                   {type === 'licenses' && <div className="text-center">EXPIRACIÓN</div>}
                   {type === 'licenses' && <div className="text-center">HASTA</div>}
                   <div className="text-center">TIEMPO</div>
-                  <div className="text-center">{type === 'downloads' ? 'DEL' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
+                  <div className="text-center">{type === 'downloads' ? 'ELIMINAR' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
                 </div>
 
                 <div className="flex flex-col gap-0.5">
