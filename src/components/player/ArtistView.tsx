@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Play, Download, Check, Loader2, Heart, HeartOff, AlertCircle, X } from 'lucide-react';
+import { ArrowLeft, Play, Download, Check, CheckCircle, Loader2, Heart, HeartOff, AlertCircle, X } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Album } from './types';
 
@@ -150,7 +150,7 @@ export const ArtistView = ({
                     {downloadingAlbums?.includes(String(album.id)) ? (
                       <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" />
                     ) : album.tracks.every(t => isDownloaded(t.id)) ? (
-                      <Check className="w-4 h-4 text-[#a855f7]" />
+                      <CheckCircle className="w-4 h-4 text-[#a855f7]" strokeWidth={2.5} />
                     ) : (
                       <Download className="w-4 h-4" />
                     )}

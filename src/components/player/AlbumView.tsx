@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, Download, Check, Loader2, AlertCircle , Trash2 } from 'lucide-react';
+import { Star, Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, Download, Check, CheckCircle, Loader2, AlertCircle , Trash2 } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 
@@ -31,7 +31,11 @@ export const AlbumView = ({
   useEffect(() => {
     const container = document.getElementById('main-scroll-container');
     if (!container) return;
-    const handleScroll = () => setScrollY(container.scrollTop);
+    const handleScroll = () => {
+      setScrollY(container.scrollTop);
+      setShowMoreMenu(false);
+      setOpenTrackMenu(null);
+    };
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
@@ -47,12 +51,16 @@ export const AlbumView = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showDownloadConfirm]);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
+  const moreMenuRef = useRef<HTMLButtonElement>(null);
+  const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0 });
+  const [openTrackMenu, setOpenTrackMenu] = useState<number | null>(null);
+  const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0, isUpward: false });
+  const { isLicensed, downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isDownloadingAlbum = downloadingAlbums.includes(String(album?.id));
 
 useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowMoreMenu(false);
+      if (e.key === 'Escape') { setShowMoreMenu(false); setOpenTrackMenu(null); }
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
@@ -242,7 +250,7 @@ useEffect(() => {
             {isDownloadingAlbum ? (
               <Loader2 className="w-8 h-8 animate-spin text-[#a855f7]" />
             ) : isEntireAlbumDownloaded ? (
-              <Check className="w-8 h-8 text-[#a855f7]" />
+              <CheckCircle className="w-8 h-8 text-[#a855f7]" strokeWidth={2.5} />
             ) : (
               <Download className="w-8 h-8" />
             )}
@@ -250,20 +258,28 @@ useEffect(() => {
 
           <div className="relative z-50">
             <button 
-              onClick={() => setShowMoreMenu(!showMoreMenu)}
-              className="text-white/50 hover:text-white transition-colors"
+              ref={moreMenuRef}
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setMoreMenuPos({ top: rect.bottom, left: rect.left });
+                setShowMoreMenu(!showMoreMenu);
+              }}
+              className="text-white/50 hover:text-white transition-colors group relative z-50"
             >
               <MoreHorizontal className="w-8 h-8" />
             </button>
-            {showMoreMenu && (
+            {showMoreMenu && typeof document !== 'undefined' && createPortal(
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowMoreMenu(false)} />
-                <div className="absolute top-full right-0 mt-2 w-56 bg-[#18181b] border border-white/10 rounded-xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.8)] z-50">
+                <div className="fixed inset-0 z-[9998]" onClick={() => setShowMoreMenu(false)} />
+                <div 
+                  style={{ top: moreMenuPos.top, left: moreMenuPos.left - 180 }}
+                  className="fixed mt-8 w-[220px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30"
+                >
                   <button 
                     onClick={() => { toggleFavoriteAlbum(album); setShowMoreMenu(false); }}
-                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors border-b border-white/5 relative z-10"
+                    className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
                   >
-                    {isEntireAlbumFavorited ? 'Eliminar de tu Biblioteca' : 'Agregar a tu Biblioteca'}
+                    {isEntireAlbumFavorited ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
                     <Heart className="w-4 h-4" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
                   </button>
                   <button 
@@ -275,13 +291,14 @@ useEffect(() => {
                       }
                       setShowMoreMenu(false); 
                     }}
-                    className="w-full flex items-center justify-between px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors relative z-10"
+                    className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
                   >
                     {isEntireAlbumDownloaded ? 'Eliminar descarga' : 'Descargar álbum'}
-                    {isEntireAlbumDownloaded ? <Check className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+                    {isEntireAlbumDownloaded ? <CheckCircle className="w-4 h-4" strokeWidth={2.5} /> : <Download className="w-4 h-4" />}
                   </button>
                 </div>
-              </>
+              </>,
+              document.body
             )}
           </div>
         </div>
@@ -290,13 +307,14 @@ useEffect(() => {
       <div className="px-8 relative z-10 flex-1">
         <div className="mt-8">
           {/* Header */}
-          <div className="grid grid-cols-[50px_1fr_100px_120px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
-            <div className="text-center">#</div>
-            <div>Título</div>
-            <div className="text-right">Reproducciones</div>
-            <div className="flex items-center justify-end gap-6">
-               <Clock className="w-4 h-4" />
-            </div>
+          <div className="grid grid-cols-[50px_1fr_120px_100px_100px_80px_100px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
+            <div className="text-left">#</div>
+            <div className="text-left">TÍTULO</div>
+            <div className="text-center">REPRODUCCIONES</div>
+            <div className="text-center">DESCARGAR</div>
+            <div className="text-center">FAVORITOS</div>
+            <div className="text-center">TIEMPO</div>
+            <div className="text-center">OPCIONES</div>
           </div>
 
           {/* Tracklist */}
@@ -314,11 +332,11 @@ useEffect(() => {
                   onMouseEnter={() => setHoveredTrack(track.id)}
                   onMouseLeave={() => setHoveredTrack(null)}
                   onClick={() => onPlayTrack(track, album)}
-                  className={`grid grid-cols-[50px_1fr_100px_120px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group ${
+                  className={`grid grid-cols-[50px_1fr_120px_100px_100px_80px_100px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group ${
                     nowPlayingTrackId === track.id ? 'bg-white/10' : 'hover:bg-white/5'
                   }`}
                 >
-                  <div className="text-center text-white/50 font-medium">
+                  <div className="text-left text-white/50 font-medium flex items-center">
                     {isPlayingTrack ? (
                       <div className="flex items-end justify-center gap-[2.5px] h-4 w-4 mx-auto">
                         <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-2 animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
@@ -334,8 +352,9 @@ useEffect(() => {
                   </div>
                   
                   <div className="flex flex-col pr-4">
-                    <span className={`font-medium line-clamp-1 ${nowPlayingTrackId === track.id ? 'text-[#a855f7]' : 'text-white'}`}>
-                      {track.title}
+                    <span className={`font-medium line-clamp-1 flex items-center gap-1.5 ${nowPlayingTrackId === track.id ? 'text-[#a855f7]' : 'text-white'}`}>
+                      {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
+                      <span className="truncate">{track.title}</span>
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
                       {track.previewUrl.includes('explicit') && (
@@ -345,9 +364,9 @@ useEffect(() => {
                     </div>
                   </div>
                   
-                  <div className="text-right text-white/50 text-sm">{getPlays(track.id)}</div>
+                  <div className="text-center text-white/50 text-sm flex items-center justify-center">{getPlays(track.id)}</div>
                   
-                  <div className="flex items-center justify-end gap-5">
+                  <div className="flex items-center justify-center">
                     <button 
                       onClick={(e) => handleDownload(e, track)}
                       className="text-white/40 hover:text-white transition-colors"
@@ -356,11 +375,14 @@ useEffect(() => {
                       {isDownloading ? (
                         <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" />
                       ) : downloaded ? (
-                        <Check className="w-4 h-4 text-[#a855f7]" />
+                        <CheckCircle className="w-4 h-4 text-[#a855f7]" strokeWidth={2.5} />
                       ) : (
-                        isHovered && <Download className="w-4 h-4" />
+                        <Download className="w-4 h-4" />
                       )}
                     </button>
+                  </div>
+
+                  <div className="flex items-center justify-center">
                     <button 
                       onClick={(e) => handleFavorite(e, track)}
                       className={`group/favbtn transition-colors ${favorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/40 hover:text-white'}`}
@@ -371,12 +393,33 @@ useEffect(() => {
                           <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" />
                         </>
                       ) : (
-                        isHovered && <Heart className="w-4 h-4" fill="none" />
+                        <Heart className="w-4 h-4" fill="none" />
                       )}
                     </button>
-                    <div className="w-10 text-right text-white/50 text-sm">
-                      {formatDuration(track.duration)}
-                    </div>
+                  </div>
+
+                  <div className="text-center text-white/50 text-sm flex items-center justify-center">
+                    {formatDuration(track.duration)}
+                  </div>
+                  
+                  <div className="flex items-center justify-center relative">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const spaceBelow = window.innerHeight - rect.bottom;
+                        const isUpward = spaceBelow < 250;
+                        setTrackMenuPos({ 
+                          top: isUpward ? rect.top : rect.bottom, 
+                          left: rect.left,
+                          isUpward 
+                        });
+                        setOpenTrackMenu(openTrackMenu === track.id ? null : track.id);
+                      }}
+                      className="text-white/40 hover:text-white transition-colors p-3 -m-3"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               );
@@ -409,6 +452,52 @@ useEffect(() => {
 
     
       {/* Cancel Download Confirmation Modal */}
+      
+      {openTrackMenu !== null && typeof document !== 'undefined' && createPortal(
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={() => setOpenTrackMenu(null)} />
+          <div 
+            style={{ top: trackMenuPos.top, left: trackMenuPos.left - 240 }}
+            className={`fixed w-[280px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${trackMenuPos.isUpward ? '-translate-y-full -mt-2' : 'mt-2'}`}
+          >
+            <button 
+              onClick={(e) => { e.stopPropagation(); toggleFavorite(album!.tracks!.find(t => t.id === openTrackMenu)!); setOpenTrackMenu(null); }}
+              className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
+            >
+              {isFavorite(openTrackMenu) ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
+            </button>
+            <button 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                const track = album!.tracks!.find(t => t.id === openTrackMenu)!;
+                if (isDownloaded(track.id)) {
+                  removeDownload(track.id);
+                } else {
+                  downloadTrack(track);
+                }
+                setOpenTrackMenu(null); 
+              }}
+              className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
+            >
+              {isDownloaded(openTrackMenu) ? 'Eliminar descarga' : 'Descargar canción'}
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setOpenTrackMenu(null); }}
+              className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
+            >
+              Crear lista de reproducción
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setOpenTrackMenu(null); }}
+              className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
+            >
+              Agregar a lista de reproducción
+            </button>
+          </div>
+        </>,
+        document.body
+      )}
+
       {showCancelConfirm && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(false); }}>
           <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
