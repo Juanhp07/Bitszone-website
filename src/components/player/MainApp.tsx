@@ -7,6 +7,7 @@ import { MiniPlayer } from './MiniPlayer';
 import { CatalogView } from './CatalogView';
 import { AlbumView } from './AlbumView';
 import { DownloadsView } from './DownloadsView';
+import { LibraryView } from './LibraryView';
 import { ImmersivePlayer } from './ImmersivePlayer';
 import { LyricsSidebar } from './LyricsSidebar';
 import { ToastContainer } from './ToastContainer';
@@ -17,7 +18,7 @@ import { Heart } from 'lucide-react';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
 
-  const [currentView, setCurrentView] = useState<"catalog" | "album" | "downloads" | "library" | "artist">("catalog");
+  const [currentView, setCurrentView] = useState<string>("catalog");
   const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string, type?: string} | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
@@ -419,12 +420,24 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         <div className="absolute inset-0 blur-[150px] scale-110 opacity-70 bg-gradient-to-br from-[#a855f7] to-[#3b82f6]"></div>
       </div>
 
-      {/* Library (Favorites) View Background Glow */}
+      {/* Library Views Background Glows */}
       <div 
-        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'library' ? 'opacity-40' : 'opacity-0'}`}
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'library' || currentView === 'library-favorites' ? 'opacity-40' : 'opacity-0'}`}
         style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
       >
         <div className="absolute inset-0 blur-[150px] scale-110 opacity-70 bg-gradient-to-br from-pink-500 to-purple-600"></div>
+      </div>
+      <div 
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'library-playlists' ? 'opacity-40' : 'opacity-0'}`}
+        style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
+      >
+        <div className="absolute inset-0 blur-[150px] scale-110 opacity-70 bg-gradient-to-br from-green-400 to-emerald-500"></div>
+      </div>
+      <div 
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'library-licenses' ? 'opacity-40' : 'opacity-0'}`}
+        style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
+      >
+        <div className="absolute inset-0 blur-[150px] scale-110 opacity-70 bg-gradient-to-br from-yellow-400 to-amber-500"></div>
       </div>
 
       <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none z-0"></div>
@@ -518,7 +531,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     />
                   )}
                   {currentView === 'downloads' && <DownloadsView type="downloads" albums={albums} onPlayTrack={handlePlayTrack} onSelectAlbum={handleSelectAlbum} />}
-                  {currentView === 'library' && <DownloadsView type="favorites" albums={albums} title="Canciones favoritas" icon={Heart} onPlayTrack={handlePlayTrack} onSelectAlbum={handleSelectAlbum} />}
+                  {currentView.startsWith('library') && <LibraryView albums={albums} handlePlayTrack={handlePlayTrack} handleSelectAlbum={handleSelectAlbum} currentView={currentView} setCurrentView={setCurrentView} />}
                   {currentView === 'artist' && selectedArtist && (
                     <ArtistView 
                       artist={selectedArtist} 
@@ -703,7 +716,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">A</kbd>
                </div>
                <div className="flex justify-between items-center">
-                 <span>Agregar a favoritos</span>
+                 <span>Agregar a tu Biblioteca</span>
                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">S</kbd>
                </div>
             </div>

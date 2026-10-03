@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { DownloadCloud, Play, Heart, Clock, X, Trash2, Search, Loader2 } from 'lucide-react';
+import { DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle } from 'lucide-react';
+import FuseButton from '../ui/FuseButton';
+import HoldButton from '../ui/HoldButton';
 import { useDownloads } from './DownloadsContext';
 import type { Track, Album } from './types';
 
@@ -44,10 +46,12 @@ export const DownloadsView = ({
   icon: Icon = DownloadCloud,
   onPlayTrack,
   onSelectAlbum,
-  albums
+  albums,
+  gradientClass
 }: { 
-  type?: 'downloads' | 'favorites', 
-  title?: string, 
+  type?: 'downloads' | 'favorites' | 'licenses' | 'playlists',
+  gradientClass?: string, 
+  title?: React.ReactNode, 
   icon?: any,
   onPlayTrack?: (t: Track, a: Album) => void,
   onSelectAlbum?: (a: Album) => void,
@@ -57,6 +61,7 @@ export const DownloadsView = ({
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [trackToRemove, setTrackToRemove] = useState<Track | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState<any>(null);
   const [albumToRemove, setAlbumToRemove] = useState<{ id: string, title: string } | null>(null);
   const [confirmText, setConfirmText] = useState("");
   const [viewMode, setViewMode] = useState<'canciones' | 'albumes'>('canciones');
@@ -65,8 +70,10 @@ export const DownloadsView = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [sortBy, setSortBy] = useState<'default' | 'recent' | 'alpha' | 'size_desc' | 'size_asc'>('default');
   const [showSort, setShowSort] = useState(false);
+  const [sortPos, setSortPos] = useState({ top: 0, left: 0 });
+  useEffect(() => { const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowSort(false); }; if (showSort) { document.addEventListener('keydown', handleKeyDown); } return () => document.removeEventListener('keydown', handleKeyDown); }, [showSort]);
 
-  const tracks = type === 'downloads' ? downloadedTracks : favoriteTracks;
+  const tracks = type === 'downloads' ? downloadedTracks : type === 'favorites' ? favoriteTracks : [];
   const getSuggestions = () => {
     if (!searchQuery) return [];
     const q = searchQuery.toLowerCase();
@@ -153,7 +160,7 @@ export const DownloadsView = ({
     if (onPlayTrack) {
       const dummyAlbum: Album = {
         id: 999999, // 'playlist'
-        title: title,
+        title: String(title),
         artist: 'Varios Artistas',
         coverUrl: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&h=500&fit=crop',
         year: '2026',
@@ -230,13 +237,33 @@ export const DownloadsView = ({
         </div>
 
         <div className="flex items-center justify-center">
-          <button 
-            onClick={(e) => handleRemove(e, track)}
-            className={`${type === 'downloads' ? 'text-white/30 hover:text-red-400 opacity-0 group-hover:opacity-100' : 'text-[#a855f7] hover:text-[#b066f8] opacity-100'} transition-all p-2`}
-            title={type === 'downloads' ? "Eliminar descarga" : "Quitar de favoritos"}
-          >
-            {type === 'downloads' ? <Trash2 className="w-4 h-4" /> : <Heart className="w-4 h-4" fill="currentColor" />}
-          </button>
+          {type === 'downloads' ? (
+            <FuseButton fuse="outline" 
+              
+              label=""
+              undoLabel=""
+              doneLabel=""
+              background="transparent"
+              color="rgba(255,255,255,0.3)"
+              fuseColor="#ef4444"
+              undoWindow={3000}
+              className="hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all !w-8 !h-8 !min-w-[32px] !px-0 rounded-full"
+              icon={<Trash2 className="w-4 h-4" />}
+              onCommit={() => removeDownload(track.id)}
+            />
+          ) : (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavorite(track);
+              }}
+              className="group/favbtn text-[#a855f7] hover:text-[#b066f8] opacity-100 transition-all p-2"
+              title="Quitar de favoritos"
+            >
+              <Heart className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
+              <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" />
+            </button>
+          )}
         </div>
       </div>
     );
@@ -285,34 +312,100 @@ export const DownloadsView = ({
     });
   });
 
-  if (tracks.length === 0) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center relative z-10 px-8 text-center pt-24">
-        <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6">
-          <Icon className="w-10 h-10 text-white/20" />
-        </div>
-        <h2 className="text-2xl font-bold text-white mb-3">Tu lista está vacía</h2>
-        <p className="text-white/50 max-w-md">
-          {type === 'downloads' 
-            ? 'Las canciones que descargues aparecerán aquí para que puedas escucharlas sin conexión a internet.'
-            : 'Las canciones a las que les des "Me gusta" aparecerán aquí.'}
-        </p>
-      </div>
-    );
-  }
+  
 
   return (
     <div className="h-full flex flex-col relative">
+      <style>{`
+        @keyframes heartBeat {
+          0%, 100% { transform: scale(1); fill: transparent; }
+          15% { transform: scale(1.25); fill: white; }
+          30% { transform: scale(1.05); fill: white; }
+          45% { transform: scale(1.25); fill: white; }
+          60%, 80% { transform: scale(1); fill: transparent; }
+        }
+        .custom-icon-favorites {
+          animation: heartBeat 2.5s ease-in-out infinite;
+        }
+
+        @keyframes starSpin {
+          0% { transform: rotate(0deg) scale(1); fill: transparent; }
+          15%, 35% { transform: rotate(144deg) scale(1.2); fill: white; }
+          50%, 70% { transform: rotate(288deg) scale(1.2); fill: white; }
+          85%, 100% { transform: rotate(360deg) scale(1); fill: transparent; }
+        }
+        .custom-icon-licenses {
+          animation: starSpin 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+        }
+
+        
+          25%, 85% { transform: scale(1.15); }
+        }
+        @keyframes fluidScale {
+          0%, 100% { transform: scale(1.0); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
+          50% { transform: scale(1.15); filter: drop-shadow(0 0 15px rgba(255,255,255,0.4)); }
+        }
+        @keyframes fluidLines {
+          0%, 35% { stroke-dashoffset: 0; fill: white; }
+          50% { stroke-dashoffset: 24; fill: transparent; }
+          65%, 100% { stroke-dashoffset: 0; fill: white; }
+        }
+        @keyframes fluidNote {
+          0%, 10% { stroke-dashoffset: 0; fill: white; }
+          25% { stroke-dashoffset: 24; fill: transparent; }
+          40%, 100% { stroke-dashoffset: 0; fill: white; }
+        }
+        .custom-icon-playlists {
+          animation: fluidScale 3s ease-in-out infinite;
+          transform-origin: center;
+          overflow: visible;
+        }
+        .custom-icon-playlists *:nth-child(n+3) {
+          stroke-dasharray: 24;
+          animation: fluidLines 3s ease-in-out infinite;
+        }
+        .custom-icon-playlists *:nth-child(-n+2) {
+          stroke-dasharray: 24;
+          animation: fluidNote 3s ease-in-out infinite;
+        }
+
+        @keyframes arrowSwipeDown {
+          0% { transform: translateY(-4px); opacity: 0; }
+          20% { transform: translateY(0px); opacity: 1; }
+          80% { transform: translateY(4px); opacity: 1; }
+          100% { transform: translateY(8px); opacity: 0; }
+        }
+        @keyframes cloudPulse {
+          0%, 100% { transform: scale(1); opacity: 0.7; }
+          50% { transform: scale(1.05); opacity: 1; }
+        }
+        .custom-icon-downloads {
+          fill: transparent !important;
+          overflow: visible;
+        }
+        /* La nube siempre contiene arcos (A o a) en su path */
+        .custom-icon-downloads path[d*="A"],
+        .custom-icon-downloads path[d*="a"] {
+          animation: cloudPulse 2.5s ease-in-out infinite;
+          transform-origin: center;
+        }
+        /* La flecha son lineas rectas, no contiene arcos */
+        .custom-icon-downloads path:not([d*="A"]):not([d*="a"]),
+        .custom-icon-downloads line,
+        .custom-icon-downloads polyline {
+          animation: arrowSwipeDown 1.8s ease-in-out infinite;
+        }
+      `}</style>
       {/* Hero Section */}
-      <div className="px-8 pt-8 pb-6 flex items-center justify-between relative z-10 border-b border-white/5">
+      <div className="px-8 pt-8 pb-6 flex items-center justify-between relative z-40 border-b border-white/5">
         <div className="flex items-center gap-6">
-          <div className={`w-40 h-40 shrink-0 rounded-2xl bg-gradient-to-br shadow-2xl flex items-center justify-center ${type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600'}`}>
-            <Icon className="w-16 h-16 text-white" />
+          <div className={`w-40 h-40 shrink-0 rounded-2xl bg-gradient-to-br flex items-center justify-center ${gradientClass || (type === 'downloads' ? 'from-[#a855f7] to-[#3b82f6]' : 'from-pink-500 to-purple-600')}`}>
+            <Icon className={`w-16 h-16 text-white custom-icon-${type}`} />
           </div>
           
           <div className="flex flex-col gap-2">
             <span className="text-white/70 text-sm font-semibold tracking-widest uppercase mt-2">Playlist</span>
-            <h1 className="text-5xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{title}</h1>
+            <div className="text-5xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)', WebkitTextStroke: '1px currentColor' }}>{title}</div>
             <div className="flex items-center gap-2 mt-2 text-white/80 font-medium text-sm">
               <span>{tracks.length} {tracks.length === 1 ? 'canción' : 'canciones'}</span>
               <span className="text-white/30">•</span>
@@ -331,13 +424,30 @@ export const DownloadsView = ({
 
         {tracks.length > 0 && (
           <div>
-            <button 
-              onClick={() => setShowClearConfirm(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-white/70 hover:text-white transition-all font-semibold text-xs"
+            <HoldButton
+              size="sm"
+              radius={9999}
+              glow={true}
+              wave={true}
+              holdTime={5000}
+              backgroundColor="transparent"
+              fillColor="#e11d48"
+              textColor="rgba(255, 255, 255, 0.3)"
+              fillTextColor="#ffffff"
+              icon={<Trash2 className="w-4 h-4" />}
+              doneIcon={<Check className="w-4 h-4" />}
+              doneLabel="Eliminado"
+              className="!border border-white/10 font-medium data-[phase=idle]:hover:border-red-500/30 data-[phase=idle]:hover:bg-red-500/10 data-[phase=idle]:hover:text-red-400 transition-colors group"
+              onHold={() => {
+                if (type === 'downloads') {
+                  clearDownloads();
+                } else {
+                  clearFavorites();
+                }
+              }}
             >
-              <Trash2 className="w-4 h-4" />
-              Eliminar todo
-            </button>
+              Mantener para eliminar
+            </HoldButton>
           </div>
         )}
       </div>
@@ -347,13 +457,13 @@ export const DownloadsView = ({
         <div className="flex bg-white/5 rounded-full p-1 border border-white/10">
           <button 
             onClick={() => { setViewMode('canciones'); setSelectedAlbumId(null); }} 
-            className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all ${viewMode === 'canciones' ? 'bg-[#a855f7]/20 text-[#c084fc] shadow-md border border-[#a855f7]/30' : 'text-white/50 hover:text-white'}`}
+            className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all ${viewMode === 'canciones' ? (type === 'licenses' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : type === 'playlists' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-[#a855f7]/20 text-[#c084fc] border-[#a855f7]/30 shadow-md') : 'border border-transparent text-white/50 hover:text-white'}`}
           >
             Canciones
           </button>
           <button 
             onClick={() => { setViewMode('albumes'); setSelectedAlbumId(null); }} 
-            className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all ${viewMode === 'albumes' ? 'bg-[#a855f7]/20 text-[#c084fc] shadow-md border border-[#a855f7]/30' : 'text-white/50 hover:text-white'}`}
+            className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all ${viewMode === 'albumes' ? (type === 'licenses' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : type === 'playlists' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-[#a855f7]/20 text-[#c084fc] border-[#a855f7]/30 shadow-md') : 'border border-transparent text-white/50 hover:text-white'}`}
           >
             Álbumes
           </button>
@@ -361,16 +471,22 @@ export const DownloadsView = ({
 
         <div className="relative z-50">
           <button 
-            onClick={() => setShowSort(!showSort)} 
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setSortPos({ top: rect.bottom, left: rect.right - 280 });
+              setShowSort(!showSort);
+            }} 
             className="flex items-center gap-1.5 text-white/50 hover:text-white transition-colors text-sm font-medium group relative z-50"
           >
             <span className="text-white/30 mr-1">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : 'Menos pesados'}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-y-px"><path d="m6 9 6 6 6-6"/></svg>
           </button>
-          {showSort && (
+          {showSort && typeof document !== 'undefined' && createPortal(
             <>
-            <div className="fixed inset-0 z-40" onClick={() => setShowSort(false)} />
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-52 bg-[#18181b] border border-white/10 rounded-2xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.8)] z-50">
+            <div className="fixed inset-0 z-[9998]" onClick={() => setShowSort(false)} />
+            <div 
+              style={{ top: sortPos.top, left: sortPos.left }}
+              className={`fixed mt-4 w-[280px] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : 'border-[#a855f7]/20'}`}>
               {[
                 { id: 'default', label: 'Por defecto' },
                 { id: 'recent', label: 'Añadidos recientemente' },
@@ -381,13 +497,14 @@ export const DownloadsView = ({
                 <button 
                   key={opt.id}
                   onClick={() => { setSortBy(opt.id as any); setShowSort(false); }}
-                  className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-white/5 last:border-0 ${sortBy === opt.id ? 'text-[#a855f7] font-semibold bg-white/5' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap ${sortBy === opt.id ? 'bg-white/10 text-white font-medium' : `text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : 'hover:bg-[#a855f7]/10'}`}`}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
-            </>
+            </>,
+            document.body
           )}
         </div>
         
@@ -395,7 +512,7 @@ export const DownloadsView = ({
           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
           <input 
             type="text"
-            placeholder={type === 'downloads' ? "Buscar en descargas..." : "Buscar en favoritos..."}
+            placeholder={type === 'downloads' ? 'Buscar en descargas' : 'Buscar en biblioteca'}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -455,13 +572,24 @@ export const DownloadsView = ({
                     <Play className="w-4 h-4" fill="currentColor" />
                     Reproducir
                   </button>
-                  <button 
-                    onClick={() => setAlbumToRemove(groupedTracks[selectedAlbumId])}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 hover:bg-white/10 hover:border-white/40 text-white transition-all font-medium text-sm"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Eliminar
-                  </button>
+                  <FuseButton fuse="outline" 
+              
+                      label="Eliminar"
+                      undoLabel="Deshacer"
+                      doneLabel="Eliminado"
+                      background="transparent"
+                      color="#ffffff"
+                      fuseColor="#ef4444"
+                      undoWindow={3000}
+                      className="!h-10 rounded-full border border-white/20 hover:bg-white/10 hover:border-white/40 transition-all font-medium text-sm"
+                      onCommit={() => {
+                        if (type === 'downloads') {
+                          removeAlbumFromDownloads(groupedTracks[selectedAlbumId].id);
+                        } else {
+                          removeAlbumFromFavorites(groupedTracks[selectedAlbumId].id);
+                        }
+                      }}
+                    />
                 </div>
               </div>
             </div>
@@ -471,8 +599,8 @@ export const DownloadsView = ({
               <div>TÍTULO</div>
               <div>AÑADIDO</div>
               {type === 'downloads' && <div>TAMAÑO</div>}
-              <div className="flex justify-end pr-6"><Clock className="w-4 h-4" /></div>
-              <div></div>
+              <div className="flex justify-end pr-6">TIEMPO</div>
+              <div className="text-center">{type === 'downloads' ? '' : 'FAV'}</div>
             </div>
 
             <div className="flex flex-col gap-0.5">
@@ -495,19 +623,38 @@ export const DownloadsView = ({
                     <div>
                       <h2 className="text-xl font-bold text-white tracking-tight group-hover/title:underline">{group.title}</h2>
                       <p className="text-white/50 text-sm mt-0.5">{group.tracks[0]?.artist || 'Varios Artistas'}</p>
+                      {downloadingAlbums?.includes(String(group.id)) && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: group.id, title: group.title }); }}
+                          className="text-xs text-blue-400 font-medium bg-blue-400/10 px-2 py-0.5 rounded-full hover:bg-blue-400/20 transition-colors w-fit mt-1"
+                        >
+                          Descargando...
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5">
                       <Play className="w-5 h-5 ml-1" fill="currentColor" />
                     </button>
-                    <button 
-                      onClick={() => setAlbumToRemove(group)}
-                      className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 hover:text-red-400 text-white/40 transition-colors"
-                      title="Eliminar lista"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <FuseButton fuse="outline" 
+              
+                      label=""
+                      undoLabel=""
+                      doneLabel=""
+                      background="transparent"
+                      color="rgba(255,255,255,0.4)"
+                      fuseColor="#ef4444"
+                      undoWindow={3000}
+                      className="!w-10 !h-10 !min-w-[40px] !px-0 rounded-full hover:bg-white/10 hover:text-red-400 transition-colors"
+                      onCommit={() => {
+                        if (type === 'downloads') {
+                          removeAlbumFromDownloads(group.id);
+                        } else {
+                          removeAlbumFromFavorites(group.id);
+                        }
+                      }}
+                    />
                   </div>
                 </div>
                 
@@ -516,8 +663,8 @@ export const DownloadsView = ({
                   <div>TÍTULO</div>
                   <div>AÑADIDO</div>
                   {type === 'downloads' && <div>TAMAÑO</div>}
-                  <div className="flex justify-end pr-4"><Clock className="w-4 h-4" /></div>
-                  <div></div>
+                  <div className="flex justify-end pr-4">TIEMPO</div>
+                  <div className="text-center">{type === 'downloads' ? '' : 'FAV'}</div>
                 </div>
 
                 <div className="flex flex-col gap-0.5">
@@ -546,7 +693,7 @@ export const DownloadsView = ({
                     <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button 
-                        className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
+                        className="${type === 'licenses' ? 'bg-yellow-500 hover:bg-yellow-400' : type === 'playlists' ? 'bg-green-500 hover:bg-green-400' : 'bg-[#a855f7] hover:bg-[#b066f8]'} w-14 h-14 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (album.tracks && album.tracks.length > 0) {
@@ -566,9 +713,16 @@ export const DownloadsView = ({
                       </div>
                       <button 
                          onClick={(e) => { e.stopPropagation(); toggleFavoriteAlbum && toggleFavoriteAlbum(album as any); }}
-                         className={`shrink-0 p-1 -mt-0.5 -mr-1 rounded-full transition-colors hover:scale-110 ${isEntireAlbumFavorited ? 'text-[#a855f7]' : 'text-white/30 hover:text-white'}`}
+                         className={`group/favbtn shrink-0 p-1 -mt-0.5 -mr-1 rounded-full transition-colors hover:scale-110 ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/30 hover:text-white'}`}
                       >
-                         <Heart className="w-4 h-4" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
+                         {isEntireAlbumFavorited ? (
+                           <>
+                             <Heart className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
+                             <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" />
+                           </>
+                         ) : (
+                           <Heart className="w-4 h-4" fill="none" />
+                         )}
                       </button>
                     </div>
                     
@@ -576,11 +730,14 @@ export const DownloadsView = ({
                       const isDownloading = downloadingAlbums?.includes(String(album.id));
                       if (isDownloading) {
                         return (
-                          <div className="mt-2 w-max px-2.5 py-1 rounded-full bg-blue-500/15 backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: album.id, title: album.title }); }}
+                            className="mt-2 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm"
+                          >
                             <span className="text-blue-400 text-[9px] font-bold tracking-wider uppercase flex items-center gap-1.5">
                               Descargando...
                             </span>
-                          </div>
+                          </button>
                         );
                       }
                       
@@ -605,131 +762,29 @@ export const DownloadsView = ({
       
       {/* Keep Modals... */}
 
-      {albumToRemove && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setAlbumToRemove(null)}>
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+      
+      
+      
+    {showCancelConfirm && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCancelConfirm(null)} />
+          <div className="relative bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                <Trash2 className="w-6 h-6 text-red-500" />
+              <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-6 h-6 text-blue-500" />
               </div>
-              <h3 className="text-xl font-bold text-white">¿Vaciar lista?</h3>
-            </div>
-            <p className="text-white/70 mb-6">
-              ¿Estás seguro de que deseas eliminar todas las canciones de <strong>{albumToRemove.title}</strong>?
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => setAlbumToRemove(null)} 
-                className="px-4 py-2 rounded-lg font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={() => {
-                  if (type === 'downloads') {
-                    removeAlbumFromDownloads(albumToRemove.id);
-                  } else {
-                    removeAlbumFromFavorites(albumToRemove.id);
-                  }
-                  setAlbumToRemove(null);
-                }} 
-                className="px-4 py-2 rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white transition-colors"
-              >
-                Vaciar
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-      {trackToRemove && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setTrackToRemove(null)}>
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                {type === 'downloads' ? <Trash2 className="w-6 h-6 text-red-500" /> : <X className="w-6 h-6 text-red-500" />}
+              <div>
+                <h3 className="text-lg font-bold text-white">¿Cancelar descarga?</h3>
+                <p className="text-sm text-white/60 mt-1">Se detendrá la descarga de "{showCancelConfirm.title}".</p>
               </div>
-              <h3 className="text-xl font-bold text-white">
-                {type === 'downloads' ? '¿Eliminar descarga?' : '¿Quitar de favoritos?'}
-              </h3>
             </div>
-            <p className="text-white/70 mb-6 leading-relaxed">
-              ¿Estás seguro que deseas {type === 'downloads' ? 'eliminar' : 'quitar'} <strong>{trackToRemove.title}</strong> de tu lista?
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => setTrackToRemove(null)} 
-                className="px-4 py-2 rounded-lg font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                Cancelar
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowCancelConfirm(null)} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+                Continuar descarga
               </button>
-              <button 
-                onClick={() => {
-                  if (type === 'downloads') {
-                    removeDownload(trackToRemove.id);
-                  } else {
-                    toggleFavorite(trackToRemove);
-                  }
-                  setTrackToRemove(null);
-                }} 
-                className="px-4 py-2 rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/25"
-              >
-                {type === 'downloads' ? 'Eliminar' : 'Quitar'}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-      {showClearConfirm && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => { setShowClearConfirm(false); setConfirmText(''); }}>
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-md w-full animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                <Trash2 className="w-6 h-6 text-red-500" />
-              </div>
-              <h3 className="text-xl font-bold text-white">
-                {type === 'downloads' ? '¿Vaciar todas las descargas?' : '¿Vaciar todos los favoritos?'}
-              </h3>
-            </div>
-            <p className="text-white/70 mb-4 leading-relaxed">
-              Esta acción no se puede deshacer. Se eliminarán las <strong>{tracks.length}</strong> canciones de tu lista.
-              Para confirmar, escribe <strong className="text-red-400">CONFIRMAR</strong> a continuación:
-            </p>
-            <input 
-              type="text"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              placeholder="Escribe CONFIRMAR"
-              autoFocus
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:border-white/20 mb-6 transition-colors"
-            />
-            <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => {
-                  setShowClearConfirm(false);
-                  setConfirmText("");
-                }} 
-                className="px-4 py-2 rounded-lg font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={() => {
-                  if (confirmText.toUpperCase() === 'CONFIRMAR') {
-                    if (type === 'downloads') {
-                      clearDownloads();
-                    } else {
-                      clearFavorites();
-                    }
-                    setShowClearConfirm(false);
-                    setConfirmText("");
-                  }
-                }}
-                disabled={confirmText.toUpperCase() !== 'CONFIRMAR'}
-                className="px-4 py-2 rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-500/25"
-              >
-                Eliminar todo
+              <button onClick={() => { cancelAlbumDownload(String(showCancelConfirm.id)); setShowCancelConfirm(null); }} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors">
+                Sí, cancelar
               </button>
             </div>
           </div>

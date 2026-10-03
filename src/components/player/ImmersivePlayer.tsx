@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, Shuffle, Repeat, Repeat1 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 
 
@@ -248,12 +248,16 @@ export const ImmersivePlayer = ({
                      <div className="flex items-center relative min-w-[3.5rem] shrink-0">
                        <button 
                          onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
-                         className={`absolute left-0 transition-all duration-300 flex items-center justify-center ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                         className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
                        >
-                         <Heart 
-                           className={`w-4 h-4 md:w-5 md:h-5 transition-colors ${isFavorite(t.id) ? 'text-[#a855f7]' : 'text-white/40 hover:text-white'}`} 
-                           fill={isFavorite(t.id) ? "currentColor" : "none"} 
-                         />
+                         {isFavorite(t.id) ? (
+                           <>
+                             <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" />
+                             <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" />
+                           </>
+                         ) : (
+                           <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" />
+                         )}
                        </button>
                        <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#a855f7]/80' : 'text-white/40'}`}>
                          {(t.trackNumber || i + 1).toString().padStart(2, '0')}

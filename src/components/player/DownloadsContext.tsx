@@ -128,7 +128,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
 
   const toggleFavorite = (track: Track, album?: Album) => {
     const isFav = isFavorite(track.id);
-    window.dispatchEvent(new CustomEvent('show-toast', { detail: isFav ? `Canción '${track.title}' eliminada de Favoritos` : `Canción '${track.title}' agregada a Favoritos` }));
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: isFav ? `Canción '${track.title}' eliminada de tu Biblioteca` : `Canción '${track.title}' agregada a tu Biblioteca` }));
     
     setFavoriteTracks(prev => {
       const exists = prev.find(t => t.id === track.id);
@@ -149,7 +149,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     if (!album.tracks) return;
     
     const allFavorited = album.tracks.every(t => favoriteTracks.some(pt => pt.id === t.id));
-    window.dispatchEvent(new CustomEvent('show-toast', { detail: allFavorited ? `Álbum '${album.title}' eliminado de Favoritos` : `Álbum '${album.title}' agregado a Favoritos` }));
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: allFavorited ? `Álbum '${album.title}' eliminado de tu Biblioteca` : `Álbum '${album.title}' agregado a tu Biblioteca` }));
 
     setFavoriteTracks(prev => {
       let updated = [...prev];
@@ -200,17 +200,21 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
 
   const removeAlbumFromDownloads = (albumId: string) => {
     setDownloadedTracks(prev => {
+      const albumTitle = prev.find(t => (t.albumId ? String(t.albumId) : 'unknown') === albumId)?.albumTitle || 'Álbum';
       const updated = prev.filter(t => (t.albumId ? String(t.albumId) : 'unknown') !== albumId);
       localStorage.setItem('bz_downloads', JSON.stringify(updated));
       calculateBytes(updated);
+      window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${albumTitle}' eliminado de Descargas` }));
       return updated;
     });
   };
 
   const removeAlbumFromFavorites = (albumId: string) => {
     setFavoriteTracks(prev => {
+      const albumTitle = prev.find(t => (t.albumId ? String(t.albumId) : 'unknown') === albumId)?.albumTitle || 'Álbum';
       const updated = prev.filter(t => (t.albumId ? String(t.albumId) : 'unknown') !== albumId);
       localStorage.setItem('bz_favorites', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${albumTitle}' eliminado de tu Biblioteca` }));
       return updated;
     });
   };
@@ -219,11 +223,13 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     setDownloadedTracks([]);
     localStorage.setItem('bz_downloads', JSON.stringify([]));
     calculateBytes([]);
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Todas las descargas eliminadas' }));
   };
 
   const clearFavorites = () => {
     setFavoriteTracks([]);
     localStorage.setItem('bz_favorites', JSON.stringify([]));
+    window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Toda la biblioteca ha sido eliminada' }));
   };
 
   return (

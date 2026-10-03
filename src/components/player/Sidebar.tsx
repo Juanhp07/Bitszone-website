@@ -44,7 +44,7 @@ export const Sidebar = ({
         <button
           onClick={() => onViewChange("library")}
           className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${
-            currentView === "library"
+            currentView.startsWith('library')
               ? "text-white bg-white/10 shadow-sm"
               : "text-white/60 hover:text-white hover:bg-white/5"
           }`}
@@ -78,7 +78,7 @@ export const Sidebar = ({
                       animate={{ y: 0, opacity: 1 }}
                       exit={{ y: -25, opacity: 0 }}
                       transition={{ type: "spring", stiffness: 400, damping: 10, mass: 1 }}
-                      className="text-[#f0abfc] text-lg font-extrabold tracking-wider absolute"
+                      className="text-[#f0abfc] text-[13px] leading-none mt-[1px] font-extrabold tracking-wider absolute"
                       style={{ textShadow: '0 0 10px rgba(232, 121, 249, 1), 0 0 20px rgba(232, 121, 249, 0.8), 0 0 40px rgba(168, 85, 247, 0.6)' }}
                     >
                       {newDownloadsCount}

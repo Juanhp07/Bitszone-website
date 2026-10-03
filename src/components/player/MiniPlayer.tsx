@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Repeat1, Heart, Mic2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Repeat1, Heart, HeartOff, Mic2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Album, Track } from './types';
 
@@ -110,14 +110,17 @@ export const MiniPlayer = ({
           </span>
         </div>
         <button 
-          className="ml-4 text-white/50 hover:text-white transition-colors"
+          className={`group/favbtn ml-4 transition-colors ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'}`}
           onClick={() => toggleFavorite(track, album)}
         >
-          <Heart 
-            className="w-5 h-5" 
-            fill={isFavorite(track.id) ? "#a855f7" : "none"} 
-            color={isFavorite(track.id) ? "#a855f7" : "currentColor"} 
-          />
+          {isFavorite(track.id) ? (
+            <>
+              <Heart className="w-5 h-5 block group-hover/favbtn:hidden" fill="currentColor" />
+              <HeartOff className="w-5 h-5 hidden group-hover/favbtn:block" />
+            </>
+          ) : (
+            <Heart className="w-5 h-5" fill="none" />
+          )}
         </button>
       </div>
 

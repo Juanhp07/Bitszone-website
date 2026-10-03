@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Pause, Heart, MoreHorizontal, Clock, ArrowLeft, Download, Check, Loader2, AlertCircle } from 'lucide-react';
+import { Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, Download, Check, Loader2, AlertCircle , Trash2 } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 
@@ -24,6 +24,8 @@ export const AlbumView = ({
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export const AlbumView = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showDownloadConfirm]);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum } = useDownloads();
+  const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isDownloadingAlbum = downloadingAlbums.includes(String(album?.id));
 
 useEffect(() => {
@@ -168,12 +170,15 @@ useEffect(() => {
             {(() => {
               if (isDownloadingAlbum) {
                 return (
-                  <div className="mt-3 w-max px-3 py-1.5 rounded-full bg-blue-500/15 backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(true); }}
+                    className="mt-3 w-max px-3 py-1.5 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm cursor-pointer"
+                  >
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400 mr-1.5" />
                     <span className="text-blue-400 text-xs font-bold tracking-wider uppercase">
                       Descargando...
                     </span>
-                  </div>
+                  </button>
                 );
               }
               const downloadedCount = album.tracks?.filter(t => isDownloaded(t.id)).length || 0;
@@ -212,14 +217,27 @@ useEffect(() => {
               <Play className="w-6 h-6 ml-1" fill="currentColor" />
             )}
           </button>
-          <button onClick={() => toggleFavoriteAlbum(album)} className={`transition-colors ${isEntireAlbumFavorited ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}>
-            <Heart className="w-8 h-8" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
+          <button onClick={() => toggleFavoriteAlbum(album)} className={`group/favbtn transition-colors ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'}`}>
+            {isEntireAlbumFavorited ? (
+              <>
+                <Heart className="w-8 h-8 block group-hover/favbtn:hidden" fill="currentColor" />
+                <HeartOff className="w-8 h-8 hidden group-hover/favbtn:block" />
+              </>
+            ) : (
+              <Heart className="w-8 h-8" fill="none" />
+            )}
           </button>
 
           <button 
             className="text-white/50 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => !isEntireAlbumDownloaded && setShowDownloadConfirm(true)}
-            disabled={isEntireAlbumDownloaded || isDownloadingAlbum}
+            onClick={() => {
+              if (isDownloadingAlbum) {
+                setShowCancelConfirm(true);
+              } else if (!isEntireAlbumDownloaded) {
+                setShowDownloadConfirm(true);
+              }
+            }}
+            disabled={isEntireAlbumDownloaded && !isDownloadingAlbum}
           >
             {isDownloadingAlbum ? (
               <Loader2 className="w-8 h-8 animate-spin text-[#a855f7]" />
@@ -245,7 +263,7 @@ useEffect(() => {
                     onClick={() => { toggleFavoriteAlbum(album); setShowMoreMenu(false); }}
                     className="w-full flex items-center justify-between px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors border-b border-white/5 relative z-10"
                   >
-                    {isEntireAlbumFavorited ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
+                    {isEntireAlbumFavorited ? 'Eliminar de tu Biblioteca' : 'Agregar a tu Biblioteca'}
                     <Heart className="w-4 h-4" fill={isEntireAlbumFavorited ? 'currentColor' : 'none'} />
                   </button>
                   <button 
@@ -253,10 +271,7 @@ useEffect(() => {
                       if (!isEntireAlbumDownloaded) {
                         setShowDownloadConfirm(true);
                       } else {
-                        if (album.tracks) {
-                          album.tracks.forEach(track => removeDownload(track.id, true));
-                          window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${album.title}' eliminado de Descargas` }));
-                        }
+                        setShowDeleteConfirm(true);
                       }
                       setShowMoreMenu(false); 
                     }}
@@ -348,9 +363,16 @@ useEffect(() => {
                     </button>
                     <button 
                       onClick={(e) => handleFavorite(e, track)}
-                      className={`transition-colors ${favorited ? 'text-[#a855f7]' : 'text-white/40 hover:text-white'}`}
+                      className={`group/favbtn transition-colors ${favorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/40 hover:text-white'}`}
                     >
-                      {(isHovered || favorited) && <Heart className="w-4 h-4" fill={favorited ? 'currentColor' : 'none'} />}
+                      {favorited ? (
+                        <>
+                          <Heart className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
+                          <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" />
+                        </>
+                      ) : (
+                        isHovered && <Heart className="w-4 h-4" fill="none" />
+                      )}
                     </button>
                     <div className="w-10 text-right text-white/50 text-sm">
                       {formatDuration(track.duration)}
@@ -379,6 +401,71 @@ useEffect(() => {
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowDownloadConfirm(false)} className="px-4 py-2 rounded-lg font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors">Cancelar</button>
               <button onClick={handleDownloadAlbum} className="px-4 py-2 rounded-lg font-medium bg-[#a855f7] hover:bg-[#b066f8] text-white transition-colors shadow-lg shadow-[#a855f7]/25">Descargar Todo</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+    
+      {/* Cancel Download Confirmation Modal */}
+      {showCancelConfirm && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(false); }}>
+          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-6 h-6 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-white">¿Cancelar descarga?</h3>
+            </div>
+            <p className="text-white/70 mb-6 leading-relaxed text-sm">
+              ¿Estás seguro que deseas cancelar la descarga de <strong>{album.title}</strong>? Las canciones que ya se han descargado se mantendrán.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowCancelConfirm(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors">Continuar descarga</button>
+              <button 
+                onClick={() => {
+                  cancelAlbumDownload(String(album.id));
+                  setShowCancelConfirm(false);
+                }} 
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/25"
+              >
+                Sí, cancelar
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+    
+      {/* Delete Download Confirmation Modal */}
+      {showDeleteConfirm && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(false); }}>
+          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                <Trash2 className="w-6 h-6 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-white">¿Eliminar descargas?</h3>
+            </div>
+            <p className="text-white/70 mb-6 leading-relaxed text-sm">
+              ¿Estás seguro que deseas eliminar todas las canciones descargadas de <strong>{album.title}</strong>? Perderás el acceso sin conexión a este álbum.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors">Cancelar</button>
+              <button 
+                onClick={() => {
+                  if (album.tracks) {
+                    album.tracks.forEach(track => removeDownload(track.id, true));
+                    window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${album.title}' eliminado de Descargas` }));
+                  }
+                  setShowDeleteConfirm(false);
+                }} 
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/25"
+              >
+                Sí, eliminar
+              </button>
             </div>
           </div>
         </div>,
