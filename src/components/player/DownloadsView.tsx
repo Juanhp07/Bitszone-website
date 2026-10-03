@@ -454,16 +454,39 @@ export const DownloadsView = ({
 
       {/* Action Bar (Search & Tabs) */}
       <div className="px-8 py-4 flex items-center justify-between sticky top-0 bg-transparent backdrop-blur-md z-30 border-b border-white/5">
-        <div className="flex bg-white/5 rounded-full p-1 border border-white/10">
+        <div className="relative flex bg-white/5 rounded-full p-1 border border-white/10">
+          {/* Animated Background Pill */}
+          <div 
+            className={`absolute top-1 bottom-1 w-[110px] rounded-full transition-transform duration-300 ease-out border shadow-md ${
+              viewMode === 'canciones' ? 'translate-x-0' : 'translate-x-full'
+            } ${
+              type === 'licenses' ? 'bg-yellow-500/20 border-yellow-500/30' : 
+              type === 'playlists' ? 'bg-green-500/20 border-green-500/30' : 
+              'bg-[#a855f7]/20 border-[#a855f7]/30'
+            }`}
+          />
+          
           <button 
             onClick={() => { setViewMode('canciones'); setSelectedAlbumId(null); }} 
-            className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all ${viewMode === 'canciones' ? (type === 'licenses' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : type === 'playlists' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-[#a855f7]/20 text-[#c084fc] border-[#a855f7]/30 shadow-md') : 'border border-transparent text-white/50 hover:text-white'}`}
+            className={`relative z-10 w-[110px] py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 ${
+              viewMode === 'canciones' ? (
+                type === 'licenses' ? 'text-yellow-400' : 
+                type === 'playlists' ? 'text-green-400' : 
+                'text-[#c084fc]'
+              ) : 'text-white/50 hover:text-white'
+            }`}
           >
             Canciones
           </button>
           <button 
             onClick={() => { setViewMode('albumes'); setSelectedAlbumId(null); }} 
-            className={`px-6 py-1.5 rounded-full text-sm font-semibold transition-all ${viewMode === 'albumes' ? (type === 'licenses' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : type === 'playlists' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-[#a855f7]/20 text-[#c084fc] border-[#a855f7]/30 shadow-md') : 'border border-transparent text-white/50 hover:text-white'}`}
+            className={`relative z-10 w-[110px] py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 ${
+              viewMode === 'albumes' ? (
+                type === 'licenses' ? 'text-yellow-400' : 
+                type === 'playlists' ? 'text-green-400' : 
+                'text-[#c084fc]'
+              ) : 'text-white/50 hover:text-white'
+            }`}
           >
             Álbumes
           </button>
