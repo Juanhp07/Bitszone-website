@@ -405,7 +405,7 @@ useEffect(() => {
                         setTrackMenuPos({ top: rect.bottom, left: rect.left });
                         setOpenTrackMenu(openTrackMenu === track.id ? null : track.id);
                       }}
-                      className="text-white/40 hover:text-white transition-colors"
+                      className="text-white/40 hover:text-white transition-colors p-3 -m-3"
                     >
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
@@ -446,8 +446,8 @@ useEffect(() => {
         <>
           <div className="fixed inset-0 z-[9998]" onClick={() => setOpenTrackMenu(null)} />
           <div 
-            style={{ top: trackMenuPos.top, left: trackMenuPos.left - 200 }}
-            className="fixed mt-2 w-[240px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30"
+            style={{ top: trackMenuPos.top, left: trackMenuPos.left - 240 }}
+            className="fixed mt-2 w-[280px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30"
           >
             <button 
               onClick={(e) => { e.stopPropagation(); toggleFavorite(album!.tracks!.find(t => t.id === openTrackMenu)!); setOpenTrackMenu(null); }}
