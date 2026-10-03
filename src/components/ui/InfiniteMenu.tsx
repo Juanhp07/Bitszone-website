@@ -846,7 +846,7 @@ class InfiniteGridMenu {
               console.warn("Failed to load image:", item.image);
               resolve(img);
             };
-            img.src = `https://corsproxy.io/?${encodeURIComponent(item.image)}`;
+            img.src = `https://images.weserv.nl/?url=${encodeURIComponent(item.image)}&default=${encodeURIComponent(item.image)}`;
           })
       )
     ).then(images => {
