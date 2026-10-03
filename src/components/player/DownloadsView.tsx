@@ -233,12 +233,12 @@ export const DownloadsView = ({
           </div>
         </div>
         
-        <div className="text-white/50 text-xs font-medium truncate text-center">
+        <div className="text-white/50 text-xs font-medium truncate flex items-center justify-center">
           <TimeAgo dateStr={track.addedAt} />
         </div>
         
         {type === 'downloads' && (
-          <div className="text-white/50 text-xs font-medium text-center">
+          <div className="text-white/50 text-xs font-medium flex items-center justify-center">
             {formatSize(track.sizeMb, track.duration)}
           </div>
         )}
@@ -723,10 +723,10 @@ export const DownloadsView = ({
                 <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
                   <div className="text-center">#</div>
                   <div>TÍTULO</div>
-                  <div>AÑADIDO</div>
-                  {type === 'downloads' && <div>TAMAÑO</div>}
-                  <div className="text-left">TIEMPO</div>
-                  <div className="text-left">{type === 'downloads' ? 'DEL' : 'FAV'}</div>
+                  <div className="text-center">AÑADIDO</div>
+                  {type === 'downloads' && <div className="text-center">TAMAÑO</div>}
+                  <div className="text-center">TIEMPO</div>
+                  <div className="text-center">{type === 'downloads' ? 'DEL' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
                 </div>
 
                 <div className="flex flex-col gap-0.5">
