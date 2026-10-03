@@ -231,10 +231,8 @@ export const DownloadsView = ({
           </div>
         )}
         
-        <div className="flex items-center justify-end gap-4">
-          <div className="w-10 text-right text-white/50 text-sm">
-            {formatDuration(track.duration)}
-          </div>
+        <div className="text-right text-white/50 text-sm flex items-center justify-end">
+          {formatDuration(track.duration)}
         </div>
 
         <div className="flex items-center justify-center">
@@ -248,7 +246,7 @@ export const DownloadsView = ({
               color="rgba(255,255,255,0.3)"
               fuseColor="#ef4444"
               undoWindow={3000}
-              className="opacity-0 group-hover:opacity-100 transition-all duration-300 !w-8 !h-8 !min-w-[32px] !px-0 rounded-full border border-transparent hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
+              className="transition-all duration-300 !w-8 !h-8 !min-w-[32px] !px-0 rounded-full border border-transparent hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
               icon={<Trash2 className="w-4 h-4" />}
               onCommit={() => removeDownload(track.id)}
             />
@@ -635,8 +633,8 @@ export const DownloadsView = ({
               <div>TÍTULO</div>
               <div>AÑADIDO</div>
               {type === 'downloads' && <div>TAMAÑO</div>}
-              <div className="flex justify-end pr-6">TIEMPO</div>
-              <div className="text-center">{type === 'downloads' ? '' : 'FAV'}</div>
+              <div className="text-right">TIEMPO</div>
+              <div className="text-center">{type === 'downloads' ? 'DEL' : 'FAV'}</div>
             </div>
 
             <div className="flex flex-col gap-0.5">
@@ -703,8 +701,8 @@ export const DownloadsView = ({
                   <div>TÍTULO</div>
                   <div>AÑADIDO</div>
                   {type === 'downloads' && <div>TAMAÑO</div>}
-                  <div className="flex justify-end pr-4">TIEMPO</div>
-                  <div className="text-center">{type === 'downloads' ? '' : 'FAV'}</div>
+                  <div className="text-right">TIEMPO</div>
+                  <div className="text-center">{type === 'downloads' ? 'DEL' : 'FAV'}</div>
                 </div>
 
                 <div className="flex flex-col gap-0.5">
