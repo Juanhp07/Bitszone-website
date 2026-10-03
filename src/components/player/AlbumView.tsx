@@ -303,14 +303,14 @@ useEffect(() => {
       <div className="px-8 relative z-10 flex-1">
         <div className="mt-8">
           {/* Header */}
-          <div className="grid grid-cols-[50px_1fr_120px_50px_50px_60px_50px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
+          <div className="grid grid-cols-[50px_1fr_120px_100px_100px_80px_100px] gap-4 px-4 py-3 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-3">
             <div className="text-left">#</div>
             <div className="text-left">TÍTULO</div>
             <div className="text-left">REPRODUCCIONES</div>
-            <div className="text-left">DL</div>
-            <div className="text-left">FAV</div>
+            <div className="text-left">DESCARGAR</div>
+            <div className="text-left">FAVORITOS</div>
             <div className="text-left">TIEMPO</div>
-            <div className="text-left">OPC</div>
+            <div className="text-left">OPCIONES</div>
           </div>
 
           {/* Tracklist */}
@@ -328,7 +328,7 @@ useEffect(() => {
                   onMouseEnter={() => setHoveredTrack(track.id)}
                   onMouseLeave={() => setHoveredTrack(null)}
                   onClick={() => onPlayTrack(track, album)}
-                  className={`grid grid-cols-[50px_1fr_120px_50px_50px_60px_50px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group ${
+                  className={`grid grid-cols-[50px_1fr_120px_100px_100px_80px_100px] gap-4 px-4 py-3 items-center rounded-xl cursor-pointer group ${
                     nowPlayingTrackId === track.id ? 'bg-white/10' : 'hover:bg-white/5'
                   }`}
                 >
@@ -441,6 +441,52 @@ useEffect(() => {
 
     
       {/* Cancel Download Confirmation Modal */}
+      
+      {openTrackMenu !== null && typeof document !== 'undefined' && createPortal(
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={() => setOpenTrackMenu(null)} />
+          <div 
+            style={{ top: trackMenuPos.top, left: trackMenuPos.left - 200 }}
+            className="fixed mt-2 w-[240px] border border-white/10 rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30"
+          >
+            <button 
+              onClick={(e) => { e.stopPropagation(); toggleFavorite(album!.tracks!.find(t => t.id === openTrackMenu)!); setOpenTrackMenu(null); }}
+              className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
+            >
+              {isFavorite(openTrackMenu) ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
+            </button>
+            <button 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                const track = album!.tracks!.find(t => t.id === openTrackMenu)!;
+                if (isDownloaded(track.id)) {
+                  removeDownload(track.id);
+                } else {
+                  downloadTrack(track);
+                }
+                setOpenTrackMenu(null); 
+              }}
+              className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
+            >
+              {isDownloaded(openTrackMenu) ? 'Eliminar descarga' : 'Descargar canción'}
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setOpenTrackMenu(null); }}
+              className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
+            >
+              Crear lista de reproducción
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setOpenTrackMenu(null); }}
+              className="w-full text-left flex items-center justify-between px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap text-white/60 hover:text-white hover:bg-white/10"
+            >
+              Agregar a lista de reproducción
+            </button>
+          </div>
+        </>,
+        document.body
+      )}
+
       {showCancelConfirm && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(false); }}>
           <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
