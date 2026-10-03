@@ -438,7 +438,7 @@ export const DownloadsView = ({
               icon={<Trash2 className="w-4 h-4" />}
               doneIcon={<Check className="w-4 h-4" />}
               doneLabel="Eliminado"
-              className="!border border-white/10 font-medium data-[phase=idle]:hover:!border-red-500/30 data-[phase=idle]:hover:!bg-red-500/10 data-[phase=idle]:hover:!text-red-400 transition-colors duration-300 group"
+              className="!border border-white/10 font-medium hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=holding]:!border-red-500/30 data-[phase=holding]:!bg-red-500/10 data-[phase=holding]:!text-red-400 transition-colors duration-300 group"
               onHold={() => {
                 if (type === 'downloads') {
                   clearDownloads();
