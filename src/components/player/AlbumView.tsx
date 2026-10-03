@@ -31,7 +31,11 @@ export const AlbumView = ({
   useEffect(() => {
     const container = document.getElementById('main-scroll-container');
     if (!container) return;
-    const handleScroll = () => setScrollY(container.scrollTop);
+    const handleScroll = () => {
+      setScrollY(container.scrollTop);
+      setShowMoreMenu(false);
+      setOpenTrackMenu(null);
+    };
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);

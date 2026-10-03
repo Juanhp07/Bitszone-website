@@ -73,6 +73,17 @@ export const DownloadsView = ({
   const [sortPos, setSortPos] = useState({ top: 0, left: 0 });
   const [searchPos, setSearchPos] = useState({ top: 0, left: 0, width: 0 });
   useEffect(() => { const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowSort(false); }; if (showSort) { document.addEventListener('keydown', handleKeyDown); } return () => document.removeEventListener('keydown', handleKeyDown); }, [showSort]);
+  useEffect(() => {
+    const container = document.getElementById('main-scroll-container');
+    if (!container) return;
+    const handleScroll = () => {
+      setShowSort(false);
+      setShowSuggestions(false);
+    };
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
 
   const tracks = type === 'downloads' ? downloadedTracks : type === 'favorites' ? favoriteTracks : [];
   const getSuggestions = () => {
