@@ -23,6 +23,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
+  const consecutivePlaysRef = useRef<{ trackId: number | string | null, count: number }>({ trackId: null, count: 0 });
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
@@ -68,6 +69,21 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     const handleEnded = () => {
       setIsPlaying(false);
       setProgress(0);
+      
+      // Track consecutive plays for License caching
+      const trackId = nowPlayingTrack?.id;
+      if (trackId) {
+        if (consecutivePlaysRef.current.trackId === trackId) {
+          consecutivePlaysRef.current.count += 1;
+        } else {
+          consecutivePlaysRef.current = { trackId, count: 1 };
+        }
+        
+        if (consecutivePlaysRef.current.count === 5) {
+          window.dispatchEvent(new CustomEvent('add-license', { detail: { track: nowPlayingTrack, album: nowPlayingAlbum } }));
+        }
+      }
+
       
       if (repeatMode === 'one') {
         if (audioRef.current) {

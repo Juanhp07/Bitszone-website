@@ -9,6 +9,9 @@ interface DownloadsContextType {
   totalBytes: number;
   
   favoriteTracks: Track[];
+  licensedTracks: Track[];
+  addLicensedTrack: (track: Track, album?: Album) => void;
+  isLicensed: (trackId: number) => boolean;
   toggleFavorite: (track: Track, album?: Album) => void;
   toggleFavoriteAlbum: (album: Album) => void;
   isFavorite: (trackId: number) => boolean;
@@ -29,6 +32,7 @@ const DownloadsContext = createContext<DownloadsContextType | undefined>(undefin
 export const DownloadsProvider = ({ children }: { children: React.ReactNode }) => {
   const [downloadedTracks, setDownloadedTracks] = useState<Track[]>([]);
   const [favoriteTracks, setFavoriteTracks] = useState<Track[]>([]);
+  const [licensedTracks, setLicensedTracks] = useState<Track[]>([]);
   const [totalBytes, setTotalBytes] = useState(0);
   const [newDownloadsCount, setNewDownloadsCount] = useState(0);
   const [downloadingAlbums, setDownloadingAlbums] = useState<string[]>([]);
@@ -70,6 +74,12 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     if (savedFavs) {
       try {
         setFavoriteTracks(JSON.parse(savedFavs));
+      } catch (e) {}
+    }
+    const savedLicenses = localStorage.getItem('bz_licenses');
+    if (savedLicenses) {
+      try {
+        setLicensedTracks(JSON.parse(savedLicenses));
       } catch (e) {}
     }
   }, []);
@@ -170,6 +180,28 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   const isFavorite = (trackId: number) => {
     return favoriteTracks.some(t => t.id === trackId);
   };
+  const addLicensedTrack = (track: Track, album?: Album) => {
+    setLicensedTracks(prev => {
+      if (prev.some(t => t.id === track.id)) return prev;
+      const trackToSave = { ...track, albumId: album?.id || track.albumId, albumTitle: album?.title || track.albumTitle, albumCover: album?.coverUrl || track.albumCover, addedAt: track.addedAt || new Date().toISOString() };
+      const updated = [...prev, trackToSave];
+      localStorage.setItem('bz_licenses', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('show-toast', { detail: `La canción '${track.title}' se agregó a Canciones con licencia` }));
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    const handleAddLicense = (e: any) => addLicensedTrack(e.detail.track, e.detail.album);
+    window.addEventListener('add-license', handleAddLicense);
+    return () => window.removeEventListener('add-license', handleAddLicense);
+  }, []);
+
+
+  const isLicensed = (trackId: number) => {
+    return licensedTracks.some(t => t.id === trackId);
+  };
+
 
   const clearNewDownloads = () => setNewDownloadsCount(0);
 
@@ -236,6 +268,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     <DownloadsContext.Provider value={{ 
       downloadedTracks, downloadTrack, removeDownload, isDownloaded, totalBytes,
       favoriteTracks, toggleFavorite, toggleFavoriteAlbum, isFavorite,
+      licensedTracks, addLicensedTrack, isLicensed,
       newDownloadsCount, clearNewDownloads, removeAlbumFromDownloads, removeAlbumFromFavorites, clearDownloads, clearFavorites, downloadingAlbums, downloadAlbum, cancelAlbumDownload
     }}>
       {children}

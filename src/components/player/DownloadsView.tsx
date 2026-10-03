@@ -57,7 +57,7 @@ export const DownloadsView = ({
   onSelectAlbum?: (a: Album) => void,
   albums?: Album[]
 }) => {
-  const { downloadedTracks, favoriteTracks, removeDownload, toggleFavorite, toggleFavoriteAlbum, isFavorite, isDownloaded, clearNewDownloads, totalBytes, clearDownloads, clearFavorites, removeAlbumFromDownloads, removeAlbumFromFavorites, downloadingAlbums, cancelAlbumDownload } = useDownloads();
+  const { downloadedTracks, licensedTracks, favoriteTracks, removeDownload, toggleFavorite, toggleFavoriteAlbum, isFavorite, isDownloaded, clearNewDownloads, totalBytes, clearDownloads, clearFavorites, removeAlbumFromDownloads, removeAlbumFromFavorites, downloadingAlbums, cancelAlbumDownload } = useDownloads();
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [trackToRemove, setTrackToRemove] = useState<Track | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -85,7 +85,7 @@ export const DownloadsView = ({
   }, []);
 
 
-  const tracks = type === 'downloads' ? downloadedTracks : type === 'favorites' ? favoriteTracks : [];
+  const tracks = type === 'downloads' ? downloadedTracks : type === 'favorites' ? favoriteTracks : type === 'licenses' ? licensedTracks : [];
   const getSuggestions = () => {
     if (!searchQuery) return [];
     const q = searchQuery.toLowerCase();
