@@ -71,6 +71,7 @@ export const DownloadsView = ({
   const [sortBy, setSortBy] = useState<'default' | 'recent' | 'alpha' | 'size_desc' | 'size_asc'>('default');
   const [showSort, setShowSort] = useState(false);
   const [sortPos, setSortPos] = useState({ top: 0, left: 0 });
+  const [searchPos, setSearchPos] = useState({ top: 0, left: 0, width: 0 });
   useEffect(() => { const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowSort(false); }; if (showSort) { document.addEventListener('keydown', handleKeyDown); } return () => document.removeEventListener('keydown', handleKeyDown); }, [showSort]);
 
   const tracks = type === 'downloads' ? downloadedTracks : type === 'favorites' ? favoriteTracks : [];
@@ -538,15 +539,23 @@ export const DownloadsView = ({
             placeholder={type === 'downloads' ? 'Buscar en descargas' : 'Buscar en biblioteca'}
             value={searchQuery}
             onChange={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setSearchPos({ top: rect.bottom, left: rect.left, width: rect.width });
               setSearchQuery(e.target.value);
               setShowSuggestions(true);
             }}
-            onFocus={() => setShowSuggestions(true)}
+            onFocus={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setSearchPos({ top: rect.bottom, left: rect.left, width: rect.width });
+              setShowSuggestions(true);
+            }}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             className="w-full bg-white/5 border border-white/10 rounded-full pl-11 pr-4 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-colors"
           />
-          {showSuggestions && suggestions.length > 0 && (
-            <div className={`absolute top-full left-0 mt-4 w-full border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : 'border-[#a855f7]/20'}`}>
+          {showSuggestions && suggestions.length > 0 && typeof document !== 'undefined' && createPortal(
+            <div 
+              style={{ top: searchPos.top, left: searchPos.left, width: searchPos.width }}
+              className={`fixed mt-4 border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : 'border-[#a855f7]/20'}`}>
               {suggestions.map((sug, idx) => (
                 <button 
                   key={idx}
@@ -559,7 +568,8 @@ export const DownloadsView = ({
                   {sug}
                 </button>
               ))}
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       </div>
