@@ -1097,18 +1097,9 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
   const sketchRef = useRef<InfiniteGridMenu | null>(null);
 
   useEffect(() => {
-    if (scrollProgress && sketchRef.current) {
-      return scrollProgress.on('change', (v: number) => {
-        if (sketchRef.current) {
-          sketchRef.current.introProgress = v;
-        }
-      });
-    }
-  }, [scrollProgress]);
-
-  useEffect(() => {
     const canvas = canvasRef.current;
     let sketch: InfiniteGridMenu | null = null;
+    let unsubscribeScroll: (() => void) | undefined;
 
     const handleActiveItem = (index: number) => {
       if (!items.length) return;
@@ -1127,6 +1118,9 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
       );
       if (scrollProgress) {
         sketch.introProgress = scrollProgress.get();
+        unsubscribeScroll = scrollProgress.on('change', (v: number) => {
+          if (sketch) sketch.introProgress = v;
+        });
       }
       sketchRef.current = sketch;
     }
@@ -1142,8 +1136,9 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (unsubscribeScroll) unsubscribeScroll();
     };
-  }, [items, scale]);
+  }, [items, scale, scrollProgress]);
 
   const handleButtonClick = () => {
     if (!activeItem?.link) return;
