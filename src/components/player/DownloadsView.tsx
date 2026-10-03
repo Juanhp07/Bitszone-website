@@ -546,7 +546,7 @@ export const DownloadsView = ({
             className="w-full bg-white/5 border border-white/10 rounded-full pl-11 pr-4 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-colors"
           />
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 mt-2 w-full bg-[#18181b] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
+            <div className={`absolute top-full left-0 mt-4 w-full border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : 'border-[#a855f7]/20'}`}>
               {suggestions.map((sug, idx) => (
                 <button 
                   key={idx}
@@ -554,7 +554,7 @@ export const DownloadsView = ({
                     setSearchQuery(sug);
                     setShowSuggestions(false);
                   }}
-                  className="w-full text-left px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors border-b border-white/5 last:border-0"
+                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap overflow-hidden text-ellipsis text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : 'hover:bg-[#a855f7]/10'}`}
                 >
                   {sug}
                 </button>
