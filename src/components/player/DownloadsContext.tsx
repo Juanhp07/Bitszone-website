@@ -82,7 +82,37 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     const savedLicenses = localStorage.getItem('bz_licenses');
     if (savedLicenses) {
       try {
-        setLicensedTracks(JSON.parse(savedLicenses));
+        const parsed = JSON.parse(savedLicenses);
+        const validLicenses: Track[] = [];
+        let expiredCount = 0;
+        
+        parsed.forEach((track: Track) => {
+          if (!track.addedAt) {
+             validLicenses.push(track);
+             return;
+          }
+          const daysPassed = (Date.now() - new Date(track.addedAt).getTime()) / (1000 * 60 * 60 * 24);
+          const remaining = Math.ceil(30 - daysPassed);
+          
+          if (remaining <= 0) {
+            expiredCount++;
+          } else {
+            validLicenses.push(track);
+            if (remaining === 3 || remaining === 2 || remaining === 1) {
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('show-toast', { detail: `La licencia de '${track.title}' expirará en ${remaining} día${remaining !== 1 ? 's' : ''}` }));
+              }, 1500); // Show notification shortly after load
+            }
+          }
+        });
+
+        setLicensedTracks(validLicenses);
+        if (expiredCount > 0) {
+          localStorage.setItem('bz_licenses', JSON.stringify(validLicenses));
+          setTimeout(() => {
+             window.dispatchEvent(new CustomEvent('show-toast', { detail: `${expiredCount} canción(es) con licencia expirada fueron removidas` }));
+          }, 500);
+        }
       } catch (e) {}
     }
   }, []);
