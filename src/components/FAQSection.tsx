@@ -25,18 +25,18 @@ const faqs = [
     color: "#4169E1"
   },
   {
-    question: "¿Tengo que pagar por las funciones offline?",
-    answer: "La capa offline premium y la fidelidad Hi-Res requieren una suscripción activa, la cual nos permite mantener los servidores. Sin embargo, ofrecemos un nivel básico que permite descargas limitadas.",
+    question: "¿Qué pasa si pierdo la conexión mientras escucho música?",
+    answer: "Bitszone cuenta con una transición automática (Cero Cortes). Si detecta que pierdes la señal, cambia instantáneamente a tu biblioteca offline sin detener la reproducción ni causar saltos de audio.",
     color: "#00BFFF"
   },
   {
-    question: "¿Puedo sincronizar mi música entre varios dispositivos?",
-    answer: "Sí, absolutamente. Todos los dispositivos conectados a tu cuenta sincronizan en la nube el estado de tu biblioteca, listas y tus preferencias de descarga automáticamente en tiempo real.",
+    question: "¿Cómo sé qué canciones están ocupando mi almacenamiento?",
+    answer: "Contamos con un sistema de 'Espacio Transparente' que te muestra visualmente cuánto pesa cada playlist y álbum. Además, puedes liberar espacio instantáneamente con nuestra herramienta de limpieza inteligente.",
     color: "#00CED1"
   },
   {
-    question: "¿Funciona con Android Auto y Apple CarPlay?",
-    answer: "Por supuesto. Bitszone se integra nativamente con los sistemas de tu vehículo para brindarte acceso total y seguro a toda tu música descargada directamente desde la pantalla del tablero.",
+    question: "¿Es fácil identificar qué pistas tengo descargadas?",
+    answer: "¡Totalmente! La interfaz te indica visualmente y al instante qué pistas están listas para escucharse offline y cuáles siguen en la nube, evitando sorpresas cuando no tienes acceso a internet.",
     color: "#00FFFF"
   }
 ];
@@ -60,20 +60,7 @@ export const FAQSection = () => {
       ref={containerRef}
       className="py-24 lg:py-32 px-6 w-full relative min-h-screen flex items-center justify-center"
     >
-      {/* Fondo Shader Animado que se extiende hasta envolver completamente el CinematicFooter */}
-      <motion.div 
-        className="absolute left-0 w-full z-0 pointer-events-none"
-        style={{ 
-          top: '30%',          
-          bottom: '-120vh',    // Combina con el mt-[30vh] y min-h-[90vh] del footer
-          opacity: backgroundOpacity,
-          // Máscara CSS nativa para un difuminado perfecto y sin cortes en la parte superior
-          maskImage: 'linear-gradient(to bottom, transparent 0%, black 600px)',
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 600px)'
-        }}
-      >
-        <ShaderBackground className="w-full h-full" />
-      </motion.div>
+      {/* Fondo eliminado a petición del usuario */}
 
       <div className="w-full max-w-[1400px] relative z-10">
         
