@@ -248,7 +248,7 @@ export const DownloadsView = ({
               color="rgba(255,255,255,0.3)"
               fuseColor="#ef4444"
               undoWindow={3000}
-              className="hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all !w-8 !h-8 !min-w-[32px] !px-0 rounded-full"
+              className="opacity-0 group-hover:opacity-100 transition-all duration-300 !w-8 !h-8 !min-w-[32px] !px-0 rounded-full border border-transparent hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
               icon={<Trash2 className="w-4 h-4" />}
               onCommit={() => removeDownload(track.id)}
             />
@@ -614,7 +614,7 @@ export const DownloadsView = ({
                       color="#ffffff"
                       fuseColor="#ef4444"
                       undoWindow={3000}
-                      className="!h-10 rounded-full border border-white/20 hover:bg-white/10 hover:border-white/40 transition-all font-medium text-sm"
+                      className="!h-10 rounded-full border border-white/20 font-medium text-sm transition-all duration-300 hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
                       onCommit={() => {
                         if (type === 'downloads') {
                           removeAlbumFromDownloads(groupedTracks[selectedAlbumId].id);
@@ -683,7 +683,7 @@ export const DownloadsView = ({
                       color="rgba(255,255,255,0.4)"
                       fuseColor="#ef4444"
                       undoWindow={3000}
-                      className="!w-10 !h-10 !min-w-[40px] !px-0 rounded-full hover:bg-white/10 hover:text-red-400 transition-colors"
+                      className="!w-10 !h-10 !min-w-[40px] !px-0 rounded-full border border-transparent transition-colors duration-300 hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
                       onCommit={() => {
                         if (type === 'downloads') {
                           removeAlbumFromDownloads(group.id);
