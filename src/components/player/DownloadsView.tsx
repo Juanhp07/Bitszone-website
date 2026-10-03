@@ -626,9 +626,13 @@ export const DownloadsView = ({
                       {downloadingAlbums?.includes(String(group.id)) && (
                         <button 
                           onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: group.id, title: group.title }); }}
-                          className="text-xs text-blue-400 font-medium bg-blue-400/10 px-2 py-0.5 rounded-full hover:bg-blue-400/20 transition-colors w-fit mt-1"
+                          className="mt-1 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm cursor-pointer group/dlpill"
                         >
-                          Descargando...
+                          <Loader2 className="w-3 h-3 animate-spin text-blue-400 mr-1.5 group-hover/dlpill:hidden" />
+                          <X className="w-3 h-3 text-red-400 mr-1.5 hidden group-hover/dlpill:block" />
+                          <span className="text-blue-400 text-[9px] font-bold tracking-wider uppercase group-hover/dlpill:text-red-400">
+                            Descargando...
+                          </span>
                         </button>
                       )}
                     </div>
@@ -694,11 +698,11 @@ export const DownloadsView = ({
                     {downloadingAlbums?.includes(String(album.id)) && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: album.id, title: album.title }); }}
-                        className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-blue-400 hover:bg-black/80 transition-colors z-20 group/cancel"
+                        className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-lg"
                         title="Cancelar descarga"
                       >
-                        <Loader2 className="w-4 h-4 animate-spin group-hover/cancel:hidden" />
-                        <X className="w-4 h-4 hidden group-hover/cancel:block text-red-400" />
+                        <Loader2 className="w-5 h-5 animate-spin text-blue-400 group-hover/cancel:hidden" />
+                        <X className="w-5 h-5 hidden group-hover/cancel:block text-red-400" />
                       </button>
                     )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

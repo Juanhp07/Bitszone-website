@@ -17,7 +17,7 @@ export const ArtistView = ({
 }) => {
   // Filtrar los álbumes que pertenecen a este artista
 
-  const { downloadTrack, isDownloaded, isFavorite, toggleFavoriteAlbum, cancelAlbumDownload, downloadingAlbums } = useDownloads();
+  const { downloadTrack, isDownloaded, isFavorite, toggleFavoriteAlbum, cancelAlbumDownload, downloadingAlbums, downloadAlbum } = useDownloads();
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -41,8 +41,7 @@ export const ArtistView = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showDownloadConfirm]);
-  const [isDownloadingAlbum, setIsDownloadingAlbum] = useState<number | null>(null);
-
+  
   const handleDownloadAlbumClick = (e: React.MouseEvent, album: Album) => {
     e.stopPropagation();
     setShowDownloadConfirm(album);
@@ -52,14 +51,7 @@ export const ArtistView = ({
     const album = showDownloadConfirm;
     setShowDownloadConfirm(null);
     if (!album || !album.tracks) return;
-    setIsDownloadingAlbum(album.id);
-    const tracksToDownload = album.tracks.filter(t => !isDownloaded(t.id));
-    for (const track of tracksToDownload) {
-      setDownloadingIds(prev => [...prev, track.id]);
-      await downloadTrack(track, album);
-      setDownloadingIds(prev => prev.filter(id => id !== track.id));
-    }
-    setIsDownloadingAlbum(null);
+    await downloadAlbum(album);
   };
 
   const artistAlbums = albums.filter(a => a.artist.toLowerCase().includes(artist.name.toLowerCase()));
@@ -137,11 +129,11 @@ export const ArtistView = ({
                   {downloadingAlbums?.includes(String(album.id)) && (
                     <button 
                       onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
-                      className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-blue-400 hover:bg-black/80 transition-colors z-20 group/cancel"
+                      className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-lg"
                       title="Cancelar descarga"
                     >
-                      <Loader2 className="w-4 h-4 animate-spin group-hover/cancel:hidden" />
-                      <X className="w-4 h-4 hidden group-hover/cancel:block text-red-400" />
+                      <Loader2 className="w-5 h-5 animate-spin text-blue-400 group-hover/cancel:hidden" />
+                      <X className="w-5 h-5 hidden group-hover/cancel:block text-red-400" />
                     </button>
                   )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -153,9 +145,9 @@ export const ArtistView = ({
                   <button 
                     onClick={(e) => handleDownloadAlbumClick(e, album)}
                     className="absolute bottom-2 right-2 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 z-10"
-                    disabled={album.tracks.every(t => isDownloaded(t.id)) || isDownloadingAlbum === album.id}
+                    disabled={album.tracks.every(t => isDownloaded(t.id)) || downloadingAlbums?.includes(String(album.id))}
                   >
-                    {isDownloadingAlbum === album.id ? (
+                    {downloadingAlbums?.includes(String(album.id)) ? (
                       <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" />
                     ) : album.tracks.every(t => isDownloaded(t.id)) ? (
                       <Check className="w-4 h-4 text-[#a855f7]" />
@@ -169,14 +161,7 @@ export const ArtistView = ({
                   <div className="flex flex-col min-w-0">
                     <h3 className="font-bold text-white text-sm line-clamp-1">{album.title}</h3>
                     <p className="text-xs text-white/50 truncate mt-0.5">{album.artist}</p>
-                    {downloadingAlbums?.includes(String(album.id)) && (
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
-                        className="text-xs text-blue-400 font-medium bg-blue-400/10 px-2 py-0.5 rounded-full hover:bg-blue-400/20 transition-colors w-fit mt-1"
-                      >
-                        Descargando...
-                      </button>
-                    )}
+                    
                   </div>
                   {(() => {
                     const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
@@ -203,6 +188,20 @@ export const ArtistView = ({
                   const isComplete = downloadedCount > 0 && downloadedCount === totalCount;
                   const isPartial = downloadedCount > 0 && downloadedCount < totalCount;
                   
+                  if (downloadingAlbums?.includes(String(album.id))) {
+                    return (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
+                        className="mt-2 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm cursor-pointer group/dlpill"
+                      >
+                        <Loader2 className="w-3 h-3 animate-spin text-blue-400 mr-1.5 group-hover/dlpill:hidden" />
+                        <X className="w-3 h-3 text-red-400 mr-1.5 hidden group-hover/dlpill:block" />
+                        <span className="text-blue-400 text-[9px] font-bold tracking-wider uppercase group-hover/dlpill:text-red-400">
+                          Descargando...
+                        </span>
+                      </button>
+                    );
+                  }
                   if (isComplete || isPartial) {
                     return (
                       <div className="mt-2 w-max px-2.5 py-1 rounded-full bg-[#a855f7]/15 backdrop-blur-md border border-[#a855f7]/20 flex items-center justify-center shadow-sm">
