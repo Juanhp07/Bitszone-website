@@ -155,10 +155,20 @@ export const DownloadsView = ({
     if (!addedAt) return '-';
     const daysPassed = (Date.now() - new Date(addedAt).getTime()) / (1000 * 60 * 60 * 24);
     const remaining = Math.floor(30 - daysPassed);
-    if (remaining < 0) return 'EXPIRADO';
-    if (remaining === 0) return 'ÚLTIMO DÍA';
-    if (remaining === 1) return '1 DÍA';
-    return `${remaining} DÍAS`;
+    if (remaining < 0) return 'expirado';
+    if (remaining === 0) return 'último día';
+    if (remaining === 1) return '1 día';
+    return `${remaining} días`;
+  };
+
+  const getExpirationDate = (addedAt?: string) => {
+    if (!addedAt) return '-';
+    const d = new Date(addedAt);
+    d.setDate(d.getDate() + 30);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = String(d.getFullYear()).slice(-2);
+    return `${year}-${month}-${day}`;
   };
 
   const formatSize = (sizeMb?: number, duration?: number) => {
@@ -223,7 +233,7 @@ export const DownloadsView = ({
         onMouseEnter={() => setHoveredTrack(track.id)}
         onMouseLeave={() => setHoveredTrack(null)}
         onClick={() => handlePlay(track)}
-        className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_110px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 items-center rounded-xl cursor-pointer group hover:bg-white/5 transition-colors`}
+        className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 items-center rounded-xl cursor-pointer group hover:bg-white/5 transition-colors`}
       >
         <div className="text-center text-white/50 font-medium">
           {isHovered ? (
@@ -254,9 +264,14 @@ export const DownloadsView = ({
         )}
         
         {type === 'licenses' && (
-          <div className="text-yellow-500/80 text-[11px] font-bold tracking-widest flex items-center justify-center">
-            {getDaysLeft(track.addedAt)}
-          </div>
+          <>
+            <div className="text-yellow-500/80 text-[11px] font-bold tracking-widest flex items-center justify-center">
+              {getDaysLeft(track.addedAt)}
+            </div>
+            <div className="text-white/50 text-xs font-medium flex items-center justify-center">
+              {getExpirationDate(track.addedAt)}
+            </div>
+          </>
         )}
         
         <div className="text-center text-white/50 text-sm flex items-center justify-center">
@@ -677,12 +692,13 @@ export const DownloadsView = ({
               </div>
             </div>
             
-            <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_110px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-2`}>
+            <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-2`}>
               <div className="text-center">#</div>
               <div>TÍTULO</div>
               <div className="text-center">AÑADIDO</div>
               {type === 'downloads' && <div className="text-center">TAMAÑO</div>}
               {type === 'licenses' && <div className="text-center">EXPIRACIÓN</div>}
+              {type === 'licenses' && <div className="text-center">HASTA</div>}
               <div className="text-center">TIEMPO</div>
               <div className="text-center">{type === 'downloads' ? 'DEL' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
             </div>
@@ -750,12 +766,13 @@ export const DownloadsView = ({
                   </div>
                 </div>
                 
-                <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_110px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
+                <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
                   <div className="text-center">#</div>
                   <div>TÍTULO</div>
                   <div className="text-center">AÑADIDO</div>
                   {type === 'downloads' && <div className="text-center">TAMAÑO</div>}
                   {type === 'licenses' && <div className="text-center">EXPIRACIÓN</div>}
+                  {type === 'licenses' && <div className="text-center">HASTA</div>}
                   <div className="text-center">TIEMPO</div>
                   <div className="text-center">{type === 'downloads' ? 'DEL' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
                 </div>
