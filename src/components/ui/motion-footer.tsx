@@ -216,6 +216,20 @@ export function CinematicFooter() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const linksRef = useRef<HTMLDivElement>(null);
 
+  const [showTopBtn, setShowTopBtn] = React.useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowTopBtn(true);
+      } else {
+        setShowTopBtn(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!wrapperRef.current) return;
@@ -348,16 +362,7 @@ export function CinematicFooter() {
           {/* 3. Bottom Bar / Credits (THE FLOOR BARRIER) */}
           <div className="relative z-20 w-full py-6 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6 border-none bg-[#020202]/95 backdrop-blur-[64px] backdrop-saturate-0 shadow-[0_-20px_40px_0px_rgba(0,0,0,0.8)]">
             
-            {/* Back to top (Floating right above the bottom bar) */}
-            <MagneticButton
-              as="button"
-              onClick={scrollToTop}
-              className="absolute right-6 lg:right-12 -top-16 lg:-top-20 z-50 w-12 h-12 rounded-full flex items-center justify-center bg-black/40 text-neutral-400 hover:text-white hover:bg-white/10 transition-all backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] group"
-            >
-              <svg className="w-5 h-5 transform group-hover:-translate-y-1.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-              </svg>
-            </MagneticButton>
+
 
             {/* Bitszone Logo (Left) */}
             <div className="order-1 flex items-center justify-start min-w-[200px]">
@@ -391,6 +396,32 @@ export function CinematicFooter() {
 
           </div>
         </footer>
+      </div>
+
+      {/* Global Floating Back to top button */}
+      <div 
+        className={cn(
+          "fixed bottom-8 right-8 lg:bottom-12 lg:right-12 z-[100] transition-all duration-500",
+          showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+        )}
+      >
+        <MagneticButton
+          as="button"
+          onClick={scrollToTop}
+          className="w-14 h-14 rounded-full flex items-center justify-center footer-glass-pill text-white group shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+          style={{
+            '--pill-bg-1': 'rgba(168, 85, 247, 0.1)',
+            '--pill-bg-2': 'rgba(82, 39, 255, 0.05)',
+            '--pill-border': 'rgba(168, 85, 247, 0.3)',
+            '--pill-bg-1-hover': 'rgba(168, 85, 247, 0.3)',
+            '--pill-bg-2-hover': 'rgba(82, 39, 255, 0.2)',
+            '--pill-border-hover': 'rgba(168, 85, 247, 0.6)',
+          } as React.CSSProperties}
+        >
+          <svg className="w-6 h-6 text-purple-300/70 group-hover:text-white transform group-hover:-translate-y-1.5 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+          </svg>
+        </MagneticButton>
       </div>
     </>
   );
