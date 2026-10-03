@@ -404,7 +404,7 @@ export const DownloadsView = ({
           </div>
           
           <div className="flex flex-col gap-2">
-            <span className="text-white/70 text-sm font-semibold tracking-widest uppercase mt-2">Playlist</span>
+            {type === 'downloads' ? <span className="text-white/70 text-sm font-semibold tracking-widest uppercase mt-2">Mis descargas</span> : <span className="text-white/70 text-sm font-semibold tracking-widest uppercase mt-2">Biblioteca</span>}
             <div className="text-5xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)', WebkitTextStroke: '1px currentColor' }}>{title}</div>
             <div className="flex items-center gap-2 mt-2 text-white/80 font-medium text-sm">
               <span>{tracks.length} {tracks.length === 1 ? 'canción' : 'canciones'}</span>

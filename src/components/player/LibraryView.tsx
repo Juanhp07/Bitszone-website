@@ -20,13 +20,13 @@ const StaggeredRollingText = ({ text }: { text: string }) => {
   return (
     <div className="flex items-center">
       {text.split('').map((char, i) => (
-        <div key={i} className="relative h-[48px] overflow-hidden">
+        <div key={i} className="relative h-[1.1em] overflow-hidden">
           <div 
             className="flex flex-col animate-char-roll"
             style={{ animationDelay: `${i * 0.03}s` }}
           >
-            <span className="h-[48px] leading-none flex items-center whitespace-pre">{char === ' ' ? '\u00A0' : char}</span>
-            <span className="h-[48px] leading-none flex items-center whitespace-pre">{char === ' ' ? '\u00A0' : char}</span>
+            <span className="h-[1.1em] leading-none flex items-center whitespace-pre">{char === ' ' ? '\u00A0' : char}</span>
+            <span className="h-[1.1em] leading-none flex items-center whitespace-pre">{char === ' ' ? '\u00A0' : char}</span>
           </div>
         </div>
       ))}
