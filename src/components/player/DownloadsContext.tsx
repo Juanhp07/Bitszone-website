@@ -11,6 +11,7 @@ interface DownloadsContextType {
   favoriteTracks: Track[];
   licensedTracks: Track[];
   addLicensedTrack: (track: Track, album?: Album) => void;
+  removeLicensedTrack: (trackId: number) => void;
   isLicensed: (trackId: number) => boolean;
   toggleFavorite: (track: Track, album?: Album) => void;
   toggleFavoriteAlbum: (album: Album) => void;
@@ -201,6 +202,18 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   const isLicensed = (trackId: number) => {
     return licensedTracks.some(t => t.id === trackId);
   };
+  const removeLicensedTrack = (trackId: number) => {
+    setLicensedTracks(prev => {
+      const removedTrack = prev.find(t => t.id === trackId);
+      const updated = prev.filter(t => t.id !== trackId);
+      localStorage.setItem('bz_licenses', JSON.stringify(updated));
+      if (removedTrack) {
+        window.dispatchEvent(new CustomEvent('show-toast', { detail: `La canción '${removedTrack.title}' se eliminó de Canciones con licencia` }));
+      }
+      return updated;
+    });
+  };
+
 
 
   const clearNewDownloads = () => setNewDownloadsCount(0);
@@ -268,7 +281,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     <DownloadsContext.Provider value={{ 
       downloadedTracks, downloadTrack, removeDownload, isDownloaded, totalBytes,
       favoriteTracks, toggleFavorite, toggleFavoriteAlbum, isFavorite,
-      licensedTracks, addLicensedTrack, isLicensed,
+      licensedTracks, addLicensedTrack, removeLicensedTrack, isLicensed,
       newDownloadsCount, clearNewDownloads, removeAlbumFromDownloads, removeAlbumFromFavorites, clearDownloads, clearFavorites, downloadingAlbums, downloadAlbum, cancelAlbumDownload
     }}>
       {children}

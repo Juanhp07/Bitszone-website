@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, Download, Check, CheckCircle, Loader2, AlertCircle , Trash2 } from 'lucide-react';
+import { Star, Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, Download, Check, CheckCircle, Loader2, AlertCircle , Trash2 } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 
@@ -55,7 +55,7 @@ export const AlbumView = ({
   const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0 });
   const [openTrackMenu, setOpenTrackMenu] = useState<number | null>(null);
   const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0, isUpward: false });
-  const { downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
+  const { isLicensed, downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isDownloadingAlbum = downloadingAlbums.includes(String(album?.id));
 
 useEffect(() => {
@@ -352,8 +352,9 @@ useEffect(() => {
                   </div>
                   
                   <div className="flex flex-col pr-4">
-                    <span className={`font-medium line-clamp-1 ${nowPlayingTrackId === track.id ? 'text-[#a855f7]' : 'text-white'}`}>
-                      {track.title}
+                    <span className={`font-medium line-clamp-1 flex items-center gap-1.5 ${nowPlayingTrackId === track.id ? 'text-[#a855f7]' : 'text-white'}`}>
+                      {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
+                      <span className="truncate">{track.title}</span>
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
                       {track.previewUrl.includes('explicit') && (

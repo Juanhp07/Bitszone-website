@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Repeat1, Heart, HeartOff, Mic2 } from 'lucide-react';
+import { Star, Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Repeat1, Heart, HeartOff, Mic2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import type { Album, Track } from './types';
 
@@ -46,7 +46,7 @@ export const MiniPlayer = ({
   onToggleShuffle?: () => void,
   onToggleRepeat?: () => void
 }) => {
-  const { isFavorite, toggleFavorite } = useDownloads();
+  const { isFavorite, toggleFavorite, isLicensed } = useDownloads();
   
   React.useEffect(() => {
     const handleToggleFavorite = () => {
@@ -98,9 +98,10 @@ export const MiniPlayer = ({
         <div className="flex flex-col justify-center">
           <h4 
             onClick={(e) => { e.stopPropagation(); onSelectAlbum && onSelectAlbum(); }} 
-            className="text-white font-semibold text-sm line-clamp-1 hover:underline cursor-pointer"
+            className="text-white font-semibold text-sm line-clamp-1 hover:underline cursor-pointer flex items-center gap-1.5"
           >
-            {track.title}
+            {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
+            <span className="truncate">{track.title}</span>
           </h4>
           <span 
             onClick={(e) => { e.stopPropagation(); onSelectArtist && onSelectArtist(); }} 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle } from 'lucide-react';
 import FuseButton from '../ui/FuseButton';
 import HoldButton from '../ui/HoldButton';
 import { useDownloads } from './DownloadsContext';
@@ -57,7 +57,7 @@ export const DownloadsView = ({
   onSelectAlbum?: (a: Album) => void,
   albums?: Album[]
 }) => {
-  const { downloadedTracks, licensedTracks, favoriteTracks, removeDownload, toggleFavorite, toggleFavoriteAlbum, isFavorite, isDownloaded, clearNewDownloads, totalBytes, clearDownloads, clearFavorites, removeAlbumFromDownloads, removeAlbumFromFavorites, downloadingAlbums, cancelAlbumDownload } = useDownloads();
+  const { downloadedTracks, licensedTracks, favoriteTracks, removeDownload, toggleFavorite, removeLicensedTrack, isLicensed, toggleFavoriteAlbum, isFavorite, isDownloaded, clearNewDownloads, totalBytes, clearDownloads, clearFavorites, removeAlbumFromDownloads, removeAlbumFromFavorites, downloadingAlbums, cancelAlbumDownload } = useDownloads();
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [trackToRemove, setTrackToRemove] = useState<Track | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -213,7 +213,7 @@ export const DownloadsView = ({
         onMouseEnter={() => setHoveredTrack(track.id)}
         onMouseLeave={() => setHoveredTrack(null)}
         onClick={() => handlePlay(track)}
-        className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_50px]' : 'grid-cols-[50px_1fr_130px_80px_50px]'} gap-4 px-4 py-2 items-center rounded-xl cursor-pointer group hover:bg-white/5 transition-colors`}
+        className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 items-center rounded-xl cursor-pointer group hover:bg-white/5 transition-colors`}
       >
         <div className="text-center text-white/50 font-medium">
           {isHovered ? (
@@ -224,29 +224,30 @@ export const DownloadsView = ({
         </div>
         
         <div className="flex flex-col pr-4">
-          <span className="font-medium line-clamp-1 text-white text-sm">
-            {track.title}
+          <span className="font-medium line-clamp-1 text-white text-sm flex items-center gap-1.5">
+            {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
+            <span className="truncate">{track.title}</span>
           </span>
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-white/50 text-sm line-clamp-1 group-hover:text-white/80 transition-colors">{track.artist}</span>
           </div>
         </div>
         
-        <div className="text-white/50 text-xs font-medium truncate">
+        <div className="text-white/50 text-xs font-medium truncate text-center">
           <TimeAgo dateStr={track.addedAt} />
         </div>
         
         {type === 'downloads' && (
-          <div className="text-white/50 text-xs font-medium">
+          <div className="text-white/50 text-xs font-medium text-center">
             {formatSize(track.sizeMb, track.duration)}
           </div>
         )}
         
-        <div className="text-left text-white/50 text-sm flex items-center justify-start">
+        <div className="text-center text-white/50 text-sm flex items-center justify-center">
           {formatDuration(track.duration)}
         </div>
 
-        <div className="flex items-center justify-start">
+        <div className="flex items-center justify-center">
           {type === 'downloads' ? (
             <FuseButton fuse="outline" commitOn="fuseEnd" 
               
@@ -261,6 +262,18 @@ export const DownloadsView = ({
               icon={<Trash2 className="w-4 h-4" />}
               onCommit={() => removeDownload(track.id)}
             />
+          ) : type === 'licenses' ? (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                removeLicensedTrack(track.id);
+              }}
+              className="group/favbtn text-yellow-500 hover:text-yellow-400 opacity-100 transition-all p-2"
+              title="Quitar licencia"
+            >
+              <Star className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
+              <StarOff className="w-4 h-4 hidden group-hover/favbtn:block" />
+            </button>
           ) : (
             <button 
               onClick={(e) => {
@@ -639,13 +652,13 @@ export const DownloadsView = ({
               </div>
             </div>
             
-            <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_50px]' : 'grid-cols-[50px_1fr_130px_80px_50px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-2`}>
+            <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-2`}>
               <div className="text-center">#</div>
               <div>TÍTULO</div>
-              <div>AÑADIDO</div>
-              {type === 'downloads' && <div>TAMAÑO</div>}
-              <div className="text-left">TIEMPO</div>
-              <div className="text-left">{type === 'downloads' ? 'DEL' : 'FAV'}</div>
+              <div className="text-center">AÑADIDO</div>
+              {type === 'downloads' && <div className="text-center">TAMAÑO</div>}
+              <div className="text-center">TIEMPO</div>
+              <div className="text-center">{type === 'downloads' ? 'DEL' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
             </div>
 
             <div className="flex flex-col gap-0.5">
@@ -707,7 +720,7 @@ export const DownloadsView = ({
                   </div>
                 </div>
                 
-                <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_50px]' : 'grid-cols-[50px_1fr_130px_80px_50px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
+                <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
                   <div className="text-center">#</div>
                   <div>TÍTULO</div>
                   <div>AÑADIDO</div>

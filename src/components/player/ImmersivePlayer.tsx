@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1 } from 'lucide-react';
+import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 
 
@@ -147,7 +147,7 @@ export const ImmersivePlayer = ({
 
   
 
-  const { isFavorite, toggleFavorite } = useDownloads();
+  const { isFavorite, toggleFavorite, isLicensed } = useDownloads();
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
   const activeLyricRef = useRef<HTMLParagraphElement>(null);
 
@@ -263,7 +263,10 @@ export const ImmersivePlayer = ({
                          {(t.trackNumber || i + 1).toString().padStart(2, '0')}
                        </span>
                      </div>
-                     <MarqueeTitle text={t.title} />
+                     <div className="flex items-center flex-1 min-w-0">
+                       {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
+                       <MarqueeTitle text={t.title} />
+                     </div>
                      {isActive && (
                        <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 ml-2 md:ml-4 shrink-0 opacity-80">
                          <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
