@@ -280,7 +280,7 @@ export const DownloadsView = ({
 
         <div className="flex items-center justify-center">
           {type === 'downloads' ? (
-            <FuseButton fuse="outline" commitOn="fuseEnd" 
+            <FuseButton fuse="outline" commitOn="fuseEnd" radius={16} 
               
               label=""
               undoLabel=""
@@ -480,7 +480,7 @@ export const DownloadsView = ({
           <div>
             <HoldButton
               size="sm"
-              radius={9999}
+              radius={20}
               glow={true}
               wave={true}
               holdTime={5000}
@@ -665,7 +665,7 @@ export const DownloadsView = ({
                     <Play className="w-4 h-4" fill="currentColor" />
                     Reproducir
                   </button>
-                  <FuseButton fuse="outline" commitOn="fuseEnd" 
+                  <FuseButton fuse="outline" commitOn="fuseEnd" radius={20} 
               
                       label="Eliminar"
                       undoLabel="Deshacer"
@@ -741,7 +741,7 @@ export const DownloadsView = ({
                     <button onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className={`w-10 h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : type === 'downloads' ? 'hover:bg-blue-500 hover:border-blue-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}>
                       <Play className="w-5 h-5 ml-1" fill="currentColor" />
                     </button>
-                    <FuseButton fuse="outline" commitOn="fuseEnd" 
+                    <FuseButton fuse="outline" commitOn="fuseEnd" radius={20} 
               
                       label=""
                       undoLabel=""
