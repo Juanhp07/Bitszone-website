@@ -154,7 +154,9 @@ export const DownloadsView = ({
   const getDaysLeft = (addedAt?: string) => {
     if (!addedAt) return '-';
     const daysPassed = (Date.now() - new Date(addedAt).getTime()) / (1000 * 60 * 60 * 24);
-    const remaining = Math.max(0, Math.ceil(30 - daysPassed));
+    const remaining = Math.floor(30 - daysPassed);
+    if (remaining < 0) return 'EXPIRADO';
+    if (remaining === 0) return 'ÚLTIMO DÍA';
     if (remaining === 1) return '1 DÍA';
     return `${remaining} DÍAS`;
   };

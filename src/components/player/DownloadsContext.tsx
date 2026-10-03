@@ -92,15 +92,16 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
              return;
           }
           const daysPassed = (Date.now() - new Date(track.addedAt).getTime()) / (1000 * 60 * 60 * 24);
-          const remaining = Math.ceil(30 - daysPassed);
+          const remaining = Math.floor(30 - daysPassed);
           
-          if (remaining <= 0) {
+          if (remaining < 0) {
             expiredCount++;
           } else {
             validLicenses.push(track);
-            if (remaining === 3 || remaining === 2 || remaining === 1) {
+            if (remaining === 3 || remaining === 2 || remaining === 1 || remaining === 0) {
               setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('show-toast', { detail: `La licencia de '${track.title}' expirará en ${remaining} día${remaining !== 1 ? 's' : ''}` }));
+                const dayText = remaining === 0 ? 'hoy' : `en ${remaining} día${remaining !== 1 ? 's' : ''}`;
+                window.dispatchEvent(new CustomEvent('show-toast', { detail: `La licencia de '${track.title}' expirará ${dayText}` }));
               }, 1500); // Show notification shortly after load
             }
           }
