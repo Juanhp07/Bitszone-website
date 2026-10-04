@@ -276,7 +276,7 @@ export function CinematicFooter() {
   },[]);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.dispatchEvent(new CustomEvent('lenis-scrollTo', { detail: 0 }));
   };
 
   return (

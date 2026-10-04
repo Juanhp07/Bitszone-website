@@ -28,7 +28,14 @@ export const SmoothScroll = ({ children }: { children: React.ReactNode }) => {
 
     requestAnimationFrame(raf);
 
+    const handleCustomScroll = (e: CustomEvent) => {
+      lenis.scrollTo(e.detail, { duration: 1.5, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    };
+    
+    window.addEventListener('lenis-scrollTo' as any, handleCustomScroll);
+
     return () => {
+      window.removeEventListener('lenis-scrollTo' as any, handleCustomScroll);
       lenis.destroy();
     };
   }, []);

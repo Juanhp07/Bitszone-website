@@ -263,15 +263,15 @@ export const ProblemSection = () => {
     offset: ["start 95%", "end 5%"]
   });
 
-  const headerY = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [300, 0, 0, -400]);
+  const headerY = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [150, 0, 0, -350]);
   const headerOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
   const headerScale = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0.5, 1, 1, 0.8]);
 
-  const dockY = useTransform(scrollYProgress, [0.05, 0.45, 0.65, 1], [250, 0, 0, -350]);
+  const dockY = useTransform(scrollYProgress, [0.05, 0.45, 0.65, 1], [250, 0, 0, -250]);
   const dockOpacity = useTransform(scrollYProgress, [0.05, 0.35, 0.75, 1], [0, 1, 1, 0]);
   const dockScale = useTransform(scrollYProgress, [0.05, 0.45, 0.65, 1], [0.6, 1, 1, 0.85]);
 
-  const cardsY = useTransform(scrollYProgress, [0.1, 0.5, 0.7, 1], [350, 0, 0, -500]);
+  const cardsY = useTransform(scrollYProgress, [0.1, 0.5, 0.7, 1], [350, 0, 0, -150]);
   const cardsOpacity = useTransform(scrollYProgress, [0.1, 0.4, 0.8, 1], [0, 1, 1, 0]);
   const cardsScale = useTransform(scrollYProgress, [0.1, 0.5, 0.7, 1], [0.6, 1, 1, 0.9]);
 

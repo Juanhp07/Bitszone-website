@@ -51,11 +51,11 @@ export const FAQSection = () => {
     offset: ["start 95%", "end 5%"]
   });
 
-  const headerY = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [250, 0, 0, -350]);
+  const headerY = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [150, 0, 0, -350]);
   const headerOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
   const headerScale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.6, 1, 1, 0.85]); // Nace del fondo
 
-  const cardsY = useTransform(scrollYProgress, [0.1, 0.4, 0.6, 1], [300, 0, 0, -450]);
+  const cardsY = useTransform(scrollYProgress, [0.1, 0.4, 0.6, 1], [250, 0, 0, -150]);
   const cardsOpacity = useTransform(scrollYProgress, [0.1, 0.3, 0.7, 1], [0, 1, 1, 0]);
   const cardsScale = useTransform(scrollYProgress, [0.1, 0.4, 0.6, 1], [0.5, 1, 1, 0.9]); // Nace del fondo
 
