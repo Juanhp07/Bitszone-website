@@ -22,26 +22,26 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
-  // TÍTULO: Animación apenas la sección se estanca en el tope de la pantalla
-  // - Agranda un poco más (1.4)
-  // - Sube rápidamente (-400) y desaparece rápido (0.05) para no tapar los álbumes
-  const titleScale = useTransform(scrollYProgress, [0, 0.10], [1.4, 0.8]);
-  const titleY = useTransform(scrollYProgress, [0, 0.10], [0, -400]);
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
+  // Aumentamos la altura a 300vh para que haya mucho espacio de scroll y la animación sea súper fluida (smooth)
+  // TÍTULO: Se queda quieto y visible hasta el 10% del scroll, luego sube y se desvanece suavemente
+  const titleScale = useTransform(scrollYProgress, [0, 0.10, 0.25], [1.2, 1.4, 0.8]);
+  const titleY = useTransform(scrollYProgress, [0, 0.10, 0.25], [0, -50, -400]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.10, 0.25], [1, 1, 0]);
   
-  // MENU (Bolas): Controlado por scrollYProgress (DESPUÉS de que el contenedor se estanca)
-  const menuY = useTransform(scrollYProgress, [0.05, 0.20, 0.80, 0.95], [300, 0, 0, -300]);
-  const menuScale = useTransform(scrollYProgress, [0.05, 0.20, 0.80, 0.95], [0.6, 1, 1, 0.6]);
-  const menuOpacity = useTransform(scrollYProgress, [0.05, 0.15, 0.85, 0.95], [0, 1, 1, 0]);
+  // MENU (Bolas): Empiezan a aparecer en el 15% (cuando el título ya está subiendo y desvaneciéndose)
+  // Llegan a su tamaño final en el 40% (scroll muy suave)
+  const menuY = useTransform(scrollYProgress, [0.15, 0.40, 0.70, 0.90], [200, 0, 0, -300]);
+  const menuScale = useTransform(scrollYProgress, [0.15, 0.40, 0.70, 0.90], [0.8, 1, 1, 0.8]);
+  const menuOpacity = useTransform(scrollYProgress, [0.15, 0.35, 0.75, 0.90], [0, 1, 1, 0]);
   
-  // TEXTO DEL MENÚ: Aparece suavemente solo cuando las bolas ya están asentadas
-  const menuTextOpacity = useTransform(scrollYProgress, [0.15, 0.25, 0.75, 0.85], [0, 1, 1, 0]);
+  // TEXTO DEL MENÚ: Aparece solo cuando las bolas ya terminaron de entrar
+  const menuTextOpacity = useTransform(scrollYProgress, [0.35, 0.45, 0.65, 0.75], [0, 1, 1, 0]);
 
-  // PROGRESS DE ENTRADA INDIVIDUAL: Para que las bolas escalen desde el centro hacia afuera
-  const introProgress = useTransform(scrollYProgress, [0.05, 0.20, 0.80, 0.95], [0, 1, 1, 0]);
+  // PROGRESS DE ENTRADA INDIVIDUAL: Para que las bolas escalen suavemente
+  const introProgress = useTransform(scrollYProgress, [0.15, 0.40, 0.70, 0.90], [0, 1, 1, 0]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[160vh]">
+    <div ref={containerRef} className="relative w-full h-[300vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
         
         {/* TÍTULO */}
