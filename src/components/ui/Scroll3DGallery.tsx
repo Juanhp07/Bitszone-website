@@ -22,25 +22,22 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
-  // TIMELINE: Contenedor de 250vh (150vh de scroll pegajoso = mantequilla suave)
+  // TIMELINE: Contenedor de 250vh (150vh de scroll pegajoso)
   
   // TÍTULO: 
-  // Entra gigante y normal con el scroll de la página. 
-  // Apenas el contenedor se pega (0.00), empieza a volar hacia arriba y desaparecer.
-  // CERO tiempos muertos para que no se sienta "bugeado" o atascado.
-  const titleY = useTransform(scrollYProgress, [0, 0.20], [0, -1000]);
-  const titleScale = useTransform(scrollYProgress, [0, 0.20], [1.5, 0.5]);
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const titleY = useTransform(scrollYProgress, [0, 0.15], [0, -1000]);
+  const titleScale = useTransform(scrollYProgress, [0, 0.15], [1.5, 0.5]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.10], [1, 0]);
   
-  // MENU (Bolas):
-  // 0.30 -> 0.50: Aparecen limpios de título, suaves y fluidos.
-  // 0.50 -> 0.85: Estado activo
-  // 0.85 -> 1.00: Salida hacia arriba para la sección 3
-  const menuY = useTransform(scrollYProgress, [0.30, 0.50, 0.85, 1.00], [0, 0, 0, -500]);
-  const menuScale = useTransform(scrollYProgress, [0.30, 0.50, 0.85, 1.00], [0.8, 1, 1, 0.5]);
-  const menuOpacity = useTransform(scrollYProgress, [0.30, 0.45, 0.90, 1.00], [0, 1, 1, 0]);
-  const menuTextOpacity = useTransform(scrollYProgress, [0.45, 0.55, 0.80, 0.90], [0, 1, 1, 0]);
-  const introProgress = useTransform(scrollYProgress, [0.30, 0.50, 0.85, 1.00], [0, 1, 1, 0]);
+  // MENU (Bolas): Empieza a aparecer EXACTAMENTE cuando el título muere (0.10)
+  // Así eliminamos el "gran espacio sin nada"
+  const menuY = useTransform(scrollYProgress, [0.10, 0.35, 0.85, 1.00], [0, 0, 0, -300]);
+  const menuScale = useTransform(scrollYProgress, [0.10, 0.35, 0.85, 1.00], [0.8, 1, 1, 0.8]);
+  const menuOpacity = useTransform(scrollYProgress, [0.10, 0.25, 0.85, 1.00], [0, 1, 1, 0]);
+  const menuTextOpacity = useTransform(scrollYProgress, [0.25, 0.35, 0.75, 0.85], [0, 1, 1, 0]);
+  
+  // Para las bolas, hacemos que escalen para entrar, pero al salir solo se desvanecen (sin encogerse brusco)
+  const introProgress = useTransform(scrollYProgress, [0.10, 0.35], [0, 1]);
 
   return (
     <div ref={containerRef} className="relative w-full h-[250vh]">
@@ -95,7 +92,7 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
               title: a.title,
               description: a.artist
             }))}
-            scale={0.6}
+            scale={1.2}
             scrollProgress={introProgress}
           />
         </motion.div>
