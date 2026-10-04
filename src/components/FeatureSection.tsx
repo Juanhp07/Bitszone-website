@@ -1,7 +1,7 @@
 import React from 'react';
 import { Scroll3DGallery } from './ui/Scroll3DGallery';
 
-const albums = [
+const baseAlbums = [
   {
     src: "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/32/4f/fd/324ffda2-9e51-8f6a-0c2d-c6fd2b41ac55/074643811224.jpg/500x500bb.jpg",
     alt: "Michael Jackson - Thriller",
@@ -80,6 +80,9 @@ const albums = [
     color: "#d4d4d8"
   }
 ];
+
+// Llenamos la galería duplicando los álbumes 3 veces para que siempre esté repleta de bolitas
+const albums = [...baseAlbums, ...baseAlbums, ...baseAlbums];
 
 export const FeatureSection = () => {
   return (

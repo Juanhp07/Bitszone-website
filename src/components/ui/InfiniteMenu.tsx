@@ -1202,7 +1202,7 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
   // Un valor por defecto en caso de que no pasen scrollProgress
   const fallbackProgress = useMotionValue(1);
   const safeScrollProgress = scrollProgress || fallbackProgress;
-  const textProgressRaw = useTransform(safeScrollProgress, [0.2, 0.8], [0, 1]);
+  const textProgressRaw = useTransform(safeScrollProgress, [0.65, 0.95], [0, 1]);
   
   // Un resorte más suave (damping 30) para que el texto patine con mucha fluidez
   const textProgress = useSpring(textProgressRaw, { stiffness: 200, damping: 30 });

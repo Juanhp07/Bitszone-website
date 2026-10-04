@@ -257,22 +257,23 @@ export const ProblemSection = () => {
   const [expandedIndex, setExpandedIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
-  // IMMERSIVE SCROLL REVEALS
+  // IMMERSIVE SCROLL REVEALS - VOLANDO A TRAVÉS DEL ESPACIO
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ["start 85%", "start 15%"]
+    offset: ["start 95%", "end 5%"]
   });
 
-  const headerY = useTransform(scrollYProgress, [0, 1], [150, 0]);
-  const headerOpacity = useTransform(scrollYProgress, [0, 0.8], [0, 1]);
-  const headerScale = useTransform(scrollYProgress, [0, 1], [0.85, 1]);
+  const headerY = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [300, 0, 0, -400]);
+  const headerOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const headerScale = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0.5, 1, 1, 0.8]);
 
-  const dockY = useTransform(scrollYProgress, [0.1, 1], [100, 0]);
-  const dockOpacity = useTransform(scrollYProgress, [0.1, 0.9], [0, 1]);
+  const dockY = useTransform(scrollYProgress, [0.05, 0.45, 0.65, 1], [250, 0, 0, -350]);
+  const dockOpacity = useTransform(scrollYProgress, [0.05, 0.35, 0.75, 1], [0, 1, 1, 0]);
+  const dockScale = useTransform(scrollYProgress, [0.05, 0.45, 0.65, 1], [0.6, 1, 1, 0.85]);
 
-  const cardsY = useTransform(scrollYProgress, [0.2, 1], [200, 0]);
-  const cardsOpacity = useTransform(scrollYProgress, [0.2, 1], [0, 1]);
-  const cardsScale = useTransform(scrollYProgress, [0.2, 1], [0.9, 1]);
+  const cardsY = useTransform(scrollYProgress, [0.1, 0.5, 0.7, 1], [350, 0, 0, -500]);
+  const cardsOpacity = useTransform(scrollYProgress, [0.1, 0.4, 0.8, 1], [0, 1, 1, 0]);
+  const cardsScale = useTransform(scrollYProgress, [0.1, 0.5, 0.7, 1], [0.6, 1, 1, 0.9]);
 
   const handleTabChange = (newTab: string) => {
     if (newTab === activeTab) return;
@@ -326,7 +327,7 @@ export const ProblemSection = () => {
 
       {/* Segmented Control Animado al Scroll (Glassmorphism NavBar) */}
       <motion.div 
-        style={{ y: dockY, opacity: dockOpacity }}
+        style={{ y: dockY, opacity: dockOpacity, scale: dockScale }}
         className="flex items-center gap-1.5 py-1.5 px-1.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_0_0_1px_rgba(255,255,255,0.03)] transition-all duration-300 bg-[rgba(10,0,20,0.3)] backdrop-blur-[20px] mb-14"
       >
           {categories.map((cat) => {

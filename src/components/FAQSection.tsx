@@ -45,18 +45,19 @@ export const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number>(0);
   const containerRef = useRef<HTMLElement>(null);
 
-  // Animación de transición basada en el scroll
+  // Animación de transición basada en el scroll - VOLANDO HACIA LA CÁMARA
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 90%", "center center"]
+    offset: ["start 95%", "end 5%"]
   });
 
-  const headerY = useTransform(scrollYProgress, [0, 0.5], [100, 0]);
-  const headerOpacity = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
+  const headerY = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [250, 0, 0, -350]);
+  const headerOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const headerScale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.6, 1, 1, 0.85]); // Nace del fondo
 
-  const cardsY = useTransform(scrollYProgress, [0.2, 1], [150, 0]);
-  const cardsOpacity = useTransform(scrollYProgress, [0.2, 0.8], [0, 1]);
-  const cardsScale = useTransform(scrollYProgress, [0.2, 1], [0.95, 1]);
+  const cardsY = useTransform(scrollYProgress, [0.1, 0.4, 0.6, 1], [300, 0, 0, -450]);
+  const cardsOpacity = useTransform(scrollYProgress, [0.1, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const cardsScale = useTransform(scrollYProgress, [0.1, 0.4, 0.6, 1], [0.5, 1, 1, 0.9]); // Nace del fondo
 
   // El nuevo fondo aparece gradualmente mientras haces scroll
   const backgroundOpacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
@@ -73,7 +74,7 @@ export const FAQSection = () => {
         
         {/* Encabezado Principal */}
         <motion.div 
-          style={{ y: headerY, opacity: headerOpacity }}
+          style={{ y: headerY, opacity: headerOpacity, scale: headerScale }}
           className="text-center w-full mb-20 lg:mb-28 flex flex-col items-center"
         >
           <h2 className="text-4xl md:text-5xl lg:text-7xl font-sora font-extrabold tracking-tighter text-white leading-[1.05]">
