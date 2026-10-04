@@ -953,17 +953,21 @@ class InfiniteGridMenu {
       // Calculate bouncy intro animation based on scroll progress
       let introScale = 1.0;
       if (this.introProgress !== undefined && this.introProgress < 1.0) {
-        // Create a ripple delay based on index
-        const delay = (ndx / this.DISC_INSTANCE_COUNT) * 0.4; // 0 to 0.4
-        // Calculate local progress (0 to 1) for this specific ball
+        // Calculate delay based on Z distance from camera (p[2])
+        // p[2] goes from roughly +this.SPHERE_RADIUS (closest/center) to -this.SPHERE_RADIUS (farthest/back)
+        // We want delay = 0 for the center, and maxDelay for the back.
+        const normalizedDist = (this.SPHERE_RADIUS - p[2]) / (2 * this.SPHERE_RADIUS);
+        const delay = Math.max(0, Math.min(1, normalizedDist)) * 0.4; // Max delay of 0.4
+        
         const pLocal = Math.max(0, Math.min(1, (this.introProgress - delay) * (1 / 0.6)));
         
-        // Smooth EaseOutQuart function (no bounce)
+        // Spring-like easing: Overshoots slightly and settles
         if (pLocal === 0) {
           introScale = 0.001; // Avoid exact 0 for matrices
         } else {
-          introScale = 1 - Math.pow(1 - pLocal, 4);
-          introScale = Math.max(0.001, introScale);
+          // A subtle spring: 1 - e^(-st) * cos(dt)
+          const spring = 1 - Math.exp(-8 * pLocal) * Math.cos(12 * pLocal);
+          introScale = Math.max(0.001, spring);
         }
       }
 

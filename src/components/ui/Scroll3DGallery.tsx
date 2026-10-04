@@ -25,19 +25,19 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   // TIMELINE: Contenedor de 250vh (150vh de scroll pegajoso)
   
   // TÍTULO: 
-  const titleY = useTransform(scrollYProgress, [0, 0.15], [0, -1000]);
-  const titleScale = useTransform(scrollYProgress, [0, 0.15], [1.5, 0.5]);
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.10], [1, 0]);
+  const titleY = useTransform(scrollYProgress, [0.0, 0.25], [0, -600]);
+  const titleScale = useTransform(scrollYProgress, [0.0, 0.25], [1.5, 0.8]);
+  const titleOpacity = useTransform(scrollYProgress, [0.10, 0.25], [1, 0]);
   
-  // MENU (Bolas): Empieza a aparecer EXACTAMENTE cuando el título muere (0.10)
+  // MENU (Bolas): Empieza a aparecer EXACTAMENTE cuando el título muere (0.15)
   // Así eliminamos el "gran espacio sin nada"
-  const menuY = useTransform(scrollYProgress, [0.10, 0.35, 0.85, 1.00], [0, 0, 0, -300]);
-  const menuScale = useTransform(scrollYProgress, [0.10, 0.35, 0.85, 1.00], [0.8, 1, 1, 0.8]);
-  const menuOpacity = useTransform(scrollYProgress, [0.10, 0.25, 0.85, 1.00], [0, 1, 1, 0]);
+  const menuY = useTransform(scrollYProgress, [0.15, 0.35, 0.85, 1.00], [0, 0, 0, 0]);
+  const menuScale = useTransform(scrollYProgress, [0.15, 0.35, 0.85, 1.00], [0.8, 1, 1, 1]);
+  const menuOpacity = useTransform(scrollYProgress, [0.15, 0.25, 0.85, 1.00], [0, 1, 1, 0]);
   const menuTextOpacity = useTransform(scrollYProgress, [0.25, 0.35, 0.75, 0.85], [0, 1, 1, 0]);
   
-  // Para las bolas, hacemos que escalen para entrar, pero al salir solo se desvanecen (sin encogerse brusco)
-  const introProgress = useTransform(scrollYProgress, [0.10, 0.35], [0, 1]);
+  // introProgress maneja la entrada (del centro hacia afuera) y salida (de afuera hacia el centro en reversa)
+  const introProgress = useTransform(scrollYProgress, [0.15, 0.40, 0.75, 1.00], [0, 1, 1, 0]);
 
   return (
     <div ref={containerRef} className="relative w-full h-[250vh]">
