@@ -1197,13 +1197,13 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
   };
 
   // El progreso general de las bolas va de 0 a 1.
-  // Queremos que los textos aparezcan DESPUÉS de que las bolas están casi listas (ej. de 0.6 a 1.0)
-  // Como fallback usamos un motion value en 1.
+  // Queremos que los textos aparezcan mientras las bolitas siguen entrando (0.2 a 0.8)
+  // Así nos aseguramos de que el texto SALGA COMPLETO mucho antes de que el usuario termine de scrollear.
   const safeScrollProgress = scrollProgress || useTransform(() => 1);
-  const textProgressRaw = useTransform(safeScrollProgress, [0.6, 1.0], [0, 1]);
+  const textProgressRaw = useTransform(safeScrollProgress, [0.2, 0.8], [0, 1]);
   
-  // Le agregamos un resorte para que, incluso si hacen scroll rápido, el texto se separe con fluidez smooth
-  const textProgress = useSpring(textProgressRaw, { stiffness: 300, damping: 25 });
+  // Un resorte más suave (damping 30) para que el texto patine con mucha fluidez
+  const textProgress = useSpring(textProgressRaw, { stiffness: 200, damping: 30 });
   
   // Matemáticas de centrado:
   // left: 50% y translateX: -50% pone el texto EXACTAMENTE en el medio de la pantalla.

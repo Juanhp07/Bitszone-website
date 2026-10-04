@@ -22,26 +22,31 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
-  // TIMELINE: Contenedor de 200vh (Para 1 o 2 scrolls rápidos, sin espacio vacío al final)
+  // TIMELINE: Contenedor de 350vh para que todo sea súper lento y fluido.
+  // El margen negativo de -100vh hace que la Sección 3 suba y se superponga
+  // DURANTE el último 100vh de scroll (progreso 0.70 a 1.00).
+  // Esto elimina el espacio en blanco y hace que los álbumes se esfumen
+  // suavemente mientras la Sección 3 aparece.
   
   // TÍTULO: 
   const titleY = useTransform(scrollYProgress, [0.0, 0.15], [0, -600]);
   const titleScale = useTransform(scrollYProgress, [0.0, 0.15], [1.5, 0.8]);
   const titleOpacity = useTransform(scrollYProgress, [0.05, 0.15], [1, 0]);
   
-  // MENU (Bolas): Opacidad general para la entrada y salida
-  // Desaparecen ANTES de que termine el contenedor para no dejar espacio en blanco
-  const menuOpacity = useTransform(scrollYProgress, [0.12, 0.20, 0.90, 0.98], [0, 1, 1, 0]);
-  const menuTextOpacity = useTransform(scrollYProgress, [0.15, 0.25, 0.85, 0.90], [0, 1, 1, 0]); // Mantengo la prop aunque ya no la usaremos en CSS
+  // MENU (Bolas): Opacidad general 
+  // Se mantienen en opacidad 1 hasta el progreso 0.75, y se desvanecen
+  // EXACTAMENTE mientras la Sección 3 está subiendo de fondo (0.75 a 1.00)
+  const menuOpacity = useTransform(scrollYProgress, [0.10, 0.20, 0.75, 0.95], [0, 1, 1, 0]);
   
-  // Animación puramente atada al scroll (Permite hacer scrub hacia adelante y atrás)
-  // Entra del centro a los bordes (0.15 a 0.35)
-  // Se mantiene estático y vivo (0.35 a 0.80)
-  // Desaparece de los bordes al centro en reversa (0.80 a 1.00)
-  const introProgress = useTransform(scrollYProgress, [0.15, 0.35, 0.80, 1.00], [0, 1, 1, 0]);
+  // Animación puramente atada al scroll
+  // Entra muy lento del centro a los bordes (0.10 a 0.45)
+  // Se mantiene vivo (0.45 a 0.75) para que los textos salgan completos y los puedas leer
+  // Desaparece en reversa y se esfuma (0.75 a 1.00) mientras entra la Sección 3
+  const introProgress = useTransform(scrollYProgress, [0.10, 0.45, 0.75, 1.00], [0, 1, 1, 0]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[200vh]">
+    // Z-20 asegura que los álbumes queden POR ENCIMA de la Sección 3 mientras se desvanecen
+    <div ref={containerRef} className="relative w-full h-[350vh] -mb-[100vh] z-20">
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
         
         {/* TÍTULO */}
