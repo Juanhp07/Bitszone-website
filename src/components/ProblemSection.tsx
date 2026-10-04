@@ -3,7 +3,7 @@ import {
   FileWarning, HardDrive, 
   Speaker, WifiOff, Tags, Trash2, DownloadCloud, ShieldCheck, Wifi, Cloud
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { TiltCard } from './ui/tilt-card';
 
 // Datos estilo Raycast
@@ -257,6 +257,24 @@ export const ProblemSection = () => {
   const [expandedIndex, setExpandedIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
+  // IMMERSIVE SCROLL REVEALS - VOLANDO A TRAVÉS DEL ESPACIO
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start 95%", "end 5%"]
+  });
+
+  const headerY = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [150, 0, 0, -350]);
+  const headerOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const headerScale = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0.5, 1, 1, 0.8]);
+
+  const dockY = useTransform(scrollYProgress, [0.05, 0.45, 0.65, 1], [250, 0, 0, -250]);
+  const dockOpacity = useTransform(scrollYProgress, [0.05, 0.35, 0.75, 1], [0, 1, 1, 0]);
+  const dockScale = useTransform(scrollYProgress, [0.05, 0.45, 0.65, 1], [0.6, 1, 1, 0.85]);
+
+  const cardsY = useTransform(scrollYProgress, [0.1, 0.5, 0.7, 1], [350, 0, 0, -150]);
+  const cardsOpacity = useTransform(scrollYProgress, [0.1, 0.4, 0.8, 1], [0, 1, 1, 0]);
+  const cardsScale = useTransform(scrollYProgress, [0.1, 0.5, 0.7, 1], [0.6, 1, 1, 0.9]);
+
   const handleTabChange = (newTab: string) => {
     if (newTab === activeTab) return;
     const currentIndex = categories.indexOf(activeTab);
@@ -284,12 +302,9 @@ export const ProblemSection = () => {
   return (
     <section ref={sectionRef} className="py-32 md:py-48 w-full max-w-[1440px] mx-auto relative z-10 flex flex-col items-center">
       <IconStyles />
-      {/* Header Central con el título animado */}
+      {/* Header Central con el título animado (Parallax Scroll) */}
       <motion.div 
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        style={{ y: headerY, opacity: headerOpacity, scale: headerScale }}
         className="text-center w-full max-w-[1200px] mx-auto mb-16 px-6"
       >
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-sora font-bold text-white leading-[1.2] text-center flex flex-col md:inline-block items-center justify-center">
@@ -311,13 +326,10 @@ export const ProblemSection = () => {
       </motion.div>
 
       {/* Segmented Control Animado al Scroll (Glassmorphism NavBar) */}
-        <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.3 }}
-          className="flex items-center gap-1.5 py-1.5 px-1.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_0_0_1px_rgba(255,255,255,0.03)] transition-all duration-300 bg-[rgba(10,0,20,0.3)] backdrop-blur-[20px] mb-14"
-        >
+      <motion.div 
+        style={{ y: dockY, opacity: dockOpacity, scale: dockScale }}
+        className="flex items-center gap-1.5 py-1.5 px-1.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_0_0_1px_rgba(255,255,255,0.03)] transition-all duration-300 bg-[rgba(10,0,20,0.3)] backdrop-blur-[20px] mb-14"
+      >
           {categories.map((cat) => {
             const isActive = activeTab === cat;
             return (
@@ -353,8 +365,11 @@ export const ProblemSection = () => {
           })}
         </motion.div>
   
-        {/* Raycast Style Cards Grid con animaciones Stagger al hacer scroll */}
-      <div className="w-full max-w-[1200px] px-6">
+      {/* Raycast Style Cards Grid con animaciones Stagger al hacer scroll */}
+      <motion.div 
+        style={{ y: cardsY, opacity: cardsOpacity, scale: cardsScale }}
+        className="w-full max-w-[1200px] px-6"
+      >
         <div className="w-full relative min-h-[440px] lg:min-h-[520px]">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
@@ -421,7 +436,7 @@ export const ProblemSection = () => {
             </motion.div>
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

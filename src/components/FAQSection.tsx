@@ -45,11 +45,19 @@ export const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number>(0);
   const containerRef = useRef<HTMLElement>(null);
 
-  // Animación de transición del fondo basada en el scroll
+  // Animación de transición basada en el scroll - VOLANDO HACIA LA CÁMARA
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "center center"]
+    offset: ["start 95%", "end 5%"]
   });
+
+  const headerY = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [150, 0, 0, -350]);
+  const headerOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const headerScale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.6, 1, 1, 0.85]); // Nace del fondo
+
+  const cardsY = useTransform(scrollYProgress, [0.1, 0.4, 0.6, 1], [250, 0, 0, -150]);
+  const cardsOpacity = useTransform(scrollYProgress, [0.1, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const cardsScale = useTransform(scrollYProgress, [0.1, 0.4, 0.6, 1], [0.5, 1, 1, 0.9]); // Nace del fondo
 
   // El nuevo fondo aparece gradualmente mientras haces scroll
   const backgroundOpacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
@@ -66,10 +74,7 @@ export const FAQSection = () => {
         
         {/* Encabezado Principal */}
         <motion.div 
-          initial={{ opacity: 0, y: 80 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          style={{ y: headerY, opacity: headerOpacity, scale: headerScale }}
           className="text-center w-full mb-20 lg:mb-28 flex flex-col items-center"
         >
           <h2 className="text-4xl md:text-5xl lg:text-7xl font-sora font-extrabold tracking-tighter text-white leading-[1.05]">
@@ -85,10 +90,7 @@ export const FAQSection = () => {
           
           {/* Bento Card 1: El Controlador (Izquierda, sin estilo de tarjeta) */}
           <motion.div
-            initial={{ opacity: 0, y: 120 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            style={{ y: cardsY, opacity: cardsOpacity, scale: cardsScale }}
             className="col-span-1 lg:col-span-5 relative p-10 flex flex-col items-center justify-center min-h-[450px] lg:min-h-[550px]"
           >
             
@@ -114,12 +116,11 @@ export const FAQSection = () => {
 
           {/* Bento Card 2: El Visor de Respuestas (Derecha) */}
           <motion.div
-            initial={{ opacity: 0, y: 150 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="col-span-1 lg:col-span-7 relative overflow-hidden rounded-[2rem] lg:rounded-[2.5rem] flex flex-col min-h-[450px] lg:min-h-[550px]"
             style={{
+              y: cardsY,
+              opacity: cardsOpacity,
+              scale: cardsScale,
               background: 'rgba(12, 10, 16, 0.4)', 
               backdropFilter: 'blur(48px)',
               WebkitBackdropFilter: 'blur(48px)',
