@@ -22,32 +22,28 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
-  // TIMELINE: Contenedor de 200vh (100vh de scroll pegajoso)
+  // TIMELINE: Contenedor de 250vh (150vh de scroll pegajoso = mantequilla suave)
   
   // TÍTULO: 
-  // Ya es visible al entrar a la sección.
-  // 0.00 -> 0.10: Parpadea en el centro de la pantalla
-  // 0.10 -> 0.20: Se encoje y sube (desaparece)
-  const titleY = useTransform(scrollYProgress, [0, 0.10, 0.20], [0, 0, -400]);
-  const titleScale = useTransform(scrollYProgress, [0, 0.10, 0.20], [1.2, 1.2, 0]);
-  const titleOpacity = useTransform(
-    scrollYProgress, 
-    [0, 0.02, 0.04, 0.06, 0.08, 0.10, 0.15, 0.20], 
-    [1, 0.3,  1,    0.3,  1,    1,    0,    0]
-  );
+  // Entra gigante y normal con el scroll de la página. 
+  // Apenas el contenedor se pega (0.00), empieza a volar hacia arriba y desaparecer.
+  // CERO tiempos muertos para que no se sienta "bugeado" o atascado.
+  const titleY = useTransform(scrollYProgress, [0, 0.20], [0, -1000]);
+  const titleScale = useTransform(scrollYProgress, [0, 0.20], [1.5, 0.5]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
   
   // MENU (Bolas):
-  // 0.25 -> 0.45: Aparecen limpios de título
-  // 0.45 -> 0.85: Estado activo
-  // 0.85 -> 1.00: Salida para la sección 3
-  const menuY = useTransform(scrollYProgress, [0.25, 0.45, 0.85, 1.00], [0, 0, 0, -300]);
-  const menuScale = useTransform(scrollYProgress, [0.25, 0.45, 0.85, 1.00], [0.8, 1, 1, 0.6]);
-  const menuOpacity = useTransform(scrollYProgress, [0.25, 0.35, 0.90, 1.00], [0, 1, 1, 0]);
-  const menuTextOpacity = useTransform(scrollYProgress, [0.35, 0.45, 0.80, 0.90], [0, 1, 1, 0]);
-  const introProgress = useTransform(scrollYProgress, [0.25, 0.45, 0.85, 1.00], [0, 1, 1, 0]);
+  // 0.30 -> 0.50: Aparecen limpios de título, suaves y fluidos.
+  // 0.50 -> 0.85: Estado activo
+  // 0.85 -> 1.00: Salida hacia arriba para la sección 3
+  const menuY = useTransform(scrollYProgress, [0.30, 0.50, 0.85, 1.00], [0, 0, 0, -500]);
+  const menuScale = useTransform(scrollYProgress, [0.30, 0.50, 0.85, 1.00], [0.8, 1, 1, 0.5]);
+  const menuOpacity = useTransform(scrollYProgress, [0.30, 0.45, 0.90, 1.00], [0, 1, 1, 0]);
+  const menuTextOpacity = useTransform(scrollYProgress, [0.45, 0.55, 0.80, 0.90], [0, 1, 1, 0]);
+  const introProgress = useTransform(scrollYProgress, [0.30, 0.50, 0.85, 1.00], [0, 1, 1, 0]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[200vh]">
+    <div ref={containerRef} className="relative w-full h-[250vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
         
         {/* TÍTULO */}
@@ -61,7 +57,7 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
             }}
             className="flex-col items-center origin-center"
           >
-            <h2 className="text-4xl md:text-6xl font-bold text-white text-center tracking-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+            <h2 className="text-6xl md:text-8xl font-bold text-white text-center tracking-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
               El que busca, <br /> 
               <motion.span 
                 animate={{ 
@@ -99,7 +95,7 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
               title: a.title,
               description: a.artist
             }))}
-            scale={0.8}
+            scale={0.6}
             scrollProgress={introProgress}
           />
         </motion.div>
