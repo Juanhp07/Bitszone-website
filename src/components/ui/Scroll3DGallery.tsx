@@ -22,29 +22,22 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
-  const smoothScrollYProgress = useSpring(scrollYProgress, {
-    stiffness: 50,
-    damping: 30,
-    mass: 1,
-    restDelta: 0.001
-  });
-
   // TÍTULO: Sale de 0 a 0.15
-  const titleScale = useTransform(smoothScrollYProgress, [0, 0.15], [1.2, 0.8]);
-  const titleY = useTransform(smoothScrollYProgress, [0, 0.15], [0, -300]);
-  const titleOpacity = useTransform(smoothScrollYProgress, [0, 0.12], [1, 0]);
+  const titleScale = useTransform(scrollYProgress, [0, 0.15], [1.2, 0.8]);
+  const titleY = useTransform(scrollYProgress, [0, 0.15], [0, -300]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.12], [1, 0]);
   
   // MENU (Bolas): Entra de 0.15 a 0.35, se queda hasta 0.75, sale de 0.75 a 0.90
-  const menuY = useTransform(smoothScrollYProgress, [0.15, 0.35, 0.75, 0.90], [300, 0, 0, -300]);
-  const menuScale = useTransform(smoothScrollYProgress, [0.15, 0.35, 0.75, 0.90], [0.6, 1, 1, 0.6]);
-  const menuOpacity = useTransform(smoothScrollYProgress, [0.15, 0.30, 0.80, 0.90], [0, 1, 1, 0]);
+  const menuY = useTransform(scrollYProgress, [0.15, 0.35, 0.75, 0.90], [300, 0, 0, -300]);
+  const menuScale = useTransform(scrollYProgress, [0.15, 0.35, 0.75, 0.90], [0.6, 1, 1, 0.6]);
+  const menuOpacity = useTransform(scrollYProgress, [0.15, 0.30, 0.80, 0.90], [0, 1, 1, 0]);
   
   // TEXTO DEL MENÚ: Aparece suavemente solo cuando las bolas ya están asentadas (0.30 a 0.40)
   // Desaparece antes de que las bolas se vayan (0.70 a 0.80)
-  const menuTextOpacity = useTransform(smoothScrollYProgress, [0.30, 0.40, 0.70, 0.80], [0, 1, 1, 0]);
+  const menuTextOpacity = useTransform(scrollYProgress, [0.30, 0.40, 0.70, 0.80], [0, 1, 1, 0]);
 
   // PROGRESS DE ENTRADA INDIVIDUAL: Para que las bolas escalen desde el centro hacia afuera
-  const introProgress = useTransform(smoothScrollYProgress, [0.18, 0.35, 0.75, 0.90], [0, 1, 1, 0]);
+  const introProgress = useTransform(scrollYProgress, [0.18, 0.35, 0.75, 0.90], [0, 1, 1, 0]);
 
   return (
     <div ref={containerRef} className="relative w-full h-[160vh]">
