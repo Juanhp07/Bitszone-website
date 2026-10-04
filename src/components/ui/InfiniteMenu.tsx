@@ -2,6 +2,7 @@
 
 import { type FC, useRef, useState, useEffect, type MutableRefObject } from 'react';
 import { mat4, quat, vec2, vec3 } from 'gl-matrix';
+import { motion, useTransform, useSpring, MotionValue } from 'framer-motion';
 
 const discVertShaderSource = `#version 300 es
 
@@ -1195,6 +1196,26 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
     }
   };
 
+  // El progreso general de las bolas va de 0 a 1.
+  // Queremos que los textos aparezcan DESPUÉS de que las bolas están casi listas (ej. de 0.6 a 1.0)
+  // Como fallback usamos un motion value en 1.
+  const safeScrollProgress = scrollProgress || useTransform(() => 1);
+  const textProgressRaw = useTransform(safeScrollProgress, [0.6, 1.0], [0, 1]);
+  
+  // Le agregamos un resorte para que, incluso si hacen scroll rápido, el texto se separe con fluidez smooth
+  const textProgress = useSpring(textProgressRaw, { stiffness: 300, damping: 25 });
+  
+  // Matemáticas de centrado:
+  // left: 50% y translateX: -50% pone el texto EXACTAMENTE en el medio de la pantalla.
+  // left: 10% (o 2rem) y translateX: 0% lo pone en su lugar normal.
+  const leftPos = useTransform(textProgress, [0, 1], ["50%", "10%"]);
+  const leftX = useTransform(textProgress, [0, 1], ["-50%", "0%"]);
+  
+  const rightPos = useTransform(textProgress, [0, 1], ["50%", "10%"]);
+  const rightX = useTransform(textProgress, [0, 1], ["50%", "0%"]);
+  
+  const textOpacity = useTransform(textProgress, [0, 1], [0, 1]);
+
   return (
     <div className="relative h-full w-full" style={{ backgroundColor }}>
       <canvas
@@ -1204,32 +1225,33 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
       />
 
       {activeItem && (
-        <div style={{ opacity: 'var(--menu-text-opacity, 1)' }} className="pointer-events-none absolute inset-0 z-20">
-          <h2
+        <div className="pointer-events-none absolute inset-0 z-20">
+          <motion.h2
+            style={{
+              left: leftPos,
+              x: leftX,
+              opacity: textOpacity,
+            }}
             className={`
           select-none
           absolute
           font-black
           text-4xl md:text-5xl lg:text-7xl
           text-white
-          left-8 lg:left-[10%]
           top-1/2
-          transform
-          translate-x-0
           -translate-y-1/2
-          transition-all
-          ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-          ${
-            isMoving
-              ? 'opacity-0 duration-[100ms] translate-x-[-10px]'
-              : 'opacity-100 duration-[500ms] translate-x-0'
-          }
+          ${isMoving ? 'hidden' : ''}
         `}
           >
             {activeItem.title}
-          </h2>
+          </motion.h2>
 
-          <p
+          <motion.p
+            style={{
+              right: rightPos,
+              x: rightX,
+              opacity: textOpacity,
+            }}
             className={`
           select-none
           absolute
@@ -1237,18 +1259,12 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
           text-sm md:text-base lg:text-lg
           text-neutral-400
           top-1/2
-          right-8 lg:right-[10%]
-          transition-all
-          ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-          ${
-            isMoving
-              ? 'opacity-0 duration-[100ms] translate-x-[10px] -translate-y-1/2'
-              : 'opacity-100 duration-[500ms] translate-x-0 -translate-y-1/2'
-          }
+          -translate-y-1/2
+          ${isMoving ? 'hidden' : ''}
         `}
           >
             {activeItem.description}
-          </p>
+          </motion.p>
         </div>
       )}
     </div>

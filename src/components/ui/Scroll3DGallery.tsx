@@ -22,7 +22,7 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
-  // TIMELINE: Contenedor de 400vh (Muchísimo recorrido para un control suave y preciso del scroll)
+  // TIMELINE: Contenedor de 200vh (Para 1 o 2 scrolls rápidos, sin espacio vacío al final)
   
   // TÍTULO: 
   const titleY = useTransform(scrollYProgress, [0.0, 0.15], [0, -600]);
@@ -30,17 +30,18 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   const titleOpacity = useTransform(scrollYProgress, [0.05, 0.15], [1, 0]);
   
   // MENU (Bolas): Opacidad general para la entrada y salida
-  const menuOpacity = useTransform(scrollYProgress, [0.12, 0.20, 0.90, 0.95], [0, 1, 1, 0]);
-  const menuTextOpacity = useTransform(scrollYProgress, [0.15, 0.25, 0.85, 0.90], [0, 1, 1, 0]);
+  // Desaparecen ANTES de que termine el contenedor para no dejar espacio en blanco
+  const menuOpacity = useTransform(scrollYProgress, [0.12, 0.20, 0.90, 0.98], [0, 1, 1, 0]);
+  const menuTextOpacity = useTransform(scrollYProgress, [0.15, 0.25, 0.85, 0.90], [0, 1, 1, 0]); // Mantengo la prop aunque ya no la usaremos en CSS
   
   // Animación puramente atada al scroll (Permite hacer scrub hacia adelante y atrás)
-  // Entra del centro a los bordes (0.15 a 0.40)
-  // Se mantiene estático y vivo (0.40 a 0.75)
-  // Desaparece de los bordes al centro en reversa (0.75 a 0.95)
-  const introProgress = useTransform(scrollYProgress, [0.15, 0.40, 0.75, 0.95], [0, 1, 1, 0]);
+  // Entra del centro a los bordes (0.15 a 0.35)
+  // Se mantiene estático y vivo (0.35 a 0.80)
+  // Desaparece de los bordes al centro en reversa (0.80 a 1.00)
+  const introProgress = useTransform(scrollYProgress, [0.15, 0.35, 0.80, 1.00], [0, 1, 1, 0]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[400vh]">
+    <div ref={containerRef} className="relative w-full h-[200vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
         
         {/* TÍTULO */}
