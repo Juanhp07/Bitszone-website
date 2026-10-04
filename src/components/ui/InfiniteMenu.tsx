@@ -842,12 +842,38 @@ class InfiniteGridMenu {
           new Promise<HTMLImageElement>(resolve => {
             const img = new Image();
             img.crossOrigin = 'anonymous';
+            
             img.onload = () => resolve(img);
+            
             img.onerror = () => {
-              console.warn("Failed to load image via proxy:", item.image);
-              resolve(img);
+              console.warn("Failed to load image via proxy, using generated fallback:", item.image);
+              // Fallback to a colored canvas so we never show black circles
+              const fallbackCanvas = document.createElement('canvas');
+              fallbackCanvas.width = 512;
+              fallbackCanvas.height = 512;
+              const ctx = fallbackCanvas.getContext('2d');
+              if (ctx) {
+                const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+                // random-ish colors based on title length
+                const hue1 = (item.title.length * 15) % 360;
+                const hue2 = (hue1 + 60) % 360;
+                gradient.addColorStop(0, `hsl(${hue1}, 70%, 50%)`);
+                gradient.addColorStop(1, `hsl(${hue2}, 70%, 30%)`);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 512, 512);
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 40px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(item.title.substring(0, 15), 256, 256);
+              }
+              // Resolve with the fallback canvas directly as an image
+              const fallbackImg = new Image();
+              fallbackImg.onload = () => resolve(fallbackImg);
+              fallbackImg.src = fallbackCanvas.toDataURL('image/jpeg');
             };
-            img.src = `/api/proxy?url=${encodeURIComponent(item.image)}`;
+            
+            // Use allorigins to bypass CORS for Apple Music images
+            img.src = `https://api.allorigins.win/raw?url=${encodeURIComponent(item.image)}`;
           })
       )
     ).then(images => {

@@ -29,27 +29,25 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     restDelta: 0.001
   });
 
-  // TÍTULO: Sale de 0 a 0.20
-  const titleScale = useTransform(smoothScrollYProgress, [0, 0.20], [1.2, 0.8]);
-  const titleY = useTransform(smoothScrollYProgress, [0, 0.20], [0, -300]);
-  const titleOpacity = useTransform(smoothScrollYProgress, [0, 0.15], [1, 0]);
+  // TÍTULO: Sale de 0 a 0.15
+  const titleScale = useTransform(smoothScrollYProgress, [0, 0.15], [1.2, 0.8]);
+  const titleY = useTransform(smoothScrollYProgress, [0, 0.15], [0, -300]);
+  const titleOpacity = useTransform(smoothScrollYProgress, [0, 0.12], [1, 0]);
   
-  // MENU (Bolas): Entra de 0.20 a 0.40, se queda hasta 0.70, sale de 0.70 a 0.90
-  const menuY = useTransform(smoothScrollYProgress, [0.20, 0.40, 0.70, 0.90], [300, 0, 0, -300]);
-  const menuScale = useTransform(smoothScrollYProgress, [0.20, 0.40, 0.70, 0.90], [0.6, 1, 1, 0.6]);
-  const menuOpacity = useTransform(smoothScrollYProgress, [0.20, 0.35, 0.75, 0.90], [0, 1, 1, 0]);
+  // MENU (Bolas): Entra de 0.15 a 0.35, se queda hasta 0.75, sale de 0.75 a 0.90
+  const menuY = useTransform(smoothScrollYProgress, [0.15, 0.35, 0.75, 0.90], [300, 0, 0, -300]);
+  const menuScale = useTransform(smoothScrollYProgress, [0.15, 0.35, 0.75, 0.90], [0.6, 1, 1, 0.6]);
+  const menuOpacity = useTransform(smoothScrollYProgress, [0.15, 0.30, 0.80, 0.90], [0, 1, 1, 0]);
   
-  // TEXTO DEL MENÚ: Aparece suavemente solo cuando las bolas ya están asentadas (0.35 a 0.45)
-  // Desaparece antes de que las bolas se vayan (0.65 a 0.75)
-  const menuTextOpacity = useTransform(smoothScrollYProgress, [0.35, 0.45, 0.65, 0.75], [0, 1, 1, 0]);
+  // TEXTO DEL MENÚ: Aparece suavemente solo cuando las bolas ya están asentadas (0.30 a 0.40)
+  // Desaparece antes de que las bolas se vayan (0.70 a 0.80)
+  const menuTextOpacity = useTransform(smoothScrollYProgress, [0.30, 0.40, 0.70, 0.80], [0, 1, 1, 0]);
 
   // PROGRESS DE ENTRADA INDIVIDUAL: Para que las bolas escalen desde el centro hacia afuera
-  // Empieza en 0.25 (cuando ya está subiendo) y termina en 0.40
-  // Desaparecen desde 0.70 a 0.85
-  const introProgress = useTransform(smoothScrollYProgress, [0.25, 0.40, 0.70, 0.85], [0, 1, 1, 0]);
+  const introProgress = useTransform(smoothScrollYProgress, [0.18, 0.35, 0.75, 0.90], [0, 1, 1, 0]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[250vh]">
+    <div ref={containerRef} className="relative w-full h-[180vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
         
         {/* TÍTULO */}
