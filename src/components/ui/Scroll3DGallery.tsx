@@ -41,10 +41,10 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   const menuOpacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 0.95], [0, 1, 1, 0]);
   
   // TEXTO DEL MENÚ: Aparece suavemente solo cuando las bolas ya están asentadas
-  const menuTextOpacity = useTransform(scrollYProgress, [0.15, 0.25, 0.75, 0.85], [0, 1, 1, 0]);
+  const menuTextOpacity = useTransform(scrollYProgress, [0.10, 0.20, 0.75, 0.85], [0, 1, 1, 0]);
 
   // PROGRESS DE ENTRADA INDIVIDUAL: Para que las bolas escalen desde el centro hacia afuera
-  const introProgress = useTransform(scrollYProgress, [0.02, 0.20, 0.80, 0.95], [0, 1, 1, 0]);
+  const introProgress = useTransform(scrollYProgress, [0, 0.15, 0.80, 0.95], [0, 1, 1, 0]);
 
   return (
     <div ref={containerRef} className="relative w-full h-[160vh]">

@@ -860,56 +860,48 @@ class InfiniteGridMenu {
     canvas.width = this.atlasSize * cellSize;
     canvas.height = this.atlasSize * cellSize;
 
-    Promise.all(
-      this.items.map(
-        item =>
-          new Promise<HTMLImageElement>(resolve => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            
-            img.onload = () => resolve(img);
-            
-            img.onerror = () => {
-              console.warn("Failed to load image via proxy, using generated fallback:", item.image);
-              // Fallback to a colored canvas so we never show black circles
-              const fallbackCanvas = document.createElement('canvas');
-              fallbackCanvas.width = 512;
-              fallbackCanvas.height = 512;
-              const ctx = fallbackCanvas.getContext('2d');
-              if (ctx) {
-                const gradient = ctx.createLinearGradient(0, 0, 512, 512);
-                // random-ish colors based on title length
-                const hue1 = (item.title.length * 15) % 360;
-                const hue2 = (hue1 + 60) % 360;
-                gradient.addColorStop(0, `hsl(${hue1}, 70%, 50%)`);
-                gradient.addColorStop(1, `hsl(${hue2}, 70%, 30%)`);
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, 512, 512);
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 40px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(item.title.substring(0, 15), 256, 256);
-              }
-              // Resolve with the fallback canvas directly as an image
-              const fallbackImg = new Image();
-              fallbackImg.onload = () => resolve(fallbackImg);
-              fallbackImg.src = fallbackCanvas.toDataURL('image/jpeg');
-            };
-            
-            // Use allorigins to bypass CORS for Apple Music images
-            img.src = `https://api.allorigins.win/raw?url=${encodeURIComponent(item.image)}`;
-          })
-      )
-    ).then(images => {
-      images.forEach((img, i) => {
+    // STEP 1: Synchronously draw fallbacks immediately so there is ZERO delay
+    this.items.forEach((item, i) => {
+      const x = (i % this.atlasSize) * cellSize;
+      const y = Math.floor(i / this.atlasSize) * cellSize;
+      
+      const gradient = ctx.createLinearGradient(x, y, x + cellSize, y + cellSize);
+      const hue1 = (item.title.length * 15) % 360;
+      const hue2 = (hue1 + 60) % 360;
+      gradient.addColorStop(0, `hsl(${hue1}, 70%, 50%)`);
+      gradient.addColorStop(1, `hsl(${hue2}, 70%, 30%)`);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, y, cellSize, cellSize);
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 40px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(item.title.substring(0, 15), x + cellSize / 2, y + cellSize / 2);
+    });
+
+    // Upload initial fallback texture
+    gl.bindTexture(gl.TEXTURE_2D, this.tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+    gl.generateMipmap(gl.TEXTURE_2D);
+
+    // STEP 2: Progressively load real images and update texture
+    this.items.forEach((item, i) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        if (this.isDestroyed || !this.gl) return;
         const x = (i % this.atlasSize) * cellSize;
         const y = Math.floor(i / this.atlasSize) * cellSize;
         ctx.drawImage(img, x, y, cellSize, cellSize);
-      });
-
-      gl.bindTexture(gl.TEXTURE_2D, this.tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-      gl.generateMipmap(gl.TEXTURE_2D);
+        
+        // Update texture immediately for this image
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, canvas);
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
+      };
+      
+      // Use wsrv.nl which is significantly faster than allorigins
+      img.src = `https://wsrv.nl/?url=${encodeURIComponent(item.image)}&w=512&h=512&fit=cover`;
     });
   }
 
@@ -966,13 +958,11 @@ class InfiniteGridMenu {
         // Calculate local progress (0 to 1) for this specific ball
         const pLocal = Math.max(0, Math.min(1, (this.introProgress - delay) * (1 / 0.6)));
         
-        // EaseOutBack function
+        // Smooth EaseOutQuart function (no bounce)
         if (pLocal === 0) {
           introScale = 0.001; // Avoid exact 0 for matrices
         } else {
-          const c1 = 1.70158;
-          const c3 = c1 + 1;
-          introScale = 1 + c3 * Math.pow(pLocal - 1, 3) + c1 * Math.pow(pLocal - 1, 2);
+          introScale = 1 - Math.pow(1 - pLocal, 4);
           introScale = Math.max(0.001, introScale);
         }
       }
