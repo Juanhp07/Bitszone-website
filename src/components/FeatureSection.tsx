@@ -83,9 +83,7 @@ const albums = [
 
 export const FeatureSection = () => {
   return (
-    // Agregamos un gran espacio vacío debajo (mb-[30vh] md:mb-[40vh])
-    // para que la transición hacia la sección 3 sea lenta, intuitiva y fluida.
-    <section id="features" className="relative w-full z-20 mb-[30vh] md:mb-[40vh]">
+    <section id="features" className="relative w-full z-20">
       <Scroll3DGallery albums={albums} />
     </section>
   );

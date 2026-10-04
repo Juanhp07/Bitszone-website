@@ -47,7 +47,7 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   const introProgress = useTransform(smoothScrollYProgress, [0.18, 0.35, 0.75, 0.90], [0, 1, 1, 0]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[180vh]">
+    <div ref={containerRef} className="relative w-full h-[160vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
         
         {/* TÍTULO */}
