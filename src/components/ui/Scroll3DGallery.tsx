@@ -22,23 +22,26 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
-  // Aumentamos la altura a 300vh para que haya mucho espacio de scroll y la animación sea súper fluida (smooth)
-  // TÍTULO: Se queda quieto y visible hasta el 10% del scroll, luego sube y se desvanece suavemente
-  const titleScale = useTransform(scrollYProgress, [0, 0.10, 0.25], [1.2, 1.4, 0.8]);
-  const titleY = useTransform(scrollYProgress, [0, 0.10, 0.25], [0, -50, -400]);
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.10, 0.25], [1, 1, 0]);
+  // Aumentamos la altura a 300vh para scroll cinematográfico
+  // TÍTULO TIMELINE:
+  // 0.00 -> 0.10: "Aparece y baja"
+  // 0.10 -> 0.15: "Parpadea"
+  // 0.15 -> 0.25: "Se encoje y sube"
+  const titleY = useTransform(scrollYProgress, [0, 0.10, 0.15, 0.25], [-100, 0, 0, -400]);
+  const titleScale = useTransform(scrollYProgress, [0, 0.10, 0.15, 0.25], [0.8, 1.2, 1.2, 0]);
+  const titleOpacity = useTransform(
+    scrollYProgress, 
+    [0, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.22, 0.25], 
+    [0, 1,    0.3,  1,    0.3,  1,    1,    0,    0]
+  );
   
-  // MENU (Bolas): Empiezan a aparecer en el 15% (cuando el título ya está subiendo y desvaneciéndose)
-  // Llegan a su tamaño final en el 40% (scroll muy suave)
-  const menuY = useTransform(scrollYProgress, [0.15, 0.40, 0.70, 0.90], [200, 0, 0, -300]);
-  const menuScale = useTransform(scrollYProgress, [0.15, 0.40, 0.70, 0.90], [0.8, 1, 1, 0.8]);
-  const menuOpacity = useTransform(scrollYProgress, [0.15, 0.35, 0.75, 0.90], [0, 1, 1, 0]);
-  
-  // TEXTO DEL MENÚ: Aparece solo cuando las bolas ya terminaron de entrar
-  const menuTextOpacity = useTransform(scrollYProgress, [0.35, 0.45, 0.65, 0.75], [0, 1, 1, 0]);
-
-  // PROGRESS DE ENTRADA INDIVIDUAL: Para que las bolas escalen suavemente
-  const introProgress = useTransform(scrollYProgress, [0.15, 0.40, 0.70, 0.90], [0, 1, 1, 0]);
+  // MENU (Bolas) TIMELINE:
+  // 0.30 -> 0.50: "Aparecen limpios, fluidos" (Empiezan exactamente DESPUÉS de que el título murió)
+  const menuY = useTransform(scrollYProgress, [0.30, 0.50, 0.70, 0.90], [100, 0, 0, -300]);
+  const menuScale = useTransform(scrollYProgress, [0.30, 0.50, 0.70, 0.90], [0.8, 1, 1, 0.6]);
+  const menuOpacity = useTransform(scrollYProgress, [0.30, 0.45, 0.75, 0.90], [0, 1, 1, 0]);
+  const menuTextOpacity = useTransform(scrollYProgress, [0.45, 0.55, 0.65, 0.75], [0, 1, 1, 0]);
+  const introProgress = useTransform(scrollYProgress, [0.30, 0.50, 0.70, 0.90], [0, 1, 1, 0]);
 
   return (
     <div ref={containerRef} className="relative w-full h-[300vh]">
