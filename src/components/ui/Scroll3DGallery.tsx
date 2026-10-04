@@ -17,36 +17,34 @@ interface Scroll3DGalleryProps {
 export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const { scrollYProgress: fullProgress } = useScroll({
+  const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start bottom", "end end"]
+    offset: ["start start", "end end"]
   });
 
-  // TIMELINE UNIFICADA (h-[200vh]):
-  // 0.0 -> 0.5: Entrada del contenedor (el tope del contenedor viaja desde abajo hasta arriba de la pantalla)
-  // 0.5 -> 1.0: Contenedor estancado (sticky) y salida.
-
-  // TÍTULO (Ocurre mientras el contenedor entra, antes de estancarse)
-  // 0.10 -> 0.25: Aparece y baja
-  // 0.25 -> 0.35: Parpadea
-  // 0.35 -> 0.50: Se encoje y sube (Desaparece por completo justo cuando se estanca)
-  const titleY = useTransform(fullProgress, [0.10, 0.25, 0.35, 0.50], [-100, 0, 0, -400]);
-  const titleScale = useTransform(fullProgress, [0.10, 0.25, 0.35, 0.50], [0.8, 1.2, 1.2, 0]);
+  // TIMELINE: Contenedor de 200vh (100vh de scroll pegajoso)
+  
+  // TÍTULO: 
+  // Ya es visible al entrar a la sección.
+  // 0.00 -> 0.10: Parpadea en el centro de la pantalla
+  // 0.10 -> 0.20: Se encoje y sube (desaparece)
+  const titleY = useTransform(scrollYProgress, [0, 0.10, 0.20], [0, 0, -400]);
+  const titleScale = useTransform(scrollYProgress, [0, 0.10, 0.20], [1.2, 1.2, 0]);
   const titleOpacity = useTransform(
-    fullProgress, 
-    [0.10, 0.25, 0.27, 0.29, 0.31, 0.33, 0.35, 0.45, 0.50], 
-    [0,    1,    0.3,  1,    0.3,  1,    1,    0,    0]
+    scrollYProgress, 
+    [0, 0.02, 0.04, 0.06, 0.08, 0.10, 0.15, 0.20], 
+    [1, 0.3,  1,    0.3,  1,    1,    0,    0]
   );
   
-  // MENU (Bolas) (Ocurre después de estancarse, cuando el título ya no está)
-  // 0.50 -> 0.65: Aparecen limpios
-  // 0.65 -> 0.85: Estado activo interactivo
-  // 0.85 -> 1.00: Salida suave
-  const menuY = useTransform(fullProgress, [0.50, 0.65, 0.85, 1.00], [100, 0, 0, -300]);
-  const menuScale = useTransform(fullProgress, [0.50, 0.65, 0.85, 1.00], [0.8, 1, 1, 0.6]);
-  const menuOpacity = useTransform(fullProgress, [0.50, 0.60, 0.90, 1.00], [0, 1, 1, 0]);
-  const menuTextOpacity = useTransform(fullProgress, [0.60, 0.65, 0.80, 0.90], [0, 1, 1, 0]);
-  const introProgress = useTransform(fullProgress, [0.50, 0.65, 0.85, 1.00], [0, 1, 1, 0]);
+  // MENU (Bolas):
+  // 0.25 -> 0.45: Aparecen limpios de título
+  // 0.45 -> 0.85: Estado activo
+  // 0.85 -> 1.00: Salida para la sección 3
+  const menuY = useTransform(scrollYProgress, [0.25, 0.45, 0.85, 1.00], [0, 0, 0, -300]);
+  const menuScale = useTransform(scrollYProgress, [0.25, 0.45, 0.85, 1.00], [0.8, 1, 1, 0.6]);
+  const menuOpacity = useTransform(scrollYProgress, [0.25, 0.35, 0.90, 1.00], [0, 1, 1, 0]);
+  const menuTextOpacity = useTransform(scrollYProgress, [0.35, 0.45, 0.80, 0.90], [0, 1, 1, 0]);
+  const introProgress = useTransform(scrollYProgress, [0.25, 0.45, 0.85, 1.00], [0, 1, 1, 0]);
 
   return (
     <div ref={containerRef} className="relative w-full h-[200vh]">
