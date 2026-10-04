@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValue, useMotionValueEvent, animate } from 'framer-motion';
 import InfiniteMenu from './InfiniteMenu';
 
 export interface AlbumData {
@@ -22,25 +22,30 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
-  // TIMELINE: Contenedor de 250vh (150vh de scroll pegajoso)
+  // TIMELINE: Contenedor de 200vh (100vh de scroll pegajoso)
   
   // TÍTULO: 
-  const titleY = useTransform(scrollYProgress, [0.0, 0.25], [0, -600]);
-  const titleScale = useTransform(scrollYProgress, [0.0, 0.25], [1.5, 0.8]);
-  const titleOpacity = useTransform(scrollYProgress, [0.10, 0.25], [1, 0]);
+  const titleY = useTransform(scrollYProgress, [0.0, 0.20], [0, -600]);
+  const titleScale = useTransform(scrollYProgress, [0.0, 0.20], [1.5, 0.8]);
+  const titleOpacity = useTransform(scrollYProgress, [0.10, 0.20], [1, 0]);
   
-  // MENU (Bolas): Empieza a aparecer EXACTAMENTE cuando el título muere (0.15)
-  // Así eliminamos el "gran espacio sin nada"
-  const menuY = useTransform(scrollYProgress, [0.15, 0.35, 0.85, 1.00], [0, 0, 0, 0]);
-  const menuScale = useTransform(scrollYProgress, [0.15, 0.35, 0.85, 1.00], [0.8, 1, 1, 1]);
-  const menuOpacity = useTransform(scrollYProgress, [0.15, 0.25, 0.85, 1.00], [0, 1, 1, 0]);
-  const menuTextOpacity = useTransform(scrollYProgress, [0.25, 0.35, 0.75, 0.85], [0, 1, 1, 0]);
+  // MENU (Bolas): Opacidad general para la entrada y salida
+  const menuOpacity = useTransform(scrollYProgress, [0.15, 0.20, 0.85, 0.95], [0, 1, 1, 0]);
+  const menuTextOpacity = useTransform(scrollYProgress, [0.20, 0.30, 0.75, 0.85], [0, 1, 1, 0]);
   
-  // introProgress maneja la entrada (del centro hacia afuera) y salida (de afuera hacia el centro en reversa)
-  const introProgress = useTransform(scrollYProgress, [0.15, 0.40, 0.75, 1.00], [0, 1, 1, 0]);
+  // Animación Automática del tiempo de entrada (Sin depender del scroll)
+  const introProgress = useMotionValue(0);
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    if (latest >= 0.15 && latest <= 0.85) {
+      animate(introProgress, 1, { duration: 0.8, ease: "easeOut" });
+    } else {
+      animate(introProgress, 0, { duration: 0.5, ease: "easeOut" });
+    }
+  });
 
   return (
-    <div ref={containerRef} className="relative w-full h-[250vh]">
+    <div ref={containerRef} className="relative w-full h-[200vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
         
         {/* TÍTULO */}
@@ -79,8 +84,6 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
           className="absolute inset-0 z-10 pointer-events-auto"
           style={{
             opacity: menuOpacity,
-            scale: menuScale,
-            y: menuY,
             // Pasamos la opacidad del texto como una variable CSS
             '--menu-text-opacity': menuTextOpacity
           } as any}
