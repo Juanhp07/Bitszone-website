@@ -84,10 +84,8 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
         <motion.div 
           className="absolute inset-0 z-10 pointer-events-auto"
           style={{
-            opacity: menuOpacity,
-            // Pasamos la opacidad del texto como una variable CSS
-            '--menu-text-opacity': menuTextOpacity
-          } as any}
+            opacity: menuOpacity
+          }}
         >
           <InfiniteMenu 
             items={albums.map(a => ({
