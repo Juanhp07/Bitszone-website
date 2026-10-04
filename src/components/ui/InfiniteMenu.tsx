@@ -2,7 +2,7 @@
 
 import { type FC, useRef, useState, useEffect, type MutableRefObject } from 'react';
 import { mat4, quat, vec2, vec3 } from 'gl-matrix';
-import { motion, useTransform, useSpring, MotionValue } from 'framer-motion';
+import { motion, useTransform, useSpring, MotionValue, useMotionValue } from 'framer-motion';
 
 const discVertShaderSource = `#version 300 es
 
@@ -1199,7 +1199,9 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [], scale = 1.0, backgrou
   // El progreso general de las bolas va de 0 a 1.
   // Queremos que los textos aparezcan mientras las bolitas siguen entrando (0.2 a 0.8)
   // Así nos aseguramos de que el texto SALGA COMPLETO mucho antes de que el usuario termine de scrollear.
-  const safeScrollProgress = scrollProgress || useTransform(() => 1);
+  // Un valor por defecto en caso de que no pasen scrollProgress
+  const fallbackProgress = useMotionValue(1);
+  const safeScrollProgress = scrollProgress || fallbackProgress;
   const textProgressRaw = useTransform(safeScrollProgress, [0.2, 0.8], [0, 1]);
   
   // Un resorte más suave (damping 30) para que el texto patine con mucha fluidez
