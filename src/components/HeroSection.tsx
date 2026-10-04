@@ -13,13 +13,14 @@ export const HeroSection = () => {
   
   // Parallax exit effect for the main hero content
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
-  const heroY = useTransform(scrollY, [0, 400], [0, -150]);
+  const heroY = useTransform(scrollY, [0, 400], [0, 100]); // Moves down slightly while scaling up
+  const heroScale = useTransform(scrollY, [0, 400], [1, 1.3]); // Flies towards the camera
 
   return (
     <section className="relative w-full mx-auto min-h-[100vh] flex flex-col justify-center px-8 md:px-16 2xl:px-24">
       
       <motion.div 
-        style={{ opacity: heroOpacity, y: heroY }}
+        style={{ opacity: heroOpacity, y: heroY, scale: heroScale }}
         className="relative z-20 w-full max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center flex-1 pt-24 md:pt-32 2xl:pt-48 -mt-16 md:-mt-24 2xl:-mt-32"
       >
 
