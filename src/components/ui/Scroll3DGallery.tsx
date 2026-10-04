@@ -22,7 +22,7 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
     offset: ["start start", "end end"]
   });
 
-  // TIMELINE: Contenedor de 300vh para dar mucho más recorrido de scroll
+  // TIMELINE: Contenedor de 400vh (Muchísimo recorrido para un control suave y preciso del scroll)
   
   // TÍTULO: 
   const titleY = useTransform(scrollYProgress, [0.0, 0.15], [0, -600]);
@@ -30,24 +30,17 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   const titleOpacity = useTransform(scrollYProgress, [0.05, 0.15], [1, 0]);
   
   // MENU (Bolas): Opacidad general para la entrada y salida
-  // Le damos un rango enorme (0.15 a 0.90) para que el usuario pueda scrollear bastante rato
   const menuOpacity = useTransform(scrollYProgress, [0.12, 0.20, 0.90, 0.95], [0, 1, 1, 0]);
   const menuTextOpacity = useTransform(scrollYProgress, [0.15, 0.25, 0.85, 0.90], [0, 1, 1, 0]);
   
-  // Animación Automática del tiempo de entrada (Mucho más lenta y fluida)
-  const introProgress = useMotionValue(0);
-
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    // Si estamos en la zona de los álbumes, los mostramos
-    if (latest >= 0.12 && latest <= 0.88) {
-      animate(introProgress, 1, { duration: 1.4, ease: [0.16, 1, 0.3, 1] }); // Curva muy suave (Apple-like)
-    } else {
-      animate(introProgress, 0, { duration: 1.0, ease: [0.16, 1, 0.3, 1] }); // Salida relajada
-    }
-  });
+  // Animación puramente atada al scroll (Permite hacer scrub hacia adelante y atrás)
+  // Entra del centro a los bordes (0.15 a 0.40)
+  // Se mantiene estático y vivo (0.40 a 0.75)
+  // Desaparece de los bordes al centro en reversa (0.75 a 0.95)
+  const introProgress = useTransform(scrollYProgress, [0.15, 0.40, 0.75, 0.95], [0, 1, 1, 0]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[300vh]">
+    <div ref={containerRef} className="relative w-full h-[400vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
         
         {/* TÍTULO */}

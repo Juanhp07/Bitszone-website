@@ -955,19 +955,20 @@ class InfiniteGridMenu {
       if (this.introProgress !== undefined && this.introProgress < 1.0) {
         // Calculate delay based on Z distance from camera (p[2])
         // p[2] goes from roughly +this.SPHERE_RADIUS (closest/center) to -this.SPHERE_RADIUS (farthest/back)
-        // We want delay = 0 for the center, and maxDelay for the back.
         const normalizedDist = (this.SPHERE_RADIUS - p[2]) / (2 * this.SPHERE_RADIUS);
         const delay = Math.max(0, Math.min(1, normalizedDist)) * 0.4; // Max delay of 0.4
         
         const pLocal = Math.max(0, Math.min(1, (this.introProgress - delay) * (1 / 0.6)));
         
-        // Spring-like easing: Overshoots slightly and settles
         if (pLocal === 0) {
           introScale = 0.001; // Avoid exact 0 for matrices
         } else {
-          // A subtle spring: 1 - e^(-st) * cos(dt)
-          const spring = 1 - Math.exp(-8 * pLocal) * Math.cos(12 * pLocal);
-          introScale = Math.max(0.001, spring);
+          // Matemáticamente similar a spring(300, 20) pero controlable por scroll (scrubbable)
+          // Se llama "easeOutBack". Exagera un poco al llegar a 1.0 y luego se estabiliza.
+          const c1 = 1.70158;
+          const c3 = c1 + 1;
+          const bounce = 1 + c3 * Math.pow(pLocal - 1, 3) + c1 * Math.pow(pLocal - 1, 2);
+          introScale = Math.max(0.001, bounce);
         }
       }
 
