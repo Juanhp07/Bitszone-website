@@ -17,7 +17,7 @@ export const HeroSection = () => {
   const heroScale = useTransform(scrollY, [0, 400], [1, 1.3]); // Flies towards the camera
 
   return (
-    <section className="relative w-full mx-auto min-h-[100vh] flex flex-col justify-center px-8 md:px-16 2xl:px-24">
+    <section className="relative w-full mx-auto min-h-[100svh] flex flex-col justify-center px-[20px] sm:px-8 md:px-16 2xl:px-24 overflow-x-clip">
       
       <motion.div 
         style={{ opacity: heroOpacity, y: heroY, scale: heroScale }}
@@ -31,12 +31,12 @@ export const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
           className="flex flex-col items-center justify-center text-center w-full font-sans font-bold"
         >
-          <span className="text-white text-[11vw] sm:text-[9vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px] tracking-tight leading-none z-10">
+          <span className="text-white text-[10.5vw] sm:text-[8.6vw] md:text-[8vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px] tracking-tight leading-none z-10">
             Tus músicas sin conexión
           </span>
           <LiquidMetalText
             text="descarga sin límites"
-            className="w-fit -mt-4 md:-mt-8 h-[16vw] sm:h-[14vw] lg:h-[130px] xl:h-[150px] 2xl:h-[180px] text-[11vw] sm:text-[9vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px]"
+            className="w-fit max-w-full -mt-2 sm:-mt-4 md:-mt-8 h-[13vw] sm:h-[11.5vw] md:h-[11vw] lg:h-[130px] xl:h-[150px] 2xl:h-[180px] text-[8.4vw] sm:text-[7.6vw] md:text-[7.2vw] lg:text-[80px] xl:text-[100px] 2xl:text-[120px]"
             strokeWidth={3}
           />
         </motion.h1>

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { PlayerShowcase } from './PlayerShowcase';
 
@@ -28,7 +28,15 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   
   // TÍTULO: 
   const titleY = useTransform(scrollYProgress, [0.0, 0.15], [0, -600]);
-  const titleScale = useTransform(scrollYProgress, [0.0, 0.15], [1.5, 0.8]);
+  // On phones the title starts smaller: at 1.5× "encuentra su ritmo" is wider than the screen.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const on = () => setNarrow(window.innerWidth < 768);
+    on();
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+  const titleScale = useTransform(scrollYProgress, [0.0, 0.15], narrow ? [1.1, 0.8] : [1.5, 0.8]);
   const titleOpacity = useTransform(scrollYProgress, [0.05, 0.15], [1, 0]);
   
   
@@ -43,7 +51,7 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
       <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
         
         {/* TÍTULO */}
-        <div className="absolute top-[30vh] left-0 w-full z-20 flex flex-col items-center pointer-events-none">
+        <div className="absolute top-[30vh] left-0 w-full z-20 flex flex-col items-center pointer-events-none px-[16px]">
           <motion.div 
             style={{ 
               scale: titleScale, 
@@ -53,7 +61,7 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
             }}
             className="flex-col items-center origin-center"
           >
-            <h2 className="text-6xl md:text-8xl font-bold text-white text-center tracking-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+            <h2 className="text-[10vw] sm:text-6xl md:text-8xl font-bold text-white text-center tracking-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
               El que busca, <br /> 
               <motion.span 
                 animate={{ 

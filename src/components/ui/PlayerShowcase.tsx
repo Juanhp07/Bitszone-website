@@ -73,6 +73,7 @@ const useViewport = () => {
 export const PlayerShowcase = ({ albums, progress }: { albums: AlbumData[]; progress: MotionValue<number> }) => {
   const { w: vw, h: vh } = useViewport();
   const mobile = vw < 768;
+  const compact = vw < 1100; // tablets: hide the player's sidebar so the content reads larger
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   const unique = albums.filter((a, i, arr) => arr.findIndex(b => b.src === a.src) === i);
@@ -81,23 +82,30 @@ export const PlayerShowcase = ({ albums, progress }: { albums: AlbumData[]; prog
   // ---------- geometry ----------
   const ringScale = Math.min(Math.max(vw / 1172, mobile ? 0.62 : 0.7), 1.35);
   const W = mobile ? vw * 0.94 : Math.min(1100, vw * 0.88);
-  const u = mobile ? W / 560 : W / 842;              // 1 design px of the player replica
-  const H = Math.min(vh * (mobile ? 0.8 : 0.86), (mobile ? 640 : 520) * u);
+  // 1 design px of the player replica. Narrower screens show fewer, larger tiles.
+  const u = mobile ? W / 280 : compact ? W / 640 : W / 842;
+  const H = Math.min(vh * (mobile ? 0.74 : 0.86), (mobile ? 480 : 520) * u);
   const ringCentreY = vh * (mobile ? 0.36 : 0.42);
   const peekTop = ringCentreY + CARD * 0.38 * ringScale; // the mock overlaps the lower third of the covers
   const finalTop = Math.max(16, (vh - H) / 2 + 12);
 
   // ---------- scroll timeline (0–1 across the 350vh section) ----------
   const ringOpacity = useTransform(progress, [0.1, 0.22, 0.46, 0.7, 0.8, 0.93], [0, 1, 1, 0.45, 0.45, 0]);
-  const ringY = useTransform(progress, [0.1, 0.26, 0.42, 0.72], [160, 0, 0, -vh * 0.22]);
+  const ringY = useTransform(progress, [0.1, 0.26, 0.42, 0.72, 0.98], [160, 0, 0, -vh * 0.22, -vh * 0.6]);
   const ringZoom = useTransform(progress, [0.1, 0.26, 0.42, 0.72], [0.86, 1, 1, 0.92]);
   const ringBlur = useTransform(progress, [0.42, 0.72], ['blur(0px)', 'blur(3px)']);
 
-  const browserY = useTransform(progress, [0.16, 0.34, 0.42, 0.7], [vh + 40, peekTop, peekTop, finalTop]);
-  const browserScale = useTransform(progress, [0.34, 0.7], [0.94, 1]);
-  const browserOpacity = useTransform(progress, [0.16, 0.24, 0.84, 0.96], [0, 1, 1, 0]);
-  const browserTilt = useTransform(progress, [0.16, 0.34, 0.42, 0.7], [18, 6, 6, 0]);
-  const glowOpacity = useTransform(progress, [0.3, 0.6, 0.84, 0.96], [0, 1, 1, 0]);
+  // Rises → peeks over the ring → climbs to centre while still tilted in 3D → holds →
+  // leaves upward keeping (and deepening) the tilt. Scrolling back replays it in reverse.
+  const browserY = useTransform(
+    progress,
+    [0.16, 0.34, 0.42, 0.66, 0.76, 0.98],
+    [vh + 40, peekTop, peekTop, finalTop, finalTop, -H * 0.95],
+  );
+  const browserScale = useTransform(progress, [0.34, 0.66, 0.76, 0.98], [0.94, 1, 1, 0.9]);
+  const browserOpacity = useTransform(progress, [0.16, 0.24, 0.9, 0.99], [0, 1, 1, 0]);
+  const browserTilt = useTransform(progress, [0.16, 0.34, 0.42, 0.66, 0.76, 0.98], [18, 6, 6, 9, 9, 16]);
+  const glowOpacity = useTransform(progress, [0.3, 0.6, 0.76, 0.9], [0, 1, 1, 0]);
   const sweepX = useTransform(progress, [0.3, 0.55], ['-30%', '130%']);
 
   const row2Opacity = useTransform(progress, [0.46, 0.56], [0, 1]);
@@ -169,7 +177,7 @@ export const PlayerShowcase = ({ albums, progress }: { albums: AlbumData[]; prog
 
       {/* Preview del Web Player */}
       <motion.div
-        className={`pv-browser${mobile ? ' pv-mobile' : ''}`}
+        className={`pv-browser${compact ? ' pv-mobile' : ''}`}
         style={{
           width: W,
           height: H,
