@@ -3,27 +3,33 @@ import '../styles/global.css';
 
 interface Props {
   title: string;
+  /**
+   * Pages that scroll (the landing) must not lock the body: on phones Lenis leaves touch
+   * scrolling to the browser, and `overflow-hidden` on <body> blocks it entirely.
+   * App-like screens (player, login, admin) keep the locked body.
+   */
+  scrollable?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, scrollable = false } = Astro.props;
 ---
 
 <!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-    
+
     <title>{title}</title>
   </head>
-  <body class="bg-canvas text-on-surface min-h-screen relative overflow-hidden">
+  <body class:list={['bg-canvas text-on-surface min-h-screen relative', scrollable ? 'overflow-x-clip' : 'overflow-hidden']}>
     <slot />
   </body>
 </html>
