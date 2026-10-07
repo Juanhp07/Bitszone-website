@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useId } from "react";
+import React, { useEffect, useId, useState } from "react";
 import useMeasure from "../../hooks/useMeasure";
 
 interface LiquidMetalTextProps {
@@ -17,6 +17,15 @@ export const LiquidMetalText = ({
 }: LiquidMetalTextProps) => {
   const [ref, { width, height }] = useMeasure<HTMLDivElement>();
   const instanceId = useId().replace(/[^a-zA-Z0-9]/g, "");
+
+  // The outline is a fixed-pixel stroke, tuned for ~100px desktop type. On phones the
+  // type is ~1/3 of that, so the same stroke reads 3× heavier and the letters look
+  // bloated. Scale it with the rendered font size (desktop keeps the full strokeWidth).
+  const [fontSize, setFontSize] = useState(0);
+  useEffect(() => {
+    if (ref.current) setFontSize(parseFloat(getComputedStyle(ref.current).fontSize) || 0);
+  }, [width, ref]);
+  const stroke = fontSize ? Math.min(strokeWidth, Math.max(1.1, fontSize * 0.032)) : strokeWidth;
   const scope = `gleam-text-${instanceId}`;
 
   // Colors
@@ -121,7 +130,7 @@ export const LiquidMetalText = ({
               dominantBaseline="central" 
               fill="black" 
               stroke="white" 
-              strokeWidth={strokeWidth} 
+              strokeWidth={stroke} 
               className="font-sans font-bold"
             >
               {text}
