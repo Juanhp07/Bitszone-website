@@ -25,6 +25,8 @@ export function MagneticSelect({
   pull = 55,
   bounce = 55,
   give = 50,
+  accentTo = "#FF9FFC",
+  onHover,
 }: {
   items: Array<{ color: string, label: string }>;
   selectedIndex: number | null;
@@ -32,6 +34,9 @@ export function MagneticSelect({
   pull?: number;
   bounce?: number;
   give?: number;
+  /** End colour of the selected chip's gradient (starts at the item colour). */
+  accentTo?: string;
+  onHover?: (index: number | null) => void;
 }) {
   const n = items.length;
   // Use exact packing for 7 items
@@ -174,6 +179,10 @@ export function MagneticSelect({
               aria-checked={on}
               aria-label={items[i]?.label}
               onClick={() => choose(i)}
+              onPointerEnter={() => onHover?.(i)}
+              onPointerLeave={() => onHover?.(null)}
+              onFocus={() => onHover?.(i)}
+              onBlur={() => onHover?.(null)}
               initial={false}
               animate={{
                 x: ux * push,
@@ -197,8 +206,12 @@ export function MagneticSelect({
                   transitionProperty: "translate, transform, background-color, box-shadow",
                   transitionDuration: "260ms",
                   transitionTimingFunction: "cubic-bezier(0.18, 0.89, 0.32, 1.28)",
-                  background: on ? `linear-gradient(135deg, ${items[i].color}, #00FFFF)` : '#1c1c20',
-                  boxShadow: on ? `0 10px 25px ${items[i].color}90, inset 0 2px 4px rgba(255,255,255,0.3)` : 'inset 0 1px 1px rgba(255,255,255,0.05)',
+                  background: on
+                    ? `linear-gradient(135deg, ${items[i].color}, ${accentTo})`
+                    : `radial-gradient(circle at 30% 25%, ${items[i].color}33, #17121f 70%)`,
+                  boxShadow: on
+                    ? `0 10px 25px ${items[i].color}90, inset 0 2px 4px rgba(255,255,255,0.3)`
+                    : `inset 0 0 0 1px ${items[i].color}40, inset 0 1px 1px rgba(255,255,255,0.06)`,
                 }}
               >
                 <span className={`font-sora font-bold transition-colors duration-300 text-[13px] ${on ? 'text-white' : 'text-white/60'}`}>

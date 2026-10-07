@@ -365,11 +365,11 @@ export function CinematicFooter() {
 
 
             {/* Bitszone Logo (Left) */}
-            <div className="order-1 flex items-center justify-start min-w-[200px]">
+            <div className="order-1 flex items-center justify-center md:justify-start w-full md:w-auto md:min-w-[200px]">
               <a href="/" className="flex items-center text-decoration-none hover:opacity-80 transition-opacity">
                 <SpecularText
                   text="Bitszone"
-                  className="pr-2"
+                  className="md:pr-2"
                   style={{
                     fontSize: "22px",
                     fontFamily: '"DM Serif Display", serif',
