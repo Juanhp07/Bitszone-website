@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { motion, useScroll, useTransform, useMotionValue, useMotionValueEvent, animate } from 'framer-motion';
-import InfiniteMenu from './InfiniteMenu';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { PlayerShowcase } from './PlayerShowcase';
 
 export interface AlbumData {
   src: string;
@@ -31,19 +31,11 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   const titleScale = useTransform(scrollYProgress, [0.0, 0.15], [1.5, 0.8]);
   const titleOpacity = useTransform(scrollYProgress, [0.05, 0.15], [1, 0]);
   
-  // MENU (Bolas): Opacidad general 
-  // Se mantienen en opacidad 1 hasta el progreso 0.75, y se desvanecen.
-  const menuOpacity = useTransform(scrollYProgress, [0.10, 0.20, 0.75, 0.95], [0, 1, 1, 0]);
   
   // Para garantizar que la capa 3D no bloquee el "dock" de la Sección 3,
   // apagamos sus interacciones cuando la opacidad empieza a bajar.
   const pointerEvents = useTransform(scrollYProgress, v => v > 0.85 ? "none" : "auto");
   
-  // Animación puramente atada al scroll
-  // Entra muy lento del centro a los bordes (0.10 a 0.45)
-  // Se mantiene vivo (0.45 a 0.75) para que los textos salgan completos y los puedas leer
-  // Desaparece en reversa y se esfuma (0.75 a 1.00)
-  const introProgress = useTransform(scrollYProgress, [0.10, 0.45, 0.75, 1.00], [0, 1, 1, 0]);
 
   return (
     // Z-20 asegura que los álbumes queden POR ENCIMA de la Sección 3 mientras se desvanecen
@@ -81,24 +73,12 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
           </motion.div>
         </div>
 
-        {/* CANVAS 3D / INFINITE MENU */}
-        <motion.div 
+        {/* ANILLO DE ÁLBUMES + PREVIEW DEL WEB PLAYER */}
+        <motion.div
           className="absolute inset-0 z-10"
-          style={{
-            opacity: menuOpacity,
-            pointerEvents: pointerEvents as any
-          }}
+          style={{ pointerEvents: pointerEvents as any }}
         >
-          <InfiniteMenu 
-            items={albums.map(a => ({
-              image: a.src,
-              link: '#',
-              title: a.title,
-              description: a.artist
-            }))}
-            scale={1.2}
-            scrollProgress={introProgress}
-          />
+          <PlayerShowcase albums={albums} progress={scrollYProgress} />
         </motion.div>
 
       </div>
