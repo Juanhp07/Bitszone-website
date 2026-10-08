@@ -159,7 +159,7 @@ useEffect(() => {
 
       {/* Floating Pill (Sticky/Scrolled State) */}
       <div 
-        className="sticky top-24 z-50 mx-auto transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between shadow-2xl overflow-hidden"
+        className="sticky top-24 z-50 mx-auto transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between shadow-2xl overflow-hidden border border-white/10"
         style={{ 
           width: 'calc(100% - 4rem)',
           background: `linear-gradient(90deg, ${dominantColor} 0%, rgba(15, 15, 20, 0.95) 100%)`,
@@ -238,7 +238,7 @@ useEffect(() => {
       </div>
 
       {/* Hero Section */}
-      <div className="px-8 pt-8 pb-6 flex items-end justify-between relative z-10">
+      <div className="px-8 pt-20 pb-6 flex items-end justify-between relative z-10">
         <div className="flex items-end gap-6">
           <div className="w-52 h-52 shrink-0 rounded-2xl shadow-2xl overflow-hidden mt-12 relative group transition-all duration-500">
             <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
