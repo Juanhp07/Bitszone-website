@@ -216,15 +216,16 @@ export const ImmersivePlayer = ({
 
         <button 
           onClick={onClose}
-          className="absolute top-8 left-8 md:top-10 md:left-12 xl:left-[5rem] z-50 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white backdrop-blur-2xl border border-white/20 transition-all group cursor-pointer"
+          aria-label="Minimizar reproductor"
+          className="absolute top-4 left-4 md:top-10 md:left-12 xl:left-[5rem] z-50 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white backdrop-blur-2xl border border-white/20 transition-all group cursor-pointer"
           title="Minimizar Reproductor"
         >
           <Minimize2 className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-90 transition-transform" />
         </button>
 
         {/* 1. LEFT: Tracklist */}
-        <div className="absolute top-[110px] left-12 xl:left-[5rem] z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">PISTAS</div>
-        <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-[140px] pb-0">
+        <div className="hidden md:block absolute top-[110px] left-12 xl:left-[5rem] z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">PISTAS</div>
+        <div className="hidden md:flex w-[35%] h-full relative overflow-hidden flex-col pt-[140px] pb-0">
            <div 
              className="relative w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-12 xl:pl-[5rem] pr-6 xl:pr-12 transition-all duration-700 pb-20 pt-2" 
              style={{ 
@@ -283,9 +284,9 @@ export const ImmersivePlayer = ({
         </div>
 
         {/* 2. RIGHT: Unified Cover, Info & Controls */}
-        <div className="w-[65%] h-full relative flex flex-col items-center group">
+        <div className="w-full md:w-[65%] h-full relative flex flex-col items-center group">
            {/* Vertical Volume Control (Appears on Hover) */}
-           <div className="absolute right-8 xl:right-12 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
+           <div className="hidden md:flex absolute right-8 xl:right-12 top-1/2 -translate-y-1/2 z-50 flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
              <button onClick={() => setVolume && setVolume(100)} className="mb-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon">
                <Volume2 className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" />
              </button>
@@ -340,7 +341,7 @@ export const ImmersivePlayer = ({
              </button>
            </div>
            {/* Background Cover Image with Fades */}
-           <div className="absolute inset-0 z-0 pointer-events-none" style={{ maskImage: 'linear-gradient(to right, transparent 0%, transparent 5%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 5%, black 40%, black 100%)' }}>
+           <div className="absolute inset-0 z-0 pointer-events-none max-md:![mask-image:none] max-md:![-webkit-mask-image:none]" style={{ maskImage: 'linear-gradient(to right, transparent 0%, transparent 5%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 5%, black 40%, black 100%)' }}>
              <img 
                src={(track.albumCover || album.coverUrl)} 
                alt="Artist/Album Cover" 
@@ -352,7 +353,7 @@ export const ImmersivePlayer = ({
            </div>
 
            {/* Top Tabs (PORTADA / LETRA) */}
-           <div className="mt-10 shrink-0 z-40 p-1 flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
+           <div className="relative mt-4 md:mt-10 shrink-0 z-40 p-1 flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
               {/* Sliding Background */}
               <div 
                 className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white/20 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm ${activeTab === 'letra' ? 'left-[calc(50%)]' : 'left-1'}`}
@@ -371,13 +372,22 @@ export const ImmersivePlayer = ({
               </button>
            </div>
 
+           {/* Phone artwork (Portada tab) */}
+           <div className={`md:hidden flex-1 min-h-0 w-full z-20 flex items-center justify-center px-8 py-6 ${activeTab === 'letra' ? 'hidden' : ''}`}>
+             <img
+               src={(track.albumCover || album.coverUrl)}
+               alt={`Portada de ${track.albumTitle || album.title}`}
+               className="w-full max-w-[340px] max-h-full aspect-square object-cover rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
+             />
+           </div>
+
            {/* Lyrics View Area */}
-           <div className={`flex-1 w-full relative min-h-0 z-20 flex flex-col items-center justify-center transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none'}`}>
+           <div className={`flex-1 w-full relative min-h-0 z-20 flex flex-col items-center justify-center transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-100' : 'opacity-0 translate-y-12 pointer-events-none max-md:hidden'}`}>
               
               {isSomewhereIBelong ? (
                 <div 
                   ref={lyricsContainerRef}
-                  className="relative w-full h-[45vh] max-h-[450px] overflow-y-auto px-8 pt-[22vh] pb-[22vh] flex flex-col items-center gap-6"
+                  className="relative w-full h-full md:h-[45vh] max-h-[450px] overflow-y-auto overscroll-contain px-6 md:px-8 pt-[18vh] md:pt-[22vh] pb-[18vh] md:pb-[22vh] flex flex-col items-center gap-5 md:gap-6"
                   style={{ 
                     scrollbarWidth: 'none',
                     maskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)',
@@ -393,7 +403,7 @@ export const ImmersivePlayer = ({
                       ref={isActive ? activeLyricRef : null}
                       className={`text-center text-2xl md:text-4xl transition-all duration-500 font-bold max-w-4xl px-4 ${
                         isActive 
-                          ? 'text-white scale-105 drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]' 
+                          ? 'text-white md:scale-105 drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]'  
                           : isPast 
                             ? 'text-white/40' 
                             : 'text-white/20'
@@ -405,30 +415,33 @@ export const ImmersivePlayer = ({
                 })}
                 </div>
               ) : (
-                <p className="text-white/40 text-sm md:text-base font-medium tracking-[0.2em] uppercase blur-[0.5px]">No hay letras disponibles</p>
+                <p className="text-white/50 text-sm md:text-base font-medium tracking-[0.2em] uppercase text-center px-6">No hay letras disponibles</p>
               )}
 
            </div>
 
            {/* Floating Content: Info & Controls */}
-           <div className={`shrink-0 pb-12 xl:pb-16 relative z-30 flex flex-col items-center justify-center w-full px-8 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'translate-y-4 scale-[0.9] opacity-100' : 'translate-y-0 scale-100 opacity-100'}`}>
-              <h2 className={`text-4xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white drop-shadow-lg text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)] transition-all duration-[1200ms] ${activeTab === 'letra' ? 'mb-2' : 'mb-4'}`}>
-                {(track.albumTitle || album.title)}
+           <div className={`shrink-0 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:pb-12 xl:pb-16 relative z-30 flex flex-col items-center justify-center w-full px-6 md:px-8 transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'md:translate-y-4 md:scale-[0.9] opacity-100' : 'translate-y-0 scale-100 opacity-100'}`}>
+              <h2 className={`text-[28px] md:text-6xl xl:text-7xl font-serif italic font-bold text-white drop-shadow-lg text-center leading-tight line-clamp-2 max-w-full [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)] transition-all duration-[1200ms] ${activeTab === 'letra' ? 'mb-1 md:mb-2' : 'mb-2 md:mb-4'}`}>
+                <span className="md:hidden">{track.title}</span>
+                <span className="hidden md:inline">{(track.albumTitle || album.title)}</span>
               </h2>
-              <p className={`text-white/70 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center [text-shadow:_0_2px_10px_rgba(0,0,0,0.8)] transition-all duration-[1200ms] ${activeTab === 'letra' ? 'mb-8' : 'mb-12'}`}>
+              <p className={`text-white/70 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center [text-shadow:_0_2px_10px_rgba(0,0,0,0.8)] transition-all duration-[1200ms] ${activeTab === 'letra' ? 'mb-5 md:mb-8' : 'mb-6 md:mb-12'}`}>
                 {album.artist}
               </p>
 
               {/* Controls */}
-              <div className="flex items-center gap-8 md:gap-12 mb-10">
+              <div className="flex items-center gap-4 sm:gap-6 md:gap-12 mb-6 md:mb-10">
                 <button 
                   onClick={(e) => { e.stopPropagation(); onToggleShuffle?.(); }}
-                  className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  aria-label="Aleatorio"
+                  className={`w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                 >
                   <Shuffle className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
+                  aria-label="Anterior"
                   className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group"
                 >
                   <SkipBack className="w-5 h-5 md:w-7 md:h-7 group-hover:-translate-x-1 transition-transform" fill="currentColor" />
@@ -436,6 +449,7 @@ export const ImmersivePlayer = ({
 
                 <button 
                   onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                  aria-label={isPlaying ? "Pausar" : "Reproducir"}
                   className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center rounded-full text-white transition-all border border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(255,255,255,0.3)] group relative overflow-hidden"
                 >
                   {/* Spinning Vinyl Cover */}
@@ -467,30 +481,43 @@ export const ImmersivePlayer = ({
 
                 <button 
                   onClick={(e) => { e.stopPropagation(); onNext?.(); }}
+                  aria-label="Siguiente"
                   className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group"
                 >
                   <SkipForward className="w-5 h-5 md:w-7 md:h-7 group-hover:translate-x-1 transition-transform" fill="currentColor" />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onToggleRepeat?.(); }}
-                  className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  aria-label="Repetir"
+                  className={`w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                 >
                   {repeatMode === 'one' ? <Repeat1 className="w-4 h-4 md:w-5 md:h-5" /> : <Repeat className="w-4 h-4 md:w-5 md:h-5" />}
                 </button>
               </div>
 
               {/* Squiggly Timeline Progress Bar */}
-              <div className={`w-full max-w-xl flex items-center gap-4 font-bold text-white/50 tracking-wider transition-all duration-[1200ms] ${activeTab === 'letra' ? 'text-lg md:text-xl' : 'text-sm md:text-base'}`}>
-                 <span className={`text-right transition-all duration-[1200ms] ${activeTab === 'letra' ? 'w-16' : 'w-10'}`}>{formatTime(progress * track.duration)}</span>
+              <div className={`w-full max-w-xl flex items-center gap-3 md:gap-4 font-bold text-white/50 tracking-wider tabular-nums transition-all duration-[1200ms] ${activeTab === 'letra' ? 'text-sm md:text-xl' : 'text-sm md:text-base'}`}>
+                 <span className={`text-right transition-all duration-[1200ms] ${activeTab === 'letra' ? 'w-10 md:w-16' : 'w-10'}`}>{formatTime(progress * track.duration)}</span>
                  
-                 <div 
-                   className="flex-1 h-8 flex items-center relative cursor-pointer group"
-                   onClick={(e) => {
+                 <div
+                   role="slider"
+                   aria-label="Progreso de la canción"
+                   aria-valuemin={0}
+                   aria-valuemax={100}
+                   aria-valuenow={Math.round(progress * 100)}
+                   className="flex-1 h-11 md:h-8 flex items-center relative cursor-pointer group touch-none"
+                   onPointerDown={(e) => {
                       e.stopPropagation();
+                      e.currentTarget.setPointerCapture(e.pointerId);
                       const rect = e.currentTarget.getBoundingClientRect();
-                      const p = (e.clientX - rect.left) / rect.width;
-                      onSeek?.(p);
+                      onSeek?.(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
                    }}
+                   onPointerMove={(e) => {
+                      if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      onSeek?.(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
+                   }}
+                   onPointerUp={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
                  >
                     {/* Unplayed straight line */}
                     <div className="absolute right-0 h-[6px] bg-white/30 rounded-full" style={{ left: `${progress * 100}%` }} />
@@ -517,7 +544,7 @@ export const ImmersivePlayer = ({
                     />
                  </div>
 
-                 <span className={`transition-all duration-[1200ms] ${activeTab === 'letra' ? 'w-16' : 'w-10'}`}>{formatTime(track.duration)}</span>
+                 <span className={`transition-all duration-[1200ms] ${activeTab === 'letra' ? 'w-10 md:w-16' : 'w-10'}`}>{formatTime(track.duration)}</span>
               </div>
            </div>
         </div>

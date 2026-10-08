@@ -15,12 +15,21 @@ import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
 import { Heart } from 'lucide-react';
+import { MobileTabBar } from './MobileTabBar';
+import { useIsMobile, useIsCompact } from './useIsMobile';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
 
   const [currentView, setCurrentView] = useState<string>("catalog");
   const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string, type?: string} | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const isMobile = useIsMobile();   // phone layout (header, mini player, lyrics)
+  const isCompact = useIsCompact(); // phones + tablets: the sidebar is an overlay drawer
+
+  // Phones and tablets start with the drawer closed; desktop keeps the sidebar open.
+  useEffect(() => {
+    setIsSidebarOpen(!isCompact);
+  }, [isCompact]);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   const consecutivePlaysRef = useRef<{ trackId: number | string | null, count: number }>({ trackId: null, count: 0 });
@@ -401,13 +410,22 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     setIsPlaying(!isPlaying);
   };
 
-  const sidebarW = isSidebarOpen ? 256 : 0;
-  const cornerR = isSidebarOpen ? 24 : 0.01;
+  // On phones the sidebar is an overlay drawer, so the glass frame never reserves room for it,
+  // and the top bar is shorter (64px instead of 80px).
+  const sidebarInFlow = isSidebarOpen && !isCompact;
+  const sidebarW = sidebarInFlow ? 256 : 0;
+  const cornerR = sidebarInFlow ? 24 : 0.01;
+  const headerH = isMobile ? 64 : 80;
+
+  const navigate = (view: string) => {
+    setCurrentView(view);
+    if (isCompact) setIsSidebarOpen(false);
+  };
 
   return (
     <DownloadsProvider>
       <ToastContainer />
-    <div className="w-full h-screen bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative">
+    <div className="w-full h-screen h-[100dvh] bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative [-webkit-tap-highlight-color:transparent]">
       {/* Unified Global Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-[#050505] to-blue-900/20 pointer-events-none z-0"></div>
       <div className={`absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#a855f7]/15 to-transparent pointer-events-none z-0 transition-opacity duration-700 ${['album', 'downloads', 'library', 'artist'].includes(currentView) ? 'opacity-0' : 'opacity-100'}`}></div>
@@ -464,8 +482,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         <div 
           className="absolute inset-0 bg-black/30 backdrop-blur-xl transition-all duration-300"
           style={{
-            clipPath: `path('M 0 0 L 4000 0 L 4000 80 L ${sidebarW + cornerR} 80 A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${80 + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`,
-            WebkitClipPath: `path('M 0 0 L 4000 0 L 4000 80 L ${sidebarW + cornerR} 80 A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${80 + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`
+            clipPath: `path('M 0 0 L 4000 0 L 4000 ${headerH} L ${sidebarW + cornerR} ${headerH} A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${headerH + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`,
+            WebkitClipPath: `path('M 0 0 L 4000 0 L 4000 ${headerH} L ${sidebarW + cornerR} ${headerH} A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${headerH + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`
           }}
         ></div>
 
@@ -474,19 +492,19 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         {/* Vertical Line */}
         <div 
           className="absolute bottom-0 w-[1px] bg-white/10 transition-all duration-300" 
-          style={{ left: `${sidebarW}px`, top: `${80 + cornerR}px`, opacity: isSidebarOpen ? 1 : 0 }}
+          style={{ left: `${sidebarW}px`, top: `${headerH + cornerR}px`, opacity: sidebarInFlow ? 1 : 0 }}
         ></div>
         
         {/* Horizontal Line */}
         <div 
-          className="absolute top-[80px] right-0 h-[1px] bg-white/10 transition-all duration-300" 
-          style={{ left: `${sidebarW + cornerR}px` }}
+          className="absolute right-0 h-[1px] bg-white/10 transition-all duration-300" 
+          style={{ top: `${headerH}px`, left: `${sidebarW + cornerR}px` }}
         ></div>
         
         {/* Curved Corner SVG */}
         <div 
-          className="absolute top-[80px] transition-all duration-300" 
-          style={{ left: `${sidebarW}px`, width: `${cornerR}px`, height: `${cornerR}px`, opacity: isSidebarOpen ? 1 : 0 }}
+          className="absolute transition-all duration-300" 
+          style={{ top: `${headerH}px`, left: `${sidebarW}px`, width: `${cornerR}px`, height: `${cornerR}px`, opacity: sidebarInFlow ? 1 : 0 }}
         >
           <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" preserveAspectRatio="none">
              {/* Use sweep-flag 1 (clockwise) to curve INWARD (concave glass) so it perfectly hugs the Main Content */}
@@ -497,7 +515,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       <div className="absolute top-0 left-0 right-0 z-50">
         <TopNav 
           currentView={currentView} 
-          onViewChange={setCurrentView} 
+          onViewChange={navigate} 
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           isSidebarOpen={isSidebarOpen}
         />
@@ -506,10 +524,24 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       {/* Main Container - Sidebar Flush, Body Floating */}
       <div className="w-full h-full flex overflow-hidden relative">
         
-        {/* Sidebar Flush Left with toggle transition */}
-        <div className={`h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
-          <div className="w-64 h-full">
-            <Sidebar currentView={currentView} onViewChange={setCurrentView} isShortcutsOpen={isShortcutsOpen} onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)} onToggleConfig={() => setIsConfigOpen(!isConfigOpen)} />
+        {/* Phones and tablets: dimmed backdrop behind the drawer; tapping it closes the drawer */}
+        {isCompact && (
+          <div
+            onClick={() => setIsSidebarOpen(false)}
+            aria-hidden="true"
+            className={`fixed inset-0 z-[55] bg-black/60 transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          />
+        )}
+
+        {/* Sidebar: flush left and pushing content on desktop; an overlay drawer on phones and tablets */}
+        <div
+          className={isCompact
+            ? `fixed inset-y-0 left-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/95 backdrop-blur-xl border-r border-white/10 shadow-[20px_0_60px_rgba(0,0,0,0.6)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
+            : `h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}
+          aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
+        >
+          <div className={isCompact ? 'w-full h-full overflow-y-auto overscroll-contain' : 'w-64 h-full'}>
+            <Sidebar currentView={currentView} onViewChange={navigate} isShortcutsOpen={isShortcutsOpen} onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)} onToggleConfig={() => { setIsConfigOpen(!isConfigOpen); if (isCompact) setIsSidebarOpen(false); }} isMobile={isCompact} />
           </div>
         </div>
 
@@ -521,8 +553,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
               
               
-              <main id="main-scroll-container" className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-                <div className="pt-20 pb-0 min-h-full flex flex-col">
+              <main id="main-scroll-container" className="flex-1 overflow-y-auto overscroll-y-contain relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+                <div className="pt-16 md:pt-20 pb-6 md:pb-0 min-h-full flex flex-col">
                   {currentView === 'catalog' && (
                     <CatalogView 
                       albums={albums} 
@@ -561,13 +593,13 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
               {/* Fade-out gradients applied to the scrollable area bounds */}
               {/* Bottom gradient */}
-              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-8 md:h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
               {/* Right side gradient */}
-              <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+              <div className="hidden md:block absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
               </div>
 
               {/* Right Lyrics Sidebar */}
-              <div className={`h-full pt-20 shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
+              <div className={`hidden md:block h-full pt-20 shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
                 <div className="w-80 h-full">
                   <LyricsSidebar track={nowPlayingTrack} album={nowPlayingAlbum} progress={progress} />
                 </div>
@@ -590,7 +622,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   volume={volume}
                   onExpand={() => setIsPlayerExpanded(true)}
                   isLyricsOpen={isLyricsOpen}
-                  onToggleLyrics={() => setIsLyricsOpen(!isLyricsOpen)}
+                  onToggleLyrics={() => { if (isMobile) { setIsLyricsOpen(true); setIsPlayerExpanded(true); } else setIsLyricsOpen(!isLyricsOpen); }}
                   onNext={handleNextTrack}
                   onPrev={handlePrevTrack}
                   onSeek={(p) => {
@@ -611,6 +643,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                 />
               </div>
             )}
+
+            <MobileTabBar currentView={currentView} onViewChange={navigate} />
         </div>
       </div>
 
@@ -651,7 +685,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.25 } }}
             exit={{ opacity: 0, transition: { duration: 0.1 } }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-8"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 md:p-8"
           >
             <div className="absolute inset-0 cursor-pointer" onClick={() => setIsConfigOpen(false)} />
             
@@ -659,21 +693,22 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 450, damping: 30 } }}
               exit={{ opacity: 0, scale: 0.95, y: 15, transition: { duration: 0.1, ease: "easeOut" } }}
-              className="w-full max-w-5xl h-[85vh] bg-[#050505] border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative z-10 flex flex-col overflow-hidden"
+              className="w-full max-w-5xl h-[80dvh] md:h-[85vh] bg-[#050505] border border-white/10 rounded-[1.5rem] md:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative z-10 flex flex-col overflow-hidden"
             >
               {/* Config Header */}
-              <div className="p-8 pb-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.02]">
-                <h2 className="text-3xl font-bold text-white tracking-wide">Configuración</h2>
+              <div className="p-5 md:p-8 pb-4 md:pb-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.02]">
+                <h2 className="text-2xl md:text-3xl font-bold text-white tracking-wide">Configuración</h2>
                 <button 
                   onClick={() => setIsConfigOpen(false)} 
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                  aria-label="Cerrar configuración"
+                  className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
               </div>
               
               {/* Config Body */}
-              <div className="flex-1 overflow-y-auto p-12 flex items-center justify-center">
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 flex items-center justify-center">
                 <div className="text-center flex flex-col items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white/20 mb-2">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>

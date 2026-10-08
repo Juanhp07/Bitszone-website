@@ -62,32 +62,31 @@ export const ArtistView = ({
 
       {/* Sticky Header */}
       <div 
-        className="sticky top-20 z-50 flex items-center h-[80px] px-8 transition-all duration-300 w-full" 
+        className="sticky top-16 md:top-20 z-50 flex items-center h-16 md:h-[80px] -mb-16 md:-mb-20 px-4 md:px-8 transition-all duration-300 w-full"  
         style={{ 
           background: scrollY > 10 ? 'linear-gradient(90deg, rgba(45, 10, 70, 0.6) 0%, rgba(15, 15, 20, 0.95) 100%)' : 'transparent', 
           backdropFilter: scrollY > 10 ? 'blur(20px)' : 'none', 
-          borderBottom: scrollY > 10 ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent', 
-          marginBottom: '-80px' 
+          borderBottom: scrollY > 10 ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent'
         }}
       >
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-colors border border-white/10 shadow-lg shrink-0 group"
+          className="flex items-center gap-2 h-10 md:h-auto md:py-2 px-4 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-colors border border-white/10 shadow-lg shrink-0 group"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="font-bold tracking-wide uppercase text-[11px] mt-0.5">Volver</span>
         </button>
         
         <div 
-          className="flex-1 flex items-center gap-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ml-6" 
+          className="flex-1 min-w-0 flex items-center gap-3 md:gap-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ml-3 md:ml-6"  
           style={{ 
             opacity: scrollY > 200 ? 1 : 0, 
             transform: `translateY(${scrollY > 200 ? '0' : '15px'})`, 
             pointerEvents: scrollY > 200 ? 'auto' : 'none' 
           }}
         >
-           <img src={artist.img} className="w-10 h-10 rounded-full shadow-md object-cover" alt={artist.name} />
-           <div className="flex flex-col">
+           <img src={artist.img} className="w-10 h-10 rounded-full shadow-md object-cover shrink-0" alt="" />
+           <div className="flex flex-col min-w-0">
              <span className="text-white font-bold text-sm leading-tight line-clamp-1">{artist.name}</span>
              <span className="text-white/60 text-xs font-medium leading-tight">{artist.type || "Artista"}</span>
            </div>
@@ -95,36 +94,36 @@ export const ArtistView = ({
       </div>
 
       {/* Hero Section */}
-      <div className="px-8 pt-8 pb-6 flex items-end gap-6 relative z-10">
+      <div className="px-4 md:px-8 pt-2 md:pt-8 pb-4 md:pb-6 flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 relative z-10">
         
 
-        <div className="w-52 h-52 shrink-0 rounded-full shadow-2xl overflow-hidden mt-12 relative border-4 border-[#05050A]">
+        <div className="w-[min(48vw,190px)] h-[min(48vw,190px)] md:w-52 md:h-52 shrink-0 rounded-full shadow-2xl overflow-hidden mt-16 md:mt-12 relative border-4 border-[#05050A]">
           <img src={artist.img} alt={artist.name} className="w-full h-full object-cover" />
         </div>
         
-        <div className="flex flex-col gap-2 pb-2">
-          <span className="text-white/70 text-sm font-semibold tracking-widest uppercase">Artista</span>
-          <h1 className="text-6xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{artist.name}</h1>
-          <div className="flex items-center gap-2 mt-2 text-white/80 font-medium">
+        <div className="flex flex-col items-center md:items-start text-center md:text-left gap-1.5 md:gap-2 pb-0 md:pb-2 min-w-0 md:min-w-[auto] w-full md:w-auto">
+          <span className="text-white/70 text-xs md:text-sm font-semibold tracking-widest uppercase">Artista</span>
+          <h1 className="text-[28px] leading-tight md:text-5xl lg:text-6xl md:leading-none font-black text-white tracking-tight break-words line-clamp-3 md:line-clamp-none" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{artist.name}</h1>
+          <div className="flex items-center gap-2 mt-1 md:mt-2 text-sm md:text-base text-white/80 font-medium">
             <span>{artistAlbums.length} {artistAlbums.length === 1 ? "álbum" : "álbumes"}</span>
           </div>
         </div>
       </div>
 
-      <div className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-32">
-        <h2 className="text-2xl font-bold text-white mb-6">Discografía</h2>
+      <div className="px-4 md:px-8 relative z-10 flex-1 pt-4 md:pt-6 pb-10 md:pb-32">
+        <h2 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">Discografía</h2>
         
         {artistAlbums.length === 0 ? (
           <p className="text-white/50">No hay álbumes disponibles para este artista en la base de datos.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-6">
             {artistAlbums.map((album, i) => (
               <div 
                 key={i} 
                 onClick={() => onSelectAlbum(album)}
-                className="group cursor-pointer bg-white/5 hover:bg-white/10 p-4 rounded-xl transition-colors border border-white/5 hover:border-white/10"
+                className="group cursor-pointer bg-white/5 hover:bg-white/10 p-2.5 md:p-4 rounded-xl transition-colors border border-white/5 hover:border-white/10 min-w-0"
               >
-                <div className={`relative aspect-square mb-4 rounded-lg overflow-hidden shadow-lg transition-all duration-500 `}>
+                <div className={`relative aspect-square mb-3 md:mb-4 rounded-lg overflow-hidden shadow-lg transition-all duration-500 `}>
                   <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   {downloadingAlbums?.includes(String(album.id)) && (
                     <button 
@@ -144,7 +143,7 @@ export const ArtistView = ({
                   {album.tracks && album.tracks.length > 0 && (
                   <button 
                     onClick={(e) => handleDownloadAlbumClick(e, album)}
-                    className="absolute bottom-2 right-2 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 z-10"
+                    className="absolute bottom-2 right-2 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 [@media(hover:none)]:opacity-100 group-hover:opacity-100 z-10"
                     disabled={album.tracks.every(t => isDownloaded(t.id)) || downloadingAlbums?.includes(String(album.id))}
                   >
                     {downloadingAlbums?.includes(String(album.id)) ? (

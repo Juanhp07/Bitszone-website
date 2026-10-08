@@ -16,18 +16,28 @@ const DropdownItem = ({ id, title, icon: Icon, hoverBg, activeTab, onSelect }: a
   );
 };
 
+// Letters are grouped per word so a long title can wrap between words on narrow screens
+// (each letter is its own rolling column, which would otherwise never wrap).
 const StaggeredRollingText = ({ text }: { text: string }) => {
+  let i = 0;
   return (
-    <div className="flex items-center">
-      {text.split('').map((char, i) => (
-        <div key={i} className="relative h-[1.1em] overflow-hidden">
-          <div 
-            className="flex flex-col animate-char-roll"
-            style={{ animationDelay: `${i * 0.03}s` }}
-          >
-            <span className="h-[1.1em] leading-none flex items-center whitespace-pre">{char === ' ' ? '\u00A0' : char}</span>
-            <span className="h-[1.1em] leading-none flex items-center whitespace-pre">{char === ' ' ? '\u00A0' : char}</span>
-          </div>
+    <div className="flex flex-wrap items-center gap-x-[0.25em] gap-y-1">
+      {text.split(' ').map((word, w) => (
+        <div key={w} className="flex items-center">
+          {word.split('').map((char) => {
+            const delay = (i++) * 0.03;
+            return (
+              <div key={`${w}-${delay}`} className="relative h-[1.1em] overflow-hidden">
+                <div
+                  className="flex flex-col animate-char-roll"
+                  style={{ animationDelay: `${delay}s` }}
+                >
+                  <span className="h-[1.1em] leading-none flex items-center whitespace-pre">{char}</span>
+                  <span className="h-[1.1em] leading-none flex items-center whitespace-pre">{char}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ))}
     </div>
@@ -87,15 +97,16 @@ const LibraryDropdown = ({ activeTab, setActiveTab }: { activeTab: string, setAc
       
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none"
+        aria-haspopup="menu" aria-expanded={isOpen}
+        className="flex items-center gap-2 md:gap-3 min-w-0 text-left hover:opacity-80 transition-opacity focus:outline-none"
       >
         <StaggeredRollingText text={titles[activeTab]} />
-        <ChevronDown className={`w-10 h-10 text-white/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} strokeWidth={3} />
+        <ChevronDown className={`w-6 h-6 md:w-10 md:h-10 shrink-0 text-white/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} strokeWidth={3} />
       </button>
       
       {isOpen && (
         <div 
-        className={`absolute top-full mt-4 right-0 w-[280px] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans ${getModalStyles()}`}
+        className={`absolute top-full mt-3 md:mt-4 left-0 md:left-auto md:right-0 w-[min(280px,calc(100vw-32px))] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans ${getModalStyles()}`}
         style={{ WebkitTextStroke: '0', fontWeight: 'normal' }}
       >
           <DropdownItem 

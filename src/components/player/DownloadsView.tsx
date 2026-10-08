@@ -233,7 +233,7 @@ export const DownloadsView = ({
         onMouseEnter={() => setHoveredTrack(track.id)}
         onMouseLeave={() => setHoveredTrack(null)}
         onClick={() => handlePlay(track)}
-        className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 items-center rounded-xl cursor-pointer group hover:bg-white/5 transition-colors`}
+        className={`grid grid-cols-[28px_minmax(0,1fr)_44px] ${type === 'downloads' ? 'lg:grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'lg:grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'lg:grid-cols-[50px_1fr_130px_80px_100px]'} gap-2 lg:gap-4 px-1 lg:px-4 py-2 items-center rounded-xl cursor-pointer group hover:bg-white/5 transition-colors`}
       >
         <div className="text-center text-white/50 font-medium">
           {isHovered ? (
@@ -243,38 +243,39 @@ export const DownloadsView = ({
           )}
         </div>
         
-        <div className="flex flex-col pr-4">
-          <span className="font-medium line-clamp-1 text-white text-sm flex items-center gap-1.5">
+        <div className="flex flex-col min-w-0 pr-1 lg:pr-4">
+          <span className="font-medium line-clamp-1 text-white text-[15px] lg:text-sm flex items-center gap-1.5">
             {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
             <span className="truncate">{track.title}</span>
           </span>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-white/50 text-sm line-clamp-1 group-hover:text-white/80 transition-colors">{track.artist}</span>
+            <span className="text-white/50 text-[13px] lg:text-sm line-clamp-1 group-hover:text-white/80 transition-colors">{track.artist}</span>
+            {type === 'licenses' && <span className="lg:hidden shrink-0 text-yellow-500/80 text-[11px] font-bold tracking-wide">· {getDaysLeft(track.addedAt)}</span>}
           </div>
         </div>
         
-        <div className="text-white/50 text-xs font-medium truncate flex items-center justify-center">
+        <div className="hidden lg:flex text-white/50 text-xs font-medium truncate items-center justify-center">
           <TimeAgo dateStr={track.addedAt} />
         </div>
         
         {type === 'downloads' && (
-          <div className="text-white/50 text-xs font-medium flex items-center justify-center">
+          <div className="hidden lg:flex text-white/50 text-xs font-medium items-center justify-center">
             {formatSize(track.sizeMb, track.duration)}
           </div>
         )}
         
         {type === 'licenses' && (
           <>
-            <div className="text-yellow-500/80 text-[11px] font-bold tracking-widest flex items-center justify-center">
+            <div className="hidden lg:flex text-yellow-500/80 text-[11px] font-bold tracking-widest items-center justify-center">
               {getDaysLeft(track.addedAt)}
             </div>
-            <div className="text-white/50 text-xs font-medium flex items-center justify-center">
+            <div className="hidden lg:flex text-white/50 text-xs font-medium items-center justify-center">
               {getExpirationDate(track.addedAt)}
             </div>
           </>
         )}
         
-        <div className="text-center text-white/50 text-sm flex items-center justify-center">
+        <div className="hidden lg:flex text-center text-white/50 text-sm items-center justify-center">
           {formatDuration(track.duration)}
         </div>
 
@@ -289,7 +290,7 @@ export const DownloadsView = ({
               color="rgba(255,255,255,0.3)"
               fuseColor="#ef4444"
               undoWindow={2000}
-              className="transition-all duration-300 !w-8 !h-8 !min-w-[32px] !px-0 rounded-full border border-transparent hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
+              className="transition-all duration-300 !w-10 !h-10 !min-w-[40px] lg:!w-8 lg:!h-8 lg:!min-w-[32px] !px-0 rounded-full border border-transparent hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
               icon={<Trash2 className="w-4 h-4" />}
               onCommit={() => removeDownload(track.id)}
             />
@@ -299,7 +300,8 @@ export const DownloadsView = ({
                 e.stopPropagation();
                 setTrackToRemove(track);
               }}
-              className="group/favbtn text-yellow-500 hover:text-yellow-400 opacity-100 transition-all p-2"
+              aria-label="Quitar licencia"
+              className="group/favbtn w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-yellow-500 hover:text-yellow-400 opacity-100 transition-all lg:p-2"
               title="Quitar licencia"
             >
               <Star className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
@@ -311,7 +313,8 @@ export const DownloadsView = ({
                 e.stopPropagation();
                 toggleFavorite(track);
               }}
-              className="group/favbtn text-[#a855f7] hover:text-[#b066f8] opacity-100 transition-all p-2"
+              aria-label="Quitar de favoritos"
+              className="group/favbtn w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-[#a855f7] hover:text-[#b066f8] opacity-100 transition-all lg:p-2"
               title="Quitar de favoritos"
             >
               <Heart className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
@@ -451,16 +454,16 @@ export const DownloadsView = ({
         }
       `}</style>
       {/* Hero Section */}
-      <div className="px-8 pt-8 pb-6 flex items-center justify-between relative z-40 border-b border-white/5">
-        <div className="flex items-center gap-6">
-          <div className={`w-40 h-40 shrink-0 rounded-2xl flex items-center justify-center ${type === 'licenses' ? 'bg-yellow-500' : type === 'playlists' ? 'bg-green-500' : type === 'downloads' ? 'bg-blue-500' : 'bg-[#a855f7]'}`}>
-            <Icon className={`w-16 h-16 text-white custom-icon-${type}`} />
+      <div className="px-4 md:px-8 pt-4 md:pt-8 pb-4 md:pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-40 border-b border-white/5">
+        <div className="flex items-center gap-4 md:gap-6 min-w-0 w-full md:w-auto">
+          <div className={`w-20 h-20 md:w-40 md:h-40 shrink-0 rounded-2xl flex items-center justify-center ${type === 'licenses' ? 'bg-yellow-500' : type === 'playlists' ? 'bg-green-500' : type === 'downloads' ? 'bg-blue-500' : 'bg-[#a855f7]'}`}>
+            <Icon className={`w-9 h-9 md:w-16 md:h-16 text-white custom-icon-${type}`} />
           </div>
           
-          <div className="flex flex-col gap-2">
-            {type === 'downloads' ? <span className="text-white/70 text-sm font-semibold tracking-widest uppercase mt-2">Mis descargas</span> : <span className="text-white/70 text-sm font-semibold tracking-widest uppercase mt-2">Biblioteca</span>}
-            <div className="text-5xl font-black text-white tracking-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)', WebkitTextStroke: '1px currentColor' }}>{title}</div>
-            <div className="flex items-center gap-2 mt-2 text-white/80 font-medium text-sm">
+          <div className="flex flex-col gap-1 md:gap-2 min-w-0">
+            {type === 'downloads' ? <span className="text-white/70 text-[11px] md:text-sm font-semibold tracking-widest uppercase md:mt-2">Mis descargas</span> : <span className="text-white/70 text-[11px] md:text-sm font-semibold tracking-widest uppercase md:mt-2">Biblioteca</span>}
+            <div className="text-[24px] leading-tight md:text-4xl lg:text-5xl md:leading-none font-black text-white tracking-tight md:[-webkit-text-stroke:1px_currentColor]" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{title}</div>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 md:mt-2 text-white/80 font-medium text-xs md:text-sm">
               <span>{tracks.length} {tracks.length === 1 ? 'canción' : 'canciones'}</span>
               <span className="text-white/30">•</span>
               <span>{Object.keys(groupedTracks).length} {Object.keys(groupedTracks).length === 1 ? 'álbum' : 'álbumes'}</span>
@@ -511,11 +514,11 @@ export const DownloadsView = ({
       </div>
 
       {/* Action Bar (Search & Tabs) */}
-      <div className="px-8 py-4 flex items-center justify-between sticky top-0 bg-transparent backdrop-blur-md z-30 border-b border-white/5">
+      <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 sticky top-16 md:top-0 bg-[#07050c]/80 md:bg-transparent backdrop-blur-md z-30 border-b border-white/5">
         <div className="relative flex bg-white/5 rounded-full p-1 border border-white/10">
           {/* Animated Background Pill */}
           <div 
-            className={`absolute top-1 bottom-1 w-[110px] rounded-full transition-transform duration-300 ease-out border shadow-md ${
+            className={`absolute top-1 bottom-1 w-[96px] md:w-[110px] rounded-full transition-transform duration-300 ease-out border shadow-md ${
               viewMode === 'canciones' ? 'translate-x-0' : 'translate-x-full'
             } ${
               type === 'licenses' ? 'bg-yellow-500/20 border-yellow-500/30' : 
@@ -527,7 +530,7 @@ export const DownloadsView = ({
           
           <button 
             onClick={() => { setViewMode('canciones'); setSelectedAlbumId(null); }} 
-            className={`relative z-10 w-[110px] py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 ${
+            className={`relative z-10 w-[96px] md:w-[110px] py-2 md:py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 ${
               viewMode === 'canciones' ? (
                 type === 'licenses' ? 'text-yellow-400' : 
                 type === 'playlists' ? 'text-green-400' : 
@@ -540,7 +543,7 @@ export const DownloadsView = ({
           </button>
           <button 
             onClick={() => { setViewMode('albumes'); setSelectedAlbumId(null); }} 
-            className={`relative z-10 w-[110px] py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 ${
+            className={`relative z-10 w-[96px] md:w-[110px] py-2 md:py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 ${
               viewMode === 'albumes' ? (
                 type === 'licenses' ? 'text-yellow-400' : 
                 type === 'playlists' ? 'text-green-400' : 
@@ -557,12 +560,13 @@ export const DownloadsView = ({
           <button 
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
-              setSortPos({ top: rect.bottom, left: rect.right - 280 });
+              setSortPos({ top: rect.bottom, left: Math.max(8, rect.right - 280) });
               setShowSort(!showSort);
             }} 
-            className="flex items-center gap-1.5 text-white/50 hover:text-white transition-colors text-sm font-medium group relative z-50"
+            aria-label="Ordenar"
+            className="flex items-center gap-1.5 min-h-[44px] md:min-h-0 whitespace-nowrap text-white/50 hover:text-white transition-colors text-sm font-medium group relative z-50"
           >
-            <span className="text-white/30 mr-1">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : 'Menos pesados'}
+            <span className="hidden sm:inline text-white/30 mr-1">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : 'Menos pesados'}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-y-px"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           {showSort && typeof document !== 'undefined' && createPortal(
@@ -570,7 +574,7 @@ export const DownloadsView = ({
             <div className="fixed inset-0 z-[9998]" onClick={() => setShowSort(false)} />
             <div 
               style={{ top: sortPos.top, left: sortPos.left }}
-              className={`fixed mt-4 w-[280px] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : type === 'downloads' ? 'border-blue-500/20' : 'border-[#a855f7]/20'}`}>
+              className={`fixed mt-4 w-[min(280px,calc(100vw-16px))] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-[#140d1f]/95 md:bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : type === 'downloads' ? 'border-blue-500/20' : 'border-[#a855f7]/20'}`}>
               {[
                 { id: 'default', label: 'Por defecto' },
                 { id: 'recent', label: 'Añadidos recientemente' },
@@ -592,7 +596,7 @@ export const DownloadsView = ({
           )}
         </div>
         
-        <div className="relative max-w-sm w-full ml-4">
+        <div className="relative w-full md:max-w-sm md:ml-4">
           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
           <input 
             type="text"
@@ -610,12 +614,12 @@ export const DownloadsView = ({
               setShowSuggestions(true);
             }}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            className="w-full bg-white/5 border border-white/10 rounded-full pl-11 pr-4 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-colors"
+            className="w-full bg-white/5 border border-white/10 rounded-full pl-11 pr-4 py-2.5 md:py-2 text-base md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-colors"
           />
           {showSuggestions && suggestions.length > 0 && typeof document !== 'undefined' && createPortal(
             <div 
               style={{ top: searchPos.top, left: searchPos.left, width: searchPos.width }}
-              className={`fixed mt-4 border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : type === 'downloads' ? 'border-blue-500/20' : 'border-[#a855f7]/20'}`}>
+              className={`fixed mt-4 border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-[#140d1f]/95 md:bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : type === 'downloads' ? 'border-blue-500/20' : 'border-[#a855f7]/20'}`}>
               {suggestions.map((sug, idx) => (
                 <button 
                   key={idx}
@@ -634,34 +638,34 @@ export const DownloadsView = ({
         </div>
       </div>
 
-      <div className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-8">
+      <div className="px-3 md:px-8 relative z-10 flex-1 pt-4 md:pt-6 pb-8">
         {filteredTracks.length === 0 && searchQuery !== '' ? (
            <div className="text-center pt-10 text-white/50">
              No se encontraron resultados para "{searchQuery}"
            </div>
         ) : selectedAlbumId && groupedTracks[selectedAlbumId] ? (
-          <div className="px-8 max-w-[1200px] mx-auto w-full pb-12 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="px-1 md:px-8 max-w-[1200px] mx-auto w-full pb-12 animate-in fade-in slide-in-from-right-4 duration-300">
             <button 
               onClick={() => setSelectedAlbumId(null)}
-              className="flex items-center gap-2 text-white/50 hover:text-white font-medium text-sm mb-6 transition-colors"
+              className="flex items-center gap-2 min-h-[44px] md:min-h-0 text-white/50 hover:text-white font-medium text-sm mb-3 md:mb-6 transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
               Volver a álbumes
             </button>
-            <div className="flex items-center gap-6 mb-8">
-              <div className="w-32 h-32 rounded-xl bg-white/5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xl">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6 mb-6 md:mb-8">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl bg-white/5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xl">
                 {groupedTracks[selectedAlbumId].coverUrl ? (
                   <img src={groupedTracks[selectedAlbumId].coverUrl} alt={groupedTracks[selectedAlbumId].title} className="w-full h-full object-cover" />
                 ) : (
                   <Icon className="w-12 h-12 text-white/20" />
                 )}
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1.5 md:gap-2 min-w-0">
                 <span className="text-white/70 text-xs font-bold tracking-widest uppercase">Álbum</span>
-                <h2 className="text-4xl font-bold text-white tracking-tight">{groupedTracks[selectedAlbumId].title}</h2>
-                <p className="text-white/50 text-base">{groupedTracks[selectedAlbumId].tracks[0]?.artist || 'Artista'} • {groupedTracks[selectedAlbumId].tracks.length} {groupedTracks[selectedAlbumId].tracks.length === 1 ? 'canción' : 'canciones'}</p>
-                <div className="flex items-center gap-3 mt-2">
-                  <button onClick={() => onPlayTrack && onPlayTrack(groupedTracks[selectedAlbumId].tracks[0], groupedTracks[selectedAlbumId] as any)} className="px-6 py-2 rounded-full bg-white hover:bg-white/90 text-black font-bold flex items-center gap-2 transition-transform hover:scale-105">
+                <h2 className="text-2xl md:text-4xl font-bold text-white tracking-tight break-words">{groupedTracks[selectedAlbumId].title}</h2>
+                <p className="text-white/50 text-sm md:text-base">{groupedTracks[selectedAlbumId].tracks[0]?.artist || 'Artista'} • {groupedTracks[selectedAlbumId].tracks.length} {groupedTracks[selectedAlbumId].tracks.length === 1 ? 'canción' : 'canciones'}</p>
+                <div className="flex flex-wrap items-center gap-3 mt-2">
+                  <button onClick={() => onPlayTrack && onPlayTrack(groupedTracks[selectedAlbumId].tracks[0], groupedTracks[selectedAlbumId] as any)} className="h-11 md:h-auto px-6 md:py-2 rounded-full bg-white hover:bg-white/90 text-black font-bold flex items-center gap-2 transition-transform hover:scale-105">
                     <Play className="w-4 h-4" fill="currentColor" />
                     Reproducir
                   </button>
@@ -692,7 +696,7 @@ export const DownloadsView = ({
               </div>
             </div>
             
-            <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-2`}>
+            <div className={`hidden lg:grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-2`}>
               <div className="text-center">#</div>
               <div>TÍTULO</div>
               <div className="text-center">AÑADIDO</div>
@@ -708,21 +712,21 @@ export const DownloadsView = ({
             </div>
           </div>
         ) : viewMode === 'canciones' ? (
-          <div className="flex flex-col gap-10">
+          <div className="flex flex-col gap-8 md:gap-10">
             {sortedGroups.map((group: any) => (
               <div key={group.id} className="flex flex-col">
-                <div className="flex items-center justify-between gap-4 mb-4 px-4">
-                  <div className="flex items-center gap-4 cursor-pointer group/title" onClick={() => setSelectedAlbumId(group.id)}>
-                    <div className="w-16 h-16 rounded-md bg-white/5 flex items-center justify-center shrink-0 overflow-hidden shadow-lg transition-transform group-hover/title:scale-105">
+                <div className="flex items-center justify-between gap-3 md:gap-4 mb-3 md:mb-4 px-1 md:px-4">
+                  <div className="flex items-center gap-3 md:gap-4 min-w-0 cursor-pointer group/title" onClick={() => setSelectedAlbumId(group.id)}>
+                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-md bg-white/5 flex items-center justify-center shrink-0 overflow-hidden shadow-lg transition-transform group-hover/title:scale-105">
                       {group.coverUrl ? (
                         <img src={group.coverUrl} alt={group.title} className="w-full h-full object-cover" />
                       ) : (
                         <Icon className="w-8 h-8 text-white/20" />
                       )}
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-white tracking-tight group-hover/title:underline">{group.title}</h2>
-                      <p className="text-white/50 text-sm mt-0.5">{group.tracks[0]?.artist || 'Varios Artistas'}</p>
+                    <div className="min-w-0">
+                      <h2 className="text-base md:text-xl font-bold text-white tracking-tight group-hover/title:underline truncate">{group.title}</h2>
+                      <p className="text-white/50 text-[13px] md:text-sm mt-0.5 truncate">{group.tracks[0]?.artist || 'Varios Artistas'}</p>
                       {downloadingAlbums?.includes(String(group.id)) && (
                         <button 
                           onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: group.id, title: group.title }); }}
@@ -737,8 +741,8 @@ export const DownloadsView = ({
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className={`w-10 h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : type === 'downloads' ? 'hover:bg-blue-500 hover:border-blue-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}>
+                  <div className="flex items-center gap-1 md:gap-2 shrink-0">
+                    <button aria-label="Reproducir" onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className={`w-11 h-11 md:w-10 md:h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : type === 'downloads' ? 'hover:bg-blue-500 hover:border-blue-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}>
                       <Play className="w-5 h-5 ml-1" fill="currentColor" />
                     </button>
                     <FuseButton fuse="outline" commitOn="fuseEnd" radius={20} 
@@ -766,7 +770,7 @@ export const DownloadsView = ({
                   </div>
                 </div>
                 
-                <div className={`grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
+                <div className={`hidden lg:grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
                   <div className="text-center">#</div>
                   <div>TÍTULO</div>
                   <div className="text-center">AÑADIDO</div>
@@ -784,7 +788,7 @@ export const DownloadsView = ({
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 pb-12">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-6 pb-12">
             {sortedGroups.map((album: any) => {
               const downloadedCount = album.tracks?.filter((t: any) => isDownloaded(t.id)).length || 0;
               const realAlbum = albums?.find(a => String(a.id) === String(album.id));
