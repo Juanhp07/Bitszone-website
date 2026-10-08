@@ -4,6 +4,30 @@ import { Star, Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, D
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 
+
+const useAverageColor = (src: string) => {
+  const [color, setColor] = useState('rgba(45, 10, 70, 0.8)');
+  useEffect(() => {
+    if (!src) return;
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        setColor(`rgba(${r}, ${g}, ${b}, 0.85)`);
+      }
+    };
+    img.onerror = () => setColor('rgba(45, 10, 70, 0.8)');
+    img.src = src;
+  }, [src]);
+  return color;
+};
+
 export const AlbumView = ({ 
   album, 
   loading,
@@ -56,6 +80,7 @@ export const AlbumView = ({
   const [openTrackMenu, setOpenTrackMenu] = useState<number | null>(null);
   const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0, isUpward: false });
   const { isLicensed, downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
+  const dominantColor = useAverageColor(album?.coverUrl || '');
   const isDownloadingAlbum = downloadingAlbums.includes(String(album?.id));
 
 useEffect(() => {
@@ -117,35 +142,99 @@ useEffect(() => {
 
       {/* Sticky Header */}
       <div 
-        className="sticky top-20 z-50 flex items-center h-[80px] px-8 transition-all duration-300 w-full" 
+        className={`sticky z-50 mx-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between ${scrollY > 200 ? 'top-6 shadow-2xl border border-white/10' : 'top-8 border-transparent shadow-none'}`}
         style={{ 
-          background: scrollY > 10 ? 'linear-gradient(90deg, rgba(45, 10, 70, 0.6) 0%, rgba(15, 15, 20, 0.95) 100%)' : 'transparent', 
-          backdropFilter: scrollY > 10 ? 'blur(20px)' : 'none', 
-          borderBottom: scrollY > 10 ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent', 
-          marginBottom: '-80px' 
+          width: scrollY > 200 ? 'calc(100% - 4rem)' : 'auto',
+          alignSelf: scrollY > 200 ? 'center' : 'flex-start',
+          marginLeft: scrollY > 200 ? 'auto' : '2rem',
+          marginRight: scrollY > 200 ? 'auto' : 'auto',
+          background: scrollY > 200 ? `linear-gradient(90deg, ${dominantColor} 0%, rgba(15, 15, 20, 0.95) 100%)` : 'transparent',
+          backdropFilter: scrollY > 200 ? 'blur(24px)' : 'none',
+          borderRadius: '9999px',
+          padding: scrollY > 200 ? '8px 16px 8px 8px' : '0px',
+          marginBottom: '-50px',
+          transform: 'translateY(0)'
         }}
       >
-        <button 
-          onClick={() => onViewChange('catalog')}
-          className="flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-colors border border-white/10 shadow-lg shrink-0 group"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="font-bold tracking-wide uppercase text-[11px] mt-0.5">Volver</span>
-        </button>
-        
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => onViewChange('catalog')}
+            className={`flex items-center justify-center bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-colors border border-white/10 shadow-lg shrink-0 group ${scrollY > 200 ? 'w-10 h-10' : 'gap-2 px-4 py-2'}`}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className={`font-bold tracking-wide uppercase text-[11px] mt-0.5 ${scrollY > 200 ? 'hidden' : 'block'}`}>Volver</span>
+          </button>
+          
+          <div 
+            className="flex items-center gap-3 transition-all duration-500 overflow-hidden" 
+            style={{ 
+              opacity: scrollY > 200 ? 1 : 0, 
+              maxWidth: scrollY > 200 ? '800px' : '0px',
+              pointerEvents: scrollY > 200 ? 'auto' : 'none' 
+            }}
+          >
+             <img src={album.coverUrl} className="w-10 h-10 rounded-full shadow-md object-cover" alt={album.title} />
+             <div className="flex items-center gap-2 whitespace-nowrap">
+               <span className="text-white font-bold text-sm">{album.title}</span>
+               <span className="text-white/50 text-sm">•</span>
+               <span className="text-white/90 text-sm font-medium">{album.artist}</span>
+               <span className="text-white/50 text-sm">—</span>
+               <span className="text-white/50 text-sm">{album.trackCount} {album.trackCount === 1 ? 'canción' : 'canciones'} • {album.totalDuration ? (Math.floor(album.totalDuration / 3600000) > 0 ? `${Math.floor(album.totalDuration / 3600000)} h ${Math.floor((album.totalDuration % 3600000) / 60000)} min` : `${Math.floor(album.totalDuration / 60000)} min ${Math.floor((album.totalDuration % 60000) / 1000)} s`) : ''} • {album.year}</span>
+             </div>
+          </div>
+        </div>
+
         <div 
-          className="flex-1 flex items-center gap-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ml-6" 
+          className="flex items-center gap-2 transition-all duration-500 overflow-hidden"
           style={{ 
-            opacity: scrollY > 200 ? 1 : 0, 
-            transform: `translateY(${scrollY > 200 ? '0' : '15px'})`, 
+            opacity: scrollY > 200 ? 1 : 0,
+            maxWidth: scrollY > 200 ? '400px' : '0px',
+            transform: `translateX(${scrollY > 200 ? '0' : '20px'})`,
             pointerEvents: scrollY > 200 ? 'auto' : 'none' 
           }}
         >
-           <img src={album.coverUrl} className="w-10 h-10 rounded-md shadow-md object-cover" alt={album.title} />
-           <div className="flex flex-col">
-             <span className="text-white font-bold text-sm leading-tight line-clamp-1">{album.title}</span>
-             <span className="text-white/60 text-xs font-medium leading-tight">{album.artist}</span>
-           </div>
+          <button 
+            className="w-10 h-10 bg-[#a855f7] hover:bg-[#b066f8] hover:scale-105 rounded-full flex items-center justify-center text-white transition-all shadow-lg"
+            onClick={() => {
+              if (nowPlayingTrackId && album.tracks?.find(t => t.id === nowPlayingTrackId)) {
+                togglePlay();
+              } else if (album.tracks && album.tracks.length > 0) {
+                onPlayTrack(album.tracks[0], album);
+              }
+            }}
+          >
+            {isPlaying && nowPlayingTrackId && album.tracks?.find(t => t.id === nowPlayingTrackId) ? (
+              <Pause className="w-4 h-4" fill="currentColor" />
+            ) : (
+              <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
+            )}
+          </button>
+          <button onClick={() => toggleFavoriteAlbum(album)} className={`w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/15 transition-colors ${isEntireAlbumFavorited ? 'text-[#a855f7]' : 'text-white/70 hover:text-white'}`}>
+            <Heart className="w-4 h-4" fill={isEntireAlbumFavorited ? "currentColor" : "none"} />
+          </button>
+          {(() => {
+            if (isDownloadingAlbum) {
+              return (
+                <button onClick={() => setShowCancelConfirm(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors text-blue-400">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                </button>
+              );
+            }
+            const downloadedCount = album.tracks?.filter(t => isDownloaded(t.id)).length || 0;
+            const totalCount = album.tracks?.length || 0;
+            if (downloadedCount > 0 && downloadedCount === totalCount) {
+              return (
+                <button onClick={() => setShowDeleteConfirm(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-[#a855f7]/15 text-[#c084fc] hover:bg-[#a855f7]/25 transition-colors">
+                  <CheckCircle className="w-4 h-4" />
+                </button>
+              );
+            }
+            return (
+              <button onClick={() => setShowDownloadConfirm(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/15 transition-colors text-white/70 hover:text-white">
+                <Download className="w-4 h-4" />
+              </button>
+            );
+          })()}
         </div>
       </div>
 
