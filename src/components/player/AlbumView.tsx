@@ -140,59 +140,58 @@ useEffect(() => {
     <div className="h-full flex flex-col relative">
       
 
-      {/* Sticky Header */}
+      {/* Static Volver Button (Unscrolled State) */}
       <div 
-        className={`sticky z-50 mx-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between ${scrollY > 200 ? 'top-24 shadow-2xl border border-white/10' : 'top-20 border-transparent shadow-none'}`}
+        className="absolute top-8 left-8 z-40 transition-opacity duration-300"
         style={{ 
-          width: scrollY > 200 ? 'calc(100% - 4rem)' : 'auto',
-          alignSelf: scrollY > 200 ? 'center' : 'flex-start',
-          marginLeft: scrollY > 200 ? 'auto' : '2rem',
-          marginRight: scrollY > 200 ? 'auto' : 'auto',
-          background: scrollY > 200 ? `linear-gradient(90deg, ${dominantColor} 0%, rgba(15, 15, 20, 0.95) 100%)` : 'transparent',
-          backdropFilter: scrollY > 200 ? 'blur(24px)' : 'none',
-          borderRadius: '9999px',
-          padding: scrollY > 200 ? '8px 16px 8px 8px' : '0px',
-          marginBottom: '-50px',
-          transform: 'translateY(0)'
+          opacity: scrollY > 150 ? 0 : 1, 
+          pointerEvents: scrollY > 150 ? 'none' : 'auto' 
         }}
       >
-        <div className="flex items-center gap-3">
+        <button 
+          onClick={() => onViewChange('catalog')}
+          className="flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-colors border border-white/10 shadow-lg group"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="font-bold tracking-wide uppercase text-[11px] mt-0.5">Volver</span>
+        </button>
+      </div>
+
+      {/* Floating Pill (Sticky/Scrolled State) */}
+      <div 
+        className="sticky top-24 z-50 mx-auto transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between shadow-2xl overflow-hidden"
+        style={{ 
+          width: 'calc(100% - 4rem)',
+          background: `linear-gradient(90deg, ${dominantColor} 0%, rgba(15, 15, 20, 0.95) 100%)`,
+          backdropFilter: 'blur(24px)',
+          borderRadius: '9999px',
+          padding: '8px 16px 8px 8px',
+          opacity: scrollY > 200 ? 1 : 0,
+          transform: scrollY > 200 ? 'translateY(0) scale(1)' : 'translateY(-20px) scale(0.95)',
+          pointerEvents: scrollY > 200 ? 'auto' : 'none',
+          marginBottom: '-64px'
+        }}
+      >
+        <div className="flex items-center gap-3 overflow-hidden">
           <button 
             onClick={() => onViewChange('catalog')}
-            className={`flex items-center justify-center bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-colors border border-white/10 shadow-lg shrink-0 group ${scrollY > 200 ? 'w-10 h-10' : 'gap-2 px-4 py-2'}`}
+            className="flex items-center justify-center bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white/90 hover:text-white transition-colors shadow-lg shrink-0 w-10 h-10"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className={`font-bold tracking-wide uppercase text-[11px] mt-0.5 ${scrollY > 200 ? 'hidden' : 'block'}`}>Volver</span>
+            <ArrowLeft className="w-5 h-5" />
           </button>
           
-          <div 
-            className="flex items-center gap-3 transition-all duration-500 overflow-hidden" 
-            style={{ 
-              opacity: scrollY > 200 ? 1 : 0, 
-              maxWidth: scrollY > 200 ? '800px' : '0px',
-              pointerEvents: scrollY > 200 ? 'auto' : 'none' 
-            }}
-          >
-             <img src={album.coverUrl} className="w-10 h-10 rounded-full shadow-md object-cover" alt={album.title} />
-             <div className="flex items-center gap-2 whitespace-nowrap">
-               <span className="text-white font-bold text-sm">{album.title}</span>
-               <span className="text-white/50 text-sm">•</span>
-               <span className="text-white/90 text-sm font-medium">{album.artist}</span>
-               <span className="text-white/50 text-sm">—</span>
-               <span className="text-white/50 text-sm">{album.trackCount} {album.trackCount === 1 ? 'canción' : 'canciones'} • {album.totalDuration ? (Math.floor(album.totalDuration / 3600000) > 0 ? `${Math.floor(album.totalDuration / 3600000)} h ${Math.floor((album.totalDuration % 3600000) / 60000)} min` : `${Math.floor(album.totalDuration / 60000)} min ${Math.floor((album.totalDuration % 60000) / 1000)} s`) : ''} • {album.year}</span>
-             </div>
+          <img src={album.coverUrl} className="w-10 h-10 rounded-full shadow-md object-cover shrink-0" alt={album.title} />
+          
+          <div className="flex items-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis">
+            <span className="text-white font-bold text-sm truncate">{album.title}</span>
+            <span className="text-white/50 text-sm shrink-0">•</span>
+            <span className="text-white/90 text-sm font-medium shrink-0">{album.artist}</span>
+            <span className="text-white/50 text-sm shrink-0">—</span>
+            <span className="text-white/50 text-sm shrink-0">{album.trackCount} {album.trackCount === 1 ? 'canción' : 'canciones'} • {album.totalDuration ? (Math.floor(album.totalDuration / 3600000) > 0 ? `${Math.floor(album.totalDuration / 3600000)} h ${Math.floor((album.totalDuration % 3600000) / 60000)} min` : `${Math.floor(album.totalDuration / 60000)} min ${Math.floor((album.totalDuration % 60000) / 1000)} s`) : ''} • {album.year}</span>
           </div>
         </div>
 
-        <div 
-          className="flex items-center gap-2 transition-all duration-500 overflow-hidden"
-          style={{ 
-            opacity: scrollY > 200 ? 1 : 0,
-            maxWidth: scrollY > 200 ? '400px' : '0px',
-            transform: `translateX(${scrollY > 200 ? '0' : '20px'})`,
-            pointerEvents: scrollY > 200 ? 'auto' : 'none' 
-          }}
-        >
+        <div className="flex items-center gap-2 shrink-0">
           <button 
             className="w-10 h-10 bg-[#a855f7] hover:bg-[#b066f8] hover:scale-105 rounded-full flex items-center justify-center text-white transition-all shadow-lg"
             onClick={() => {
