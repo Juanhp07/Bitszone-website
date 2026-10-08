@@ -142,7 +142,7 @@ useEffect(() => {
 
       {/* Sticky Header */}
       <div 
-        className={`sticky z-50 mx-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between ${scrollY > 200 ? 'top-6 shadow-2xl border border-white/10' : 'top-8 border-transparent shadow-none'}`}
+        className={`sticky z-50 mx-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between ${scrollY > 200 ? 'top-24 shadow-2xl border border-white/10' : 'top-20 border-transparent shadow-none'}`}
         style={{ 
           width: scrollY > 200 ? 'calc(100% - 4rem)' : 'auto',
           alignSelf: scrollY > 200 ? 'center' : 'flex-start',
