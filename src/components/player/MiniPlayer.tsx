@@ -70,7 +70,55 @@ export const MiniPlayer = ({
   const waveSvg = "data:image/svg+xml,%3Csvg width='80' height='20' viewBox='0 0 80 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10C13 2 27 18 40 10C53 2 67 18 80 10' stroke='%23ffffff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E";
 
   return (
-    <div className="w-full h-[90px] bg-transparent shrink-0 flex items-center justify-between px-6 relative overflow-hidden group/player rounded-none">
+    <>
+    {/* Phone: compact bar. Tapping it opens the full-screen player; buttons keep their own action. */}
+    <div className="md:hidden relative w-full">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/10" aria-hidden="true">
+        <div className="h-full bg-gradient-to-r from-[#a855f7] to-[#FF9FFC]" style={{ width: `${progress * 100}%` }} />
+      </div>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onExpand}
+        onKeyDown={(e) => { if (e.key === 'Enter') onExpand(); }}
+        aria-label={`Abrir reproductor: ${track.title}, ${track.artist}`}
+        className="flex items-center gap-3 pl-3 pr-1 h-16 cursor-pointer active:bg-white/[0.04]"
+      >
+        <img src={(track.albumCover || album.coverUrl)} alt="" className="w-11 h-11 rounded-md object-cover shrink-0 shadow-md" />
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-[14px] font-semibold leading-tight truncate flex items-center gap-1">
+            {isLicensed(track.id) && <Star className="w-3 h-3 text-yellow-500 shrink-0" fill="currentColor" />}
+            <span className="truncate">{track.title}</span>
+          </p>
+          <p className="text-white/60 text-[12px] leading-tight truncate mt-0.5">{track.artist}</p>
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); toggleFavorite(track, album); }}
+          aria-label={isFavorite(track.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+          className={`w-11 h-11 flex items-center justify-center shrink-0 ${isFavorite(track.id) ? 'text-[#a855f7]' : 'text-white/60'}`}
+        >
+          <Heart className="w-5 h-5" fill={isFavorite(track.id) ? 'currentColor' : 'none'} />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+          aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+          className="w-11 h-11 flex items-center justify-center shrink-0"
+        >
+          <span className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center">
+            {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
+          </span>
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onNext(); }}
+          aria-label="Siguiente canción"
+          className="w-11 h-11 flex items-center justify-center shrink-0 text-white/80"
+        >
+          <SkipForward className="w-5 h-5" fill="currentColor" />
+        </button>
+      </div>
+    </div>
+
+    <div className="w-full h-[90px] bg-transparent shrink-0 hidden md:flex items-center justify-between px-6 relative overflow-hidden group/player rounded-none">
       <style>{`
         @keyframes wave-slide {
           from { background-position-x: 0px; }
@@ -219,5 +267,6 @@ export const MiniPlayer = ({
         </div>
       </div>
     </div>
+    </>
   );
 };

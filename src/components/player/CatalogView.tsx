@@ -74,7 +74,7 @@ export const CatalogView = ({
   const renderList = (items: any[], isExpanded: boolean, renderItem: (item: any, i: number) => React.ReactNode, chevronTop?: number) => {
     if (isExpanded) {
       return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 pb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6 md:gap-6 pb-8">
           {items.map(renderItem)}
         </div>
       );
@@ -102,10 +102,10 @@ export const CatalogView = ({
     return (
     <div 
       key={album.id}
-      className={`${expandedSection ? 'w-full' : 'w-48'} shrink-0 flex flex-col gap-3 group cursor-pointer`}
+      className={`${expandedSection ? 'w-full' : 'w-[38vw] max-w-[160px] md:w-48 md:max-w-none'} shrink-0 snap-start flex flex-col gap-2 md:gap-3 group cursor-pointer`}
       onClick={() => onSelectAlbum(album)}
     >
-      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-48 h-48'} rounded-xl overflow-hidden relative shadow-lg transition-all duration-500`}>
+      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-48 md:h-48'} rounded-xl overflow-hidden relative shadow-lg transition-all duration-500`}>
         <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         {downloadingAlbums?.includes(String(album.id)) && (
           <button 
@@ -133,7 +133,8 @@ export const CatalogView = ({
         {album.tracks && album.tracks.length > 0 && (
           <button 
             onClick={(e) => handleDownloadAlbumClick(e, album)}
-            className="absolute bottom-2 right-2 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 z-10"
+            aria-label="Descargar álbum"
+            className="absolute bottom-2 right-2 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 z-10"
             disabled={album.tracks.every(t => isDownloaded(t.id)) || downloadingAlbums?.includes(String(album.id))}
           >
             {downloadingAlbums?.includes(String(album.id)) ? (
@@ -158,7 +159,8 @@ export const CatalogView = ({
             return (
               <button 
                  onClick={(e) => { e.stopPropagation(); toggleFavoriteAlbum(album); }}
-                 className={`group/favbtn shrink-0 p-1 -mt-0.5 -mr-1 rounded-full transition-colors hover:scale-110 ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/30 hover:text-white'}`}
+                 aria-label="Favorito"
+                 className={`group/favbtn shrink-0 p-2 -m-1.5 md:p-1 md:-mt-0.5 md:-mr-1 md:m-0 rounded-full transition-colors hover:scale-110 ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/30 hover:text-white'}`}
               >
                  {isEntireAlbumFavorited ? (
                    <>
@@ -196,20 +198,20 @@ export const CatalogView = ({
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 md:gap-6">
       {(!expandedSection || expandedSection === 'canciones') && (
-      <section className="px-8 pt-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+      <section className="px-4 md:px-8 pt-5 md:pt-8">
+        <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
-              <button onClick={() => setExpandedSection(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
+              <button onClick={() => setExpandedSection(null)} aria-label="Volver" className="p-2 -ml-2 md:ml-0 hover:bg-white/10 rounded-full transition-colors text-white">
                 <ChevronLeft className="w-6 h-6" />
               </button>
             )}
-            <h2 className="text-2xl font-bold text-white tracking-tight">Canciones del momento</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">Canciones del momento</h2>
           </div>
           {!expandedSection && (
-            <button onClick={() => setExpandedSection('canciones')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+            <button onClick={() => setExpandedSection('canciones')} className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
         {renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 96)}
@@ -217,23 +219,23 @@ export const CatalogView = ({
       )}
 
       {(!expandedSection || expandedSection === 'artistas') && (
-      <section className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+      <section className={`px-4 md:px-8 ${expandedSection ? "pt-5 md:pt-8" : "pt-0"}`}>
+        <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
-              <button onClick={() => setExpandedSection(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
+              <button onClick={() => setExpandedSection(null)} aria-label="Volver" className="p-2 -ml-2 md:ml-0 hover:bg-white/10 rounded-full transition-colors text-white">
                 <ChevronLeft className="w-6 h-6" />
               </button>
             )}
-            <h2 className="text-2xl font-bold text-white tracking-tight">Artistas populares</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">Artistas populares</h2>
           </div>
           {!expandedSection && (
-            <button onClick={() => setExpandedSection('artistas')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+            <button onClick={() => setExpandedSection('artistas')} className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
         {renderList(dynamicArtists, expandedSection === 'artistas', (artist, i) => (
-          <div key={i} className={`${expandedSection ? 'w-full' : 'w-40'} shrink-0 flex flex-col items-center gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
-            <div className={`${expandedSection ? 'w-full aspect-square' : 'w-40 h-40'} rounded-full overflow-hidden shadow-lg relative`}>
+          <div key={i} className={`${expandedSection ? 'w-full' : 'w-[30vw] max-w-[130px] md:w-40 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
+            <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-40 md:h-40'} rounded-full overflow-hidden shadow-lg relative`}>
               <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
@@ -247,18 +249,18 @@ export const CatalogView = ({
       )}
 
       {(!expandedSection || expandedSection === 'destacados') && (
-      <section className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+      <section className={`px-4 md:px-8 ${expandedSection ? "pt-5 md:pt-8" : "pt-0"}`}>
+        <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
+          <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
-              <button onClick={() => setExpandedSection(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
+              <button onClick={() => setExpandedSection(null)} aria-label="Volver" className="p-2 -ml-2 md:ml-0 hover:bg-white/10 rounded-full transition-colors text-white">
                 <ChevronLeft className="w-6 h-6" />
               </button>
             )}
-            <h2 className="text-2xl font-bold text-white tracking-tight">Álbumes destacados</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">Álbumes destacados</h2>
           </div>
           {!expandedSection && (
-            <button onClick={() => setExpandedSection('destacados')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
+            <button onClick={() => setExpandedSection('destacados')} className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
         {renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 96)}

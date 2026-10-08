@@ -59,7 +59,8 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       {showLeft && (
         <button
           onClick={() => scroll('left')}
-          className={`absolute left-0 -translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
+          aria-label="Anterior"
+          className={`hidden md:block absolute left-0 -translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
           style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(-40%, -50%)` } : undefined}
         >
           <ChevronLeft className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} />
@@ -69,7 +70,7 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       <div 
         ref={scrollContainerRef}
         onScroll={checkScroll}
-        className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory scroll-smooth" 
+        className="flex gap-3 md:gap-6 overflow-x-auto overscroll-x-contain pb-4 md:pb-6 scrollbar-hide snap-x snap-mandatory scroll-smooth -mx-4 px-4 scroll-px-4 md:mx-0 md:px-0 md:scroll-px-0" 
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitMaskImage: getMaskImage(), maskImage: getMaskImage(), transition: 'mask-image 0.3s ease' }}
       >
         {children}
@@ -78,7 +79,8 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       {showRight && (
         <button
           onClick={() => scroll('right')}
-          className={`absolute right-0 translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
+          aria-label="Siguiente"
+          className={`hidden md:block absolute right-0 translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
           style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(40%, -50%)` } : undefined}
         >
           <ChevronRight className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} />

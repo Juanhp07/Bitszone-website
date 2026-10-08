@@ -8,13 +8,15 @@ export const Sidebar = ({
   onViewChange,
   onToggleShortcuts,
   onToggleConfig,
-  isShortcutsOpen
+  isShortcutsOpen,
+  isMobile = false
 }: {
   currentView: string;
   onViewChange: (view: any) => void;
   onToggleShortcuts: () => void;
   onToggleConfig: () => void;
   isShortcutsOpen: boolean;
+  isMobile?: boolean;
 }) => {
   const { totalBytes, newDownloadsCount } = useDownloads();
 
@@ -28,7 +30,10 @@ export const Sidebar = ({
   const usedPercent = (totalUsedGB / 5.0) * 100;
 
   return (
-    <aside className="w-full h-full flex flex-col bg-transparent pt-20">
+    <aside className={`w-full h-full flex flex-col bg-transparent ${isMobile ? 'pt-[max(1.25rem,env(safe-area-inset-top))]' : 'pt-20'}`}>
+      {isMobile && (
+        <div className="px-8 pb-2 text-white/40 text-[11px] font-bold uppercase tracking-[0.2em]">Menú</div>
+      )}
       <div className="flex-1 px-4 py-6 flex flex-col gap-2">
         <button
           onClick={() => onViewChange("catalog")}
@@ -91,16 +96,16 @@ export const Sidebar = ({
         </button>
       </div>
 
-      <div className="mt-auto flex flex-col pb-4">
+      <div className="mt-auto flex flex-col pb-4" style={isMobile ? { paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' } : undefined}>
         {/* Buttons (Atajos / Configuración) */}
         <div className="px-4 pb-4 flex flex-col gap-1 relative">
-           <button 
+           {!isMobile && <button 
              onClick={onToggleShortcuts}
              className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${isShortcutsOpen ? "text-white bg-white/10" : "text-white/60 hover:text-white hover:bg-white/5"}`}
            >
              <Keyboard className="w-5 h-5 shrink-0" />
              <span>Atajos</span>
-           </button>
+           </button>}
            
            <button 
              onClick={onToggleConfig}
