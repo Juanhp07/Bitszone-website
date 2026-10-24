@@ -182,7 +182,7 @@ export const ImmersivePlayer = ({
           to { background-position-x: -80px; }
         }
         .animate-wave-slide {
-          animation: wave-slide 1s linear infinite;
+          animation: wave-slide 3s linear infinite;
         }
       `}</style>
       {/* Backdrop (though the modal is fullscreen, keeping this for transition) */}
@@ -201,17 +201,17 @@ export const ImmersivePlayer = ({
         }`}
       >
         
-        {/* Dynamic Gradient from Album Colors (Focused on Tracklist) */}
+        {/* Dynamic Gradient from Album Colors (Focused on Tracklist on the RIGHT) */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-           <div className="absolute top-0 left-0 bottom-0 w-[150%]">
+           <div className="absolute top-0 right-0 bottom-0 w-[150%]">
              <img 
                src={(track.albumCover || album.coverUrl)} 
-               className="w-full h-full object-cover blur-[120px] saturate-[2.0] opacity-50 transform origin-left" 
+               className="w-full h-full object-cover blur-[120px] saturate-[2.0] opacity-50 transform origin-right" 
                alt=""
              />
            </div>
-           {/* Fade heavily to black towards the right side so the cover image can shine */}
-           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#05050A]/80 to-[#05050A]" />
+           {/* Fade heavily to black towards the left side so the cover image can shine */}
+           <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#05050A]/80 to-[#05050A]" />
         </div>
 
         <button 
@@ -223,72 +223,10 @@ export const ImmersivePlayer = ({
           <Minimize2 className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-90 transition-transform" aria-hidden="true" />
         </button>
 
-        {/* 1. LEFT: Tracklist */}
-        <div className="absolute top-[110px] left-12 xl:left-[5rem] z-30 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase">PISTAS</div>
-        <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-[140px] pb-0">
-           <div 
-             className="relative w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-12 xl:pl-[5rem] pr-6 xl:pr-12 transition-all duration-700 pb-20 pt-2" 
-             style={{ 
-               scrollbarWidth: 'none',
-               maskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)',
-               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)'
-             }}>
-             {album.tracks?.map((t, i) => {
-               const isActive = track.id === t.id;
-               return (
-                 <div 
-                   key={t.id} 
-                   onClick={() => onPlayTrack && onPlayTrack(t, album)}
-                   className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
-                     isActive 
-                       ? 'text-[#a855f7] drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] translate-x-4' 
-                       : 'text-white/50 hover:text-white/80'
-                   }`}
-                 >
-                   <div className="flex items-center gap-4 md:gap-6">
-                     <div className="flex items-center relative min-w-[3.5rem] shrink-0">
-                       <button 
-                         onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
-                         className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
-                         title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
-                         aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
-                       >
-                         {isFavorite(t.id) ? (
-                           <>
-                             <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
-                             <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" aria-hidden="true" />
-                           </>
-                         ) : (
-                           <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
-                         )}
-                       </button>
-                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#a855f7]/80' : 'text-white/40'}`}>
-                         {(t.trackNumber || i + 1).toString().padStart(2, '0')}
-                       </span>
-                     </div>
-                     <div className="flex items-center flex-1 min-w-0">
-                       {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
-                       <MarqueeTitle text={t.title} />
-                     </div>
-                     {isActive && (
-                       <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 ml-2 md:ml-4 shrink-0 opacity-80">
-                         <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
-                         <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[20px] animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
-                         <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[16px] animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
-                         <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[24px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
-                       </div>
-                     )}
-                   </div>
-                 </div>
-               )
-             })}
-           </div>
-        </div>
-
-        {/* 2. RIGHT: Unified Cover, Info & Controls */}
+        {/* 1. LEFT: Unified Cover, Info & Controls */}
         <div className="w-[65%] h-full relative flex flex-col items-center group">
-           {/* Vertical Volume Control (Appears on Hover) */}
-           <div className="absolute right-8 xl:right-12 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
+           {/* Vertical Volume Control (Appears on Hover on Left Edge) */}
+           <div className="absolute left-8 xl:left-12 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-4 group-hover:translate-x-0">
              <button 
                onClick={() => setVolume && setVolume(100)} 
                className="mb-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
@@ -355,13 +293,13 @@ export const ImmersivePlayer = ({
              </button>
            </div>
            {/* Background Cover Image with Fades */}
-           <div className="absolute inset-0 z-0 pointer-events-none" style={{ maskImage: 'linear-gradient(to right, transparent 0%, transparent 5%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 5%, black 40%, black 100%)' }}>
+           <div className="absolute inset-0 z-0 pointer-events-none" style={{ maskImage: 'linear-gradient(to left, transparent 0%, transparent 5%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to left, transparent 0%, transparent 5%, black 40%, black 100%)' }}>
              <img 
                src={(track.albumCover || album.coverUrl)} 
                alt="Artist/Album Cover" 
                className={`absolute inset-0 w-full h-full object-cover grayscale-[20%] contrast-125 transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'opacity-5 scale-105 blur-sm' : 'opacity-50 scale-100 blur-0'}`} 
              />
-             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#05050A] opacity-90" />
+             <div className="absolute inset-0 bg-gradient-to-r from-[#05050A]/40 via-transparent to-[#05050A] opacity-90" />
              <div className="absolute inset-0 bg-gradient-to-b from-[#05050A]/80 via-transparent to-[#05050A] opacity-90" />
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#05050A_100%)] opacity-80" />
            </div>
@@ -554,6 +492,70 @@ export const ImmersivePlayer = ({
 
                  <span className={`transition-all duration-[1200ms] ${activeTab === 'letra' ? 'w-16' : 'w-10'}`}>{formatTime(track.duration)}</span>
               </div>
+           </div>
+        </div>
+
+        {/* 2. RIGHT: Tracklist */}
+        <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-[110px] pb-0">
+           <div className="pl-6 xl:pl-10 pr-12 xl:pr-[5rem] mb-4 text-white/30 tracking-[0.3em] text-[10px] md:text-xs font-bold uppercase shrink-0">
+             PISTAS
+           </div>
+           <div 
+             className="relative w-full h-full overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-6 xl:pl-10 pr-12 xl:pr-[5rem] transition-all duration-700 pb-20 pt-2" 
+             style={{ 
+               scrollbarWidth: 'none',
+               maskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)',
+               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)'
+             }}>
+             {album.tracks?.map((t, i) => {
+               const isActive = track.id === t.id;
+               return (
+                 <div 
+                   key={t.id} 
+                   onClick={() => onPlayTrack && onPlayTrack(t, album)}
+                   className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
+                     isActive 
+                       ? 'text-[#a855f7] drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] translate-x-4' 
+                       : 'text-white/50 hover:text-white/80'
+                   }`}
+                 >
+                   <div className="flex items-center gap-4 md:gap-6">
+                     <div className="flex items-center relative min-w-[3.5rem] shrink-0">
+                       <button 
+                         onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
+                         className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                         title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                         aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
+                       >
+                         {isFavorite(t.id) ? (
+                           <>
+                             <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+                             <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" aria-hidden="true" />
+                           </>
+                         ) : (
+                           <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
+                         )}
+                       </button>
+                       <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#a855f7]/80' : 'text-white/40'}`}>
+                         {(t.trackNumber || i + 1).toString().padStart(2, '0')}
+                       </span>
+                     </div>
+                     <div className="flex items-center flex-1 min-w-0">
+                       {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
+                       <MarqueeTitle text={t.title} />
+                     </div>
+                     {isActive && (
+                       <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 ml-2 md:ml-4 shrink-0 opacity-80">
+                         <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
+                         <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[20px] animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
+                         <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[16px] animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
+                         <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[24px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
+                       </div>
+                     )}
+                   </div>
+                 </div>
+               )
+             })}
            </div>
         </div>
       </div>
