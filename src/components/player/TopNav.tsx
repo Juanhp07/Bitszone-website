@@ -3,7 +3,19 @@ import { X } from 'lucide-react';
 import { User } from 'lucide-react';
 import { SpecularText } from '../ui/SpecularText';
 
-export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOpen }: { currentView: string, onViewChange: (view: any) => void, onToggleSidebar: () => void, isSidebarOpen: boolean }) => {
+export const TopNav = ({ 
+  currentView, 
+  onViewChange, 
+  onToggleSidebar, 
+  isSidebarOpen,
+  loading = false
+}: { 
+  currentView: string, 
+  onViewChange: (view: any) => void, 
+  onToggleSidebar: () => void, 
+  isSidebarOpen: boolean,
+  loading?: boolean
+}) => {
     return (
     <header className="h-20 w-full bg-transparent flex items-center px-8 relative z-20 shrink-0">
       <style>{`
@@ -15,7 +27,10 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOp
       `}</style>
 
       {/* Left: Menu */}
-      <div className="flex-1 flex items-center">
+      <div 
+        className="flex-1 flex items-center transition-opacity duration-700 ease-out"
+        style={{ opacity: loading ? 0 : 1 }}
+      >
         <button onClick={onToggleSidebar} className="text-white/70 hover:text-white transition-colors">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible">
             <line x1="4" y1="6" x2="20" y2="6" className="transition-transform duration-300" />
@@ -36,7 +51,11 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOp
         
         <button 
           onClick={() => window.location.reload()}
-          className="cursor-pointer hover:opacity-80 hover:scale-105 active:scale-95 transition-all duration-300 border-none bg-transparent"
+          className="cursor-pointer hover:opacity-80 hover:scale-105 active:scale-95 border-none bg-transparent"
+          style={{ 
+            opacity: loading ? 0 : 1, 
+            transition: 'opacity 0.2s ease 0.75s' 
+          }}
           aria-label="Recargar página"
         >
           <SpecularText
@@ -57,7 +76,10 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOp
       </div>
 
       {/* Right: Acceder */}
-      <div className="flex-1 flex items-center justify-end">
+      <div 
+        className="flex-1 flex items-center justify-end transition-opacity duration-700 ease-out"
+        style={{ opacity: loading ? 0 : 1 }}
+      >
         <a href="/login" className="px-5 py-2 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2 text-white">
           <User className="w-4 h-4" />
           Acceder
