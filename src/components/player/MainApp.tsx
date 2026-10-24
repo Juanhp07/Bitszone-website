@@ -44,6 +44,26 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     }
   }, [loading, hasEntered]);
 
+  // Lock background scroll when Config modal is open
+  useEffect(() => {
+    if (isConfigOpen) {
+      const mainContainer = document.getElementById('main-scroll-container');
+      const originalOverflow = mainContainer ? mainContainer.style.overflow : '';
+      if (mainContainer) {
+        mainContainer.style.overflow = 'hidden';
+      }
+      const originalBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
+      return () => {
+        if (mainContainer) {
+          mainContainer.style.overflow = originalOverflow;
+        }
+        document.body.style.overflow = originalBodyOverflow;
+      };
+    }
+  }, [isConfigOpen]);
+
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
   
@@ -179,6 +199,15 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         e.metaKey || 
         e.altKey
       ) {
+        return;
+      }
+
+      // If Config modal is open, only allow Escape to close it
+      if (isConfigOpen) {
+        if (e.code === 'Escape') {
+          e.preventDefault();
+          setIsConfigOpen(false);
+        }
         return;
       }
 
@@ -698,7 +727,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.25 } }}
             exit={{ opacity: 0, transition: { duration: 0.1 } }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-8"
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-8 overscroll-contain select-none"
           >
             <div className="absolute inset-0 cursor-pointer" onClick={() => setIsConfigOpen(false)} />
             
@@ -706,6 +737,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 450, damping: 30 } }}
               exit={{ opacity: 0, scale: 0.95, y: 15, transition: { duration: 0.1, ease: "easeOut" } }}
+              onClick={(e) => e.stopPropagation()}
               className="w-full max-w-5xl h-[85vh] bg-[#050505] border border-white/10 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative z-10 flex flex-col overflow-hidden"
             >
               {/* Config Header */}

@@ -42,6 +42,25 @@ export function useRubberBand({
     const container = containerRef.current;
     if (!container) return;
 
+    // If container is locked/hidden (e.g. modal open), do nothing
+    if (
+      container.style.overflow === 'hidden' || 
+      (axis === 'y' && container.style.overflowY === 'hidden') ||
+      (axis === 'x' && container.style.overflowX === 'hidden')
+    ) {
+      return;
+    }
+
+    // If vertical axis, IGNORE horizontal swipes (e.g. carousel scrolling)
+    if (axis === 'y' && (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey)) {
+      return;
+    }
+
+    // If horizontal axis, IGNORE vertical gestures
+    if (axis === 'x' && Math.abs(e.deltaY) > Math.abs(e.deltaX) && !e.shiftKey) {
+      return;
+    }
+
     const delta = axis === 'y' 
       ? e.deltaY 
       : (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0));
@@ -77,6 +96,13 @@ export function useRubberBand({
   const handleScroll = useCallback(() => {
     const container = containerRef.current;
     if (!container || isTouchingRef.current) return;
+    if (
+      container.style.overflow === 'hidden' || 
+      (axis === 'y' && container.style.overflowY === 'hidden') ||
+      (axis === 'x' && container.style.overflowX === 'hidden')
+    ) {
+      return;
+    }
 
     const scrollPos = axis === 'y' ? container.scrollTop : container.scrollLeft;
     const clientDim = axis === 'y' ? container.clientHeight : container.clientWidth;

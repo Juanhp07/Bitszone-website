@@ -52,9 +52,18 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       observer.observe(content);
     }
 
+    const onNativeWheel = (e: WheelEvent) => {
+      // Isolate horizontal wheel from vertical parent scroll
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        e.stopPropagation();
+      }
+    };
+
+    container.addEventListener('wheel', onNativeWheel, { passive: true });
     window.addEventListener('resize', checkScroll);
     return () => {
       observer.disconnect();
+      container.removeEventListener('wheel', onNativeWheel);
       window.removeEventListener('resize', checkScroll);
     };
   }, [children, checkScroll]);
@@ -133,6 +142,11 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
   };
 
   const handleWheel = (e: React.WheelEvent) => {
+    // Stop propagation so horizontal carousel scrolling never scrolls the parent page vertically
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+      e.stopPropagation();
+    }
+
     const container = scrollContainerRef.current;
     if (!container) return;
 
@@ -245,10 +259,13 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
         onMouseDown={handleMouseDown}
         onClickCapture={handleClickCapture}
         onDragStart={(e) => e.preventDefault()}
-        className={`overflow-x-auto pb-6 scrollbar-hide select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
+        className={`overflow-x-auto pb-6 scrollbar-hide select-none overscroll-contain ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none', 
+          overscrollBehavior: 'contain',
+          overscrollBehaviorX: 'contain',
+          overscrollBehaviorY: 'contain',
           WebkitMaskImage: getMaskImage(), 
           maskImage: getMaskImage(), 
           transition: 'mask-image 0.3s ease' 
