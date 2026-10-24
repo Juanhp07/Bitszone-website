@@ -216,7 +216,7 @@ export const ImmersivePlayer = ({
 
         <button 
           onClick={onClose}
-          className="absolute top-4 left-4 md:top-10 md:left-12 xl:left-[5rem] z-50 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white backdrop-blur-2xl border border-white/20 transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          className="absolute top-6 md:top-8 xl:top-10 left-6 md:left-8 xl:left-10 z-50 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white backdrop-blur-2xl border border-white/20 transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           title="Minimizar reproductor (F o Esc)"
           aria-label="Minimizar reproductor"
         >
@@ -225,8 +225,8 @@ export const ImmersivePlayer = ({
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
         <div className="w-full md:w-[65%] h-full relative flex flex-col justify-center items-center group px-6 md:px-12 py-8 overflow-y-auto scrollbar-hide">
-           {/* Vertical Volume Control (Appears on Hover on Left Edge) */}
-           <div className="hidden md:flex absolute left-8 xl:left-12 top-1/2 -translate-y-1/2 z-50 flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-4 group-hover:translate-x-0">
+           {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
+           <div className="hidden md:flex absolute left-6 md:left-8 xl:left-10 top-1/2 -translate-y-1/2 z-50 w-11 md:w-12 flex-col items-center gap-2 opacity-100 transition-all duration-300">
              <button 
                onClick={() => setVolume && setVolume(100)} 
                className="mb-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
@@ -454,18 +454,21 @@ export const ImmersivePlayer = ({
 
         {/* 2. RIGHT: Tracklist & Lyrics Tabs */}
         <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-8 md:pt-10 pb-0">
-           {/* Top Tabs (PISTAS / LETRA) */}
-           <div className="pl-6 xl:pl-10 pr-12 xl:pr-[5rem] mb-6 shrink-0 z-40 flex items-center">
-              <div className="relative inline-flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)] p-1" role="tablist">
+           {/* Top Tabs (PISTAS / LETRA) - Centered Liquid Glass Pill */}
+           <div className="w-full mb-6 shrink-0 z-40 flex items-center justify-center px-4">
+              <div 
+                className="relative inline-flex items-center rounded-full p-1 bg-white/[0.03] hover:bg-white/[0.05] backdrop-blur-2xl border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.12),0_8px_24px_rgba(0,0,0,0.3)] transition-colors duration-300" 
+                role="tablist"
+              >
                 {/* Sliding Background */}
                 <div 
-                  className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white/20 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm ${activeTab === 'letra' ? 'left-[calc(50%)]' : 'left-1'}`}
+                  className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white/[0.1] backdrop-blur-md border border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'left-[calc(50%)]' : 'left-1'}`}
                 />
                 <button 
                   role="tab"
                   aria-selected={activeTab !== 'letra'}
                   onClick={() => onTabChange && onTabChange('pistas' as any)}
-                  className={`relative z-10 w-[95px] md:w-[110px] flex items-center justify-center py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-500 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${activeTab !== 'letra' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                  className={`relative z-10 w-[88px] md:w-[100px] flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${activeTab !== 'letra' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
                   title="Mostrar pistas del álbum"
                   aria-label="Ver lista de pistas"
                 >
@@ -475,7 +478,7 @@ export const ImmersivePlayer = ({
                   role="tab"
                   aria-selected={activeTab === 'letra'}
                   onClick={() => onTabChange && onTabChange('letra')}
-                  className={`relative z-10 w-[95px] md:w-[110px] flex items-center justify-center py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-500 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${activeTab === 'letra' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                  className={`relative z-10 w-[88px] md:w-[100px] flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${activeTab === 'letra' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
                   title="Mostrar letra sincronizada"
                   aria-label="Ver letra sincronizada"
                 >

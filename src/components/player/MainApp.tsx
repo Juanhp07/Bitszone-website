@@ -159,6 +159,61 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     }
   };
 
+  // Dynamic Browser Tab Title
+  useEffect(() => {
+    if (nowPlayingTrack) {
+      const artist = nowPlayingAlbum?.artist || selectedAlbum?.artist || 'Bitszone';
+      if (isPlaying) {
+        document.title = `▶ ${nowPlayingTrack.title} • ${artist}`;
+      } else {
+        document.title = `⏸ Canción pausada: ${nowPlayingTrack.title} • ${artist}`;
+      }
+      return;
+    }
+
+    if (isConfigOpen) {
+      document.title = "Configuración • Bitszone";
+      return;
+    }
+
+    switch (currentView) {
+      case 'catalog':
+        document.title = "Catálogo • Bitszone Web Player";
+        break;
+      case 'album': {
+        const albumName = selectedAlbumFull?.title || selectedAlbum?.title;
+        document.title = albumName ? `${albumName} — Álbum • Bitszone` : "Álbum • Bitszone";
+        break;
+      }
+      case 'artist': {
+        const artistName = selectedArtist?.name;
+        document.title = artistName ? `${artistName} — Artista • Bitszone` : "Artista • Bitszone";
+        break;
+      }
+      case 'downloads':
+        document.title = "Mis Descargas • Bitszone";
+        break;
+      case 'library-playlists':
+        document.title = "Playlists • Tu Biblioteca • Bitszone";
+        break;
+      case 'library-favorites':
+        document.title = "Canciones Favoritas • Tu Biblioteca • Bitszone";
+        break;
+      case 'library-albums':
+        document.title = "Álbumes guardados • Tu Biblioteca • Bitszone";
+        break;
+      case 'library-artists':
+        document.title = "Artistas seguidos • Tu Biblioteca • Bitszone";
+        break;
+      default:
+        if (currentView.startsWith('library')) {
+          document.title = "Tu Biblioteca • Bitszone";
+        } else {
+          document.title = "Bitszone Web Player";
+        }
+        break;
+    }
+  }, [nowPlayingTrack, isPlaying, nowPlayingAlbum, selectedAlbum, selectedAlbumFull, selectedArtist, currentView, isConfigOpen]);
 
   useEffect(() => {
     if (!audioRef.current) {
