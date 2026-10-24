@@ -224,7 +224,7 @@ export const ImmersivePlayer = ({
         </button>
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
-        <div className="w-full md:w-[65%] h-full relative flex flex-col justify-end items-center group pb-12 xl:pb-16">
+        <div className="w-full md:w-[65%] h-full relative flex flex-col justify-center items-center group px-6 md:px-12 py-8 overflow-y-auto scrollbar-hide">
            {/* Vertical Volume Control (Appears on Hover on Left Edge) */}
            <div className="hidden md:flex absolute left-8 xl:left-12 top-1/2 -translate-y-1/2 z-50 flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-4 group-hover:translate-x-0">
              <button 
@@ -293,50 +293,62 @@ export const ImmersivePlayer = ({
              </button>
            </div>
 
-           {/* Background Cover Image with Fades */}
-           <div className="absolute inset-0 z-0 pointer-events-none max-md:![mask-image:none] max-md:![-webkit-mask-image:none]" style={{ maskImage: 'linear-gradient(to left, transparent 0%, transparent 5%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to left, transparent 0%, transparent 5%, black 40%, black 100%)' }}>
+           {/* Background Cover Image with Heavy Blur */}
+           <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden max-md:![mask-image:none] max-md:![-webkit-mask-image:none]" style={{ maskImage: 'linear-gradient(to left, transparent 0%, transparent 5%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to left, transparent 0%, transparent 5%, black 40%, black 100%)' }}>
              <img 
                src={(track.albumCover || album.coverUrl)} 
-               alt="Artist/Album Cover" 
-               className="absolute inset-0 w-full h-full object-cover grayscale-[20%] contrast-125 opacity-50 scale-100 blur-0" 
+               alt="" 
+               className="absolute inset-0 w-full h-full object-cover scale-110 blur-[50px] md:blur-[70px] opacity-40" 
              />
-             <div className="absolute inset-0 bg-gradient-to-r from-[#05050A]/40 via-transparent to-[#05050A] opacity-90" />
+             <div className="absolute inset-0 bg-gradient-to-r from-[#05050A]/60 via-transparent to-[#05050A] opacity-90" />
              <div className="absolute inset-0 bg-gradient-to-b from-[#05050A]/80 via-transparent to-[#05050A] opacity-90" />
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#05050A_100%)] opacity-80" />
            </div>
 
-           {/* Floating Content: Info & Controls */}
-           <div className="relative z-30 flex flex-col items-center justify-center w-full px-6 md:px-8">
-              <h2 className="text-3xl md:text-6xl xl:text-7xl font-serif italic font-bold text-white drop-shadow-lg text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)] mb-2 md:mb-4">
+           {/* Floating Content: Album Title -> Square -> Artist -> Player Controls */}
+           <div className="relative z-30 flex flex-col items-center justify-center w-full max-w-xl">
+              {/* Album Title (Above the Square) */}
+              <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-serif italic font-bold text-white drop-shadow-lg text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)] mb-3 md:mb-5">
                 {(track.albumTitle || album.title)}
               </h2>
-              <p className="text-white/70 text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-center [text-shadow:_0_2px_10px_rgba(0,0,0,0.8)] mb-8 md:mb-12">
+
+              {/* Album Cover Square */}
+              <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 aspect-square rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_20px_rgba(255,255,255,0.08)] border border-white/15 mb-3 md:mb-4 shrink-0 relative group/square transition-transform duration-300 hover:scale-[1.02]">
+                <img 
+                  src={(track.albumCover || album.coverUrl)} 
+                  alt={album.title} 
+                  className="w-full h-full object-cover select-none" 
+                />
+              </div>
+
+              {/* Artist Name (Below the Square) */}
+              <p className="text-white/70 text-xs md:text-sm font-bold tracking-[0.25em] uppercase text-center [text-shadow:_0_2px_10px_rgba(0,0,0,0.8)] mb-4 md:mb-6">
                 {album.artist}
               </p>
 
-              {/* Controls */}
-              <div className="flex items-center gap-4 sm:gap-6 md:gap-12 mb-6 md:mb-10">
+              {/* Controls (Below Artist, More Compact) */}
+              <div className="flex items-center gap-3 sm:gap-4 md:gap-8 mb-4 md:mb-6">
                 <button 
                   onClick={(e) => { e.stopPropagation(); onToggleShuffle?.(); }}
-                  className={`w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                   title={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
                   aria-label={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
                   aria-pressed={isShuffle}
                 >
-                  <Shuffle className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />
+                  <Shuffle className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-                  className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                   title="Canción anterior"
                   aria-label="Reproducir canción anterior"
                 >
-                  <SkipBack className="w-5 h-5 md:w-7 md:h-7 group-hover:-translate-x-1 transition-transform" fill="currentColor" aria-hidden="true" />
+                  <SkipBack className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-0.5 transition-transform" fill="currentColor" aria-hidden="true" />
                 </button>
 
                 <button 
                   onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                  className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center rounded-full text-white transition-all border border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(255,255,255,0.3)] group relative overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full text-white transition-all border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] group relative overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 cursor-pointer shrink-0"
                   title={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
                   aria-label={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
                   aria-pressed={isPlaying}
@@ -353,42 +365,42 @@ export const ImmersivePlayer = ({
                   <div className="absolute inset-0 bg-white/20 backdrop-blur-md transition-colors group-hover:bg-white/30" />
                   
                   {/* Vinyl Grooves Details */}
-                  <div className="absolute inset-1.5 md:inset-2 rounded-full border border-white/30 mix-blend-overlay pointer-events-none" />
-                  <div className="absolute inset-4 md:inset-6 rounded-full border border-white/20 mix-blend-overlay pointer-events-none" />
+                  <div className="absolute inset-1 rounded-full border border-white/30 mix-blend-overlay pointer-events-none" />
+                  <div className="absolute inset-2.5 md:inset-3 rounded-full border border-white/20 mix-blend-overlay pointer-events-none" />
                   
                   {/* Vinyl Center Label */}
-                  <div className="absolute w-10 h-10 md:w-14 md:h-14 rounded-full bg-black/40 backdrop-blur-xl border-[2px] border-black/10 shadow-[0_0_25px_12px_rgba(0,0,0,0.35)] pointer-events-none" />
-                  <div className="absolute w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white/10 shadow-inner pointer-events-none" />
+                  <div className="absolute w-7 h-7 md:w-8 md:h-8 rounded-full bg-black/40 backdrop-blur-xl border border-black/10 shadow-[0_0_15px_8px_rgba(0,0,0,0.35)] pointer-events-none" />
+                  <div className="absolute w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-white/10 shadow-inner pointer-events-none" />
 
                   {/* Play/Pause Icon */}
                   {isPlaying ? (
-                    <Pause className="w-8 h-8 md:w-10 md:h-10 relative z-10 group-hover:scale-95 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
+                    <Pause className="w-6 h-6 md:w-7 md:h-7 relative z-10 group-hover:scale-95 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
                   ) : (
-                    <Play className="w-8 h-8 md:w-10 md:h-10 ml-2 relative z-10 group-hover:scale-105 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
+                    <Play className="w-6 h-6 md:w-7 md:h-7 ml-1 relative z-10 group-hover:scale-105 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
                   )}
                 </button>
 
                 <button 
                   onClick={(e) => { e.stopPropagation(); onNext?.(); }}
-                  className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                   title="Siguiente canción"
                   aria-label="Reproducir siguiente canción"
                 >
-                  <SkipForward className="w-5 h-5 md:w-7 md:h-7 group-hover:translate-x-1 transition-transform" fill="currentColor" aria-hidden="true" />
+                  <SkipForward className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-0.5 transition-transform" fill="currentColor" aria-hidden="true" />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onToggleRepeat?.(); }}
-                  className={`w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                   title={repeatMode === 'one' ? "Repetir una canción" : repeatMode === 'all' ? "Repetir todo" : "Activar repetición"}
                   aria-label={`Modo de repetición: ${repeatMode === 'one' ? 'una canción' : repeatMode === 'all' ? 'todas' : 'desactivado'}`}
                 >
-                  {repeatMode === 'one' ? <Repeat1 className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> : <Repeat className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />}
+                  {repeatMode === 'one' ? <Repeat1 className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" /> : <Repeat className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />}
                 </button>
               </div>
 
-              {/* Squiggly Timeline Progress Bar */}
-              <div className="w-full max-w-xl flex items-center gap-3 md:gap-4 font-bold text-white/50 tracking-wider tabular-nums text-sm md:text-base">
-                 <span className="text-right w-10">{formatTime(progress * track.duration)}</span>
+              {/* Squiggly Timeline Progress Bar (More Compact) */}
+              <div className="w-full max-w-md flex items-center gap-2.5 md:gap-3.5 font-bold text-white/50 tracking-wider tabular-nums text-xs md:text-sm">
+                 <span className="text-right w-9">{formatTime(progress * track.duration)}</span>
                  
                  <div
                    role="slider"
@@ -396,7 +408,7 @@ export const ImmersivePlayer = ({
                    aria-valuemin={0}
                    aria-valuemax={100}
                    aria-valuenow={Math.round(progress * 100)}
-                   className="flex-1 h-11 md:h-8 flex items-center relative cursor-pointer group touch-none"
+                   className="flex-1 h-8 md:h-7 flex items-center relative cursor-pointer group touch-none"
                    onPointerDown={(e) => {
                       e.stopPropagation();
                       e.currentTarget.setPointerCapture(e.pointerId);
@@ -411,7 +423,7 @@ export const ImmersivePlayer = ({
                    onPointerUp={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
                  >
                     {/* Unplayed straight line */}
-                    <div className="absolute right-0 h-[6px] bg-white/30 rounded-full" style={{ left: `${progress * 100}%` }} />
+                    <div className="absolute right-0 h-[4px] md:h-[5px] bg-white/25 rounded-full" style={{ left: `${progress * 100}%` }} />
                     
                     {/* Played wavy line clipping container */}
                     <div className="absolute left-0 top-0 bottom-0 overflow-hidden" style={{ width: `${progress * 100}%` }}>
@@ -430,12 +442,12 @@ export const ImmersivePlayer = ({
                     
                     {/* The Dot (Handle) */}
                     <div 
-                       className="absolute w-5 h-5 bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.9)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
+                       className="absolute w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.9)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
                        style={{ left: `${progress * 100}%` }}
                     />
                  </div>
 
-                 <span className="w-10">{formatTime(track.duration)}</span>
+                 <span className="w-9">{formatTime(track.duration)}</span>
               </div>
            </div>
         </div>
