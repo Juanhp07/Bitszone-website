@@ -3,7 +3,19 @@ import { X } from 'lucide-react';
 import { User } from 'lucide-react';
 import { SpecularText } from '../ui/SpecularText';
 
-export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOpen }: { currentView: string, onViewChange: (view: any) => void, onToggleSidebar: () => void, isSidebarOpen: boolean }) => {
+export const TopNav = ({ 
+  currentView, 
+  onViewChange, 
+  onToggleSidebar, 
+  isSidebarOpen,
+  loading = false
+}: { 
+  currentView: string, 
+  onViewChange: (view: any) => void, 
+  onToggleSidebar: () => void, 
+  isSidebarOpen: boolean,
+  loading?: boolean
+}) => {
     return (
     <header className="h-16 md:h-20 w-full bg-transparent flex items-center px-3 md:px-8 relative z-20 shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <style>{`
@@ -15,9 +27,19 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOp
       `}</style>
 
       {/* Left: Menu */}
-      <div className="flex-1 flex items-center">
-        <button onClick={onToggleSidebar} aria-label={isSidebarOpen ? "Cerrar menú" : "Abrir menú"} aria-expanded={isSidebarOpen} className="w-11 h-11 -ml-1 md:ml-0 md:w-auto md:h-auto flex items-center justify-center text-white/70 hover:text-white transition-colors max-md:[--burger-shift:0px] max-md:[--burger-opacity:1]">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible">
+      {/* Left: Menu */}
+      <div 
+        className="flex-1 flex items-center transition-opacity duration-700 ease-out"
+        style={{ opacity: loading ? 0 : 1 }}
+      >
+        <button 
+          onClick={onToggleSidebar} 
+          className="w-11 h-11 -ml-1 md:ml-0 md:w-auto md:h-auto flex items-center justify-center text-white/70 hover:text-white transition-colors max-md:[--burger-shift:0px] max-md:[--burger-opacity:1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg p-1.5 cursor-pointer"
+          title={isSidebarOpen ? "Ocultar menú lateral" : "Mostrar menú lateral"}
+          aria-label={isSidebarOpen ? "Ocultar menú lateral" : "Mostrar menú lateral"}
+          aria-expanded={isSidebarOpen}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible" aria-hidden="true">
             <line x1="4" y1="6" x2="20" y2="6" className="transition-transform duration-300" />
             <line x1="4" y1="12" x2="20" y2="12" className="transition-transform duration-300" />
             <line x1="4" y1="18" x2="20" y2="18" 
@@ -36,8 +58,13 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOp
         
         <button 
           onClick={() => window.location.reload()}
-          className="cursor-pointer hover:opacity-80 hover:scale-105 active:scale-95 transition-all duration-300 border-none bg-transparent"
-          aria-label="Recargar página"
+          className="cursor-pointer hover:opacity-80 hover:scale-105 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-xl p-1"
+          style={{ 
+            opacity: loading ? 0 : 1, 
+            transition: 'opacity 0.2s ease 0.75s' 
+          }}
+          title="Bitszone - Recargar aplicación"
+          aria-label="Bitszone - Recargar página"
         >
           <SpecularText
             text="Bitszone"
@@ -57,9 +84,17 @@ export const TopNav = ({ currentView, onViewChange, onToggleSidebar, isSidebarOp
       </div>
 
       {/* Right: Acceder */}
-      <div className="flex-1 flex items-center justify-end">
-        <a href="/login" aria-label="Acceder" className="w-11 h-11 md:w-auto md:h-auto justify-center md:px-5 md:py-2 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2 text-white">
-          <User className="w-[18px] h-[18px] md:w-4 md:h-4" />
+      <div 
+        className="flex-1 flex items-center justify-end transition-opacity duration-700 ease-out"
+        style={{ opacity: loading ? 0 : 1 }}
+      >
+        <a 
+          href="/login" 
+          aria-label="Acceder a tu cuenta"
+          title="Acceder a tu cuenta"
+          className="w-11 h-11 md:w-auto md:h-auto justify-center md:px-5 md:py-2 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+        >
+          <User className="w-[18px] h-[18px] md:w-4 md:h-4" aria-hidden="true" />
           <span className="hidden md:inline">Acceder</span>
         </a>
       </div>

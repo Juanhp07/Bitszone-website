@@ -37,35 +37,41 @@ export const Sidebar = ({
       <div className="flex-1 px-4 py-6 flex flex-col gap-2">
         <button
           onClick={() => onViewChange("catalog")}
-          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${
+          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
             ['catalog', 'album', 'artist'].includes(currentView)
               ? "text-white bg-white/10 shadow-sm"
               : "text-white/60 hover:text-white hover:bg-white/5"
           }`}
+          title="Ir al inicio del catálogo"
+          aria-label="Inicio - Ir al catálogo"
         >
-          <Home className="w-5 h-5" />
+          <Home className="w-5 h-5" aria-hidden="true" />
           Inicio
         </button>
         <button
           onClick={() => onViewChange("library")}
-          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${
+          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
             currentView.startsWith('library')
               ? "text-white bg-white/10 shadow-sm"
               : "text-white/60 hover:text-white hover:bg-white/5"
           }`}
+          title="Ir a mi biblioteca"
+          aria-label="Biblioteca - Ir a tu biblioteca"
         >
-          <Library className="w-5 h-5" />
+          <Library className="w-5 h-5" aria-hidden="true" />
           Biblioteca
         </button>
         <button
           onClick={() => onViewChange("downloads")}
-          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors relative w-full ${
+          className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors relative w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
             currentView === "downloads"
               ? "text-white bg-white/10 shadow-sm"
               : "text-white/60 hover:text-white hover:bg-white/5"
           }`}
+          title="Ir a mis descargas"
+          aria-label="Mis descargas"
         >
-          <DownloadCloud className="w-5 h-5 shrink-0" />
+          <DownloadCloud className="w-5 h-5 shrink-0" aria-hidden="true" />
           <div className="flex-1 flex items-center justify-between min-w-0">
             <span className="truncate">Mis descargas</span>
             <AnimatePresence>
@@ -101,23 +107,36 @@ export const Sidebar = ({
         <div className="px-4 pb-4 flex flex-col gap-1 relative">
            {!isMobile && <button 
              onClick={onToggleShortcuts}
-             className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors ${isShortcutsOpen ? "text-white bg-white/10" : "text-white/60 hover:text-white hover:bg-white/5"}`}
+             className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShortcutsOpen ? "text-white bg-white/10" : "text-white/60 hover:text-white hover:bg-white/5"}`}
+             title="Ver atajos de teclado"
+             aria-label="Atajos de teclado"
+             aria-expanded={isShortcutsOpen}
            >
-             <Keyboard className="w-5 h-5 shrink-0" />
+             <Keyboard className="w-5 h-5 shrink-0" aria-hidden="true" />
              <span>Atajos</span>
            </button>}
            
            <button 
              onClick={onToggleConfig}
-             className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors text-white/60 hover:text-white hover:bg-white/5"
+             className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors text-white/60 hover:text-white hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+             title="Abrir configuración"
+             aria-label="Abrir configuración"
            >
-             <Settings className="w-5 h-5 shrink-0" />
+             <Settings className="w-5 h-5 shrink-0" aria-hidden="true" />
              <span>Configuración</span>
            </button>
         </div>
 
         {/* Storage display */}
-        <div className="w-full pt-5 pb-2 border-t border-white/[0.08] relative group cursor-pointer" onClick={() => onViewChange("downloads")}>
+        <div 
+          role="button"
+          tabIndex={0}
+          title="Ver almacenamiento en Mis descargas"
+          aria-label={`Almacenamiento: ${availableGB.toFixed(2)}GB disponibles de 5.00GB`}
+          className="w-full pt-5 pb-2 border-t border-white/[0.08] relative group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400" 
+          onClick={() => onViewChange("downloads")}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onViewChange("downloads")}
+        >
            <div className="px-6 flex flex-col items-start w-full relative z-10 gap-1 mb-3">
              <div className="flex items-center gap-2 text-white/40 group-hover:text-white/70 transition-colors duration-300">
                <HardDrive className="w-4 h-4" />

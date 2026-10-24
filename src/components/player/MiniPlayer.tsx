@@ -125,7 +125,7 @@ export const MiniPlayer = ({
           to { background-position-x: -80px; }
         }
         .animate-wave-slide {
-          animation: wave-slide 1s linear infinite;
+          animation: wave-slide 2s linear infinite;
         }
       `}</style>
       {/* Decorative gradient overlay */}
@@ -135,40 +135,49 @@ export const MiniPlayer = ({
       {/* Left: Now Playing Info */}
       <div className="flex items-center gap-4 w-[30%] min-w-[200px] relative z-10">
         <div 
+          role="button"
+          tabIndex={0}
           onClick={onExpand}
-          className="w-14 h-14 rounded-md overflow-hidden bg-white/10 cursor-pointer relative group shadow-md"
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onExpand()}
+          className="w-14 h-14 rounded-md overflow-hidden bg-white/10 cursor-pointer relative group shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          title="Expandir reproductor a pantalla completa (F)"
+          aria-label="Expandir reproductor a pantalla completa"
         >
           <img src={(track.albumCover || album.coverUrl)} alt="Cover" className="w-full h-full object-cover group-hover:opacity-50 transition-opacity" />
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
           </div>
         </div>
         <div className="flex flex-col justify-center">
           <h4 
             onClick={(e) => { e.stopPropagation(); onSelectAlbum && onSelectAlbum(); }} 
             className="text-white font-semibold text-sm line-clamp-1 hover:underline cursor-pointer flex items-center gap-1.5"
+            title={`Álbum: ${album.title || track.title}`}
           >
-            {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
+            {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" aria-hidden="true" />}
             <span className="truncate">{track.title}</span>
           </h4>
           <span 
             onClick={(e) => { e.stopPropagation(); onSelectArtist && onSelectArtist(); }} 
             className="text-white/60 text-xs mt-0.5 line-clamp-1 hover:underline cursor-pointer"
+            title={`Artista: ${track.artist}`}
           >
             {track.artist}
           </span>
         </div>
         <button 
-          className={`group/favbtn ml-4 transition-colors ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'}`}
+          className={`group/favbtn ml-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1.5 cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'}`}
           onClick={() => toggleFavorite(track, album)}
+          title={isFavorite(track.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+          aria-label={isFavorite(track.id) ? `Quitar ${track.title} de favoritos` : `Añadir ${track.title} a favoritos`}
         >
           {isFavorite(track.id) ? (
             <>
-              <Heart className="w-5 h-5 block group-hover/favbtn:hidden" fill="currentColor" />
-              <HeartOff className="w-5 h-5 hidden group-hover/favbtn:block" />
+              <Heart className="w-5 h-5 block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+              <HeartOff className="w-5 h-5 hidden group-hover/favbtn:block" aria-hidden="true" />
             </>
           ) : (
-            <Heart className="w-5 h-5" fill="none" />
+            <Heart className="w-5 h-5" fill="none" aria-hidden="true" />
           )}
         </button>
       </div>
@@ -177,28 +186,46 @@ export const MiniPlayer = ({
       <div className="flex flex-col items-center gap-2 flex-1 max-w-[600px] relative z-10">
         <div className="flex items-center gap-6">
           <button 
-            className={`transition-colors ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
+            className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
             onClick={onToggleShuffle}
+            title={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
+            aria-label={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
+            aria-pressed={isShuffle}
           >
-            <Shuffle className="w-4 h-4" />
-          </button>
-          <button className="text-white/70 hover:text-white transition-colors" onClick={onPrev}>
-            <SkipBack className="w-5 h-5" fill="currentColor" />
+            <Shuffle className="w-4 h-4" aria-hidden="true" />
           </button>
           <button 
-            className="w-10 h-10 bg-white hover:scale-105 rounded-full flex items-center justify-center text-black transition-transform shadow-lg" 
+            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer" 
+            onClick={onPrev}
+            title="Canción anterior (←)"
+            aria-label="Canción anterior"
+          >
+            <SkipBack className="w-5 h-5" fill="currentColor" aria-hidden="true" />
+          </button>
+          <button 
+            className="w-10 h-10 bg-white hover:scale-105 rounded-full flex items-center justify-center text-black transition-transform shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer" 
             onClick={togglePlay}
+            title={isPlaying ? "Pausar (Espacio)" : "Reproducir (Espacio)"}
+            aria-label={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
+            aria-pressed={isPlaying}
           >
-            {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-1" fill="currentColor" />}
-          </button>
-          <button className="text-white/70 hover:text-white transition-colors" onClick={onNext}>
-            <SkipForward className="w-5 h-5" fill="currentColor" />
+            {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" aria-hidden="true" /> : <Play className="w-4 h-4 ml-1" fill="currentColor" aria-hidden="true" />}
           </button>
           <button 
-            className={`transition-colors ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
-            onClick={onToggleRepeat}
+            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer" 
+            onClick={onNext}
+            title="Siguiente canción (→)"
+            aria-label="Siguiente canción"
           >
-            {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
+            <SkipForward className="w-5 h-5" fill="currentColor" aria-hidden="true" />
+          </button>
+          <button 
+            className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
+            onClick={onToggleRepeat}
+            title={repeatMode === 'one' ? "Repetir una canción" : repeatMode === 'all' ? "Repetir todo" : "Activar repetición"}
+            aria-label={`Modo de repetición: ${repeatMode === 'one' ? 'repetir una canción' : repeatMode === 'all' ? 'repetir todo' : 'desactivado'}`}
+          >
+            {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" aria-hidden="true" /> : <Repeat className="w-4 h-4" aria-hidden="true" />}
           </button>
         </div>
         
@@ -236,7 +263,9 @@ export const MiniPlayer = ({
               step="0.001" 
               value={progress}
               onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
-              className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10"
+              className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10 focus-visible:outline-none"
+              title={`Progreso: ${formatTime(currentSecs)} de ${formatTime(durationSecs)}`}
+              aria-label="Barra de progreso de la canción"
             />
           </div>
           <span className="text-[11px] font-medium text-white/50 tabular-nums w-10">{formatTime(durationSecs)}</span>
@@ -247,12 +276,21 @@ export const MiniPlayer = ({
       <div className="flex items-center justify-end gap-4 w-[30%] min-w-[200px] relative z-10">
         <button 
           onClick={onToggleLyrics}
-          className={`transition-colors ${isLyricsOpen ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}
+          className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isLyricsOpen ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}
+          title={isLyricsOpen ? "Ocultar panel de letras" : "Mostrar panel de letras"}
+          aria-label={isLyricsOpen ? "Ocultar letras de la canción" : "Mostrar letras de la canción"}
+          aria-pressed={isLyricsOpen}
         >
-          <Mic2 className="w-4 h-4" />
+          <Mic2 className="w-4 h-4" aria-hidden="true" />
         </button>
-                <button onClick={onToggleMute} className="text-white/50 hover:text-white transition-colors focus:outline-none">
-          {volume === 0 ? <VolumeX className="w-4 h-4" /> : volume < 50 ? <Volume1 className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        <button 
+          onClick={onToggleMute} 
+          className="text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer"
+          title={volume === 0 ? "Activar sonido" : "Silenciar"}
+          aria-label={volume === 0 ? "Activar sonido" : "Silenciar reproductor"}
+          aria-pressed={volume === 0}
+        >
+          {volume === 0 ? <VolumeX className="w-4 h-4" aria-hidden="true" /> : volume < 50 ? <Volume1 className="w-4 h-4" aria-hidden="true" /> : <Volume2 className="w-4 h-4" aria-hidden="true" />}
         </button>
         <div className="w-24 h-1.5 bg-white/10 rounded-full relative group cursor-pointer flex items-center">
           <div className="absolute left-0 h-full bg-white group-hover:bg-[#a855f7] rounded-full transition-colors pointer-events-none" style={{ width: `${volume}%` }}></div>
@@ -262,7 +300,9 @@ export const MiniPlayer = ({
             max="100" 
             value={volume}
             onChange={(e) => onVolumeChange && onVolumeChange(parseFloat(e.target.value))}
-            className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10"
+            className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10 focus-visible:outline-none"
+            title={`Volumen: ${Math.round(volume)}%`}
+            aria-label="Control de volumen"
           />
         </div>
       </div>

@@ -1,42 +1,237 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { motion, useSpring, useMotionValue } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const ScrollableList = ({ children, chevronTop }: { children: React.ReactNode, chevronTop?: number }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(false);
 
-  const checkScroll = () => {
+  // Motion value for Apple rubber-band & limit bounce
+  const bounceX = useMotionValue(0);
+  const springX = useSpring(bounceX, { stiffness: 320, damping: 18, mass: 0.7 });
+
+  // Drag state refs
+  const isDownRef = useRef(false);
+  const startXRef = useRef(0);
+  const startScrollLeftRef = useRef(0);
+  const dragDistanceRef = useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Wheel & Momentum refs
+  const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastScrollLeftRef = useRef(0);
+  const lastScrollTimeRef = useRef(Date.now());
+  const isBouncingRef = useRef(false);
+
+  const checkScroll = useCallback(() => {
     if (!scrollContainerRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
     setShowLeft(scrollLeft > 5);
     setShowRight(Math.ceil(scrollLeft + clientWidth) < scrollWidth - 5);
-  };
+  }, []);
+
+  const triggerLimitBounce = useCallback((direction: 'left' | 'right') => {
+    const amount = direction === 'left' ? 24 : -24;
+    bounceX.set(amount);
+    setTimeout(() => {
+      bounceX.set(0);
+    }, 45);
+  }, [bounceX]);
 
   useEffect(() => {
     checkScroll();
     const container = scrollContainerRef.current;
+    const content = contentRef.current;
     if (!container) return;
 
     const observer = new ResizeObserver(() => checkScroll());
     observer.observe(container);
-
-    // Also observe children to detect changes in content
-    Array.from(container.children).forEach(child => {
-      observer.observe(child);
-    });
+    if (content) {
+      observer.observe(content);
+    }
 
     window.addEventListener('resize', checkScroll);
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', checkScroll);
     };
-  }, [children]);
+  }, [children, checkScroll]);
+
+  // Global mousemove and mouseup listeners so drag stays active even if mouse moves outside
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDownRef.current) return;
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const diffX = e.pageX - startXRef.current;
+      dragDistanceRef.current = Math.abs(diffX);
+
+      if (Math.abs(diffX) > 4 && !isDragging) {
+        setIsDragging(true);
+      }
+
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      const targetScroll = startScrollLeftRef.current - diffX;
+
+      if (targetScroll < 0) {
+        container.scrollLeft = 0;
+        const over = -targetScroll;
+        // Apple rubber-band resistance
+        const rubber = Math.min(36, (over * 0.42) / (1 + over * 0.007));
+        bounceX.set(rubber);
+      } else if (targetScroll > maxScroll) {
+        container.scrollLeft = maxScroll;
+        const over = targetScroll - maxScroll;
+        const rubber = Math.min(36, (over * 0.42) / (1 + over * 0.007));
+        bounceX.set(-rubber);
+      } else {
+        container.scrollLeft = targetScroll;
+        bounceX.set(0);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDownRef.current) {
+        isDownRef.current = false;
+        bounceX.set(0);
+        setIsDragging(false);
+        // Delay so click capture can prevent accidental clicks on cards
+        setTimeout(() => {
+          dragDistanceRef.current = 0;
+        }, 60);
+      }
+    };
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [bounceX, isDragging]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return; // Left click only
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    if (container.style.overflowX === 'hidden' || container.style.overflow === 'hidden' || document.body.style.overflow === 'hidden') {
+      return;
+    }
+
+    isDownRef.current = true;
+    startXRef.current = e.pageX;
+    startScrollLeftRef.current = container.scrollLeft;
+    dragDistanceRef.current = 0;
+  };
+
+  const handleClickCapture = (e: React.MouseEvent) => {
+    // If user dragged to slide the carousel, cancel click event
+    if (dragDistanceRef.current > 6) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    // Only intercept when holding Shift (standard browser horizontal scroll) or clear trackpad horizontal swipe
+    const isShiftScroll = e.shiftKey;
+    const isTrackpadHorizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) * 2 && Math.abs(e.deltaX) > 4;
+
+    if (!isShiftScroll && !isTrackpadHorizontal) {
+      // Normal vertical wheel: allow completely free page scrolling without any interception!
+      return;
+    }
+
+    // Stop propagation so Shift-wheel / horizontal swipe does not scroll the parent page vertically
+    e.stopPropagation();
+
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    if (container.style.overflowX === 'hidden' || container.style.overflow === 'hidden' || document.body.style.overflow === 'hidden') {
+      return;
+    }
+
+    // With Shift key, mouse wheels send deltaY; trackpad sends deltaX
+    const delta = isShiftScroll ? (e.deltaY !== 0 ? e.deltaY : e.deltaX) : e.deltaX;
+    if (Math.abs(delta) < 0.5) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    const maxScroll = scrollWidth - clientWidth;
+
+    if (delta < 0 && scrollLeft <= 1) {
+      const current = bounceX.get();
+      const next = Math.min(32, current + Math.abs(delta) * 0.24);
+      bounceX.set(next);
+
+      if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
+      wheelTimeoutRef.current = setTimeout(() => {
+        bounceX.set(0);
+      }, 75);
+    } else if (delta > 0 && scrollLeft >= maxScroll - 2) {
+      const current = bounceX.get();
+      const next = Math.max(-32, current - Math.abs(delta) * 0.24);
+      bounceX.set(next);
+
+      if (wheelTimeoutRef.current) clearTimeout(wheelTimeoutRef.current);
+      wheelTimeoutRef.current = setTimeout(() => {
+        bounceX.set(0);
+      }, 75);
+    } else if (isShiftScroll && e.deltaY !== 0) {
+      // Manually scroll container when Shift + vertical wheel is used
+      container.scrollLeft += delta;
+    }
+  };
+
+  // Arrow scrolling ref to suppress bounce when clicking arrows
+  const isArrowScrollingRef = useRef(false);
+  const arrowScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleScroll = () => {
+    checkScroll();
+    const container = scrollContainerRef.current;
+    if (!container || isDownRef.current || isArrowScrollingRef.current) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    const maxScroll = scrollWidth - clientWidth;
+    const now = Date.now();
+    const dt = Math.max(1, now - lastScrollTimeRef.current);
+    const dx = scrollLeft - lastScrollLeftRef.current;
+    const speed = Math.abs(dx / dt);
+
+    lastScrollLeftRef.current = scrollLeft;
+    lastScrollTimeRef.current = now;
+
+    // Boundary collision bounce when scrolling at high momentum (only via physical drag/wheel)
+    if (!isBouncingRef.current && speed > 0.45) {
+      if (scrollLeft <= 0 && dx < 0) {
+        isBouncingRef.current = true;
+        triggerLimitBounce('left');
+        setTimeout(() => { isBouncingRef.current = false; }, 350);
+      } else if (scrollLeft >= maxScroll - 1 && dx > 0) {
+        isBouncingRef.current = true;
+        triggerLimitBounce('right');
+        setTimeout(() => { isBouncingRef.current = false; }, 350);
+      }
+    }
+  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
     const scrollAmount = container.clientWidth * 0.75;
+
+    // Suppress any boundary bounce during arrow-driven smooth scroll
+    isArrowScrollingRef.current = true;
+    if (arrowScrollTimeoutRef.current) clearTimeout(arrowScrollTimeoutRef.current);
+    arrowScrollTimeoutRef.current = setTimeout(() => {
+      isArrowScrollingRef.current = false;
+    }, 650);
+
     container.scrollBy({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
       behavior: 'smooth'
@@ -59,31 +254,49 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       {showLeft && (
         <button
           onClick={() => scroll('left')}
-          aria-label="Anterior"
-          className={`hidden md:block absolute left-0 -translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
+          className={`hidden md:block absolute left-0 -translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
           style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(-40%, -50%)` } : undefined}
+          aria-label="Desplazar hacia la izquierda"
+          title="Desplazar hacia la izquierda"
         >
-          <ChevronLeft className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} />
+          <ChevronLeft className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} aria-hidden="true" />
         </button>
       )}
       
       <div 
         ref={scrollContainerRef}
-        onScroll={checkScroll}
-        className="flex gap-3 md:gap-6 overflow-x-auto overscroll-x-contain pb-4 md:pb-6 scrollbar-hide snap-x snap-mandatory scroll-smooth -mx-4 px-4 scroll-px-4 md:mx-0 md:px-0 md:scroll-px-0" 
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitMaskImage: getMaskImage(), maskImage: getMaskImage(), transition: 'mask-image 0.3s ease' }}
+        onScroll={handleScroll}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onClickCapture={handleClickCapture}
+        onDragStart={(e) => e.preventDefault()}
+        className={`overflow-x-auto pb-4 md:pb-6 scrollbar-hide overscroll-x-contain select-none -mx-4 px-4 md:mx-0 md:px-0 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
+        style={{ 
+          scrollbarWidth: 'none', 
+          msOverflowStyle: 'none', 
+          WebkitMaskImage: getMaskImage(), 
+          maskImage: getMaskImage(), 
+          transition: 'mask-image 0.3s ease' 
+        }}
       >
-        {children}
+        <motion.div 
+          ref={contentRef}
+          style={{ x: springX }}
+          className="flex gap-3 md:gap-6 w-max min-w-full"
+        >
+          {children}
+        </motion.div>
       </div>
 
       {showRight && (
         <button
           onClick={() => scroll('right')}
-          aria-label="Siguiente"
-          className={`hidden md:block absolute right-0 translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
+          className={`hidden md:block absolute right-0 translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
           style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(40%, -50%)` } : undefined}
+          aria-label="Desplazar hacia la derecha"
+          title="Desplazar hacia la derecha"
         >
-          <ChevronRight className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} />
+          <ChevronRight className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} aria-hidden="true" />
         </button>
       )}
     </div>

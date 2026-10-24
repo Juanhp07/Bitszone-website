@@ -14,11 +14,14 @@ import { ToastContainer } from './ToastContainer';
 import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
+import { PlayerLoadingScreen } from './PlayerLoadingScreen';
 import { Heart } from 'lucide-react';
 import { MobileTabBar } from './MobileTabBar';
 import { useIsMobile, useIsCompact } from './useIsMobile';
+import { useRubberBand } from '../ui/useRubberBand';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
+  const { containerRef: mainScrollRef, springValue: springMainY, scrollProps: mainScrollProps } = useRubberBand({ axis: 'y' });
 
   const [currentView, setCurrentView] = useState<string>("catalog");
   const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string, type?: string} | null>(null);
@@ -39,6 +42,99 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
   
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
+  const [hasEntered, setHasEntered] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !hasEntered) {
+      const timer = setTimeout(() => {
+        setHasEntered(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, hasEntered]);
+
+  // Lock background scroll (both vertical and horizontal) when Config modal is open
+  useEffect(() => {
+    if (isConfigOpen) {
+      const mainContainer = document.getElementById('main-scroll-container');
+      const originalOverflow = mainContainer ? mainContainer.style.overflow : '';
+      const originalOverflowX = mainContainer ? mainContainer.style.overflowX : '';
+      const originalOverflowY = mainContainer ? mainContainer.style.overflowY : '';
+      if (mainContainer) {
+        mainContainer.style.overflow = 'hidden';
+        mainContainer.style.overflowX = 'hidden';
+        mainContainer.style.overflowY = 'hidden';
+      }
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalBodyOverflowX = document.body.style.overflowX;
+      const originalBodyOverflowY = document.body.style.overflowY;
+      document.body.style.overflow = 'hidden';
+      document.body.style.overflowX = 'hidden';
+      document.body.style.overflowY = 'hidden';
+
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      const originalHtmlOverflowX = document.documentElement.style.overflowX;
+      const originalHtmlOverflowY = document.documentElement.style.overflowY;
+      document.documentElement.style.overflow = 'hidden';
+      document.documentElement.style.overflowX = 'hidden';
+      document.documentElement.style.overflowY = 'hidden';
+
+      // Also freeze all horizontal carousels while modal is open
+      const scrollableElements = document.querySelectorAll('.overflow-x-auto');
+      const originalListStyles: Array<{ el: HTMLElement; overflowX: string }> = [];
+      scrollableElements.forEach((node) => {
+        const el = node as HTMLElement;
+        originalListStyles.push({ el, overflowX: el.style.overflowX });
+        el.style.overflowX = 'hidden';
+      });
+
+      // Intercept wheel and touchmove events outside the modal card or horizontal events inside it
+      const handleGlobalWheel = (e: WheelEvent) => {
+        const modalCard = document.getElementById('config-modal-card');
+        if (!modalCard || !modalCard.contains(e.target as Node)) {
+          // Outside modal: completely prevent wheel scroll
+          e.preventDefault();
+        } else {
+          // Inside modal: prevent any horizontal trackpad swipe or Shift-wheel
+          if (Math.abs(e.deltaX) > 0 || e.shiftKey) {
+            e.preventDefault();
+          }
+        }
+      };
+
+      const handleGlobalTouchMove = (e: TouchEvent) => {
+        const modalCard = document.getElementById('config-modal-card');
+        if (!modalCard || !modalCard.contains(e.target as Node)) {
+          e.preventDefault();
+        }
+      };
+
+      window.addEventListener('wheel', handleGlobalWheel, { passive: false });
+      window.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+
+      return () => {
+        if (mainContainer) {
+          mainContainer.style.overflow = originalOverflow;
+          mainContainer.style.overflowX = originalOverflowX;
+          mainContainer.style.overflowY = originalOverflowY;
+        }
+        document.body.style.overflow = originalBodyOverflow;
+        document.body.style.overflowX = originalBodyOverflowX;
+        document.body.style.overflowY = originalBodyOverflowY;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+        document.documentElement.style.overflowX = originalHtmlOverflowX;
+        document.documentElement.style.overflowY = originalHtmlOverflowY;
+
+        originalListStyles.forEach(({ el, overflowX }) => {
+          el.style.overflowX = overflowX;
+        });
+
+        window.removeEventListener('wheel', handleGlobalWheel);
+        window.removeEventListener('touchmove', handleGlobalTouchMove);
+      };
+    }
+  }, [isConfigOpen]);
+
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
   
@@ -174,6 +270,15 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         e.metaKey || 
         e.altKey
       ) {
+        return;
+      }
+
+      // If Config modal is open, only allow Escape to close it
+      if (isConfigOpen) {
+        if (e.code === 'Escape') {
+          e.preventDefault();
+          setIsConfigOpen(false);
+        }
         return;
       }
 
@@ -425,7 +530,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   return (
     <DownloadsProvider>
       <ToastContainer />
-    <div className="w-full h-screen h-[100dvh] bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative [-webkit-tap-highlight-color:transparent]">
+      <AnimatePresence>
+        {loading && <PlayerLoadingScreen />}
+      </AnimatePresence>
+      <div className="w-full h-screen h-[100dvh] bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative [-webkit-tap-highlight-color:transparent]">
       {/* Unified Global Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-[#050505] to-blue-900/20 pointer-events-none z-0"></div>
       <div className={`absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#a855f7]/15 to-transparent pointer-events-none z-0 transition-opacity duration-700 ${['album', 'downloads', 'library', 'artist'].includes(currentView) ? 'opacity-0' : 'opacity-100'}`}></div>
@@ -477,7 +585,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none z-0"></div>
 
       {/* SEAMLESS GLOBAL GLASS LAYER using a single blurred pane and a vector clip-path */}
-      <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+      <div 
+        className="absolute inset-0 pointer-events-none z-20 overflow-hidden transition-opacity duration-700"
+        style={{ opacity: loading ? 0 : 1 }}
+      >
         {/* The single glass pane with a vector clip-path to perfectly cut out the L-shape and rounded corner without ANY masking artifacts */}
         <div 
           className="absolute inset-0 bg-black/30 backdrop-blur-xl transition-all duration-300"
@@ -512,18 +623,26 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           </svg>
         </div>
       </div>
-      <div className="absolute top-0 left-0 right-0 z-50">
+      <motion.div 
+        initial={false}
+        animate={{ 
+          y: !hasEntered && loading ? -70 : 0, 
+          opacity: !hasEntered && loading ? 0 : 1 
+        }}
+        transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute top-0 left-0 right-0 z-50 pointer-events-auto"
+      >
         <TopNav 
           currentView={currentView} 
           onViewChange={navigate} 
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           isSidebarOpen={isSidebarOpen}
+          loading={loading}
         />
-      </div>
+      </motion.div>
 
       {/* Main Container - Sidebar Flush, Body Floating */}
       <div className="w-full h-full flex overflow-hidden relative">
-        
         {/* Phones and tablets: dimmed backdrop behind the drawer; tapping it closes the drawer */}
         {isCompact && (
           <div
@@ -540,9 +659,17 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             : `h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}
           aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
         >
-          <div className={isCompact ? 'w-full h-full overflow-y-auto overscroll-contain' : 'w-64 h-full'}>
+          <motion.div 
+            initial={false}
+            animate={{ 
+              x: !hasEntered && loading ? -80 : 0, 
+              opacity: !hasEntered && loading ? 0 : 1 
+            }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            className={isCompact ? 'w-full h-full overflow-y-auto overscroll-contain' : 'w-64 h-full'}
+          >
             <Sidebar currentView={currentView} onViewChange={navigate} isShortcutsOpen={isShortcutsOpen} onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)} onToggleConfig={() => { setIsConfigOpen(!isConfigOpen); if (isCompact) setIsSidebarOpen(false); }} isMobile={isCompact} />
-          </div>
+          </motion.div>
         </div>
 
         {/* Full-bleed Main Content container */}
@@ -553,12 +680,22 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
               
               
-              <main id="main-scroll-container" className="flex-1 overflow-y-auto overscroll-y-contain relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-                <div className="pt-16 md:pt-20 pb-6 md:pb-0 min-h-full flex flex-col">
+              <main 
+                id="main-scroll-container" 
+                ref={mainScrollRef}
+                {...mainScrollProps}
+                className="flex-1 overflow-y-auto overscroll-y-contain relative z-10 scrollbar-hide" 
+                style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+              >
+                <motion.div 
+                  style={{ y: springMainY }}
+                  className="pt-16 md:pt-20 pb-6 md:pb-0 min-h-full flex flex-col"
+                >
                   {currentView === 'catalog' && (
                     <CatalogView 
                       albums={albums} 
                       loading={loading} 
+                      isInitialEntrance={!hasEntered}
                       onSelectAlbum={handleSelectAlbum} 
                       onPlayTrack={handlePlayTrack}
                       onSelectArtist={(artist) => {
@@ -588,7 +725,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       onSelectAlbum={handleSelectAlbum} 
                     />
                   )}
-                </div>
+                </motion.div>
               </main>
 
               {/* Fade-out gradients applied to the scrollable area bounds */}
@@ -685,25 +822,39 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.25 } }}
             exit={{ opacity: 0, transition: { duration: 0.1 } }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 md:p-8"
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 md:p-8 overscroll-contain select-none"
+            role="presentation"
           >
-            <div className="absolute inset-0 cursor-pointer" onClick={() => setIsConfigOpen(false)} />
+            <div 
+              className="absolute inset-0 cursor-pointer" 
+              onClick={() => setIsConfigOpen(false)} 
+              title="Cerrar modal de configuración"
+              aria-label="Cerrar modal de configuración"
+            />
             
             <motion.div
+              id="config-modal-card"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="config-modal-title"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 450, damping: 30 } }}
               exit={{ opacity: 0, scale: 0.95, y: 15, transition: { duration: 0.1, ease: "easeOut" } }}
+              onClick={(e) => e.stopPropagation()}
               className="w-full max-w-5xl h-[80dvh] md:h-[85vh] bg-[#050505] border border-white/10 rounded-[1.5rem] md:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative z-10 flex flex-col overflow-hidden"
             >
               {/* Config Header */}
               <div className="p-5 md:p-8 pb-4 md:pb-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.02]">
-                <h2 className="text-2xl md:text-3xl font-bold text-white tracking-wide">Configuración</h2>
+                <h2 id="config-modal-title" className="text-2xl md:text-3xl font-bold text-white tracking-wide">Configuración</h2>
                 <button 
                   onClick={() => setIsConfigOpen(false)} 
-                  aria-label="Cerrar configuración"
-                  className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                  className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  title="Cerrar configuración (Esc)"
+                  aria-label="Cerrar ventana de configuración"
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
               </div>
               

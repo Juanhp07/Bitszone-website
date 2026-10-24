@@ -6,9 +6,11 @@ const DropdownItem = ({ id, title, icon: Icon, hoverBg, activeTab, onSelect }: a
   return (
     <button 
       onClick={onSelect}
-      className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === id ? 'bg-white/10 text-white' : `text-white/60 ${hoverBg} hover:text-white`}`}
+      className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${activeTab === id ? 'bg-white/10 text-white' : `text-white/60 ${hoverBg} hover:text-white`}`}
+      title={`Cambiar a ${title}`}
+      aria-label={`Ver sección de ${title}`}
     >
-      <Icon className="w-5 h-5 mr-3 shrink-0" strokeWidth={2} />
+      <Icon className="w-5 h-5 mr-3 shrink-0" strokeWidth={2} aria-hidden="true" />
       <span className="text-[15px] font-normal tracking-wide text-left whitespace-nowrap" style={{ WebkitTextStroke: '0' }}>
         {title}
       </span>
@@ -97,8 +99,11 @@ const LibraryDropdown = ({ activeTab, setActiveTab }: { activeTab: string, setAc
       
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        aria-haspopup="menu" aria-expanded={isOpen}
-        className="flex items-center gap-2 md:gap-3 min-w-0 text-left hover:opacity-80 transition-opacity focus:outline-none"
+        title={isOpen ? "Cerrar menú de biblioteca" : "Cambiar sección de biblioteca"}
+        aria-label={isOpen ? "Cerrar menú de biblioteca" : "Cambiar sección de biblioteca"}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        className="flex items-center gap-2 md:gap-3 min-w-0 text-left hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg p-1 cursor-pointer"
       >
         <StaggeredRollingText text={titles[activeTab]} />
         <ChevronDown className={`w-6 h-6 md:w-10 md:h-10 shrink-0 text-white/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} strokeWidth={3} />
