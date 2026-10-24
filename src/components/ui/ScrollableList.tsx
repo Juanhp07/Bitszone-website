@@ -52,18 +52,9 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       observer.observe(content);
     }
 
-    const onNativeWheel = (e: WheelEvent) => {
-      // Isolate horizontal wheel from vertical parent scroll
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        e.stopPropagation();
-      }
-    };
-
-    container.addEventListener('wheel', onNativeWheel, { passive: true });
     window.addEventListener('resize', checkScroll);
     return () => {
       observer.disconnect();
-      container.removeEventListener('wheel', onNativeWheel);
       window.removeEventListener('resize', checkScroll);
     };
   }, [children, checkScroll]);
@@ -142,15 +133,23 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    // Stop propagation so horizontal carousel scrolling never scrolls the parent page vertically
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-      e.stopPropagation();
+    // Only intercept when holding Shift (standard browser horizontal scroll) or clear trackpad horizontal swipe
+    const isShiftScroll = e.shiftKey;
+    const isTrackpadHorizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) * 2 && Math.abs(e.deltaX) > 4;
+
+    if (!isShiftScroll && !isTrackpadHorizontal) {
+      // Normal vertical wheel: allow completely free page scrolling without any interception!
+      return;
     }
+
+    // Stop propagation so Shift-wheel / horizontal swipe does not scroll the parent page vertically
+    e.stopPropagation();
 
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+    // With Shift key, mouse wheels send deltaY; trackpad sends deltaX
+    const delta = isShiftScroll ? (e.deltaY !== 0 ? e.deltaY : e.deltaX) : e.deltaX;
     if (Math.abs(delta) < 0.5) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
@@ -174,6 +173,9 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       wheelTimeoutRef.current = setTimeout(() => {
         bounceX.set(0);
       }, 75);
+    } else if (isShiftScroll && e.deltaY !== 0) {
+      // Manually scroll container when Shift + vertical wheel is used
+      container.scrollLeft += delta;
     }
   };
 
@@ -259,13 +261,10 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
         onMouseDown={handleMouseDown}
         onClickCapture={handleClickCapture}
         onDragStart={(e) => e.preventDefault()}
-        className={`overflow-x-auto pb-6 scrollbar-hide select-none overscroll-contain ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
+        className={`overflow-x-auto pb-6 scrollbar-hide select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none', 
-          overscrollBehavior: 'contain',
-          overscrollBehaviorX: 'contain',
-          overscrollBehaviorY: 'contain',
           WebkitMaskImage: getMaskImage(), 
           maskImage: getMaskImage(), 
           transition: 'mask-image 0.3s ease' 
