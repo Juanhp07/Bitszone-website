@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { useRubberBand } from '../ui/useRubberBand';
 import type { Track, Album } from './types';
 
 const somewhereIBelongLyrics = [
@@ -16,6 +18,7 @@ export const LyricsSidebar = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const activeLineRef = useRef<HTMLParagraphElement>(null);
+  const { springValue: lyricsSpringY, scrollProps: lyricsScrollProps } = useRubberBand({ axis: 'y', customRef: containerRef });
 
   const isSomewhereIBelong = track?.title === "Somewhere I Belong";
   const activeLyrics = isSomewhereIBelong ? somewhereIBelongLyrics : null;
@@ -67,9 +70,10 @@ export const LyricsSidebar = ({
             <p className="text-sm font-medium text-white/70 drop-shadow-md">{album?.artist}</p>
           </div>
           
-          {/* Lyrics Content (Scrollable with Mask) */}
+          {/* Lyrics Content (Scrollable with Mask & Rubber Band Bounce) */}
           <div 
             ref={containerRef}
+            {...lyricsScrollProps}
             className="relative flex-1 overflow-y-auto scrollbar-hide px-6 pb-8 text-lg tracking-wide"
             style={{ 
               scrollbarWidth: 'none',
@@ -77,36 +81,38 @@ export const LyricsSidebar = ({
               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 32px, black calc(100% - 32px), transparent 100%)'
             }}
           >
-            {activeLyrics ? (
-              <div className="space-y-6 pt-4">
-                {activeLyrics.map((line, i) => {
-                  const isActive = i === activeIndex;
-                  const isPast = i < activeIndex;
-                  return (
-                    <p 
-                      key={i}
-                      ref={isActive ? activeLineRef : null}
-                      className={`transition-all duration-500 font-bold ${
-                        isActive 
-                          ? 'text-white scale-[1.02] transform origin-left drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' 
-                          : isPast 
-                            ? 'text-white/40' 
-                            : 'text-white/30'
-                      }`}
-                    >
-                      {line.text}
-                    </p>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="space-y-6 pt-4 text-white/50 font-medium">
-                <p>♪</p>
-                <p>Letra no disponible aún...</p>
-                <p className="text-sm text-white/30 font-normal">(Esta es una vista previa del panel de letras. Aquí se integraría la API de letras en el futuro).</p>
-                <p>♪</p>
-              </div>
-            )}
+            <motion.div style={{ y: lyricsSpringY }}>
+              {activeLyrics ? (
+                <div className="space-y-6 pt-4">
+                  {activeLyrics.map((line, i) => {
+                    const isActive = i === activeIndex;
+                    const isPast = i < activeIndex;
+                    return (
+                      <p 
+                        key={i}
+                        ref={isActive ? activeLineRef : null}
+                        className={`transition-all duration-500 font-bold ${
+                          isActive 
+                            ? 'text-white scale-[1.02] transform origin-left drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' 
+                            : isPast 
+                              ? 'text-white/40' 
+                              : 'text-white/30'
+                        }`}
+                      >
+                        {line.text}
+                      </p>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-6 pt-4 text-white/50 font-medium">
+                  <p>♪</p>
+                  <p>Letra no disponible aún...</p>
+                  <p className="text-sm text-white/30 font-normal">(Esta es una vista previa del panel de letras. Aquí se integraría la API de letras en el futuro).</p>
+                  <p>♪</p>
+                </div>
+              )}
+            </motion.div>
           </div>
         </>
       ) : (

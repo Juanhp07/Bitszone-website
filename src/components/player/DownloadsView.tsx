@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useRubberBand } from '../ui/useRubberBand';
 import { createPortal } from 'react-dom';
 import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle } from 'lucide-react';
 import FuseButton from '../ui/FuseButton';
@@ -58,6 +60,7 @@ export const DownloadsView = ({
   albums?: Album[]
 }) => {
   const { downloadedTracks, licensedTracks, favoriteTracks, clearLicenses, removeAlbumFromLicenses, removeDownload, toggleFavorite, removeLicensedTrack, isLicensed, toggleFavoriteAlbum, isFavorite, isDownloaded, clearNewDownloads, totalBytes, clearDownloads, clearFavorites, removeAlbumFromDownloads, removeAlbumFromFavorites, downloadingAlbums, cancelAlbumDownload } = useDownloads();
+  const { containerRef: listScrollRef, springValue: listSpringY, scrollProps: listScrollProps } = useRubberBand({ axis: 'y' });
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [trackToRemove, setTrackToRemove] = useState<Track | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -634,7 +637,8 @@ export const DownloadsView = ({
         </div>
       </div>
 
-      <div className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-8">
+      <div ref={listScrollRef} {...listScrollProps} className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-8">
+        <motion.div style={{ y: listSpringY }}>
         {filteredTracks.length === 0 && searchQuery !== '' ? (
            <div className="text-center pt-10 text-white/50">
              No se encontraron resultados para "{searchQuery}"
@@ -878,6 +882,7 @@ export const DownloadsView = ({
             })}
           </div>
         )}
+        </motion.div>
       </div>
       
       {/* Keep Modals... */}

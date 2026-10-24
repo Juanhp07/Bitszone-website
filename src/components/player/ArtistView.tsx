@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useRubberBand } from '../ui/useRubberBand';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, Play, Download, Check, CheckCircle, Loader2, Heart, HeartOff, AlertCircle, X } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
@@ -19,6 +21,7 @@ export const ArtistView = ({
 
   const { downloadTrack, isDownloaded, isFavorite, toggleFavoriteAlbum, cancelAlbumDownload, downloadingAlbums, downloadAlbum } = useDownloads();
   const [scrollY, setScrollY] = useState(0);
+  const { containerRef: discographyRef, springValue: discographySpringY, scrollProps: discographyScrollProps } = useRubberBand({ axis: 'y' });
 
   useEffect(() => {
     const container = document.getElementById('main-scroll-container');
@@ -111,8 +114,9 @@ export const ArtistView = ({
         </div>
       </div>
 
-      <div className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-32">
-        <h2 className="text-2xl font-bold text-white mb-6">Discografía</h2>
+      <div ref={discographyRef} {...discographyScrollProps} className="px-8 relative z-10 flex-1 pt-6 overflow-y-auto pb-32">
+        <motion.div style={{ y: discographySpringY }}>
+          <h2 className="text-2xl font-bold text-white mb-6">Discografía</h2>
         
         {artistAlbums.length === 0 ? (
           <p className="text-white/50">No hay álbumes disponibles para este artista en la base de datos.</p>
@@ -217,6 +221,7 @@ export const ArtistView = ({
             ))}
           </div>
         )}
+        </motion.div>
       </div>
       
       {/* Download Confirmation Modal */}

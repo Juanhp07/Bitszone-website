@@ -163,10 +163,14 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
     }
   };
 
+  // Arrow scrolling ref to suppress bounce when clicking arrows
+  const isArrowScrollingRef = useRef(false);
+  const arrowScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const handleScroll = () => {
     checkScroll();
     const container = scrollContainerRef.current;
-    if (!container || isDownRef.current) return;
+    if (!container || isDownRef.current || isArrowScrollingRef.current) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
     const maxScroll = scrollWidth - clientWidth;
@@ -178,7 +182,7 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
     lastScrollLeftRef.current = scrollLeft;
     lastScrollTimeRef.current = now;
 
-    // Boundary collision bounce when scrolling at high momentum
+    // Boundary collision bounce when scrolling at high momentum (only via physical drag/wheel)
     if (!isBouncingRef.current && speed > 0.45) {
       if (scrollLeft <= 0 && dx < 0) {
         isBouncingRef.current = true;
@@ -196,34 +200,18 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
     const scrollAmount = container.clientWidth * 0.75;
-    const currentScroll = container.scrollLeft;
-    const maxScroll = container.scrollWidth - container.clientWidth;
 
-    if (direction === 'right') {
-      if (currentScroll >= maxScroll - 5) {
-        triggerLimitBounce('right');
-        return;
-      }
-      const target = currentScroll + scrollAmount;
-      if (target >= maxScroll - 15) {
-        container.scrollTo({ left: maxScroll, behavior: 'smooth' });
-        setTimeout(() => triggerLimitBounce('right'), 300);
-      } else {
-        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-      }
-    } else {
-      if (currentScroll <= 5) {
-        triggerLimitBounce('left');
-        return;
-      }
-      const target = currentScroll - scrollAmount;
-      if (target <= 15) {
-        container.scrollTo({ left: 0, behavior: 'smooth' });
-        setTimeout(() => triggerLimitBounce('left'), 300);
-      } else {
-        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-      }
-    }
+    // Suppress any boundary bounce during arrow-driven smooth scroll
+    isArrowScrollingRef.current = true;
+    if (arrowScrollTimeoutRef.current) clearTimeout(arrowScrollTimeoutRef.current);
+    arrowScrollTimeoutRef.current = setTimeout(() => {
+      isArrowScrollingRef.current = false;
+    }, 650);
+
+    container.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    });
   };
 
   const getMaskImage = () => {

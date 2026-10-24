@@ -16,8 +16,10 @@ import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
 import { PlayerLoadingScreen } from './PlayerLoadingScreen';
 import { Heart } from 'lucide-react';
+import { useRubberBand } from '../ui/useRubberBand';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
+  const { containerRef: mainScrollRef, springValue: springMainY, scrollProps: mainScrollProps } = useRubberBand({ axis: 'y' });
 
   const [currentView, setCurrentView] = useState<string>("catalog");
   const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string, type?: string} | null>(null);
@@ -556,8 +558,17 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
               
               
-              <main id="main-scroll-container" className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-                <div className="pt-20 pb-0 min-h-full flex flex-col">
+              <main 
+                id="main-scroll-container" 
+                ref={mainScrollRef}
+                {...mainScrollProps}
+                className="flex-1 overflow-y-auto relative z-10 scrollbar-hide" 
+                style={{ scrollbarWidth: 'none' }}
+              >
+                <motion.div 
+                  style={{ y: springMainY }}
+                  className="pt-20 pb-0 min-h-full flex flex-col"
+                >
                   {currentView === 'catalog' && (
                     <CatalogView 
                       albums={albums} 
@@ -592,7 +603,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       onSelectAlbum={handleSelectAlbum} 
                     />
                   )}
-                </div>
+                </motion.div>
               </main>
 
               {/* Fade-out gradients applied to the scrollable area bounds */}
