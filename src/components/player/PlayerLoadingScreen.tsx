@@ -14,8 +14,6 @@ const BARS = [
 export const PlayerLoadingScreen: React.FC = () => {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
       exit={{ 
         opacity: 0, 
         scale: 1.03, 
@@ -44,12 +42,7 @@ export const PlayerLoadingScreen: React.FC = () => {
       <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
 
       {/* Center content stage */}
-      <motion.div 
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-10 flex flex-col items-center"
-      >
+      <div className="relative z-10 flex flex-col items-center">
         {/* Bitszone Logo */}
         <div className="flex flex-col items-center mb-9">
           <span
@@ -118,7 +111,7 @@ export const PlayerLoadingScreen: React.FC = () => {
             />
           </div>
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 };

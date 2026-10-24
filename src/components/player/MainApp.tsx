@@ -31,16 +31,6 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
   
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
-  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMinTimeElapsed(true);
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const isInitialLoading = loading || !minTimeElapsed;
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
   
@@ -419,7 +409,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     <DownloadsProvider>
       <ToastContainer />
       <AnimatePresence>
-        {isInitialLoading && <PlayerLoadingScreen />}
+        {loading && <PlayerLoadingScreen />}
       </AnimatePresence>
       <div className="w-full h-screen bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative">
       {/* Unified Global Background */}
