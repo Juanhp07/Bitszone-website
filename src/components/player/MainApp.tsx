@@ -14,6 +14,7 @@ import { ToastContainer } from './ToastContainer';
 import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
+import { PlayerLoadingScreen } from './PlayerLoadingScreen';
 import { Heart } from 'lucide-react';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
@@ -30,6 +31,16 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
   
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinTimeElapsed(true);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const isInitialLoading = loading || !minTimeElapsed;
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
   
@@ -407,7 +418,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   return (
     <DownloadsProvider>
       <ToastContainer />
-    <div className="w-full h-screen bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative">
+      <AnimatePresence>
+        {isInitialLoading && <PlayerLoadingScreen />}
+      </AnimatePresence>
+      <div className="w-full h-screen bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative">
       {/* Unified Global Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-[#050505] to-blue-900/20 pointer-events-none z-0"></div>
       <div className={`absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#a855f7]/15 to-transparent pointer-events-none z-0 transition-opacity duration-700 ${['album', 'downloads', 'library', 'artist'].includes(currentView) ? 'opacity-0' : 'opacity-100'}`}></div>

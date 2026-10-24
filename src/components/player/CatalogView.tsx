@@ -86,6 +86,34 @@ export const CatalogView = ({
     );
   };
 
+  const renderSkeletonCards = () => (
+    <div className="flex gap-6 overflow-hidden">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="w-48 shrink-0 flex flex-col gap-3 animate-pulse">
+          <div className="w-48 h-48 rounded-xl bg-white/[0.04] border border-white/5 relative overflow-hidden" />
+          <div className="flex flex-col gap-2 mt-1">
+            <div className="h-4 w-3/4 rounded-md bg-white/[0.06]" />
+            <div className="h-3 w-1/2 rounded-md bg-white/[0.04]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderSkeletonArtists = () => (
+    <div className="flex gap-6 overflow-hidden">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="w-40 shrink-0 flex flex-col items-center gap-4 animate-pulse">
+          <div className="w-40 h-40 rounded-full bg-white/[0.04] border border-white/5 relative overflow-hidden" />
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-3.5 w-24 rounded-md bg-white/[0.06]" />
+            <div className="h-3 w-16 rounded-md bg-white/[0.03]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   const executeDownloadAlbum = async () => {
     const album = showDownloadConfirm;
     setShowDownloadConfirm(null);
@@ -212,7 +240,7 @@ export const CatalogView = ({
             <button onClick={() => setExpandedSection('canciones')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
-        {renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 96)}
+        {loading ? renderSkeletonCards() : renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 96)}
       </section>
       )}
 
@@ -231,7 +259,7 @@ export const CatalogView = ({
             <button onClick={() => setExpandedSection('artistas')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
-        {renderList(dynamicArtists, expandedSection === 'artistas', (artist, i) => (
+        {loading ? renderSkeletonArtists() : renderList(dynamicArtists, expandedSection === 'artistas', (artist, i) => (
           <div key={i} className={`${expandedSection ? 'w-full' : 'w-40'} shrink-0 flex flex-col items-center gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
             <div className={`${expandedSection ? 'w-full aspect-square' : 'w-40 h-40'} rounded-full overflow-hidden shadow-lg relative`}>
               <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -261,7 +289,7 @@ export const CatalogView = ({
             <button onClick={() => setExpandedSection('destacados')} className="text-sm font-medium text-white/50 hover:text-white transition-colors">Mostrar todo</button>
           )}
         </div>
-        {renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 96)}
+        {loading ? renderSkeletonCards() : renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 96)}
       </section>
       )}
       
