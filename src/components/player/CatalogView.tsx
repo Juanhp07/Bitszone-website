@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { DownloadCloud } from 'lucide-react';
 import { Play, Pause, Download, Check, CheckCircle, Loader2, ChevronLeft, Heart, AlertCircle, HeartOff, X } from 'lucide-react';
@@ -9,12 +10,14 @@ import { ScrollableList } from '../ui/ScrollableList';
 export const CatalogView = ({ 
   albums,
   loading,
+  isInitialEntrance = false,
   onSelectAlbum,
   onPlayTrack,
   onSelectArtist
 }: { 
   albums: Album[],
   loading: boolean,
+  isInitialEntrance?: boolean,
   onSelectAlbum: (album: Album) => void,
   onPlayTrack: (t: Track, a: Album) => void,
   onSelectArtist?: (artist: {name: string, img: string, type?: string}) => void
@@ -226,7 +229,12 @@ export const CatalogView = ({
   return (
     <div className="flex flex-col gap-6">
       {(!expandedSection || expandedSection === 'canciones') && (
-      <section className="px-8 pt-8">
+      <motion.section 
+        initial={isInitialEntrance ? { y: 55, opacity: 0 } : false}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: isInitialEntrance ? 0.15 : 0 }}
+        className="px-8 pt-8"
+      >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             {expandedSection && (
@@ -241,11 +249,16 @@ export const CatalogView = ({
           )}
         </div>
         {loading ? renderSkeletonCards() : renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 96)}
-      </section>
+      </motion.section>
       )}
 
       {(!expandedSection || expandedSection === 'artistas') && (
-      <section className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}>
+      <motion.section 
+        initial={isInitialEntrance ? { y: 55, opacity: 0 } : false}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: isInitialEntrance ? 0.3 : 0 }}
+        className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}
+      >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             {expandedSection && (
@@ -271,11 +284,16 @@ export const CatalogView = ({
             </div>
           </div>
         ), 80)}
-      </section>
+      </motion.section>
       )}
 
       {(!expandedSection || expandedSection === 'destacados') && (
-      <section className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}>
+      <motion.section 
+        initial={isInitialEntrance ? { y: 55, opacity: 0 } : false}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: isInitialEntrance ? 0.45 : 0 }}
+        className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}
+      >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             {expandedSection && (
@@ -290,7 +308,7 @@ export const CatalogView = ({
           )}
         </div>
         {loading ? renderSkeletonCards() : renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 96)}
-      </section>
+      </motion.section>
       )}
       
       {showDownloadConfirm && createPortal(

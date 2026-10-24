@@ -31,6 +31,17 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
   
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
+  const [hasEntered, setHasEntered] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !hasEntered) {
+      const timer = setTimeout(() => {
+        setHasEntered(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, hasEntered]);
+
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
   
@@ -463,7 +474,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none z-0"></div>
 
       {/* SEAMLESS GLOBAL GLASS LAYER using a single blurred pane and a vector clip-path */}
-      <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+      <div 
+        className="absolute inset-0 pointer-events-none z-20 overflow-hidden transition-opacity duration-700"
+        style={{ opacity: loading ? 0 : 1 }}
+      >
         {/* The single glass pane with a vector clip-path to perfectly cut out the L-shape and rounded corner without ANY masking artifacts */}
         <div 
           className="absolute inset-0 bg-black/30 backdrop-blur-xl transition-all duration-300"
@@ -498,7 +512,15 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           </svg>
         </div>
       </div>
-      <div className="absolute top-0 left-0 right-0 z-50">
+      <motion.div 
+        initial={false}
+        animate={{ 
+          y: !hasEntered && loading ? -70 : 0, 
+          opacity: !hasEntered && loading ? 0 : 1 
+        }}
+        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute top-0 left-0 right-0 z-50 pointer-events-auto"
+      >
         <TopNav 
           currentView={currentView} 
           onViewChange={setCurrentView} 
@@ -506,17 +528,25 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           isSidebarOpen={isSidebarOpen}
           loading={loading}
         />
-      </div>
+      </motion.div>
 
       {/* Main Container - Sidebar Flush, Body Floating */}
       <div className="w-full h-full flex overflow-hidden relative">
         
         {/* Sidebar Flush Left with toggle transition */}
-        <div className={`h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
+        <motion.div 
+          initial={false}
+          animate={{ 
+            x: !hasEntered && loading ? -100 : 0, 
+            opacity: !hasEntered && loading ? 0 : 1 
+          }}
+          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
+          className={`h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}
+        >
           <div className="w-64 h-full">
             <Sidebar currentView={currentView} onViewChange={setCurrentView} isShortcutsOpen={isShortcutsOpen} onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)} onToggleConfig={() => setIsConfigOpen(!isConfigOpen)} />
           </div>
-        </div>
+        </motion.div>
 
         {/* Full-bleed Main Content container */}
         <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
@@ -532,6 +562,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     <CatalogView 
                       albums={albums} 
                       loading={loading} 
+                      isInitialEntrance={!hasEntered}
                       onSelectAlbum={handleSelectAlbum} 
                       onPlayTrack={handlePlayTrack}
                       onSelectArtist={(artist) => {
