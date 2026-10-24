@@ -293,27 +293,27 @@ export const ImmersivePlayer = ({
              </button>
            </div>
 
-           {/* Background Cover Image with Heavy Blur */}
+           {/* Background Cover Image with Moderate Blur (Artwork visible in background) */}
            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden max-md:![mask-image:none] max-md:![-webkit-mask-image:none]" style={{ maskImage: 'linear-gradient(to left, transparent 0%, transparent 5%, black 40%, black 100%)', WebkitMaskImage: 'linear-gradient(to left, transparent 0%, transparent 5%, black 40%, black 100%)' }}>
              <img 
                src={(track.albumCover || album.coverUrl)} 
                alt="" 
-               className="absolute inset-0 w-full h-full object-cover scale-110 blur-[50px] md:blur-[70px] opacity-40" 
+               className="absolute inset-0 w-full h-full object-cover scale-105 blur-[12px] md:blur-[16px] opacity-55" 
              />
-             <div className="absolute inset-0 bg-gradient-to-r from-[#05050A]/60 via-transparent to-[#05050A] opacity-90" />
-             <div className="absolute inset-0 bg-gradient-to-b from-[#05050A]/80 via-transparent to-[#05050A] opacity-90" />
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#05050A_100%)] opacity-80" />
+             <div className="absolute inset-0 bg-gradient-to-r from-[#05050A]/40 via-transparent to-[#05050A]/90 opacity-80" />
+             <div className="absolute inset-0 bg-gradient-to-b from-[#05050A]/50 via-transparent to-[#05050A]/80 opacity-80" />
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#05050A_100%)] opacity-60" />
            </div>
 
            {/* Floating Content: Album Title -> Square -> Artist -> Player Controls */}
-           <div className="relative z-30 flex flex-col items-center justify-center w-full max-w-xl">
+           <div className="relative z-30 flex flex-col items-center justify-center w-full max-w-2xl">
               {/* Album Title (Above the Square) */}
-              <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-serif italic font-bold text-white drop-shadow-lg text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)] mb-3 md:mb-5">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-serif italic font-bold text-white drop-shadow-lg text-center leading-tight [text-shadow:_0_4px_30px_rgba(0,0,0,0.8),_0_2px_10px_rgba(0,0,0,0.5)] mb-3 md:mb-5 px-4">
                 {(track.albumTitle || album.title)}
               </h2>
 
-              {/* Album Cover Square */}
-              <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 aspect-square rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_20px_rgba(255,255,255,0.08)] border border-white/15 mb-3 md:mb-4 shrink-0 relative group/square transition-transform duration-300 hover:scale-[1.02]">
+              {/* Album Cover Square (Enlarged to fill space comfortably) */}
+              <div className="w-[min(75vw,18rem)] h-[min(75vw,18rem)] sm:w-[min(70vw,22rem)] sm:h-[min(70vw,22rem)] md:w-[min(45vw,25rem,45vh)] md:h-[min(45vw,25rem,45vh)] xl:w-[min(45vw,28rem,48vh)] xl:h-[min(45vw,28rem,48vh)] aspect-square rounded-2xl md:rounded-[2rem] overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_35px_rgba(255,255,255,0.06)] border border-white/20 mb-3 md:mb-4 shrink-0 relative group/square transition-transform duration-300 hover:scale-[1.02]">
                 <img 
                   src={(track.albumCover || album.coverUrl)} 
                   alt={album.title} 
@@ -322,7 +322,7 @@ export const ImmersivePlayer = ({
               </div>
 
               {/* Artist Name (Below the Square) */}
-              <p className="text-white/70 text-xs md:text-sm font-bold tracking-[0.25em] uppercase text-center [text-shadow:_0_2px_10px_rgba(0,0,0,0.8)] mb-4 md:mb-6">
+              <p className="text-white/70 text-xs md:text-sm font-bold tracking-[0.25em] uppercase text-center [text-shadow:_0_2px_10px_rgba(0,0,0,0.8)] mb-4 md:mb-5 px-4">
                 {album.artist}
               </p>
 
