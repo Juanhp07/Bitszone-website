@@ -118,6 +118,10 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
     const container = scrollContainerRef.current;
     if (!container) return;
 
+    if (container.style.overflowX === 'hidden' || container.style.overflow === 'hidden' || document.body.style.overflow === 'hidden') {
+      return;
+    }
+
     isDownRef.current = true;
     startXRef.current = e.pageX;
     startScrollLeftRef.current = container.scrollLeft;
@@ -147,6 +151,10 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
 
     const container = scrollContainerRef.current;
     if (!container) return;
+
+    if (container.style.overflowX === 'hidden' || container.style.overflow === 'hidden' || document.body.style.overflow === 'hidden') {
+      return;
+    }
 
     // With Shift key, mouse wheels send deltaY; trackpad sends deltaX
     const delta = isShiftScroll ? (e.deltaY !== 0 ? e.deltaY : e.deltaX) : e.deltaX;
@@ -246,11 +254,12 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       {showLeft && (
         <button
           onClick={() => scroll('left')}
-          className={`absolute left-0 -translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
+          className={`absolute left-0 -translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
           style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(-40%, -50%)` } : undefined}
-          aria-label="Anterior"
+          aria-label="Desplazar hacia la izquierda"
+          title="Desplazar hacia la izquierda"
         >
-          <ChevronLeft className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} />
+          <ChevronLeft className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} aria-hidden="true" />
         </button>
       )}
       
@@ -282,11 +291,12 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       {showRight && (
         <button
           onClick={() => scroll('right')}
-          className={`absolute right-0 translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
+          className={`absolute right-0 translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
           style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(40%, -50%)` } : undefined}
-          aria-label="Siguiente"
+          aria-label="Desplazar hacia la derecha"
+          title="Desplazar hacia la derecha"
         >
-          <ChevronRight className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} />
+          <ChevronRight className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} aria-hidden="true" />
         </button>
       )}
     </div>

@@ -302,8 +302,9 @@ export const DownloadsView = ({
                 e.stopPropagation();
                 setTrackToRemove(track);
               }}
-              className="group/favbtn text-yellow-500 hover:text-yellow-400 opacity-100 transition-all p-2"
+              className="group/favbtn text-yellow-500 hover:text-yellow-400 opacity-100 transition-all p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 rounded-lg"
               title="Quitar licencia"
+              aria-label={`Quitar licencia de ${track.title}`}
             >
               <Star className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
               <StarOff className="w-4 h-4 hidden group-hover/favbtn:block" />
@@ -314,8 +315,9 @@ export const DownloadsView = ({
                 e.stopPropagation();
                 toggleFavorite(track);
               }}
-              className="group/favbtn text-[#a855f7] hover:text-[#b066f8] opacity-100 transition-all p-2"
+              className="group/favbtn text-[#a855f7] hover:text-[#b066f8] opacity-100 transition-all p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg"
               title="Quitar de favoritos"
+              aria-label={`Quitar ${track.title} de favoritos`}
             >
               <Heart className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
               <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" />
@@ -529,8 +531,12 @@ export const DownloadsView = ({
           />
           
           <button 
+            role="tab"
+            aria-selected={viewMode === 'canciones'}
+            title="Ver por canciones"
+            aria-label="Ver lista de canciones"
             onClick={() => { setViewMode('canciones'); setSelectedAlbumId(null); }} 
-            className={`relative z-10 w-[110px] py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 ${
+            className={`relative z-10 w-[110px] py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${
               viewMode === 'canciones' ? (
                 type === 'licenses' ? 'text-yellow-400' : 
                 type === 'playlists' ? 'text-green-400' : 
@@ -542,8 +548,12 @@ export const DownloadsView = ({
             Canciones
           </button>
           <button 
+            role="tab"
+            aria-selected={viewMode === 'albumes'}
+            title="Ver por álbumes"
+            aria-label="Ver lista de álbumes"
             onClick={() => { setViewMode('albumes'); setSelectedAlbumId(null); }} 
-            className={`relative z-10 w-[110px] py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 ${
+            className={`relative z-10 w-[110px] py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${
               viewMode === 'albumes' ? (
                 type === 'licenses' ? 'text-yellow-400' : 
                 type === 'playlists' ? 'text-green-400' : 
@@ -563,7 +573,10 @@ export const DownloadsView = ({
               setSortPos({ top: rect.bottom, left: rect.right - 280 });
               setShowSort(!showSort);
             }} 
-            className="flex items-center gap-1.5 text-white/50 hover:text-white transition-colors text-sm font-medium group relative z-50"
+            title="Opciones de ordenamiento"
+            aria-label="Ordenar elementos"
+            aria-expanded={showSort}
+            className="flex items-center gap-1.5 text-white/50 hover:text-white transition-colors text-sm font-medium group relative z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 py-1"
           >
             <span className="text-white/30 mr-1">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : 'Menos pesados'}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-y-px"><path d="m6 9 6 6 6-6"/></svg>
@@ -584,7 +597,9 @@ export const DownloadsView = ({
                 <button 
                   key={opt.id}
                   onClick={() => { setSortBy(opt.id as any); setShowSort(false); }}
-                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap ${sortBy === opt.id ? 'bg-white/10 text-white font-medium' : `text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : type === 'downloads' ? 'hover:bg-blue-500/10' : 'hover:bg-[#a855f7]/10'}`}`}
+                  title={`Ordenar por: ${opt.label}`}
+                  aria-label={`Ordenar por ${opt.label}`}
+                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${sortBy === opt.id ? 'bg-white/10 text-white font-medium' : `text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : type === 'downloads' ? 'hover:bg-blue-500/10' : 'hover:bg-[#a855f7]/10'}`}`}
                 >
                   {opt.label}
                 </button>
@@ -626,7 +641,9 @@ export const DownloadsView = ({
                     setSearchQuery(sug);
                     setShowSuggestions(false);
                   }}
-                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap overflow-hidden text-ellipsis text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : type === 'downloads' ? 'hover:bg-blue-500/10' : 'hover:bg-[#a855f7]/10'}`}
+                  title={`Buscar: ${sug}`}
+                  aria-label={`Sugerencia de búsqueda: ${sug}`}
+                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap overflow-hidden text-ellipsis focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${type === 'licenses' ? 'text-white/60 hover:text-white hover:bg-yellow-500/10' : type === 'playlists' ? 'text-white/60 hover:text-white hover:bg-green-500/10' : type === 'downloads' ? 'text-white/60 hover:text-white hover:bg-blue-500/10' : 'text-white/60 hover:text-white hover:bg-[#a855f7]/10'}`}
                 >
                   {sug}
                 </button>
@@ -647,7 +664,9 @@ export const DownloadsView = ({
           <div className="px-8 max-w-[1200px] mx-auto w-full pb-12 animate-in fade-in slide-in-from-right-4 duration-300">
             <button 
               onClick={() => setSelectedAlbumId(null)}
-              className="flex items-center gap-2 text-white/50 hover:text-white font-medium text-sm mb-6 transition-colors"
+              title="Volver a álbumes"
+              aria-label="Volver a la lista de álbumes"
+              className="flex items-center gap-2 text-white/50 hover:text-white font-medium text-sm mb-6 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 py-1 -ml-2"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
               Volver a álbumes
@@ -665,7 +684,12 @@ export const DownloadsView = ({
                 <h2 className="text-4xl font-bold text-white tracking-tight">{groupedTracks[selectedAlbumId].title}</h2>
                 <p className="text-white/50 text-base">{groupedTracks[selectedAlbumId].tracks[0]?.artist || 'Artista'} • {groupedTracks[selectedAlbumId].tracks.length} {groupedTracks[selectedAlbumId].tracks.length === 1 ? 'canción' : 'canciones'}</p>
                 <div className="flex items-center gap-3 mt-2">
-                  <button onClick={() => onPlayTrack && onPlayTrack(groupedTracks[selectedAlbumId].tracks[0], groupedTracks[selectedAlbumId] as any)} className="px-6 py-2 rounded-full bg-white hover:bg-white/90 text-black font-bold flex items-center gap-2 transition-transform hover:scale-105">
+                  <button 
+                    onClick={() => onPlayTrack && onPlayTrack(groupedTracks[selectedAlbumId].tracks[0], groupedTracks[selectedAlbumId] as any)} 
+                    title={`Reproducir álbum ${groupedTracks[selectedAlbumId].title}`}
+                    aria-label={`Reproducir álbum ${groupedTracks[selectedAlbumId].title}`}
+                    className="px-6 py-2 rounded-full bg-white hover:bg-white/90 text-black font-bold flex items-center gap-2 transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                  >
                     <Play className="w-4 h-4" fill="currentColor" />
                     Reproducir
                   </button>
@@ -730,7 +754,9 @@ export const DownloadsView = ({
                       {downloadingAlbums?.includes(String(group.id)) && (
                         <button 
                           onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: group.id, title: group.title }); }}
-                          className="mt-1 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm cursor-pointer group/dlpill"
+                          title={`Cancelar descarga de ${group.title}`}
+                          aria-label={`Cancelar descarga de ${group.title}`}
+                          className="mt-1 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm cursor-pointer group/dlpill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                         >
                           <Loader2 className="w-3 h-3 animate-spin text-blue-400 mr-1.5 group-hover/dlpill:hidden" />
                           <X className="w-3 h-3 text-red-400 mr-1.5 hidden group-hover/dlpill:block" />
@@ -742,7 +768,12 @@ export const DownloadsView = ({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} className={`w-10 h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : type === 'downloads' ? 'hover:bg-blue-500 hover:border-blue-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}>
+                    <button 
+                      onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} 
+                      title={`Reproducir ${group.title}`}
+                      aria-label={`Reproducir ${group.title}`}
+                      className={`w-10 h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : type === 'downloads' ? 'hover:bg-blue-500 hover:border-blue-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}
+                    >
                       <Play className="w-5 h-5 ml-1" fill="currentColor" />
                     </button>
                     <FuseButton fuse="outline" commitOn="fuseEnd" radius={20} 
@@ -808,8 +839,9 @@ export const DownloadsView = ({
                     {downloadingAlbums?.includes(String(album.id)) && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: album.id, title: album.title }); }}
-                        className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-lg"
+                        className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                         title="Cancelar descarga"
+                        aria-label={`Cancelar descarga de ${album.title}`}
                       >
                         <Loader2 className="w-5 h-5 animate-spin text-blue-400 group-hover/cancel:hidden" />
                         <X className="w-5 h-5 hidden group-hover/cancel:block text-red-400" />
@@ -817,7 +849,9 @@ export const DownloadsView = ({
                     )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button 
-                        className="${type === 'licenses' ? 'bg-yellow-500 hover:bg-yellow-400' : type === 'playlists' ? 'bg-green-500 hover:bg-green-400' : type === 'downloads' ? 'bg-blue-500 hover:bg-blue-400' : 'bg-[#a855f7] hover:bg-[#b066f8]'} w-14 h-14 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg"
+                        title={`Reproducir álbum ${album.title}`}
+                        aria-label={`Reproducir álbum ${album.title}`}
+                        className={`${type === 'licenses' ? 'bg-yellow-500 hover:bg-yellow-400' : type === 'playlists' ? 'bg-green-500 hover:bg-green-400' : type === 'downloads' ? 'bg-blue-500 hover:bg-blue-400' : 'bg-[#a855f7] hover:bg-[#b066f8]'} w-14 h-14 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400`}
                         onClick={(e) => {
                           e.stopPropagation();
                           if (album.tracks && album.tracks.length > 0) {
@@ -837,7 +871,10 @@ export const DownloadsView = ({
                       </div>
                       <button 
                          onClick={(e) => { e.stopPropagation(); toggleFavoriteAlbum && toggleFavoriteAlbum(album as any); }}
-                         className={`group/favbtn shrink-0 p-1 -mt-0.5 -mr-1 rounded-full transition-colors hover:scale-110 ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/30 hover:text-white'}`}
+                         title={isEntireAlbumFavorited ? `Quitar álbum ${album.title} de favoritos` : `Guardar álbum ${album.title} en favoritos`}
+                         aria-label={isEntireAlbumFavorited ? `Quitar álbum ${album.title} de favoritos` : `Guardar álbum ${album.title} en favoritos`}
+                         aria-pressed={isEntireAlbumFavorited}
+                         className={`group/favbtn shrink-0 p-1 -mt-0.5 -mr-1 rounded-full transition-colors hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/30 hover:text-white'}`}
                       >
                          {isEntireAlbumFavorited ? (
                            <>
@@ -856,7 +893,9 @@ export const DownloadsView = ({
                         return (
                           <button 
                             onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: album.id, title: album.title }); }}
-                            className="mt-2 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm"
+                            title={`Cancelar descarga de ${album.title}`}
+                            aria-label={`Cancelar descarga de ${album.title}`}
+                            className="mt-2 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                           >
                             <span className="text-blue-400 text-[9px] font-bold tracking-wider uppercase flex items-center gap-1.5">
                               Descargando...
@@ -905,10 +944,20 @@ export const DownloadsView = ({
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setTrackToRemove(null)} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+              <button 
+                onClick={() => setTrackToRemove(null)} 
+                title="Cancelar y mantener licencia"
+                aria-label="Cancelar y mantener licencia"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+              >
                 Cancelar
               </button>
-              <button onClick={() => { removeLicensedTrack(trackToRemove.id); setTrackToRemove(null); }} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors">
+              <button 
+                onClick={() => { removeLicensedTrack(trackToRemove.id); setTrackToRemove(null); }} 
+                title="Confirmar y quitar licencia"
+                aria-label="Confirmar y quitar licencia"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+              >
                 Sí, quitar
               </button>
             </div>
@@ -932,10 +981,20 @@ export const DownloadsView = ({
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowCancelConfirm(null)} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+              <button 
+                onClick={() => setShowCancelConfirm(null)} 
+                title="Continuar con la descarga"
+                aria-label="Continuar con la descarga"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              >
                 Continuar descarga
               </button>
-              <button onClick={() => { cancelAlbumDownload(String(showCancelConfirm.id)); setShowCancelConfirm(null); }} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors">
+              <button 
+                onClick={() => { cancelAlbumDownload(String(showCancelConfirm.id)); setShowCancelConfirm(null); }} 
+                title="Confirmar cancelación de descarga"
+                aria-label="Confirmar cancelación de descarga"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              >
                 Sí, cancelar
               </button>
             </div>

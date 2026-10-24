@@ -31,8 +31,14 @@ export const TopNav = ({
         className="flex-1 flex items-center transition-opacity duration-700 ease-out"
         style={{ opacity: loading ? 0 : 1 }}
       >
-        <button onClick={onToggleSidebar} className="text-white/70 hover:text-white transition-colors">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible">
+        <button 
+          onClick={onToggleSidebar} 
+          className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg p-1.5 cursor-pointer"
+          title={isSidebarOpen ? "Ocultar menú lateral" : "Mostrar menú lateral"}
+          aria-label={isSidebarOpen ? "Ocultar menú lateral" : "Mostrar menú lateral"}
+          aria-expanded={isSidebarOpen}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible" aria-hidden="true">
             <line x1="4" y1="6" x2="20" y2="6" className="transition-transform duration-300" />
             <line x1="4" y1="12" x2="20" y2="12" className="transition-transform duration-300" />
             <line x1="4" y1="18" x2="20" y2="18" 
@@ -51,12 +57,13 @@ export const TopNav = ({
         
         <button 
           onClick={() => window.location.reload()}
-          className="cursor-pointer hover:opacity-80 hover:scale-105 active:scale-95 border-none bg-transparent"
+          className="cursor-pointer hover:opacity-80 hover:scale-105 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-xl p-1"
           style={{ 
             opacity: loading ? 0 : 1, 
             transition: 'opacity 0.2s ease 0.75s' 
           }}
-          aria-label="Recargar página"
+          title="Bitszone - Recargar aplicación"
+          aria-label="Bitszone - Recargar página"
         >
           <SpecularText
             text="Bitszone"
@@ -80,8 +87,13 @@ export const TopNav = ({
         className="flex-1 flex items-center justify-end transition-opacity duration-700 ease-out"
         style={{ opacity: loading ? 0 : 1 }}
       >
-        <a href="/login" className="px-5 py-2 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2 text-white">
-          <User className="w-4 h-4" />
+        <a 
+          href="/login" 
+          className="px-5 py-2 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+          title="Acceder a tu cuenta"
+          aria-label="Acceder a tu cuenta"
+        >
+          <User className="w-4 h-4" aria-hidden="true" />
           Acceder
         </a>
       </div>

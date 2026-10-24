@@ -44,22 +44,84 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     }
   }, [loading, hasEntered]);
 
-  // Lock background scroll when Config modal is open
+  // Lock background scroll (both vertical and horizontal) when Config modal is open
   useEffect(() => {
     if (isConfigOpen) {
       const mainContainer = document.getElementById('main-scroll-container');
       const originalOverflow = mainContainer ? mainContainer.style.overflow : '';
+      const originalOverflowX = mainContainer ? mainContainer.style.overflowX : '';
+      const originalOverflowY = mainContainer ? mainContainer.style.overflowY : '';
       if (mainContainer) {
         mainContainer.style.overflow = 'hidden';
+        mainContainer.style.overflowX = 'hidden';
+        mainContainer.style.overflowY = 'hidden';
       }
       const originalBodyOverflow = document.body.style.overflow;
+      const originalBodyOverflowX = document.body.style.overflowX;
+      const originalBodyOverflowY = document.body.style.overflowY;
       document.body.style.overflow = 'hidden';
+      document.body.style.overflowX = 'hidden';
+      document.body.style.overflowY = 'hidden';
+
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      const originalHtmlOverflowX = document.documentElement.style.overflowX;
+      const originalHtmlOverflowY = document.documentElement.style.overflowY;
+      document.documentElement.style.overflow = 'hidden';
+      document.documentElement.style.overflowX = 'hidden';
+      document.documentElement.style.overflowY = 'hidden';
+
+      // Also freeze all horizontal carousels while modal is open
+      const scrollableElements = document.querySelectorAll('.overflow-x-auto');
+      const originalListStyles: Array<{ el: HTMLElement; overflowX: string }> = [];
+      scrollableElements.forEach((node) => {
+        const el = node as HTMLElement;
+        originalListStyles.push({ el, overflowX: el.style.overflowX });
+        el.style.overflowX = 'hidden';
+      });
+
+      // Intercept wheel and touchmove events outside the modal card or horizontal events inside it
+      const handleGlobalWheel = (e: WheelEvent) => {
+        const modalCard = document.getElementById('config-modal-card');
+        if (!modalCard || !modalCard.contains(e.target as Node)) {
+          // Outside modal: completely prevent wheel scroll
+          e.preventDefault();
+        } else {
+          // Inside modal: prevent any horizontal trackpad swipe or Shift-wheel
+          if (Math.abs(e.deltaX) > 0 || e.shiftKey) {
+            e.preventDefault();
+          }
+        }
+      };
+
+      const handleGlobalTouchMove = (e: TouchEvent) => {
+        const modalCard = document.getElementById('config-modal-card');
+        if (!modalCard || !modalCard.contains(e.target as Node)) {
+          e.preventDefault();
+        }
+      };
+
+      window.addEventListener('wheel', handleGlobalWheel, { passive: false });
+      window.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
 
       return () => {
         if (mainContainer) {
           mainContainer.style.overflow = originalOverflow;
+          mainContainer.style.overflowX = originalOverflowX;
+          mainContainer.style.overflowY = originalOverflowY;
         }
         document.body.style.overflow = originalBodyOverflow;
+        document.body.style.overflowX = originalBodyOverflowX;
+        document.body.style.overflowY = originalBodyOverflowY;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+        document.documentElement.style.overflowX = originalHtmlOverflowX;
+        document.documentElement.style.overflowY = originalHtmlOverflowY;
+
+        originalListStyles.forEach(({ el, overflowX }) => {
+          el.style.overflowX = overflowX;
+        });
+
+        window.removeEventListener('wheel', handleGlobalWheel);
+        window.removeEventListener('touchmove', handleGlobalTouchMove);
       };
     }
   }, [isConfigOpen]);
@@ -730,10 +792,20 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
             className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-8 overscroll-contain select-none"
+            role="presentation"
           >
-            <div className="absolute inset-0 cursor-pointer" onClick={() => setIsConfigOpen(false)} />
+            <div 
+              className="absolute inset-0 cursor-pointer" 
+              onClick={() => setIsConfigOpen(false)} 
+              title="Cerrar modal de configuración"
+              aria-label="Cerrar modal de configuración"
+            />
             
             <motion.div
+              id="config-modal-card"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="config-modal-title"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 450, damping: 30 } }}
               exit={{ opacity: 0, scale: 0.95, y: 15, transition: { duration: 0.1, ease: "easeOut" } }}
@@ -742,12 +814,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             >
               {/* Config Header */}
               <div className="p-8 pb-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.02]">
-                <h2 className="text-3xl font-bold text-white tracking-wide">Configuración</h2>
+                <h2 id="config-modal-title" className="text-3xl font-bold text-white tracking-wide">Configuración</h2>
                 <button 
                   onClick={() => setIsConfigOpen(false)} 
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  title="Cerrar configuración (Esc)"
+                  aria-label="Cerrar ventana de configuración"
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
               </div>
               

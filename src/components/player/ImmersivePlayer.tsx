@@ -216,10 +216,11 @@ export const ImmersivePlayer = ({
 
         <button 
           onClick={onClose}
-          className="absolute top-8 left-8 md:top-10 md:left-12 xl:left-[5rem] z-50 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white backdrop-blur-2xl border border-white/20 transition-all group cursor-pointer"
-          title="Minimizar Reproductor"
+          className="absolute top-8 left-8 md:top-10 md:left-12 xl:left-[5rem] z-50 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white backdrop-blur-2xl border border-white/20 transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          title="Minimizar reproductor (F o Esc)"
+          aria-label="Minimizar reproductor"
         >
-          <Minimize2 className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-90 transition-transform" />
+          <Minimize2 className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-90 transition-transform" aria-hidden="true" />
         </button>
 
         {/* 1. LEFT: Tracklist */}
@@ -248,15 +249,17 @@ export const ImmersivePlayer = ({
                      <div className="flex items-center relative min-w-[3.5rem] shrink-0">
                        <button 
                          onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
-                         className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                         className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                         title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                         aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
                        >
                          {isFavorite(t.id) ? (
                            <>
-                             <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" />
-                             <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" />
+                             <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+                             <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" aria-hidden="true" />
                            </>
                          ) : (
-                           <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" />
+                           <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
                          )}
                        </button>
                        <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#a855f7]/80' : 'text-white/40'}`}>
@@ -286,8 +289,13 @@ export const ImmersivePlayer = ({
         <div className="w-[65%] h-full relative flex flex-col items-center group">
            {/* Vertical Volume Control (Appears on Hover) */}
            <div className="absolute right-8 xl:right-12 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
-             <button onClick={() => setVolume && setVolume(100)} className="mb-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon">
-               <Volume2 className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" />
+             <button 
+               onClick={() => setVolume && setVolume(100)} 
+               className="mb-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+               title="Volumen al máximo (100%)"
+               aria-label="Subir volumen al máximo"
+             >
+               <Volume2 className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" aria-hidden="true" />
              </button>
              <div 
                ref={volumeRef}
@@ -328,15 +336,22 @@ export const ImmersivePlayer = ({
                    <button
                      key={level}
                      onClick={(e) => { e.stopPropagation(); setVolume && setVolume(level); }}
-                     className="py-[2px] px-1 flex items-center justify-center group/line cursor-pointer"
+                     className="py-[2px] px-1 flex items-center justify-center group/line cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 rounded-sm"
+                     title={`Ajustar volumen al ${level}%`}
+                     aria-label={`Volumen ${level}%`}
                    >
                      <div className={`w-6 h-1 rounded-full transition-all duration-100 ${isActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20 group-hover/line:bg-white/60 group-hover/line:scale-y-150'}`} />
                    </button>
                  );
                })}
              </div>
-             <button onClick={() => setVolume && setVolume(0)} className="mt-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon">
-               <VolumeX className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" />
+             <button 
+               onClick={() => setVolume && setVolume(0)} 
+               className="mt-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+               title="Silenciar reproductor"
+               aria-label="Silenciar reproductor"
+             >
+               <VolumeX className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" aria-hidden="true" />
              </button>
            </div>
            {/* Background Cover Image with Fades */}
@@ -352,20 +367,28 @@ export const ImmersivePlayer = ({
            </div>
 
            {/* Top Tabs (PORTADA / LETRA) */}
-           <div className="mt-10 shrink-0 z-40 p-1 flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
+           <div className="mt-10 shrink-0 z-40 p-1 flex items-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]" role="tablist">
               {/* Sliding Background */}
               <div 
                 className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white/20 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm ${activeTab === 'letra' ? 'left-[calc(50%)]' : 'left-1'}`}
               />
               <button 
+                role="tab"
+                aria-selected={activeTab === 'portada'}
                 onClick={() => onTabChange && onTabChange('portada')}
-                className={`relative z-10 w-[110px] md:w-[130px] flex items-center justify-center py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-500 ${activeTab === 'portada' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                className={`relative z-10 w-[110px] md:w-[130px] flex items-center justify-center py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-500 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${activeTab === 'portada' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                title="Mostrar portada del álbum"
+                aria-label="Ver portada del álbum"
               >
                 Portada
               </button>
               <button 
+                role="tab"
+                aria-selected={activeTab === 'letra'}
                 onClick={() => onTabChange && onTabChange('letra')}
-                className={`relative z-10 w-[110px] md:w-[130px] flex items-center justify-center py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-500 ${activeTab === 'letra' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                className={`relative z-10 w-[110px] md:w-[130px] flex items-center justify-center py-2 text-[10px] md:text-xs font-bold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-500 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${activeTab === 'letra' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                title="Mostrar letra sincronizada"
+                aria-label="Ver letra sincronizada de la canción"
               >
                 Letra
               </button>
@@ -423,20 +446,28 @@ export const ImmersivePlayer = ({
               <div className="flex items-center gap-8 md:gap-12 mb-10">
                 <button 
                   onClick={(e) => { e.stopPropagation(); onToggleShuffle?.(); }}
-                  className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  title={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
+                  aria-label={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
+                  aria-pressed={isShuffle}
                 >
-                  <Shuffle className="w-4 h-4 md:w-5 md:h-5" />
+                  <Shuffle className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-                  className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group"
+                  className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  title="Canción anterior"
+                  aria-label="Reproducir canción anterior"
                 >
-                  <SkipBack className="w-5 h-5 md:w-7 md:h-7 group-hover:-translate-x-1 transition-transform" fill="currentColor" />
+                  <SkipBack className="w-5 h-5 md:w-7 md:h-7 group-hover:-translate-x-1 transition-transform" fill="currentColor" aria-hidden="true" />
                 </button>
 
                 <button 
                   onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                  className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center rounded-full text-white transition-all border border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(255,255,255,0.3)] group relative overflow-hidden"
+                  className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center rounded-full text-white transition-all border border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(255,255,255,0.3)] group relative overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 cursor-pointer"
+                  title={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
+                  aria-label={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
+                  aria-pressed={isPlaying}
                 >
                   {/* Spinning Vinyl Cover */}
                   <div 
@@ -459,23 +490,27 @@ export const ImmersivePlayer = ({
 
                   {/* Play/Pause Icon */}
                   {isPlaying ? (
-                    <Pause className="w-8 h-8 md:w-10 md:h-10 relative z-10 group-hover:scale-95 transition-transform drop-shadow-md" fill="currentColor" />
+                    <Pause className="w-8 h-8 md:w-10 md:h-10 relative z-10 group-hover:scale-95 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
                   ) : (
-                    <Play className="w-8 h-8 md:w-10 md:h-10 ml-2 relative z-10 group-hover:scale-105 transition-transform drop-shadow-md" fill="currentColor" />
+                    <Play className="w-8 h-8 md:w-10 md:h-10 ml-2 relative z-10 group-hover:scale-105 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
                   )}
                 </button>
 
                 <button 
                   onClick={(e) => { e.stopPropagation(); onNext?.(); }}
-                  className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group"
+                  className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all backdrop-blur-md border border-white/5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  title="Siguiente canción"
+                  aria-label="Reproducir siguiente canción"
                 >
-                  <SkipForward className="w-5 h-5 md:w-7 md:h-7 group-hover:translate-x-1 transition-transform" fill="currentColor" />
+                  <SkipForward className="w-5 h-5 md:w-7 md:h-7 group-hover:translate-x-1 transition-transform" fill="currentColor" aria-hidden="true" />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onToggleRepeat?.(); }}
-                  className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  title={repeatMode === 'one' ? "Repetir una canción" : repeatMode === 'all' ? "Repetir todo" : "Activar repetición"}
+                  aria-label={`Modo de repetición: ${repeatMode === 'one' ? 'una canción' : repeatMode === 'all' ? 'todas' : 'desactivado'}`}
                 >
-                  {repeatMode === 'one' ? <Repeat1 className="w-4 h-4 md:w-5 md:h-5" /> : <Repeat className="w-4 h-4 md:w-5 md:h-5" />}
+                  {repeatMode === 'one' ? <Repeat1 className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> : <Repeat className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />}
                 </button>
               </div>
 
