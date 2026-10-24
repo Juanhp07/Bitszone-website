@@ -230,9 +230,9 @@ export const CatalogView = ({
     <div className="flex flex-col gap-6">
       {(!expandedSection || expandedSection === 'canciones') && (
       <motion.section 
-        initial={isInitialEntrance ? { y: 55, opacity: 0 } : false}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: isInitialEntrance ? 0.15 : 0 }}
+        initial={isInitialEntrance ? { y: 90, opacity: 0, scale: 0.94 } : false}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: isInitialEntrance ? 0.08 : 0 }}
         className="px-8 pt-8"
       >
         <div className="flex items-center justify-between mb-6">
@@ -254,9 +254,9 @@ export const CatalogView = ({
 
       {(!expandedSection || expandedSection === 'artistas') && (
       <motion.section 
-        initial={isInitialEntrance ? { y: 55, opacity: 0 } : false}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: isInitialEntrance ? 0.3 : 0 }}
+        initial={isInitialEntrance ? { y: 90, opacity: 0, scale: 0.94 } : false}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: isInitialEntrance ? 0.24 : 0 }}
         className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}
       >
         <div className="flex items-center justify-between mb-6">
@@ -289,9 +289,9 @@ export const CatalogView = ({
 
       {(!expandedSection || expandedSection === 'destacados') && (
       <motion.section 
-        initial={isInitialEntrance ? { y: 55, opacity: 0 } : false}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: isInitialEntrance ? 0.45 : 0 }}
+        initial={isInitialEntrance ? { y: 90, opacity: 0, scale: 0.94 } : false}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: isInitialEntrance ? 0.40 : 0 }}
         className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}
       >
         <div className="flex items-center justify-between mb-6">

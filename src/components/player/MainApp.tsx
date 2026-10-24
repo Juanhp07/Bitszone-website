@@ -518,7 +518,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           y: !hasEntered && loading ? -70 : 0, 
           opacity: !hasEntered && loading ? 0 : 1 
         }}
-        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
         className="absolute top-0 left-0 right-0 z-50 pointer-events-auto"
       >
         <TopNav 
@@ -534,19 +534,19 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       <div className="w-full h-full flex overflow-hidden relative">
         
         {/* Sidebar Flush Left with toggle transition */}
-        <motion.div 
-          initial={false}
-          animate={{ 
-            x: !hasEntered && loading ? -100 : 0, 
-            opacity: !hasEntered && loading ? 0 : 1 
-          }}
-          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
-          className={`h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}
-        >
-          <div className="w-64 h-full">
+        <div className={`h-full shrink-0 relative z-30 transition-[width] duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}>
+          <motion.div 
+            initial={false}
+            animate={{ 
+              x: !hasEntered && loading ? -80 : 0, 
+              opacity: !hasEntered && loading ? 0 : 1 
+            }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            className="w-64 h-full"
+          >
             <Sidebar currentView={currentView} onViewChange={setCurrentView} isShortcutsOpen={isShortcutsOpen} onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)} onToggleConfig={() => setIsConfigOpen(!isConfigOpen)} />
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         {/* Full-bleed Main Content container */}
         <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
