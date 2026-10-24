@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
 import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRubberBand } from '../ui/useRubberBand';
 
 
 const MarqueeTitle = ({ text }: { text: string }) => {
@@ -90,10 +92,63 @@ export const ImmersivePlayer = ({
   repeatMode?: "off" | "all" | "one",
   onToggleShuffle?: () => void,
   onToggleRepeat?: () => void,
-  activeTab?: "portada" | "letra" | "pistas",
-  onTabChange?: (tab: "portada" | "letra" | "pistas") => void
+  activeTab?: "portada" | "letra" | "pistas" | "cola",
+  onTabChange?: (tab: "portada" | "letra" | "pistas" | "cola") => void
 }) => {
   if (!track || !album) return null;
+
+  const [currentTab, setCurrentTab] = useState<"pistas" | "letra" | "cola">(
+    activeTab === "letra" ? "letra" : activeTab === "cola" ? "cola" : "pistas"
+  );
+
+  useEffect(() => {
+    if (activeTab === "letra" || activeTab === "cola" || activeTab === "pistas") {
+      setCurrentTab(activeTab);
+    }
+  }, [activeTab]);
+
+  const handleTabSelect = (tab: "pistas" | "letra" | "cola") => {
+    setCurrentTab(tab);
+    onTabChange?.(tab);
+  };
+
+  const currentIndex = album?.tracks?.findIndex(t => t.id === track.id) ?? -1;
+  const upcomingTracks = (album?.tracks && currentIndex !== -1) ? album.tracks.slice(currentIndex + 1) : [];
+
+  // Apple-style rubber band bounce for right scrollable area
+  const { containerRef: rightScrollRef, springValue: rightSpringY, scrollProps: rightScrollProps } = useRubberBand({ axis: 'y' });
+
+  // Top-to-bottom cascade animation variants
+  const tabListVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.04,
+        delayChildren: 0.02,
+      }
+    },
+    exit: {
+      opacity: 0,
+      y: 8,
+      transition: { duration: 0.15, ease: "easeOut" }
+    }
+  };
+
+  const cascadedItemVariants = {
+    hidden: {
+      opacity: 0,
+      y: -20,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.42,
+        ease: [0.16, 1, 0.3, 1]
+      }
+    }
+  };
   
   const volumeRef = React.useRef<HTMLDivElement>(null);
   const isDraggingVol = React.useRef(false);
@@ -216,7 +271,7 @@ export const ImmersivePlayer = ({
 
         <button 
           onClick={onClose}
-          className="absolute top-6 md:top-8 xl:top-10 left-6 md:left-8 xl:left-10 z-50 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white backdrop-blur-2xl border border-white/20 transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          className="absolute top-6 md:top-8 xl:top-10 left-6 md:left-8 xl:left-10 z-50 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] rounded-full text-white/60 hover:text-white backdrop-blur-2xl border border-white/[0.12] shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_8px_20px_rgba(0,0,0,0.3)] transition-all duration-300 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           title="Minimizar reproductor (F o Esc)"
           aria-label="Minimizar reproductor"
         >
@@ -452,23 +507,27 @@ export const ImmersivePlayer = ({
            </div>
         </div>
 
-        {/* 2. RIGHT: Tracklist & Lyrics Tabs */}
+        {/* 2. RIGHT: Tracklist, Lyrics & Queue Tabs */}
         <div className="w-[35%] h-full relative overflow-hidden flex flex-col pt-8 md:pt-10 pb-0">
-           {/* Top Tabs (PISTAS / LETRA) - Centered Liquid Glass Pill */}
+           {/* Top Tabs (PISTAS / LETRA / COLA) - Centered Liquid Glass Pill */}
            <div className="w-full mb-6 shrink-0 z-40 flex items-center justify-center px-4">
               <div 
-                className="relative inline-flex items-center rounded-full p-1 bg-white/[0.03] hover:bg-white/[0.05] backdrop-blur-2xl border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.12),0_8px_24px_rgba(0,0,0,0.3)] transition-colors duration-300" 
+                className="relative inline-flex items-center rounded-full p-1 w-[270px] sm:w-[300px] md:w-[330px] bg-white/[0.03] hover:bg-white/[0.05] backdrop-blur-2xl border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.12),0_8px_24px_rgba(0,0,0,0.3)] transition-colors duration-300" 
                 role="tablist"
               >
                 {/* Sliding Background */}
                 <div 
-                  className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-white/[0.1] backdrop-blur-md border border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeTab === 'letra' ? 'left-[calc(50%)]' : 'left-1'}`}
+                  className="absolute top-1 bottom-1 rounded-full bg-white/[0.1] backdrop-blur-md border border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  style={{
+                    width: 'calc(33.333% - 4px)',
+                    left: currentTab === 'pistas' ? '4px' : currentTab === 'letra' ? 'calc(33.333% + 2px)' : 'calc(66.666% - 0px)'
+                  }}
                 />
                 <button 
                   role="tab"
-                  aria-selected={activeTab !== 'letra'}
-                  onClick={() => onTabChange && onTabChange('pistas' as any)}
-                  className={`relative z-10 w-[88px] md:w-[100px] flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${activeTab !== 'letra' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
+                  aria-selected={currentTab === 'pistas'}
+                  onClick={() => handleTabSelect('pistas')}
+                  className={`relative z-10 flex-1 flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${currentTab === 'pistas' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
                   title="Mostrar pistas del álbum"
                   aria-label="Ver lista de pistas"
                 >
@@ -476,115 +535,229 @@ export const ImmersivePlayer = ({
                 </button>
                 <button 
                   role="tab"
-                  aria-selected={activeTab === 'letra'}
-                  onClick={() => onTabChange && onTabChange('letra')}
-                  className={`relative z-10 w-[88px] md:w-[100px] flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${activeTab === 'letra' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
+                  aria-selected={currentTab === 'letra'}
+                  onClick={() => handleTabSelect('letra')}
+                  className={`relative z-10 flex-1 flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${currentTab === 'letra' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
                   title="Mostrar letra sincronizada"
                   aria-label="Ver letra sincronizada"
                 >
                   Letra
                 </button>
+                <button 
+                  role="tab"
+                  aria-selected={currentTab === 'cola'}
+                  onClick={() => handleTabSelect('cola')}
+                  className={`relative z-10 flex-1 flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${currentTab === 'cola' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
+                  title="Mostrar cola de reproducción"
+                  aria-label="Ver cola de reproducción"
+                >
+                  Cola
+                </button>
               </div>
            </div>
 
-           {/* Tab Content: PISTAS or LETRA */}
-           {activeTab === 'letra' ? (
-              <div className="relative w-full flex-1 overflow-hidden flex flex-col justify-start pl-6 xl:pl-10 pr-12 xl:pr-[5rem] pb-16 animate-in fade-in duration-300">
-                {isSomewhereIBelong ? (
-                  <div 
-                    ref={lyricsContainerRef}
-                    className="relative w-full h-full overflow-y-auto pt-[18vh] pb-[25vh] flex flex-col gap-6"
-                    style={{ 
-                      scrollbarWidth: 'none',
-                      maskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)',
-                      WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)'
-                    }}
-                  >
-                    {activeLyrics?.map((line, i) => {
-                      const isActive = i === activeIndex;
-                      const isPast = i < activeIndex;
-                      return (
-                        <p 
-                          key={i}
-                          ref={isActive ? activeLyricRef : null}
-                          className={`text-left text-xl md:text-2xl xl:text-3xl transition-all duration-500 font-bold leading-relaxed ${
-                            isActive 
-                              ? 'text-white scale-[1.03] origin-left drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]' 
-                              : isPast 
-                                ? 'text-white/40' 
-                                : 'text-white/20'
-                          }`}
-                        >
-                          {line.text}
-                        </p>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-white/40 text-sm md:text-base font-medium tracking-[0.2em] uppercase blur-[0.5px]">No hay letras disponibles</p>
-                  </div>
-                )}
-              </div>
-           ) : (
-              <div 
-                className="relative w-full flex-1 overflow-y-auto overflow-x-hidden flex flex-col justify-start pl-6 xl:pl-10 pr-12 xl:pr-[5rem] transition-all duration-700 pb-20 pt-1 animate-in fade-in duration-300" 
-                style={{ 
-                  scrollbarWidth: 'none',
-                  maskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 60px), transparent 100%)'
-                }}>
-                {album.tracks?.map((t, i) => {
-                  const isActive = track.id === t.id;
-                  return (
-                    <div 
-                      key={t.id} 
-                      onClick={() => onPlayTrack && onPlayTrack(t, album)}
-                      className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
-                        isActive 
-                          ? 'text-[#a855f7] drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] translate-x-4' 
-                          : 'text-white/50 hover:text-white/80'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4 md:gap-6">
-                        <div className="flex items-center relative min-w-[3.5rem] shrink-0">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
-                            className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
-                            title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
-                            aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
-                          >
-                            {isFavorite(t.id) ? (
-                              <>
-                                <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
-                                <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" aria-hidden="true" />
-                              </>
-                            ) : (
-                              <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
-                            )}
-                          </button>
-                          <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#a855f7]/80' : 'text-white/40'}`}>
-                            {(t.trackNumber || i + 1).toString().padStart(2, '0')}
-                          </span>
-                        </div>
-                        <div className="flex items-center flex-1 min-w-0">
-                          {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
-                          <MarqueeTitle text={t.title} />
-                        </div>
-                        {isActive && (
-                          <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 ml-2 md:ml-4 shrink-0 opacity-80">
-                            <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
-                            <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[20px] animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
-                            <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[16px] animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
-                            <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[24px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-           )}
+           {/* Tab Content: PISTAS, LETRA or COLA with Apple Rubber Band & Smooth Top-to-Bottom Cascade */}
+           <div 
+             ref={rightScrollRef}
+             {...rightScrollProps}
+             className="relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start pl-6 xl:pl-10 pr-12 xl:pr-[5rem] pb-20 pt-1 scrollbar-hide" 
+             style={{ 
+               scrollbarWidth: 'none',
+               maskImage: 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)',
+               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)'
+             }}
+           >
+             <motion.div style={{ y: rightSpringY }} className="w-full">
+               <AnimatePresence mode="wait">
+                 {currentTab === 'letra' && (
+                   <motion.div 
+                     key="letra"
+                     variants={tabListVariants}
+                     initial="hidden"
+                     animate="visible"
+                     exit="exit"
+                     className="w-full flex flex-col justify-start"
+                   >
+                     {isSomewhereIBelong ? (
+                       <div 
+                         ref={lyricsContainerRef}
+                         className="relative w-full h-full pt-[18vh] pb-[25vh] flex flex-col gap-6"
+                       >
+                         {activeLyrics?.map((line, i) => {
+                           const isActive = i === activeIndex;
+                           const isPast = i < activeIndex;
+                           return (
+                             <motion.p 
+                               key={i}
+                               variants={cascadedItemVariants}
+                               ref={isActive ? activeLyricRef : null}
+                               className={`text-left text-xl md:text-2xl xl:text-3xl transition-all duration-500 font-bold leading-relaxed ${
+                                 isActive 
+                                   ? 'text-white scale-[1.03] origin-left drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]' 
+                                   : isPast 
+                                     ? 'text-white/40' 
+                                     : 'text-white/20'
+                               }`}
+                             >
+                               {line.text}
+                             </motion.p>
+                           );
+                         })}
+                       </div>
+                     ) : (
+                       <motion.div variants={cascadedItemVariants} className="flex items-center justify-center py-24">
+                         <p className="text-white/40 text-sm md:text-base font-medium tracking-[0.2em] uppercase blur-[0.5px]">No hay letras disponibles</p>
+                       </motion.div>
+                     )}
+                   </motion.div>
+                 )}
+
+                 {currentTab === 'pistas' && (
+                   <motion.div
+                     key="pistas"
+                     variants={tabListVariants}
+                     initial="hidden"
+                     animate="visible"
+                     exit="exit"
+                     className="w-full flex flex-col"
+                   >
+                     {album.tracks?.map((t, i) => {
+                       const isActive = track.id === t.id;
+                       return (
+                         <motion.div 
+                           key={t.id} 
+                           variants={cascadedItemVariants}
+                           onClick={() => onPlayTrack && onPlayTrack(t, album)}
+                           className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
+                             isActive 
+                               ? 'text-[#a855f7] drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] translate-x-4' 
+                               : 'text-white/50 hover:text-white/80'
+                           }`}
+                         >
+                           <div className="flex items-center gap-4 md:gap-6">
+                             <div className="flex items-center relative min-w-[3.5rem] shrink-0">
+                               <button 
+                                 onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
+                                 className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                                 title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                                 aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
+                               >
+                                 {isFavorite(t.id) ? (
+                                   <>
+                                     <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+                                     <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" aria-hidden="true" />
+                                   </>
+                                 ) : (
+                                   <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
+                                 )}
+                               </button>
+                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#a855f7]/80' : 'text-white/40'}`}>
+                                 {(t.trackNumber || i + 1).toString().padStart(2, '0')}
+                               </span>
+                             </div>
+                             <div className="flex items-center flex-1 min-w-0">
+                               {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
+                               <MarqueeTitle text={t.title} />
+                             </div>
+                             {isActive && (
+                               <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 ml-2 md:ml-4 shrink-0 opacity-80">
+                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
+                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[20px] animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
+                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[16px] animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
+                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[24px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
+                               </div>
+                             )}
+                           </div>
+                         </motion.div>
+                       );
+                     })}
+                   </motion.div>
+                 )}
+
+                 {currentTab === 'cola' && (
+                   <motion.div
+                     key="cola"
+                     variants={tabListVariants}
+                     initial="hidden"
+                     animate="visible"
+                     exit="exit"
+                     className="w-full flex flex-col gap-6"
+                   >
+                     {/* Currently Playing Track */}
+                     <motion.div variants={cascadedItemVariants} className="flex flex-col gap-1.5 pb-3 border-b border-white/5">
+                       <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#a855f7]">
+                         En Reproducción
+                       </span>
+                       <div className="py-1.5 text-2xl md:text-3xl font-bold text-white flex items-center gap-4">
+                         <div className="flex items-center min-w-[2.5rem] shrink-0 text-[#a855f7]">
+                           <span className="text-base md:text-lg font-medium tracking-widest">
+                             {(track.trackNumber || (currentIndex + 1)).toString().padStart(2, '0')}
+                           </span>
+                         </div>
+                         <div className="flex items-center flex-1 min-w-0">
+                           <MarqueeTitle text={track.title} />
+                         </div>
+                         <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 ml-2 md:ml-4 shrink-0 opacity-80">
+                           <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
+                           <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[20px] animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
+                           <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[16px] animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
+                           <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[24px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
+                         </div>
+                       </div>
+                     </motion.div>
+
+                     {/* Upcoming Queue Tracks */}
+                     <div className="flex flex-col gap-1">
+                       <motion.span variants={cascadedItemVariants} className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/40 mb-2">
+                         A Continuación
+                       </motion.span>
+                       {upcomingTracks.length > 0 ? (
+                         upcomingTracks.map((t, idx) => (
+                           <motion.div
+                             key={t.id}
+                             variants={cascadedItemVariants}
+                             onClick={() => onPlayTrack && onPlayTrack(t, album)}
+                             className="group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 text-white/50 hover:text-white/80"
+                           >
+                             <div className="flex items-center gap-4 md:gap-6">
+                               <div className="flex items-center relative min-w-[3.5rem] shrink-0">
+                                 <button 
+                                   onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
+                                   className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                                   title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                                   aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
+                                 >
+                                   {isFavorite(t.id) ? (
+                                     <>
+                                       <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+                                       <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" aria-hidden="true" />
+                                     </>
+                                   ) : (
+                                     <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
+                                   )}
+                                 </button>
+                                 <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} text-white/40`}>
+                                   {(t.trackNumber || (currentIndex + 2 + idx)).toString().padStart(2, '0')}
+                                 </span>
+                               </div>
+                               <div className="flex items-center flex-1 min-w-0">
+                                 {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
+                                 <MarqueeTitle text={t.title} />
+                               </div>
+                             </div>
+                           </motion.div>
+                         ))
+                       ) : (
+                         <motion.div variants={cascadedItemVariants} className="py-10 text-center text-white/30 text-sm font-medium tracking-widest uppercase">
+                           No hay más canciones en la cola
+                         </motion.div>
+                       )}
+                     </div>
+                   </motion.div>
+                 )}
+               </AnimatePresence>
+             </motion.div>
+           </div>
         </div>
       </div>
     </>,

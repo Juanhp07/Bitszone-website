@@ -35,6 +35,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   }, [isCompact]);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
+  const [immersiveTab, setImmersiveTab] = useState<"pistas" | "letra" | "cola">("pistas");
   const consecutivePlaysRef = useRef<{ trackId: number | string | null, count: number }>({ trackId: null, count: 0 });
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
@@ -141,6 +142,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [nowPlayingTrack, setNowPlayingTrack] = useState<Track | null>(null);
   const [nowPlayingAlbum, setNowPlayingAlbum] = useState<Album | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [volume, setVolume] = useState(100);
   const [prevVolume, setPrevVolume] = useState(100);
   const [progress, setProgress] = useState(0);
@@ -163,7 +165,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   useEffect(() => {
     if (nowPlayingTrack) {
       const artist = nowPlayingAlbum?.artist || selectedAlbum?.artist || 'Bitszone';
-      if (isPlaying) {
+      if (isPlaying || isAudioLoading) {
         document.title = `▶ ${nowPlayingTrack.title} • ${artist}`;
       } else {
         document.title = `⏸ Canción pausada: ${nowPlayingTrack.title} • ${artist}`;
@@ -469,10 +471,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     return null; // Return null if all fail so we can skip
   };
 
-      const handlePlayTrack = async (track: Track, album: Album) => {
+  const handlePlayTrack = async (track: Track, album: Album) => {
     playRequestIdRef.current += 1;
     const currentRequestId = playRequestIdRef.current;
 
+    setIsAudioLoading(true);
     setNowPlayingTrack(track);
     setNowPlayingAlbum(album);
     
@@ -488,6 +491,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       }
       
       if (!workingUrl) {
+        setIsAudioLoading(false);
         console.warn("Track unplayable, skipping:", track.title);
         audioRef.current.removeAttribute('src'); // Clear the src so we don't accidentally play the previous track
         audioRef.current.load();
@@ -508,8 +512,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         audioRef.current.src = workingUrl;
       }
       audioRef.current.play().then(() => {
-         if (currentRequestId === playRequestIdRef.current) setIsPlaying(true);
-      }).catch(console.error);
+         if (currentRequestId === playRequestIdRef.current) {
+           setIsPlaying(true);
+           setIsAudioLoading(false);
+         }
+      }).catch((err) => {
+         console.error(err);
+         if (currentRequestId === playRequestIdRef.current) setIsAudioLoading(false);
+      });
     }
   };
 
@@ -564,10 +574,18 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     if (!audioRef.current || !nowPlayingTrack) return;
     if (isPlaying) {
       audioRef.current.pause();
+      setIsPlaying(false);
+      setIsAudioLoading(false);
     } else {
-      audioRef.current.play();
+      setIsAudioLoading(true);
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+        setIsAudioLoading(false);
+      }).catch((e) => {
+        console.error(e);
+        setIsAudioLoading(false);
+      });
     }
-    setIsPlaying(!isPlaying);
   };
 
   // On phones the sidebar is an overlay drawer, so the glass frame never reserves room for it,
@@ -814,7 +832,15 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   volume={volume}
                   onExpand={() => setIsPlayerExpanded(true)}
                   isLyricsOpen={isLyricsOpen}
-                  onToggleLyrics={() => { if (isMobile) { setIsLyricsOpen(true); setIsPlayerExpanded(true); } else setIsLyricsOpen(!isLyricsOpen); }}
+                  onToggleLyrics={() => { 
+                    if (isMobile) { 
+                      setImmersiveTab("letra"); 
+                      setIsLyricsOpen(true); 
+                      setIsPlayerExpanded(true); 
+                    } else { 
+                      setIsLyricsOpen(!isLyricsOpen); 
+                    } 
+                  }}
                   onNext={handleNextTrack}
                   onPrev={handlePrevTrack}
                   onSeek={(p) => {
@@ -845,8 +871,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         repeatMode={repeatMode}
         onToggleShuffle={() => setIsShuffle(!isShuffle)}
         onToggleRepeat={() => setRepeatMode(m => m === "off" ? "all" : m === "all" ? "one" : "off")}
-        activeTab={isLyricsOpen ? "letra" : "portada"}
-        onTabChange={(tab) => setIsLyricsOpen(tab === "letra")}
+        activeTab={immersiveTab}
+        onTabChange={(tab) => {
+          setImmersiveTab(tab as any);
+          setIsLyricsOpen(tab === "letra");
+        }}
         isExpanded={isPlayerExpanded}
         onClose={() => setIsPlayerExpanded(false)}
         track={nowPlayingTrack}
