@@ -77,7 +77,7 @@ export const MiniPlayer = ({
           to { background-position-x: -80px; }
         }
         .animate-wave-slide {
-          animation: wave-slide 3s linear infinite;
+          animation: wave-slide 2s linear infinite;
         }
       `}</style>
       {/* Decorative gradient overlay */}
