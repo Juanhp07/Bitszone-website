@@ -226,13 +226,19 @@ export const CatalogView = ({
   );
   };
 
+  const getSectionSpring = (delay: number) => isInitialEntrance ? {
+    y: { type: "spring" as const, stiffness: 110, damping: 11, mass: 0.85, delay },
+    scale: { type: "spring" as const, stiffness: 110, damping: 12, mass: 0.85, delay },
+    opacity: { duration: 0.45, ease: "easeOut" as const, delay }
+  } : { duration: 0 };
+
   return (
     <div className="flex flex-col gap-6">
       {(!expandedSection || expandedSection === 'canciones') && (
       <motion.section 
-        initial={isInitialEntrance ? { y: 90, opacity: 0, scale: 0.94 } : false}
+        initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: isInitialEntrance ? 0.08 : 0 }}
+        transition={getSectionSpring(0.08)}
         className="px-8 pt-8"
       >
         <div className="flex items-center justify-between mb-6">
@@ -254,9 +260,9 @@ export const CatalogView = ({
 
       {(!expandedSection || expandedSection === 'artistas') && (
       <motion.section 
-        initial={isInitialEntrance ? { y: 90, opacity: 0, scale: 0.94 } : false}
+        initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: isInitialEntrance ? 0.24 : 0 }}
+        transition={getSectionSpring(0.22)}
         className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}
       >
         <div className="flex items-center justify-between mb-6">
@@ -289,9 +295,9 @@ export const CatalogView = ({
 
       {(!expandedSection || expandedSection === 'destacados') && (
       <motion.section 
-        initial={isInitialEntrance ? { y: 90, opacity: 0, scale: 0.94 } : false}
+        initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: isInitialEntrance ? 0.40 : 0 }}
+        transition={getSectionSpring(0.36)}
         className={`px-8 ${expandedSection ? "pt-8" : "pt-0"}`}
       >
         <div className="flex items-center justify-between mb-6">
