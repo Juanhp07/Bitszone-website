@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Star, Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, Download, Check, CheckCircle, Loader2, AlertCircle , Trash2 } from 'lucide-react';
+import { Star, Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, Download, Check, CheckCircle, Loader2, AlertCircle, Trash2, X } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
+import { DownloadProgressPill } from './DownloadProgressPill';
 
 
 const useAverageColor = (src: string) => {
@@ -227,11 +228,12 @@ useEffect(() => {
               return (
                 <button 
                   onClick={() => setShowCancelConfirm(true)} 
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors text-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-[#a855f7]/15 hover:bg-red-500/20 text-[#c084fc] hover:text-red-400 border border-[#a855f7]/30 hover:border-red-500/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer group/cancelbtn"
                   title="Cancelar descarga del álbum"
                   aria-label="Cancelar descarga del álbum"
                 >
-                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  <Loader2 className="w-4 h-4 animate-spin group-hover/cancelbtn:hidden" aria-hidden="true" />
+                  <X className="w-4 h-4 hidden group-hover/cancelbtn:block text-red-400" aria-hidden="true" />
                 </button>
               );
             }
@@ -291,16 +293,15 @@ useEffect(() => {
             </div>
             {(() => {
               if (isDownloadingAlbum) {
+                const downloadedCount = album.tracks?.filter(t => isDownloaded(t.id)).length || 0;
+                const totalCount = album.tracks?.length || 0;
                 return (
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(true); }}
-                    className="mt-2 md:mt-3 w-max px-3 py-1.5 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm cursor-pointer"
-                  >
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400 mr-1.5" />
-                    <span className="text-blue-400 text-xs font-bold tracking-wider uppercase">
-                      Descargando...
-                    </span>
-                  </button>
+                  <DownloadProgressPill
+                    size="md"
+                    downloadedCount={downloadedCount}
+                    totalCount={totalCount}
+                    onCancel={(e) => { e.stopPropagation(); setShowCancelConfirm(true); }}
+                  />
                 );
               }
               const downloadedCount = album.tracks?.filter(t => isDownloaded(t.id)).length || 0;

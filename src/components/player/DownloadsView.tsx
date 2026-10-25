@@ -6,6 +6,7 @@ import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, 
 import FuseButton from '../ui/FuseButton';
 import HoldButton from '../ui/HoldButton';
 import { useDownloads } from './DownloadsContext';
+import { DownloadProgressPill } from './DownloadProgressPill';
 import type { Track, Album } from './types';
 
 const TimeAgo = ({ dateStr }: { dateStr?: string }) => {
@@ -753,18 +754,12 @@ export const DownloadsView = ({
                       <h2 className="text-base md:text-xl font-bold text-white tracking-tight group-hover/title:underline truncate">{group.title}</h2>
                       <p className="text-white/50 text-[13px] md:text-sm mt-0.5 truncate">{group.tracks[0]?.artist || 'Varios Artistas'}</p>
                       {downloadingAlbums?.includes(String(group.id)) && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: group.id, title: group.title }); }}
-                          title={`Cancelar descarga de ${group.title}`}
-                          aria-label={`Cancelar descarga de ${group.title}`}
-                          className="mt-1 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm cursor-pointer group/dlpill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                        >
-                          <Loader2 className="w-3 h-3 animate-spin text-blue-400 mr-1.5 group-hover/dlpill:hidden" />
-                          <X className="w-3 h-3 text-red-400 mr-1.5 hidden group-hover/dlpill:block" />
-                          <span className="text-blue-400 text-[9px] font-bold tracking-wider uppercase group-hover/dlpill:text-red-400">
-                            Descargando...
-                          </span>
-                        </button>
+                        <DownloadProgressPill
+                          downloadedCount={group.tracks?.filter((t: any) => isDownloaded(t.id)).length || 0}
+                          totalCount={group.tracks?.length || 0}
+                          onCancel={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: group.id, title: group.title }); }}
+                          className="mt-1"
+                        />
                       )}
                     </div>
                   </div>
@@ -840,11 +835,11 @@ export const DownloadsView = ({
                     {downloadingAlbums?.includes(String(album.id)) && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: album.id, title: album.title }); }}
-                        className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                        className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/75 hover:bg-black/90 border border-[#a855f7]/30 hover:border-red-500/40 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
                         title="Cancelar descarga"
                         aria-label={`Cancelar descarga de ${album.title}`}
                       >
-                        <Loader2 className="w-5 h-5 animate-spin text-blue-400 group-hover/cancel:hidden" />
+                        <Loader2 className="w-5 h-5 animate-spin text-[#c084fc] group-hover/cancel:hidden" />
                         <X className="w-5 h-5 hidden group-hover/cancel:block text-red-400" />
                       </button>
                     )}
@@ -892,16 +887,11 @@ export const DownloadsView = ({
                       const isDownloading = downloadingAlbums?.includes(String(album.id));
                       if (isDownloading) {
                         return (
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: album.id, title: album.title }); }}
-                            title={`Cancelar descarga de ${album.title}`}
-                            aria-label={`Cancelar descarga de ${album.title}`}
-                            className="mt-2 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                          >
-                            <span className="text-blue-400 text-[9px] font-bold tracking-wider uppercase flex items-center gap-1.5">
-                              Descargando...
-                            </span>
-                          </button>
+                          <DownloadProgressPill
+                            downloadedCount={downloadedCount}
+                            totalCount={totalCount}
+                            onCancel={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: album.id, title: album.title }); }}
+                          />
                         );
                       }
                       
@@ -971,10 +961,10 @@ export const DownloadsView = ({
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCancelConfirm(null)} />
           <div className="relative bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-[#a855f7] to-[#FF9FFC]" />
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                <AlertCircle className="w-6 h-6 text-blue-500" />
+              <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-6 h-6 text-red-400" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white">¿Cancelar descarga?</h3>
@@ -986,7 +976,7 @@ export const DownloadsView = ({
                 onClick={() => setShowCancelConfirm(null)} 
                 title="Continuar con la descarga"
                 aria-label="Continuar con la descarga"
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
               >
                 Continuar descarga
               </button>
@@ -994,7 +984,7 @@ export const DownloadsView = ({
                 onClick={() => { cancelAlbumDownload(String(showCancelConfirm.id)); setShowCancelConfirm(null); }} 
                 title="Confirmar cancelación de descarga"
                 aria-label="Confirmar cancelación de descarga"
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-red-500 hover:bg-red-600 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
               >
                 Sí, cancelar
               </button>

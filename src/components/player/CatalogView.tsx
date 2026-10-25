@@ -6,6 +6,7 @@ import { Play, Pause, Download, Check, CheckCircle, Loader2, ChevronLeft, Heart,
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 import { ScrollableList } from '../ui/ScrollableList';
+import { DownloadProgressPill } from './DownloadProgressPill';
 
 export const CatalogView = ({ 
   albums,
@@ -141,11 +142,11 @@ export const CatalogView = ({
         {downloadingAlbums?.includes(String(album.id)) && (
           <button 
             onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
-            className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 cursor-pointer"
+            className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/75 hover:bg-black/90 border border-[#a855f7]/30 hover:border-red-500/40 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
             title={`Cancelar descarga de ${album.title}`}
             aria-label={`Cancelar descarga de ${album.title}`}
           >
-            <Loader2 className="w-5 h-5 animate-spin text-blue-400 group-hover/cancel:hidden" aria-hidden="true" />
+            <Loader2 className="w-5 h-5 animate-spin text-[#c084fc] group-hover/cancel:hidden" aria-hidden="true" />
             <X className="w-5 h-5 hidden group-hover/cancel:block text-red-400" aria-hidden="true" />
           </button>
         )}
@@ -211,18 +212,11 @@ export const CatalogView = ({
           })()}
         </div>
         {downloadingAlbums?.includes(String(album.id)) ? (
-          <button 
-            onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
-            className="mt-2 w-max px-2.5 py-1 rounded-full bg-blue-500/15 hover:bg-blue-500/25 transition-colors backdrop-blur-md border border-blue-500/20 flex items-center justify-center shadow-sm cursor-pointer group/dlpill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-            title="Cancelar descarga en curso"
-            aria-label="Descargando álbum. Clic para cancelar descarga"
-          >
-            <Loader2 className="w-3 h-3 animate-spin text-blue-400 mr-1.5 group-hover/dlpill:hidden" />
-            <X className="w-3 h-3 text-red-400 mr-1.5 hidden group-hover/dlpill:block" />
-            <span className="text-blue-400 text-[9px] font-bold tracking-wider uppercase group-hover/dlpill:text-red-400">
-              Descargando...
-            </span>
-          </button>
+          <DownloadProgressPill 
+            downloadedCount={downloadedCount}
+            totalCount={totalCount}
+            onCancel={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
+          />
         ) : (isComplete || isPartial) ? (
           <div className="mt-2 w-max px-2.5 py-1 rounded-full bg-[#a855f7]/15 backdrop-blur-md border border-[#a855f7]/20 flex items-center justify-center shadow-sm">
             <span className="text-[#c084fc] text-[9px] font-bold tracking-wider uppercase">
