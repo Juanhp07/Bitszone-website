@@ -655,8 +655,12 @@ export const DownloadsView = ({
           )}
         </div>
       </div>
-
-      <div ref={listScrollRef} {...listScrollProps} className="px-3 md:px-8 relative z-10 flex-1 pt-4 md:pt-6 overflow-y-auto pb-8">
+      <div 
+        ref={listScrollRef} 
+        {...listScrollProps} 
+        className="px-3 md:px-8 relative z-10 flex-1 pt-4 md:pt-6 overflow-y-auto pb-8 scrollbar-hide"
+        style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+      >
         <motion.div style={{ y: listSpringY }}>
         {filteredTracks.length === 0 && searchQuery !== '' ? (
            <div className="text-center pt-10 text-white/50">
@@ -835,11 +839,11 @@ export const DownloadsView = ({
                     {downloadingAlbums?.includes(String(album.id)) && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowCancelConfirm({ id: album.id, title: album.title }); }}
-                        className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/75 hover:bg-black/90 border border-[#a855f7]/30 hover:border-red-500/40 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                        className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/75 hover:bg-black/90 border border-emerald-500/35 hover:border-red-500/40 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
                         title="Cancelar descarga"
                         aria-label={`Cancelar descarga de ${album.title}`}
                       >
-                        <Loader2 className="w-5 h-5 animate-spin text-[#c084fc] group-hover/cancel:hidden" />
+                        <Loader2 className="w-5 h-5 animate-spin text-emerald-400 group-hover/cancel:hidden" />
                         <X className="w-5 h-5 hidden group-hover/cancel:block text-red-400" />
                       </button>
                     )}

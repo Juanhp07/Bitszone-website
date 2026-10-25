@@ -606,7 +606,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       <AnimatePresence>
         {loading && <PlayerLoadingScreen />}
       </AnimatePresence>
-      <div className="w-full h-screen h-[100dvh] bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative [-webkit-tap-highlight-color:transparent]">
+      <div id="player-app-root" className="w-full h-screen h-[100dvh] bg-[#050505] text-white font-inter overflow-hidden flex flex-col relative [-webkit-tap-highlight-color:transparent] scrollbar-hide">
       {/* Unified Global Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-[#050505] to-blue-900/20 pointer-events-none z-0"></div>
       <div className={`absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#a855f7]/15 to-transparent pointer-events-none z-0 transition-opacity duration-700 ${['album', 'downloads', 'library', 'artist'].includes(currentView) ? 'opacity-0' : 'opacity-100'}`}></div>

@@ -142,11 +142,11 @@ export const CatalogView = ({
         {downloadingAlbums?.includes(String(album.id)) && (
           <button 
             onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
-            className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/75 hover:bg-black/90 border border-[#a855f7]/30 hover:border-red-500/40 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+            className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/75 hover:bg-black/90 border border-emerald-500/35 hover:border-red-500/40 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 cursor-pointer"
             title={`Cancelar descarga de ${album.title}`}
             aria-label={`Cancelar descarga de ${album.title}`}
           >
-            <Loader2 className="w-5 h-5 animate-spin text-[#c084fc] group-hover/cancel:hidden" aria-hidden="true" />
+            <Loader2 className="w-5 h-5 animate-spin text-emerald-400 group-hover/cancel:hidden" aria-hidden="true" />
             <X className="w-5 h-5 hidden group-hover/cancel:block text-red-400" aria-hidden="true" />
           </button>
         )}

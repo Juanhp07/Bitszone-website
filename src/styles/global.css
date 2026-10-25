@@ -243,3 +243,34 @@ html {
   padding-left: 0.15em;
   padding-right: 0.15em;
 }
+
+/* Universal scrollbar-hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Complete player-wide scrollbar suppression (avoids scrollbar flash/flicker in Descargas, Biblioteca, etc.) */
+#player-app-root,
+#player-app-root *,
+#main-scroll-container,
+#main-scroll-container * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+#player-app-root::-webkit-scrollbar,
+#player-app-root *::-webkit-scrollbar,
+#main-scroll-container::-webkit-scrollbar,
+#main-scroll-container *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+

@@ -228,7 +228,7 @@ useEffect(() => {
               return (
                 <button 
                   onClick={() => setShowCancelConfirm(true)} 
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-[#a855f7]/15 hover:bg-red-500/20 text-[#c084fc] hover:text-red-400 border border-[#a855f7]/30 hover:border-red-500/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer group/cancelbtn"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-500/15 hover:bg-red-500/20 text-emerald-400 hover:text-red-400 border border-emerald-500/35 hover:border-red-500/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 cursor-pointer group/cancelbtn"
                   title="Cancelar descarga del álbum"
                   aria-label="Cancelar descarga del álbum"
                 >
