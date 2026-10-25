@@ -817,50 +817,58 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             </div>
 
             {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
-            {nowPlayingTrack && nowPlayingAlbum && (
-              <div className="shrink-0 z-30 border-t border-white/5 bg-black/40 backdrop-blur-3xl">
-                <MiniPlayer 
-                  isShuffle={isShuffle}
-                  repeatMode={repeatMode}
-                  onToggleShuffle={() => setIsShuffle(!isShuffle)}
-                  onToggleRepeat={() => setRepeatMode(m => m === "off" ? "all" : m === "all" ? "one" : "off")}
-                  track={nowPlayingTrack}
-                  album={nowPlayingAlbum}
-                  isPlaying={isPlaying}
-                  togglePlay={togglePlay}
-                  progress={progress}
-                  volume={volume}
-                  onExpand={() => setIsPlayerExpanded(true)}
-                  isLyricsOpen={isLyricsOpen}
-                  onToggleLyrics={() => { 
-                    if (isMobile) { 
-                      setImmersiveTab("letra"); 
-                      setIsLyricsOpen(true); 
-                      setIsPlayerExpanded(true); 
-                    } else { 
-                      setIsLyricsOpen(!isLyricsOpen); 
-                    } 
-                  }}
-                  onNext={handleNextTrack}
-                  onPrev={handlePrevTrack}
-                  onSeek={(p) => {
-                    if (audioRef.current && audioRef.current.duration) {
-                      audioRef.current.currentTime = p * audioRef.current.duration;
-                    }
-                  }}
-                  onVolumeChange={(v) => {
-                    setVolume(v);
-                    if (audioRef.current) audioRef.current.volume = v / 100;
-                  }}
-                  onToggleMute={toggleMute}
-                  onSelectAlbum={() => handleSelectAlbum(nowPlayingAlbum)}
-                  onSelectArtist={() => {
-                    setSelectedArtist({ name: nowPlayingAlbum.artist, img: nowPlayingAlbum.coverUrl, type: nowPlayingAlbum.artist.includes('Combo') || nowPlayingAlbum.artist.includes('Orquesta') ? 'Grupo Musical' : 'Artista' });
-                    setCurrentView('artist');
-                  }}
-                />
-              </div>
-            )}
+            <AnimatePresence>
+              {nowPlayingTrack && nowPlayingAlbum && (
+                <motion.div 
+                  initial={{ y: 80, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 80, opacity: 0 }}
+                  transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+                  className="shrink-0 z-30 border-t border-white/5 bg-black/40 backdrop-blur-3xl"
+                >
+                  <MiniPlayer 
+                    isShuffle={isShuffle}
+                    repeatMode={repeatMode}
+                    onToggleShuffle={() => setIsShuffle(!isShuffle)}
+                    onToggleRepeat={() => setRepeatMode(m => m === "off" ? "all" : m === "all" ? "one" : "off")}
+                    track={nowPlayingTrack}
+                    album={nowPlayingAlbum}
+                    isPlaying={isPlaying}
+                    togglePlay={togglePlay}
+                    progress={progress}
+                    volume={volume}
+                    onExpand={() => setIsPlayerExpanded(true)}
+                    isLyricsOpen={isLyricsOpen}
+                    onToggleLyrics={() => { 
+                      if (isMobile) { 
+                        setImmersiveTab("letra"); 
+                        setIsLyricsOpen(true); 
+                        setIsPlayerExpanded(true); 
+                      } else { 
+                        setIsLyricsOpen(!isLyricsOpen); 
+                      } 
+                    }}
+                    onNext={handleNextTrack}
+                    onPrev={handlePrevTrack}
+                    onSeek={(p) => {
+                      if (audioRef.current && audioRef.current.duration) {
+                        audioRef.current.currentTime = p * audioRef.current.duration;
+                      }
+                    }}
+                    onVolumeChange={(v) => {
+                      setVolume(v);
+                      if (audioRef.current) audioRef.current.volume = v / 100;
+                    }}
+                    onToggleMute={toggleMute}
+                    onSelectAlbum={() => handleSelectAlbum(nowPlayingAlbum)}
+                    onSelectArtist={() => {
+                      setSelectedArtist({ name: nowPlayingAlbum.artist, img: nowPlayingAlbum.coverUrl, type: nowPlayingAlbum.artist.includes('Combo') || nowPlayingAlbum.artist.includes('Orquesta') ? 'Grupo Musical' : 'Artista' });
+                      setCurrentView('artist');
+                    }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <MobileTabBar currentView={currentView} onViewChange={navigate} />
         </div>
