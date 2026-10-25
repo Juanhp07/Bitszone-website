@@ -23,7 +23,7 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
   });
 
   // TIMELINE: Contenedor de 350vh para que todo sea súper lento y fluido.
-  // El margen negativo de -20vh hace que la Sección 3 suba solo un poquito,
+  // El margen negativo de -34vh hace que la Sección 3 suba mientras la preview sale,
   // dando el espacio perfecto para que la animación termine y no bloquee el dock.
   
   // TÍTULO: 
@@ -47,8 +47,10 @@ export const Scroll3DGallery: React.FC<Scroll3DGalleryProps> = ({ albums }) => {
 
   return (
     // Z-20 asegura que los álbumes queden POR ENCIMA de la Sección 3 mientras se desvanecen
-    <div ref={containerRef} className="relative w-full h-[350vh] -mb-[20vh] z-20">
-      <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent flex flex-col items-center justify-center">
+    <div ref={containerRef} className="relative w-full h-[350vh] -mb-[34vh] z-20 pointer-events-none">
+      {/* pointer-events-none: this layer overlaps the top of section 3 (negative margin) and would
+          swallow clicks on its dock; the showcase below opts back in with its own pointerEvents */}
+      <div className="sticky top-0 w-full h-screen overflow-hidden bg-transparent pointer-events-none flex flex-col items-center justify-center">
         
         {/* TÍTULO */}
         <div className="absolute top-[30vh] left-0 w-full z-20 flex flex-col items-center pointer-events-none px-[16px]">

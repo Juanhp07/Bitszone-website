@@ -234,7 +234,7 @@ export const PlayerShowcase = ({ albums, progress }: { albums: AlbumData[]; prog
                   <div className="pv-tile" key={i}>
                     <img src={a.src} alt="" loading="lazy" />
                     <div className="pv-meta">
-                      <div><b>{SONGS[a.title] || a.title}</b><em>{a.artist}</em></div>
+                      <div><b className="text-truncate">{SONGS[a.title] || a.title}</b><em className="text-truncate">{a.artist}</em></div>
                       <Icon id="heart" />
                     </div>
                   </div>
@@ -258,7 +258,7 @@ export const PlayerShowcase = ({ albums, progress }: { albums: AlbumData[]; prog
                 {featured.map((a, i) => (
                   <div className="pv-tile" key={i}>
                     <img src={a.src} alt="" loading="lazy" />
-                    <div className="pv-meta"><div><b>{a.title}</b><em>{a.artist}</em></div></div>
+                    <div className="pv-meta"><div><b className="text-truncate">{a.title}</b><em className="text-truncate">{a.artist}</em></div></div>
                   </div>
                 ))}
               </div>
@@ -343,8 +343,8 @@ const CSS = `
 .pv-tile img{display:block;width:100%;height:calc(83px*var(--u));max-width:none;object-fit:cover;border-radius:calc(3px*var(--u));background:#24163a}
 .pv-meta{display:flex;justify-content:space-between;gap:calc(4px*var(--u));margin-top:calc(8px*var(--u))}
 .pv-meta div{min-width:0}
-.pv-meta b{display:block;font-size:calc(6.4px*var(--u));font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pv-meta em{display:block;font-style:normal;margin-top:calc(1.5px*var(--u));font-size:calc(5.2px*var(--u));color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-meta b{display:block;font-size:calc(6.4px*var(--u));font-weight:700;line-height:1.2}
+.pv-meta em{display:block;font-style:normal;margin-top:calc(1.5px*var(--u));font-size:calc(5.2px*var(--u));color:rgba(255,255,255,.5)}
 .pv-meta .pv-ic{width:calc(6.5px*var(--u));height:calc(6.5px*var(--u));color:rgba(255,255,255,.5);margin-top:calc(1px*var(--u))}
 .pv-art{flex:none;width:calc(70px*var(--u));text-align:center}
 .pv-art img{display:block;width:100%;height:calc(70px*var(--u));max-width:none;object-fit:cover;border-radius:50%;background:#24163a}

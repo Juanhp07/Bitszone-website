@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence, useInView, useScroll, useTransform, type MotionValue } from 'framer-motion';
+import { motion, AnimatePresence, useInView, useReducedMotion, useScroll, useTransform, type MotionValue, type Variants } from 'framer-motion';
 import { Check, Cloud, CloudOff, Wifi, WifiOff, Download, Clock, AudioLines, HardDrive, Ghost } from 'lucide-react';
 import { TiltCard } from './ui/tilt-card';
+import { useIsCompact } from './player/useIsMobile';
 
 /*
  * Sección 3 — "Hay una función para eso."
@@ -40,7 +41,7 @@ const useTicker = (live: boolean, ms: number) => {
  * A fixed card position. It never unmounts when the tab changes, so its scroll-linked
  * entrance (and the page layout) stays put; only the card inside cross-fades.
  */
-const Slot = ({ index, progress, children }: { index: number; progress: MotionValue<number>; children: React.ReactNode }) => {
+const Slot = ({ index, progress, flat, children }: { index: number; progress: MotionValue<number>; flat: boolean; children: React.ReactNode }) => {
   const start = 0.04 + index * 0.06;
   const y = useTransform(progress, [start, start + 0.3], [140, 0]);
   const opacity = useTransform(progress, [start, start + 0.22], [0, 1]);
@@ -49,7 +50,8 @@ const Slot = ({ index, progress, children }: { index: number; progress: MotionVa
 
   return (
     <motion.div
-      style={{ y, opacity, rotateX, scale, transformPerspective: 1200 }}
+      // explicit neutral values: framer-motion keeps transforms it stops receiving
+      style={flat ? { opacity, y: 0, rotateX: 0, scale: 1 } : { y, opacity, rotateX, scale, transformPerspective: 1200 }}
       className="relative h-[440px] lg:h-[480px] shrink-0 w-[82vw] max-w-[380px] sm:w-[56vw] lg:w-auto lg:max-w-none snap-center"
     >
       {children}
@@ -121,7 +123,8 @@ const OfflineDemo = ({ live }: { live: boolean }) => {
       <div className="fx-panel p-4 flex items-center gap-4">
         <img src={COVER.meteora} alt="" className="w-[68px] h-[68px] rounded-[10px] object-cover shadow-[0_10px_24px_rgba(0,0,0,0.5)]" loading="lazy" />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-3">
+          {/* Bootstrap flex utilities: title on the left, equaliser on the right */}
+          <div className="d-flex align-items-center justify-content-between gap-3">
             <div className="min-w-0">
               <p className="text-[14px] font-semibold text-white truncate">Somewhere I Belong</p>
               <p className="text-[12px] text-white/50 truncate">LINKIN PARK · Meteora</p>
@@ -255,7 +258,8 @@ const QueueDemo = ({ live }: { live: boolean }) => {
           <div key={it.title} className="flex items-center gap-3 rounded-[12px] px-2 py-2">
             <img src={it.cover} alt="" className="w-10 h-10 rounded-[8px] object-cover" loading="lazy" />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
+              {/* Bootstrap flex utilities: album name on the left, progress on the right */}
+              <div className="d-flex align-items-center justify-content-between gap-2">
                 <p className="text-[12.5px] font-semibold text-white truncate">{it.title} <span className="font-normal text-white/35">· {it.tracks}</span></p>
                 <span className={`text-[10.5px] font-jetbrains ${done ? 'text-[#e9d5ff]' : 'text-white/45'}`}>
                   {done ? <Check size={13} /> : `${pct}%`}
@@ -340,10 +344,15 @@ const cardsFor = (cat: Category, live: boolean) => cat === 'Reproducción'
 export const ProblemSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const compact = useIsCompact();
+  const reduceMotion = useReducedMotion();
   const trackRef = useRef<HTMLDivElement>(null);
   const live = useInView(sectionRef, { amount: 0.15 });
   const [activeTab, setActiveTab] = useState<Category>(categories[0]);
   const [direction, setDirection] = useState(0);
+  // Bumped on every tab change so each switch mounts fresh cards: re-using a card that is still
+  // mid-exit (same key, fast back-and-forth) could leave it stuck invisible in its exit state.
+  const [switchId, setSwitchId] = useState(0);
 
   // Header + dock: same "fly through space" language as the rest of the landing.
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start 95%', 'end 5%'] });
@@ -363,18 +372,42 @@ export const ProblemSection = () => {
     if (tab === activeTab) return;
     setDirection(categories.indexOf(tab) > categories.indexOf(activeTab) ? 1 : -1);
     setActiveTab(tab);
+    setSwitchId(n => n + 1);
     trackRef.current?.scrollTo({ left: 0, behavior: 'smooth' }); // phones: back to the first card
   };
 
   // Old and new cards overlap inside the same slot, so this is a true cross-fade.
-  const slide = {
-    enter: (dir: number) => ({ x: dir > 0 ? 48 : -48, opacity: 0, filter: 'blur(6px)' }),
-    center: { x: 0, opacity: 1, filter: 'blur(0px)' },
-    exit: (dir: number) => ({ x: dir > 0 ? -48 : 48, opacity: 0, filter: 'blur(6px)', transition: { duration: 0.22 } }),
+  // Cross-slide with motion blur: cards blur and stretch slightly while they travel and land sharp
+  // (the "fast swipe" feel of iOS). The old card fades out faster than the new one fades in, so
+  // they cross without a half-visible ghost; rapid toggling just retargets mid-flight.
+  type SlideCtx = { dir: number; i: number };
+  const ease = [0.32, 0.72, 0, 1] as const; // Apple's "smooth" curve
+  const slide: Variants = {
+    enter: ({ dir }: SlideCtx) => reduceMotion
+      ? { opacity: 0 }
+      : { opacity: 0, x: dir * 64, scaleX: 1.06, scaleY: 0.98, filter: 'blur(12px)' },
+    center: ({ i }: SlideCtx) => ({
+      opacity: 1, x: 0, scaleX: 1, scaleY: 1, filter: 'blur(0px)',
+      transition: {
+        default: { duration: 0.55, ease, delay: i * 0.035 },
+        opacity: { duration: 0.32, ease, delay: 0.08 + i * 0.035 },
+        filter: { duration: 0.42, ease, delay: i * 0.035 },
+      },
+    }),
+    exit: ({ dir, i }: SlideCtx) => ({
+      opacity: 0,
+      pointerEvents: 'none',
+      ...(reduceMotion ? {} : { x: dir * -64, scaleX: 1.06, scaleY: 0.98, filter: 'blur(12px)' }),
+      transition: {
+        default: { duration: 0.38, ease, delay: i * 0.02 },
+        opacity: { duration: 0.22, ease: 'easeOut', delay: i * 0.02 },
+        filter: { duration: 0.22, ease: 'easeIn', delay: i * 0.02 },
+      },
+    }),
   };
 
   return (
-    <section ref={sectionRef} className="py-32 md:py-48 w-full max-w-[1280px] mx-auto relative z-10 flex flex-col items-center px-[20px] md:px-[48px]">
+    <section ref={sectionRef} className="pt-20 md:pt-24 pb-32 md:pb-48 w-full max-w-[1280px] mx-auto relative z-10 flex flex-col items-center px-[20px] md:px-[48px]">
       <style>{CSS}</style>
 
       <motion.div style={{ y: headerY, opacity: headerOpacity, scale: headerScale }} className="text-center w-full max-w-[1100px] mx-auto mb-14">
@@ -434,20 +467,19 @@ export const ProblemSection = () => {
       <motion.div ref={gridRef} style={{ y: gridExitY, opacity: gridExitOpacity }} className="w-full">
         <div
           ref={trackRef}
-          className="fx-track flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 w-auto lg:w-full overflow-x-auto overflow-y-hidden lg:overflow-visible snap-x snap-mandatory -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] lg:mx-0 lg:px-0 pb-2 lg:pb-0"
+          className="fx-track flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 w-auto lg:w-full [overflow-x:auto] [overflow-y:hidden] lg:[overflow-x:visible] lg:[overflow-y:visible] snap-x snap-mandatory -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] lg:mx-0 lg:px-0 py-[16px] -my-[16px] lg:py-0 lg:my-0"
         >
           {cardsFor(activeTab, live).map((c, i) => (
-            <Slot key={i} index={i} progress={gridProgress}>
-              <AnimatePresence custom={direction} initial={false}>
+            <Slot key={i} index={i} progress={gridProgress} flat={compact}>
+              <AnimatePresence custom={{ dir: direction, i }} initial={false}>
                 <motion.div
-                  key={c.key}
-                  custom={direction}
+                  key={`${c.key}-${switchId}`}
+                  custom={{ dir: direction, i }}
                   variants={slide}
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
-                  className="absolute inset-0"
+                  className="absolute inset-0 will-change-transform"
                 >
                   <FeatureCard icon={c.icon} title={c.title} description={c.description}>
                     {c.visual}

@@ -89,6 +89,10 @@ export const HeroSection = () => {
               {/* Efecto de olas del fondo real pasando a través del cristal oscuro */}
               <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-[999px] pointer-events-none overflow-hidden mix-blend-screen bg-[rgba(255,159,252,0.05)]" />
               <style>{`
+                /* Spins the conic hover beam around the whole button (it was referenced but never defined) */
+                @keyframes rotate-gradient {
+                  to { transform: rotate(360deg); }
+                }
                 @keyframes bounce-right {
                   0%, 100% { transform: translateX(0); }
                   50% { transform: translateX(6px); }

@@ -86,7 +86,7 @@ const albums = [...baseAlbums, ...baseAlbums, ...baseAlbums];
 
 export const FeatureSection = () => {
   return (
-    <section id="features" className="relative w-full z-20">
+    <section id="features" className="relative w-full z-20 pointer-events-none">
       <Scroll3DGallery albums={albums} />
     </section>
   );
