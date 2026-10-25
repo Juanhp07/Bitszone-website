@@ -37,6 +37,7 @@ export function TiltCard({
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (e.pointerType !== "mouse") return
       const el = cardRef.current
       if (!el) return
       const rect = el.getBoundingClientRect()
@@ -54,7 +55,8 @@ export function TiltCard({
     [tiltLimit, scale, perspective, dir, spotlight]
   )
 
-  const handlePointerEnter = useCallback(() => {
+  const handlePointerEnter = useCallback((e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return
     setIsHovered(true)
   }, [])
 

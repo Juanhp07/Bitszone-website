@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence, useInView, useScroll, useTransform, type MotionValue } from 'framer-motion';
+import { motion, AnimatePresence, useInView, useReducedMotion, useScroll, useTransform, type MotionValue, type Variants } from 'framer-motion';
 import { Check, Cloud, CloudOff, Wifi, WifiOff, Download, Clock, AudioLines, HardDrive, Ghost } from 'lucide-react';
 import { TiltCard } from './ui/tilt-card';
+import { useIsCompact } from './player/useIsMobile';
 
 /*
  * Sección 3 — "Hay una función para eso."
@@ -40,7 +41,7 @@ const useTicker = (live: boolean, ms: number) => {
  * A fixed card position. It never unmounts when the tab changes, so its scroll-linked
  * entrance (and the page layout) stays put; only the card inside cross-fades.
  */
-const Slot = ({ index, progress, children }: { index: number; progress: MotionValue<number>; children: React.ReactNode }) => {
+const Slot = ({ index, progress, flat, children }: { index: number; progress: MotionValue<number>; flat: boolean; children: React.ReactNode }) => {
   const start = 0.04 + index * 0.06;
   const y = useTransform(progress, [start, start + 0.3], [140, 0]);
   const opacity = useTransform(progress, [start, start + 0.22], [0, 1]);
@@ -49,7 +50,8 @@ const Slot = ({ index, progress, children }: { index: number; progress: MotionVa
 
   return (
     <motion.div
-      style={{ y, opacity, rotateX, scale, transformPerspective: 1200 }}
+      // explicit neutral values: framer-motion keeps transforms it stops receiving
+      style={flat ? { opacity, y: 0, rotateX: 0, scale: 1 } : { y, opacity, rotateX, scale, transformPerspective: 1200 }}
       className="relative h-[440px] lg:h-[480px] shrink-0 w-[82vw] max-w-[380px] sm:w-[56vw] lg:w-auto lg:max-w-none snap-center"
     >
       {children}
@@ -340,6 +342,8 @@ const cardsFor = (cat: Category, live: boolean) => cat === 'Reproducción'
 export const ProblemSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const compact = useIsCompact();
+  const reduceMotion = useReducedMotion();
   const trackRef = useRef<HTMLDivElement>(null);
   const live = useInView(sectionRef, { amount: 0.15 });
   const [activeTab, setActiveTab] = useState<Category>(categories[0]);
@@ -367,14 +371,37 @@ export const ProblemSection = () => {
   };
 
   // Old and new cards overlap inside the same slot, so this is a true cross-fade.
-  const slide = {
-    enter: (dir: number) => ({ x: dir > 0 ? 48 : -48, opacity: 0, filter: 'blur(6px)' }),
-    center: { x: 0, opacity: 1, filter: 'blur(0px)' },
-    exit: (dir: number) => ({ x: dir > 0 ? -48 : 48, opacity: 0, filter: 'blur(6px)', transition: { duration: 0.22 } }),
+  // Cross-slide with motion blur: cards blur and stretch slightly while they travel and land sharp
+  // (the "fast swipe" feel of iOS). The old card fades out faster than the new one fades in, so
+  // they cross without a half-visible ghost; rapid toggling just retargets mid-flight.
+  type SlideCtx = { dir: number; i: number };
+  const ease = [0.32, 0.72, 0, 1] as const; // Apple's "smooth" curve
+  const slide: Variants = {
+    enter: ({ dir }: SlideCtx) => reduceMotion
+      ? { opacity: 0 }
+      : { opacity: 0, x: dir * 64, scaleX: 1.06, scaleY: 0.98, filter: 'blur(12px)' },
+    center: ({ i }: SlideCtx) => ({
+      opacity: 1, x: 0, scaleX: 1, scaleY: 1, filter: 'blur(0px)',
+      transition: {
+        default: { duration: 0.55, ease, delay: i * 0.035 },
+        opacity: { duration: 0.32, ease, delay: 0.08 + i * 0.035 },
+        filter: { duration: 0.42, ease, delay: i * 0.035 },
+      },
+    }),
+    exit: ({ dir, i }: SlideCtx) => ({
+      opacity: 0,
+      pointerEvents: 'none',
+      ...(reduceMotion ? {} : { x: dir * -64, scaleX: 1.06, scaleY: 0.98, filter: 'blur(12px)' }),
+      transition: {
+        default: { duration: 0.38, ease, delay: i * 0.02 },
+        opacity: { duration: 0.22, ease: 'easeOut', delay: i * 0.02 },
+        filter: { duration: 0.22, ease: 'easeIn', delay: i * 0.02 },
+      },
+    }),
   };
 
   return (
-    <section ref={sectionRef} className="py-32 md:py-48 w-full max-w-[1280px] mx-auto relative z-10 flex flex-col items-center px-[20px] md:px-[48px]">
+    <section ref={sectionRef} className="pt-20 md:pt-24 pb-32 md:pb-48 w-full max-w-[1280px] mx-auto relative z-10 flex flex-col items-center px-[20px] md:px-[48px]">
       <style>{CSS}</style>
 
       <motion.div style={{ y: headerY, opacity: headerOpacity, scale: headerScale }} className="text-center w-full max-w-[1100px] mx-auto mb-14">
@@ -434,20 +461,19 @@ export const ProblemSection = () => {
       <motion.div ref={gridRef} style={{ y: gridExitY, opacity: gridExitOpacity }} className="w-full">
         <div
           ref={trackRef}
-          className="fx-track flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 w-auto lg:w-full overflow-x-auto overflow-y-hidden lg:overflow-visible snap-x snap-mandatory -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] lg:mx-0 lg:px-0 pb-2 lg:pb-0"
+          className="fx-track flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 w-auto lg:w-full [overflow-x:auto] [overflow-y:hidden] lg:[overflow-x:visible] lg:[overflow-y:visible] snap-x snap-mandatory -mx-[20px] px-[20px] md:-mx-[48px] md:px-[48px] lg:mx-0 lg:px-0 py-[16px] -my-[16px] lg:py-0 lg:my-0"
         >
           {cardsFor(activeTab, live).map((c, i) => (
-            <Slot key={i} index={i} progress={gridProgress}>
-              <AnimatePresence custom={direction} initial={false}>
+            <Slot key={i} index={i} progress={gridProgress} flat={compact}>
+              <AnimatePresence custom={{ dir: direction, i }} initial={false}>
                 <motion.div
                   key={c.key}
-                  custom={direction}
+                  custom={{ dir: direction, i }}
                   variants={slide}
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
-                  className="absolute inset-0"
+                  className="absolute inset-0 will-change-transform"
                 >
                   <FeatureCard icon={c.icon} title={c.title} description={c.description}>
                     {c.visual}
