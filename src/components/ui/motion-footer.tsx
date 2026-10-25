@@ -359,8 +359,8 @@ export function CinematicFooter() {
             </div>
           </div>
 
-          {/* 3. Bottom Bar / Credits (THE FLOOR BARRIER) */}
-          <div className="relative z-20 w-full py-6 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6 border-none bg-[#020202]/95 backdrop-blur-[64px] backdrop-saturate-0 shadow-[0_-20px_40px_0px_rgba(0,0,0,0.8)]">
+          {/* 3. Bottom Bar / Credits (THE FLOOR BARRIER) — Bootstrap flex utilities lay out logo, copyright and credits */}
+          <div className="relative z-20 w-full py-6 px-6 md:px-12 d-flex flex-col md:flex-row align-items-center justify-content-between gap-6 border-none bg-[#020202]/95 backdrop-blur-[64px] backdrop-saturate-0 shadow-[0_-20px_40px_0px_rgba(0,0,0,0.8)]">
             
 
 
@@ -408,7 +408,7 @@ export function CinematicFooter() {
         <MagneticButton
           as="button"
           onClick={scrollToTop}
-          className="w-14 h-14 rounded-full flex items-center justify-center footer-glass-pill text-white group shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+          className="w-14 h-14 rounded-full d-flex align-items-center justify-content-center footer-glass-pill text-white group shadow-[0_0_20px_rgba(168,85,247,0.15)]" // Bootstrap flex utilities centre the arrow
           style={{
             '--pill-bg-1': 'rgba(168, 85, 247, 0.1)',
             '--pill-bg-2': 'rgba(82, 39, 255, 0.05)',

@@ -123,7 +123,8 @@ const OfflineDemo = ({ live }: { live: boolean }) => {
       <div className="fx-panel p-4 flex items-center gap-4">
         <img src={COVER.meteora} alt="" className="w-[68px] h-[68px] rounded-[10px] object-cover shadow-[0_10px_24px_rgba(0,0,0,0.5)]" loading="lazy" />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-3">
+          {/* Bootstrap flex utilities: title on the left, equaliser on the right */}
+          <div className="d-flex align-items-center justify-content-between gap-3">
             <div className="min-w-0">
               <p className="text-[14px] font-semibold text-white truncate">Somewhere I Belong</p>
               <p className="text-[12px] text-white/50 truncate">LINKIN PARK · Meteora</p>
@@ -257,7 +258,8 @@ const QueueDemo = ({ live }: { live: boolean }) => {
           <div key={it.title} className="flex items-center gap-3 rounded-[12px] px-2 py-2">
             <img src={it.cover} alt="" className="w-10 h-10 rounded-[8px] object-cover" loading="lazy" />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
+              {/* Bootstrap flex utilities: album name on the left, progress on the right */}
+              <div className="d-flex align-items-center justify-content-between gap-2">
                 <p className="text-[12.5px] font-semibold text-white truncate">{it.title} <span className="font-normal text-white/35">· {it.tracks}</span></p>
                 <span className={`text-[10.5px] font-jetbrains ${done ? 'text-[#e9d5ff]' : 'text-white/45'}`}>
                   {done ? <Check size={13} /> : `${pct}%`}
@@ -348,6 +350,9 @@ export const ProblemSection = () => {
   const live = useInView(sectionRef, { amount: 0.15 });
   const [activeTab, setActiveTab] = useState<Category>(categories[0]);
   const [direction, setDirection] = useState(0);
+  // Bumped on every tab change so each switch mounts fresh cards: re-using a card that is still
+  // mid-exit (same key, fast back-and-forth) could leave it stuck invisible in its exit state.
+  const [switchId, setSwitchId] = useState(0);
 
   // Header + dock: same "fly through space" language as the rest of the landing.
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start 95%', 'end 5%'] });
@@ -367,6 +372,7 @@ export const ProblemSection = () => {
     if (tab === activeTab) return;
     setDirection(categories.indexOf(tab) > categories.indexOf(activeTab) ? 1 : -1);
     setActiveTab(tab);
+    setSwitchId(n => n + 1);
     trackRef.current?.scrollTo({ left: 0, behavior: 'smooth' }); // phones: back to the first card
   };
 
@@ -467,7 +473,7 @@ export const ProblemSection = () => {
             <Slot key={i} index={i} progress={gridProgress} flat={compact}>
               <AnimatePresence custom={{ dir: direction, i }} initial={false}>
                 <motion.div
-                  key={c.key}
+                  key={`${c.key}-${switchId}`}
                   custom={{ dir: direction, i }}
                   variants={slide}
                   initial="enter"

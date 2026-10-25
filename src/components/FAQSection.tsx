@@ -204,7 +204,8 @@ export const FAQSection = () => {
                   className="w-full flex flex-col flex-grow"
                 >
                   {/* Bolita activa + categoría + contador */}
-                  <div className="flex items-center justify-between w-full mb-10">
+                  {/* Bootstrap flex utilities: number ball on the left, counter on the right */}
+                  <div className="d-flex align-items-center justify-content-between w-full mb-10">
                     <div className="flex items-center gap-4">
                       <motion.div
                         initial={{ x: -200, scale: 0.5, opacity: 0 }}
