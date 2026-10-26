@@ -613,10 +613,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       
       {/* Dynamic Album Background Glow (Expanded to entire web page) */}
       <div 
-        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? 'opacity-50' : 'opacity-0'}`}
-        style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? 'opacity-100' : 'opacity-0'}`}
       >
-        <div className="absolute inset-0 bg-cover bg-center blur-[150px] scale-110 opacity-70" style={{ backgroundImage: currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? `url(${(selectedAlbumFull || selectedAlbum)?.coverUrl})` : 'none' }}></div>
+        <div className="absolute inset-0 bg-black/45 z-10"></div>
+        <div className="absolute inset-0 bg-cover bg-center blur-[120px] scale-125 saturate-150 opacity-90" style={{ backgroundImage: currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? `url(${(selectedAlbumFull || selectedAlbum)?.coverUrl})` : 'none' }}></div>
       </div>
 
       {/* Dynamic Artist Background Glow */}
@@ -803,9 +803,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
               {/* Fade-out gradients applied to the scrollable area bounds */}
               {/* Bottom gradient */}
-              <div className="absolute bottom-0 left-0 right-0 h-8 md:h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+              <div className={`absolute bottom-0 left-0 right-0 h-8 md:h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20 ${currentView === 'album' ? 'hidden' : ''}`}></div>
               {/* Right side gradient */}
-              <div className="hidden md:block absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20"></div>
+              <div className={`hidden absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20 ${currentView === 'album' ? '' : 'md:block'}`}></div>
               </div>
 
               {/* Right Lyrics Sidebar */}
