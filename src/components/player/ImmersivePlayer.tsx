@@ -237,7 +237,7 @@ export const ImmersivePlayer = ({
         <button
           onClick={(e) => { e.stopPropagation(); handleRowDownload(t, from); }}
           disabled={downloaded || downloading}
-          className="w-9 h-9 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 disabled:hover:bg-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer disabled:cursor-default"
+          className="hidden md:flex w-9 h-9 items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 disabled:hover:bg-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer disabled:cursor-default"
           title={downloading ? 'Descargando...' : downloaded ? 'Canción descargada' : `Descargar ${t.title}`}
           aria-label={downloading ? 'Descargando canción' : downloaded ? 'Canción descargada' : `Descargar ${t.title}`}
         >
@@ -261,6 +261,7 @@ export const ImmersivePlayer = ({
   const activeLyricRef = useRef<HTMLParagraphElement>(null);
 
   const coverRef = useRef<HTMLDivElement>(null);
+  const swipeRef = useRef<{ startY: number; dy: number } | null>(null);
   useEffect(() => {
     if (!isExpanded) return;
     const dest = coverRef.current;
@@ -319,17 +320,40 @@ export const ImmersivePlayer = ({
       <div
         onClick={(e) => {
           e.stopPropagation();
+          // Click-on-empty-space closes on desktop only; on touch it's too easy to hit between rows
+          if (!window.matchMedia('(hover: hover)').matches) return;
           const target = e.target as HTMLElement;
           if (!target.closest('button, a, input, img, [role="slider"], [role="tab"], [role="menu"], .cursor-pointer, h2, p')) onClose();
         }}
-        className={`fixed z-[100] inset-0 w-full h-full overflow-hidden transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] bg-[#050505] flex ${
-          isExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        // Swipe down from the top to dismiss (phones), like iOS sheets
+        onTouchStart={(e) => {
+          const el = e.currentTarget;
+          const onControl = (e.target as HTMLElement).closest('[role="slider"], .touch-none');
+          swipeRef.current = el.scrollTop <= 0 && !onControl ? { startY: e.touches[0].clientY, dy: 0 } : null;
+        }}
+        onTouchMove={(e) => {
+          const sw = swipeRef.current;
+          if (!sw) return;
+          sw.dy = Math.max(0, e.touches[0].clientY - sw.startY);
+          e.currentTarget.style.transform = sw.dy ? `translateY(${sw.dy * 0.6}px)` : '';
+          e.currentTarget.style.transition = 'none';
+        }}
+        onTouchEnd={(e) => {
+          const sw = swipeRef.current;
+          const el = e.currentTarget;
+          el.style.transition = 'transform 0.35s cubic-bezier(0.32,0.72,0,1), opacity 0.3s';
+          el.style.transform = '';
+          if (sw && sw.dy > 120) onClose();
+          swipeRef.current = null;
+        }}
+        className={`fixed z-[100] inset-0 w-full h-full overflow-x-hidden overflow-y-auto md:overflow-hidden overscroll-contain scrollbar-hide bg-[#050505] flex flex-col md:flex-row transition-opacity ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          isExpanded ? 'opacity-100 pointer-events-auto duration-500' : 'opacity-0 pointer-events-none duration-300'
         }`}
       >
 
         {/* Album ambience: same blurred cover as the album page, a touch darker */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-           <div className="absolute inset-0 bg-cover bg-center blur-[120px] scale-125 saturate-150 opacity-90" style={{ backgroundImage: `url(${track.albumCover || album.coverUrl})` }} />
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+           <div className={`absolute inset-0 bg-cover bg-center blur-[120px] saturate-150 opacity-90 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'scale-125' : 'scale-150'}`} style={{ backgroundImage: `url(${track.albumCover || album.coverUrl})` }} />
            <div className="absolute inset-0 bg-black/55" />
         </div>
 
@@ -343,7 +367,7 @@ export const ImmersivePlayer = ({
         </button>
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
-        <div className="w-full md:w-[52%] h-full relative flex flex-col justify-center items-center group px-6 md:px-12 md:pl-24 py-8 overflow-y-auto scrollbar-hide">
+        <div className={`w-full md:w-[52%] min-h-[100dvh] md:min-h-0 md:h-full shrink-0 relative flex flex-col justify-center items-center group px-6 md:px-12 md:pl-24 pt-20 pb-10 md:py-8 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 scale-100 duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
            {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
            <div className="hidden md:flex absolute left-6 md:left-8 xl:left-10 top-1/2 -translate-y-1/2 z-50 w-11 md:w-12 flex-col items-center gap-2 opacity-100 transition-all duration-300">
              <button
@@ -569,8 +593,22 @@ export const ImmersivePlayer = ({
            </div>
         </div>
 
+        {/* Phones: cue that the list lives below; tap to jump there */}
+        <button
+          onClick={(e) => {
+            const sheet = e.currentTarget.parentElement;
+            sheet?.scrollTo({ top: sheet.clientHeight, behavior: 'smooth' });
+          }}
+          className={`md:hidden absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-0.5 text-white/55 active:text-white transition-opacity duration-500 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}
+          style={{ top: 'calc(100dvh - 64px)' }}
+          aria-label="Ver lista de canciones y cola"
+        >
+          <span className="text-[10px] font-bold tracking-[0.25em] uppercase">Pistas · Letra · Cola</span>
+          <ChevronDown className="w-5 h-5 animate-bounce" aria-hidden="true" />
+        </button>
+
         {/* 2. RIGHT: Tracklist, Lyrics & Queue Tabs */}
-        <div className="group/list w-[48%] h-full relative overflow-hidden flex flex-col pt-8 md:pt-[19vh] pb-0 md:pb-[8vh]">
+        <div className={`group/list w-full md:w-[48%] h-[100dvh] md:h-full shrink-0 relative overflow-hidden flex flex-col pt-8 md:pt-[19vh] pb-0 md:pb-[8vh] transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 duration-700 delay-75' : 'translate-y-10 duration-300'}`}>
            <ListScrollbar containerRef={rightScrollRef} onBounce={rightBounce} springY={rightSpringY} className="hidden md:flex right-8 xl:right-12 top-[19vh] bottom-[8vh]" />
            <TrackMenu
              track={rowMenu?.track ?? null}
@@ -630,7 +668,7 @@ export const ImmersivePlayer = ({
            <div
              ref={rightScrollRef}
              {...rightScrollProps}
-             className="relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start pl-6 xl:pl-4 pr-12 xl:pr-[8rem] pb-20 pt-1 scrollbar-hide"
+             className="relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start px-5 md:pl-6 md:pr-12 xl:pl-4 xl:pr-[8rem] pb-20 pt-1 scrollbar-hide"
              style={{
                scrollbarWidth: 'none',
                maskImage: 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)',
@@ -699,14 +737,14 @@ export const ImmersivePlayer = ({
                            variants={cascadedItemVariants}
                            onClick={() => onPlayTrack && onPlayTrack(t, album)}
                            onContextMenu={(e) => openRowMenu(e, t, album, false, true)}
-                           className={`group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
+                           className={`group py-1.5 md:py-2.5 text-lg md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
                              isActive
                                ? 'text-[#a855f7] drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] translate-x-4'
                                : 'text-white/50 hover:text-white/80'
                            }`}
                          >
                            <div className="flex items-center gap-4 md:gap-6">
-                             <div className="flex items-center relative min-w-[3.5rem] shrink-0">
+                             <div className="flex items-center relative min-w-[2.75rem] md:min-w-[3.5rem] shrink-0">
                                <button
                                  onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
                                  className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
@@ -760,7 +798,7 @@ export const ImmersivePlayer = ({
                        <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/70">
                          En Reproducción
                        </span>
-                       <div className="py-1.5 text-2xl md:text-3xl font-bold text-white flex items-center gap-4">
+                       <div className="py-1.5 text-xl md:text-3xl font-bold text-white flex items-center gap-4">
                          <div className="flex items-center min-w-[2.5rem] shrink-0 text-[#a855f7]">
                            <span className="text-base md:text-lg font-medium tracking-widest">01</span>
                          </div>
@@ -796,10 +834,10 @@ export const ImmersivePlayer = ({
                              variants={cascadedItemVariants}
                              onClick={() => playback.jumpTo(t.id)}
                              onContextMenu={(e) => openRowMenu(e, t, from, true, true)}
-                             className="group py-2 md:py-2.5 text-2xl md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 text-white/50 hover:text-white/80"
+                             className="group py-1.5 md:py-2.5 text-lg md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 text-white/50 hover:text-white/80"
                            >
                              <div className="flex items-center gap-4 md:gap-6">
-                               <div className="flex items-center relative min-w-[3.5rem] shrink-0">
+                               <div className="flex items-center relative min-w-[2.75rem] md:min-w-[3.5rem] shrink-0">
                                  <button
                                    onClick={(e) => { e.stopPropagation(); toggleFavorite(t, from); }}
                                    className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}

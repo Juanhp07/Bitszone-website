@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
+
+// Sync before paint on the client so phones don't render one frame of the desktop layout
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 /** Subscribes to a media query. Starts false on both server and client (the player is SSR'd)
  *  to avoid a hydration mismatch, then syncs on mount. */
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
 
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     const mq = window.matchMedia(query);
     const onChange = () => setMatches(mq.matches);
     onChange();
