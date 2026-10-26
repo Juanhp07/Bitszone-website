@@ -6,7 +6,7 @@
   body {
     @apply bg-canvas text-on-surface font-inter antialiased;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-sora font-semibold tracking-tight;
   }
@@ -16,14 +16,14 @@
   .text-glow {
     text-shadow: 0 0 12px rgba(85, 16, 141, 0.5);
   }
-  
+
   .border-gradient {
     position: relative;
     background: #0E0F17;
     background-clip: padding-box;
     border: 1px solid transparent;
   }
-  
+
   .border-gradient::before {
     content: '';
     position: absolute;
@@ -33,7 +33,7 @@
     border-radius: inherit;
     background: linear-gradient(135deg, #55108d 20%, #2d1491 80%);
   }
-  
+
   .hero-arc {
     position: absolute;
     top: 50%;
@@ -49,7 +49,7 @@
     pointer-events: none;
     opacity: 0.8;
   }
-  
+
   .stream-item-left {
     animation: stream-left 20s linear infinite;
     transform-style: preserve-3d;
@@ -198,6 +198,11 @@ html {
 .animate-marquee-pingpong {
   animation: marquee-pingpong 14s ease-in-out infinite;
   width: max-content;
+}
+/* Long titles only scroll while their row is hovered */
+.marquee-on-hover { width: max-content; }
+.group:hover .marquee-on-hover {
+  animation: marquee-pingpong 14s ease-in-out infinite;
 }
 
 @keyframes spin_words {

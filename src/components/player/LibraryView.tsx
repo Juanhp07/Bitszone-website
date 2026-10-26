@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Heart, Star, ListMusic, ChevronDown } from 'lucide-react';
 import { DownloadsView } from './DownloadsView';
+import { PlaylistsGrid } from './PlaylistsGrid';
 
 const DropdownItem = ({ id, title, icon: Icon, hoverBg, activeTab, onSelect }: any) => {
   return (
@@ -171,6 +172,13 @@ export const LibraryView = ({ albums, handlePlayTrack, handleSelectAlbum, curren
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+      {activeTab === 'playlists' ? (
+        <PlaylistsGrid
+          title={<LibraryDropdown activeTab={activeTab} setActiveTab={setCurrentView} />}
+          onOpen={handleSelectAlbum}
+          onPlayTrack={handlePlayTrack}
+        />
+      ) : (
       <DownloadsView key={activeTab} 
         type={config.type as any}
         albums={albums} 
@@ -180,6 +188,7 @@ export const LibraryView = ({ albums, handlePlayTrack, handleSelectAlbum, curren
         onPlayTrack={handlePlayTrack} 
         onSelectAlbum={handleSelectAlbum} 
       />
+      )}
     </div>
   );
 };

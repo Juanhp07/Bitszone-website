@@ -5,6 +5,7 @@ import { DownloadCloud } from 'lucide-react';
 import { Play, Pause, Download, Check, CheckCircle, Loader2, ChevronLeft, Heart, AlertCircle, HeartOff, X } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
+import { usePlayback } from './PlaybackContext';
 import { ScrollableList } from '../ui/ScrollableList';
 import { DownloadProgressPill } from './DownloadProgressPill';
 
@@ -25,6 +26,7 @@ export const CatalogView = ({
 }) => {
   const [hoveredAlbum, setHoveredAlbum] = useState<string | number | null>(null);
   const { downloadTrack, isDownloaded, isFavorite, toggleFavoriteAlbum, cancelAlbumDownload, downloadingAlbums, downloadAlbum } = useDownloads();
+  const playback = usePlayback();
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState<Album | null>(null);
@@ -156,7 +158,7 @@ export const CatalogView = ({
             onClick={(e) => {
               e.stopPropagation();
               if (album.tracks && album.tracks.length > 0) {
-                onPlayTrack(album.tracks[0], album);
+                if (showTrackTitle) onPlayTrack(album.tracks[0], album); else playback.playAlbum(album);
               }
             }}
             title={`Reproducir ${album.title}`}

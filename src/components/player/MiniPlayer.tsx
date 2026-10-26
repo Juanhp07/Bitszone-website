@@ -1,9 +1,53 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Star, Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Repeat1, Heart, HeartOff, Mic2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
+import { usePlayback } from './PlaybackContext';
 import type { Album, Track } from './types';
 
-export const MiniPlayer = ({ 
+
+// Squiggly seek line: sine wave that tapers flat at both ends, drifts toward the handle
+// while playing and eases into a straight line when paused.
+export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlaying: boolean }) => {
+  const pathRef = useRef<SVGPathElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const state = useRef({ phase: 0, amp: isPlaying ? 1 : 0, progress, isPlaying });
+  state.current.progress = progress;
+  state.current.isPlaying = isPlaying;
+
+  useEffect(() => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let raf = 0;
+    let last = performance.now();
+    const WAVELENGTH = 34, AMPLITUDE = 2.2, TAPER = 18;
+    const draw = (now: number) => {
+      const dt = Math.min(64, now - last); last = now;
+      const st = state.current;
+      const target = st.isPlaying && !reduce ? 1 : 0;
+      st.amp += (target - st.amp) * Math.min(1, dt / 220);
+      if (!reduce) st.phase += dt * 0.0022;
+      const width = (svgRef.current?.clientWidth ?? 0) * st.progress;
+      const MID = (svgRef.current?.clientHeight ?? 24) / 2;
+      let d = `M0 ${MID}`;
+      for (let x = 0; x <= width; x += 2) {
+        const taper = Math.min(1, x / TAPER, (width - x) / TAPER);
+        const y = MID + Math.sin((x / WAVELENGTH) * Math.PI * 2 - st.phase) * AMPLITUDE * st.amp * Math.max(0, taper);
+        d += ` L${x.toFixed(1)} ${y.toFixed(2)}`;
+      }
+      pathRef.current?.setAttribute('d', d);
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <svg ref={svgRef} className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" aria-hidden="true">
+      <path ref={pathRef} fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
+
+export const MiniPlayer = ({
   track,
   album,
   isPlaying,
@@ -24,7 +68,7 @@ export const MiniPlayer = ({
   repeatMode,
   onToggleShuffle,
   onToggleRepeat
-}: { 
+}: {
   track: Track,
   album: Album,
   isPlaying: boolean,
@@ -47,7 +91,8 @@ export const MiniPlayer = ({
   onToggleRepeat?: () => void
 }) => {
   const { isFavorite, toggleFavorite, isLicensed } = useDownloads();
-  
+  const originAlbum = usePlayback().nowPlayingOrigin;
+
   React.useEffect(() => {
     const handleToggleFavorite = () => {
       if (track) toggleFavorite(track, album);
@@ -67,7 +112,6 @@ export const MiniPlayer = ({
   };
 
 
-  const waveSvg = "data:image/svg+xml,%3Csvg width='80' height='20' viewBox='0 0 80 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10C13 2 27 18 40 10C53 2 67 18 80 10' stroke='%23ffffff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E";
 
   return (
     <>
@@ -118,27 +162,54 @@ export const MiniPlayer = ({
       </div>
     </div>
 
-    <div className="w-full h-[90px] bg-transparent shrink-0 hidden md:flex items-center justify-between px-6 relative overflow-hidden group/player rounded-none">
-      <style>{`
-        @keyframes wave-slide {
-          from { background-position-x: 0px; }
-          to { background-position-x: -80px; }
-        }
-        .animate-wave-slide {
-          animation: wave-slide 2s linear infinite;
-        }
-      `}</style>
+    <div
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        const control = target.closest('button, a, input, [role="button"], [role="slider"], .cursor-pointer');
+        if (!control || control === e.currentTarget) onExpand();
+      }}
+      className="w-full h-[80px] bg-transparent shrink-0 hidden md:flex items-center justify-between px-6 relative group/player rounded-none cursor-pointer"
+    >
       {/* Decorative gradient overlay */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-transparent pointer-events-none opacity-30"></div>
-      
+
       <div className="absolute left-[-50px] top-[-50px] bottom-[-50px] w-[600px] pointer-events-none z-0 opacity-50 saturate-150" style={{ backgroundImage: `url(${(track.albumCover || album.coverUrl)})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(60px)', maskImage: 'linear-gradient(to right, black 5%, transparent 70%)', WebkitMaskImage: 'linear-gradient(to right, black 5%, transparent 70%)' }} />
+      </div>
+      {/* Seek bar on the top edge (YouTube Music style) */}
+          <div className="absolute left-0 right-0 top-0 -translate-y-1/2 h-6 z-20 group flex items-center cursor-pointer">
+            {/* Unplayed straight line */}
+            <div className="absolute right-0 h-[4px] bg-white/30 rounded-full pointer-events-none" style={{ left: `${progress * 100}%` }} />
+
+            {/* Played part: live squiggle (Android 13 / YT Music style) */}
+            <WavyProgress progress={progress} isPlaying={isPlaying} />
+
+            {/* The Dot (Handle) */}
+            <div
+               className="absolute w-3 h-3 md:w-3.5 md:h-3.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
+               style={{ left: `${progress * 100}%` }}
+            />
+
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.001"
+              value={progress}
+              onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
+              className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10 focus-visible:outline-none"
+              title={`Progreso: ${formatTime(currentSecs)} de ${formatTime(durationSecs)}`}
+              aria-label="Barra de progreso de la canción"
+            />
+          </div>
       {/* Left: Now Playing Info */}
       <div className="flex items-center gap-4 w-[30%] min-w-[200px] relative z-10">
-        <div 
+        <div
           role="button"
           tabIndex={0}
           onClick={onExpand}
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onExpand()}
+          data-cover-source="mini"
           className="w-14 h-14 rounded-md overflow-hidden bg-white/10 cursor-pointer relative group shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           title="Expandir reproductor a pantalla completa (F)"
           aria-label="Expandir reproductor a pantalla completa"
@@ -149,132 +220,106 @@ export const MiniPlayer = ({
           </div>
         </div>
         <div className="flex flex-col justify-center">
-          <h4 
-            onClick={(e) => { e.stopPropagation(); onSelectAlbum && onSelectAlbum(); }} 
+          <h4
+            onClick={(e) => { e.stopPropagation(); onExpand(); }}
             className="text-white font-semibold text-sm line-clamp-1 hover:underline cursor-pointer flex items-center gap-1.5"
-            title={`Álbum: ${album.title || track.title}`}
+            title="Abrir reproductor"
           >
             {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" aria-hidden="true" />}
             <span className="truncate">{track.title}</span>
           </h4>
-          <span 
-            onClick={(e) => { e.stopPropagation(); onSelectArtist && onSelectArtist(); }} 
-            className="text-white/60 text-xs mt-0.5 line-clamp-1 hover:underline cursor-pointer"
-            title={`Artista: ${track.artist}`}
-          >
-            {track.artist}
-          </span>
+          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-white/60 min-w-0">
+            <span
+              onClick={(e) => { e.stopPropagation(); onSelectArtist && onSelectArtist(); }}
+              className="truncate hover:underline hover:text-white/90 cursor-pointer"
+              title={`Artista: ${track.artist}`}
+            >
+              {track.artist}
+            </span>
+            {originAlbum && (
+              <>
+                <span className="text-white/30" aria-hidden="true">•</span>
+                <span
+                  onClick={(e) => { e.stopPropagation(); onSelectAlbum && onSelectAlbum(); }}
+                  className="truncate hover:underline hover:text-white/90 cursor-pointer"
+                  title={`Álbum: ${originAlbum.title}`}
+                >
+                  {originAlbum.title}{originAlbum.year ? ` (${originAlbum.year})` : ''}
+                </span>
+              </>
+            )}
+          </div>
         </div>
-        <button 
-          className={`group/favbtn ml-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1.5 cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'}`}
-          onClick={() => toggleFavorite(track, album)}
-          title={isFavorite(track.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
-          aria-label={isFavorite(track.id) ? `Quitar ${track.title} de favoritos` : `Añadir ${track.title} a favoritos`}
-        >
-          {isFavorite(track.id) ? (
-            <>
-              <Heart className="w-5 h-5 block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
-              <HeartOff className="w-5 h-5 hidden group-hover/favbtn:block" aria-hidden="true" />
-            </>
-          ) : (
-            <Heart className="w-5 h-5" fill="none" aria-hidden="true" />
-          )}
-        </button>
       </div>
 
       {/* Center: Playback Controls */}
-      <div className="flex flex-col items-center gap-2 flex-1 max-w-[600px] relative z-10">
+      <div className="flex flex-col items-center flex-1 max-w-[600px] relative z-10">
         <div className="flex items-center gap-6">
-          <button 
+          <button
             className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
             onClick={onToggleShuffle}
             title={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
             aria-label={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
             aria-pressed={isShuffle}
           >
-            <Shuffle className="w-4 h-4" aria-hidden="true" />
+            <Shuffle className="w-[18px] h-[18px]" aria-hidden="true" />
           </button>
-          <button 
-            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer" 
+          <button
+            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer"
             onClick={onPrev}
             title="Canción anterior (←)"
             aria-label="Canción anterior"
           >
-            <SkipBack className="w-5 h-5" fill="currentColor" aria-hidden="true" />
+            <SkipBack className="w-6 h-6" fill="currentColor" aria-hidden="true" />
           </button>
-          <button 
-            className="w-10 h-10 bg-white hover:scale-105 rounded-full flex items-center justify-center text-black transition-transform shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer" 
+          <button
+            className="relative w-12 h-12 rounded-full flex items-center justify-center text-white bg-[radial-gradient(120%_120%_at_25%_20%,rgba(168,85,247,0.55)_0%,rgba(88,28,135,0.35)_55%,rgba(18,8,28,0.45)_100%)] backdrop-blur-2xl border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_6px_20px_rgba(168,85,247,0.22)] hover:scale-105 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300 cursor-pointer"
             onClick={togglePlay}
             title={isPlaying ? "Pausar (Espacio)" : "Reproducir (Espacio)"}
             aria-label={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
             aria-pressed={isPlaying}
           >
-            {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" aria-hidden="true" /> : <Play className="w-4 h-4 ml-1" fill="currentColor" aria-hidden="true" />}
+            {isPlaying ? <Pause className="w-5 h-5" fill="currentColor" aria-hidden="true" /> : <Play className="w-5 h-5 ml-0.5" fill="currentColor" aria-hidden="true" />}
           </button>
-          <button 
-            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer" 
+          <button
+            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer"
             onClick={onNext}
             title="Siguiente canción (→)"
             aria-label="Siguiente canción"
           >
-            <SkipForward className="w-5 h-5" fill="currentColor" aria-hidden="true" />
+            <SkipForward className="w-6 h-6" fill="currentColor" aria-hidden="true" />
           </button>
-          <button 
+          <button
             className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
             onClick={onToggleRepeat}
             title={repeatMode === 'one' ? "Repetir una canción" : repeatMode === 'all' ? "Repetir todo" : "Activar repetición"}
             aria-label={`Modo de repetición: ${repeatMode === 'one' ? 'repetir una canción' : repeatMode === 'all' ? 'repetir todo' : 'desactivado'}`}
           >
-            {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" aria-hidden="true" /> : <Repeat className="w-4 h-4" aria-hidden="true" />}
+            {repeatMode === 'one' ? <Repeat1 className="w-[18px] h-[18px]" aria-hidden="true" /> : <Repeat className="w-[18px] h-[18px]" aria-hidden="true" />}
+          </button>
+          <button
+            className={`group/favbtn transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'}`}
+            onClick={() => toggleFavorite(track, album)}
+            title={isFavorite(track.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+            aria-label={isFavorite(track.id) ? `Quitar ${track.title} de favoritos` : `Añadir ${track.title} a favoritos`}
+          >
+            {isFavorite(track.id) ? (
+              <>
+                <Heart className="w-[18px] h-[18px] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+                <HeartOff className="w-[18px] h-[18px] hidden group-hover/favbtn:block" aria-hidden="true" />
+              </>
+            ) : (
+              <Heart className="w-[18px] h-[18px]" fill="none" aria-hidden="true" />
+            )}
           </button>
         </div>
-        
-        <div className="flex items-center gap-3 w-full">
-          <span className="text-[11px] font-medium text-white/50 tabular-nums w-10 text-right">{formatTime(currentSecs)}</span>
-          <div className="flex-1 h-6 relative group flex items-center cursor-pointer">
-            {/* Unplayed straight line */}
-            <div className="absolute right-0 h-[4px] bg-white/30 rounded-full pointer-events-none" style={{ left: `${progress * 100}%` }} />
-            
-            {/* Played wavy line clipping container */}
-            <div className="absolute left-0 top-0 bottom-0 overflow-hidden pointer-events-none" style={{ width: `${progress * 100}%` }}>
-               <div 
-                 className={`absolute left-0 top-0 bottom-0 w-[200vw] ${isPlaying ? 'animate-wave-slide' : ''}`}
-                 style={{
-                   backgroundImage: `url("${waveSvg}")`,
-                   backgroundRepeat: 'repeat-x',
-                   backgroundPosition: 'left center',
-                   backgroundSize: '80px 20px',
-                   maskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)',
-                   WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 8px, black 100%)'
-                 }}
-               />
-            </div>
-            
-            {/* The Dot (Handle) */}
-            <div 
-               className="absolute w-3 h-3 md:w-3.5 md:h-3.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
-               style={{ left: `${progress * 100}%` }}
-            />
-            
-            <input 
-              type="range" 
-              min="0" 
-              max="1" 
-              step="0.001" 
-              value={progress}
-              onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
-              className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10 focus-visible:outline-none"
-              title={`Progreso: ${formatTime(currentSecs)} de ${formatTime(durationSecs)}`}
-              aria-label="Barra de progreso de la canción"
-            />
-          </div>
-          <span className="text-[11px] font-medium text-white/50 tabular-nums w-10">{formatTime(durationSecs)}</span>
-        </div>
+
       </div>
 
       {/* Right: Volume & Extra */}
       <div className="flex items-center justify-end gap-4 w-[30%] min-w-[200px] relative z-10">
-        <button 
+        <span className="text-xs font-medium text-white/50 tabular-nums whitespace-nowrap mr-1">{formatTime(currentSecs)} / {formatTime(durationSecs)}</span>
+        <button
           onClick={onToggleLyrics}
           className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isLyricsOpen ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}
           title={isLyricsOpen ? "Ocultar panel de letras" : "Mostrar panel de letras"}
@@ -283,8 +328,8 @@ export const MiniPlayer = ({
         >
           <Mic2 className="w-4 h-4" aria-hidden="true" />
         </button>
-        <button 
-          onClick={onToggleMute} 
+        <button
+          onClick={onToggleMute}
           className="text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer"
           title={volume === 0 ? "Activar sonido" : "Silenciar"}
           aria-label={volume === 0 ? "Activar sonido" : "Silenciar reproductor"}
@@ -294,10 +339,10 @@ export const MiniPlayer = ({
         </button>
         <div className="w-24 h-1.5 bg-white/10 rounded-full relative group cursor-pointer flex items-center">
           <div className="absolute left-0 h-full bg-white group-hover:bg-[#a855f7] rounded-full transition-colors pointer-events-none" style={{ width: `${volume}%` }}></div>
-          <input 
-            type="range" 
-            min="0" 
-            max="100" 
+          <input
+            type="range"
+            min="0"
+            max="100"
             value={volume}
             onChange={(e) => onVolumeChange && onVolumeChange(parseFloat(e.target.value))}
             className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10 focus-visible:outline-none"
