@@ -10,6 +10,9 @@ export interface PlaybackContextType {
   nowPlayingTrackId?: number;
   /** Real album of the song that's playing (with year), even when playing from a playlist */
   nowPlayingOrigin: Album | null;
+  /** The whole queue in order (played songs included) and the position of the one playing */
+  queueList: QueueEntry[];
+  queueIndex: number;
   /** What plays after the current track */
   upNext: QueueEntry[];
   /** Autoplay suggestions shown after the queue (not part of it) */
@@ -19,6 +22,8 @@ export interface PlaybackContextType {
   playNext: (track: Track, album: Album) => void;
   addToQueue: (track: Track, album: Album) => void;
   removeFromQueue: (trackId: number) => void;
+  /** New order for the queue after dragging */
+  reorderQueue: (entries: QueueEntry[]) => void;
   /** Play a queued track and keep the rest of the queue after it */
   jumpTo: (trackId: number) => void;
   goToAlbum: (album: Album) => void;
