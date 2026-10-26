@@ -32,7 +32,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const isCompact = useIsCompact(); // phones + tablets: the sidebar is an overlay drawer
 
   // Phones and tablets start with the drawer closed; desktop keeps the sidebar open.
-  useEffect(() => {
+  React.useLayoutEffect(() => {
     setIsSidebarOpen(!isCompact);
   }, [isCompact]);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
@@ -740,13 +740,19 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         style={{ opacity: loading ? 0 : 1 }}
       >
         {/* The single glass pane with a vector clip-path to perfectly cut out the L-shape and rounded corner without ANY masking artifacts */}
-        <div
-          className="absolute inset-0 bg-black/30 backdrop-blur-xl transition-all duration-300"
-          style={{
-            clipPath: `path('M 0 0 L 4000 0 L 4000 ${headerH} L ${sidebarW + cornerR} ${headerH} A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${headerH + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`,
-            WebkitClipPath: `path('M 0 0 L 4000 0 L 4000 ${headerH} L ${sidebarW + cornerR} ${headerH} A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${headerH + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`
-          }}
-        ></div>
+        {sidebarInFlow ? (
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-xl transition-all duration-300"
+            style={{
+              clipPath: `path('M 0 0 L 4000 0 L 4000 ${headerH} L ${sidebarW + cornerR} ${headerH} A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${headerH + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`,
+              WebkitClipPath: `path('M 0 0 L 4000 0 L 4000 ${headerH} L ${sidebarW + cornerR} ${headerH} A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${headerH + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`
+            }}
+          ></div>
+        ) : (
+          // Without the sidebar the glass is just the header strip. Mobile Chrome ignores clip-path on
+          // backdrop-filter layers and would blur the whole page, so no clip-path here.
+          <div className="absolute inset-x-0 top-0 bg-black/30 backdrop-blur-xl" style={{ height: headerH }}></div>
+        )}
 
         {/* The precise borders (drawn completely separate from the glass to guarantee sub-pixel alignment) */}
 
@@ -806,7 +812,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         <div
           className={isCompact
             ? `fixed inset-y-0 left-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/95 backdrop-blur-xl border-r border-white/10 shadow-[20px_0_60px_rgba(0,0,0,0.6)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
-            : `h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}
+            : `h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-0 lg:w-64' : 'w-0'}`}
           aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
         >
           <motion.div
