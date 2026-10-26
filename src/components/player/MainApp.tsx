@@ -14,6 +14,8 @@ import { ToastContainer } from './ToastContainer';
 import { useCatalog } from './useCatalog';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
+import { PlaylistsProvider, isPlaylistAlbum } from './PlaylistsContext';
+import { PlaybackContext, type QueueEntry } from './PlaybackContext';
 import { PlayerLoadingScreen } from './PlayerLoadingScreen';
 import { Heart } from 'lucide-react';
 import { MobileTabBar } from './MobileTabBar';
@@ -41,7 +43,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
-  
+
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
   const [hasEntered, setHasEntered] = useState(false);
 
@@ -138,7 +140,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
-  
+
   const [nowPlayingTrack, setNowPlayingTrack] = useState<Track | null>(null);
   const [nowPlayingAlbum, setNowPlayingAlbum] = useState<Album | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -221,7 +223,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     if (!audioRef.current) {
       audioRef.current = new Audio();
     }
-    
+
     const handleTimeUpdate = () => {
       if (audioRef.current) {
         setProgress(audioRef.current.currentTime / audioRef.current.duration || 0);
@@ -231,7 +233,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     const handleEnded = () => {
       setIsPlaying(false);
       setProgress(0);
-      
+
       // Track consecutive plays for License caching
       const trackId = nowPlayingTrack?.id;
       if (trackId) {
@@ -240,13 +242,13 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         } else {
           consecutivePlaysRef.current = { trackId, count: 1 };
         }
-        
+
         if (consecutivePlaysRef.current.count === 5) {
           window.dispatchEvent(new CustomEvent('add-license', { detail: { track: nowPlayingTrack, album: nowPlayingAlbum } }));
         }
       }
 
-      
+
       if (repeatMode === 'one') {
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
@@ -254,43 +256,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         }
         return;
       }
-      
-      if (isShuffle && nowPlayingAlbum && nowPlayingAlbum.tracks && nowPlayingAlbum.tracks.length > 1) {
-        let randomIndex = Math.floor(Math.random() * nowPlayingAlbum.tracks.length);
-        const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack?.id);
-        while (randomIndex === currentIndex) {
-          randomIndex = Math.floor(Math.random() * nowPlayingAlbum.tracks.length);
-        }
-        const nextTrack = nowPlayingAlbum.tracks[randomIndex];
-        setNowPlayingTrack(nextTrack);
-        if (audioRef.current) {
-          audioRef.current.src = nextTrack.previewUrl.replace('localhost:54321', '127.0.0.1:54321');
-          audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
-        }
-        return;
-      }
 
-      if (nowPlayingAlbum && nowPlayingTrack) {
-        const currentIndex = nowPlayingAlbum.tracks?.findIndex(t => t.id === nowPlayingTrack.id) ?? -1;
-        if (currentIndex !== -1) {
-          if (currentIndex < (nowPlayingAlbum.tracks?.length || 0) - 1) {
-            const nextTrack = nowPlayingAlbum.tracks![currentIndex + 1];
-            setNowPlayingTrack(nextTrack);
-            if (audioRef.current) {
-              audioRef.current.src = nextTrack.previewUrl.replace('localhost:54321', '127.0.0.1:54321');
-              audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
-            }
-          } else if (repeatMode === 'all') {
-            // Loop back to the first track
-            const firstTrack = nowPlayingAlbum.tracks![0];
-            setNowPlayingTrack(firstTrack);
-            if (audioRef.current) {
-              audioRef.current.src = firstTrack.previewUrl.replace('localhost:54321', '127.0.0.1:54321');
-              audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
-            }
-          }
-        }
-      }
+      handleNextRef.current?.();
     };
 
     audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
@@ -304,7 +271,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     };
   }, [nowPlayingAlbum, nowPlayingTrack, isShuffle, repeatMode]);
 
-  
+
   // Keyboard Shortcuts Refs
   const togglePlayRef = useRef<(() => void) | null>(null);
   const handlePrevRef = useRef<(() => void) | null>(null);
@@ -320,11 +287,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if typing in input or using browser shortcuts (Ctrl/Cmd/Alt)
       if (
-        (e.target instanceof HTMLInputElement && e.target.type !== 'range') || 
+        (e.target instanceof HTMLInputElement && e.target.type !== 'range') ||
         e.target instanceof HTMLTextAreaElement ||
         (e.target as HTMLElement).isContentEditable ||
-        e.ctrlKey || 
-        e.metaKey || 
+        e.ctrlKey ||
+        e.metaKey ||
         e.altKey
       ) {
         return;
@@ -401,9 +368,20 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     }
   }, [volume]);
 
+  // Where the album page's back arrow returns to (library, artist, catalog...)
+  const viewBeforeAlbumRef = useRef('catalog');
+  // Section highlighted in the sidebar/tab bar: album and artist pages belong to wherever you came from
+  const [navSection, setNavSection] = useState('catalog');
+  useEffect(() => {
+    if (currentView !== 'album') viewBeforeAlbumRef.current = currentView;
+    if (currentView !== 'album' && currentView !== 'artist') setNavSection(currentView);
+  }, [currentView]);
+
   const handleSelectAlbum = async (album: Album) => {
     setSelectedAlbum(album);
     setCurrentView('album');
+    // Playlists are built locally; AlbumView reads their live contents
+    if (isPlaylistAlbum(album)) { setSelectedAlbumFull(album); return; }
     const fullAlbum = await fetchAlbumDetails(album.id);
     setSelectedAlbumFull(fullAlbum);
   };
@@ -412,9 +390,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     const rawTitle = track.title;
     const noFeat = rawTitle.replace(/\s*[\(\[]feat\..*?[\)\]]/i, '');
     const cleanChars = rawTitle.replace(/[?¿!¡]/g, '');
-    
+
     const toTitleCase = (str: string) => str.replace(/\w\S*/g, (txt: string) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
-    
+
     const bases = [
       rawTitle, toTitleCase(rawTitle),
       noFeat, toTitleCase(noFeat),
@@ -422,40 +400,40 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       rawTitle.toUpperCase(), rawTitle.toLowerCase(),
       "What Do You Mean Remix", "Where Are U Now",
       rawTitle + " (Remastered)", rawTitle + " (2018 Remaster)", rawTitle + " (1987 Version)",
-      rawTitle + " (2015 Remaster)", rawTitle + " (Remaster)", 
+      rawTitle + " (2015 Remaster)", rawTitle + " (Remaster)",
       rawTitle + " (Avicii By Avicii)", rawTitle.replace(' (Avicii By Avicii)', ''), rawTitle.replace(' ?', ''), rawTitle.replace('?', '')
     ];
-    
+
     const numStr = track.trackNumber ? track.trackNumber.toString().padStart(2, '0') : '01';
     const numStrRaw = track.trackNumber ? track.trackNumber.toString() : '1';
-    
+
     const prefixes = [
       '',
       `${numStr} - `, `${numStr} `, `${numStr}. `,
       `${numStrRaw} - `, `${numStrRaw} `, `${numStrRaw}. `
     ];
-    
+
     const urls = [];
     for (const b of bases) {
       for (const p of prefixes) {
         urls.push(`${p}${b}`);
       }
     }
-    
+
     const unique = [...new Set(urls)];
     const baseUrl = track.previewUrl.substring(0, track.previewUrl.lastIndexOf('/') + 1);
-    
+
     // First try the original
     try {
       const res = await fetch(track.previewUrl, { method: 'HEAD' });
       if (res.status === 200) return track.previewUrl;
     } catch(e) {}
-    
+
     // Then try fallbacks concurrently in batches
     for (let i = 0; i < unique.length; i += 10) {
       const batch = unique.slice(i, i + 10);
       const batchUrls = batch.flatMap(u => [baseUrl + encodeURIComponent(u) + '.mp3', baseUrl + encodeURIComponent(u) + '.m4a']);
-      
+
       const results = await Promise.all(batchUrls.map(async u => {
         try {
           const r = await fetch(u, { method: 'HEAD' });
@@ -463,51 +441,95 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         } catch(e) {}
         return null;
       }));
-      
+
       const found = results.find(r => r !== null);
       if (found) return found;
     }
-    
+
     return null; // Return null if all fail so we can skip
   };
 
-  const handlePlayTrack = async (track: Track, album: Album) => {
+  // Up next: the explicit queue. Tapping a single song plays only that song; "play album" queues the album.
+  const [queue, setQueue] = useState<QueueEntry[]>([]);
+  // How many entries at the front of the queue were added by hand (they play before the album continues)
+  const [manualCount, setManualCount] = useState(0);
+  // Album/playlist being played as a whole (for repeat-all), and what played before (for "previous")
+  const [playContext, setPlayContext] = useState<Album | null>(null);
+  const [history, setHistory] = useState<QueueEntry[]>([]);
+  const upNext = queue;
+  const withoutTrack = (entries: QueueEntry[], id: number) => entries.filter(e => e.track.id !== id);
+  const toast = (msg: string) => window.dispatchEvent(new CustomEvent('show-toast', { detail: msg }));
+
+  // Autoplay suggestions (kept apart from the queue): same artist first, then the rest of the catalog,
+  // in a stable order per song so the list doesn't reshuffle on every render.
+  const recommendations: QueueEntry[] = (() => {
+    if (!nowPlayingTrack) return [];
+    const taken = new Set([nowPlayingTrack.id, ...queue.map(e => e.track.id)]);
+    const seed = nowPlayingTrack.id;
+    const score = (id: number) => ((id * 9301 + seed * 49297) % 233280) / 233280;
+    const pool = albums.flatMap(a => (a.tracks ?? []).map(track => ({ track, album: a })))
+      .filter(e => !taken.has(e.track.id));
+    const artist = nowPlayingTrack.artist;
+    const sameArtist = pool.filter(e => e.track.artist === artist && e.album.id !== nowPlayingAlbum?.id);
+    const others = pool.filter(e => e.track.artist !== artist);
+    const sortByScore = (list: QueueEntry[]) => [...list].sort((a, b) => score(a.track.id) - score(b.track.id));
+    return [...sortByScore(sameArtist).slice(0, 3), ...sortByScore(others)].slice(0, 12);
+  })();
+
+  const goToArtist = (album: Album) => {
+    setIsPlayerExpanded(false);
+    setSelectedArtist({ name: album.artist, img: album.coverUrl, type: album.artist.includes('Combo') || album.artist.includes('Orquesta') ? 'Grupo Musical' : 'Artista' });
+    setCurrentView('artist');
+  };
+
+  type PlayOptions = { mode?: 'single' | 'context'; keepQueue?: boolean; fromHistory?: boolean };
+
+  const handlePlayTrack = async (track: Track, album: Album, opts: PlayOptions = {}) => {
+    if (!opts.keepQueue) {
+      if (opts.mode === 'context') {
+        const tracks = album.tracks ?? [];
+        const idx = tracks.findIndex(t => t.id === track.id);
+        setQueue(tracks.slice(idx + 1).map(t => ({ track: t, album })));
+        setPlayContext(album);
+      } else {
+        setQueue([]);
+        setPlayContext(null);
+      }
+      setManualCount(0);
+    }
+    if (!opts.fromHistory && nowPlayingTrack && nowPlayingAlbum && nowPlayingTrack.id !== track.id) {
+      setHistory(h => [...h.slice(-49), { track: nowPlayingTrack, album: nowPlayingAlbum }]);
+    }
     playRequestIdRef.current += 1;
     const currentRequestId = playRequestIdRef.current;
 
     setIsAudioLoading(true);
     setNowPlayingTrack(track);
     setNowPlayingAlbum(album);
-    
+
     if (audioRef.current) {
       audioRef.current.pause();
       setIsPlaying(false);
-      
+
       const workingUrl = await findWorkingUrl(track, album);
-      
+
       // Abort if user clicked another track while we were finding the URL
       if (currentRequestId !== playRequestIdRef.current) {
          return;
       }
-      
+
       if (!workingUrl) {
         setIsAudioLoading(false);
         console.warn("Track unplayable, skipping:", track.title);
         audioRef.current.removeAttribute('src'); // Clear the src so we don't accidentally play the previous track
         audioRef.current.load();
-        
-        const currentIndex = album.tracks?.findIndex(t => t.id === track.id) ?? -1;
-        if (currentIndex !== -1 && currentIndex < (album.tracks?.length || 0) - 1) {
-          // Play next track automatically only if we haven't switched tracks
-          setTimeout(() => {
-            if (currentRequestId === playRequestIdRef.current) {
-              handlePlayTrack(album.tracks![currentIndex + 1], album);
-            }
-          }, 500);
-        }
+        // Skip to whatever is next (queue or autoplay) unless the user already picked another track
+        setTimeout(() => {
+          if (currentRequestId === playRequestIdRef.current) handleNextRef.current?.();
+        }, 500);
         return;
       }
-      
+
       if (audioRef.current.src !== workingUrl) {
         audioRef.current.src = workingUrl;
       }
@@ -523,51 +545,104 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     }
   };
 
+  const playAlbum = (album: Album, startTrack?: Track) => {
+    const first = startTrack ?? album.tracks?.[0];
+    if (first) handlePlayTrack(first, album, { mode: 'context' });
+  };
+
   const handleNextTrack = () => {
-    if (!nowPlayingAlbum || !nowPlayingTrack) return;
-    
-    if (isShuffle && nowPlayingAlbum.tracks && nowPlayingAlbum.tracks.length > 1) {
-      let randomIndex = Math.floor(Math.random() * nowPlayingAlbum.tracks.length);
-      const currentIndex = nowPlayingAlbum.tracks.findIndex(t => t.id === nowPlayingTrack?.id);
-      while (randomIndex === currentIndex) {
-        randomIndex = Math.floor(Math.random() * nowPlayingAlbum.tracks.length);
-      }
-      handlePlayTrack(nowPlayingAlbum.tracks[randomIndex], nowPlayingAlbum);
+    if (!nowPlayingTrack) return;
+
+    if (queue.length > 0) {
+      const idx = isShuffle ? Math.floor(Math.random() * queue.length) : 0;
+      const next = queue[idx];
+      handlePlayTrack(next.track, next.album, { keepQueue: true });
+      setQueue(queue.filter((_, i) => i !== idx));
+      setManualCount(idx < manualCount ? manualCount - 1 : manualCount);
       return;
     }
-
-    const currentIndex = nowPlayingAlbum.tracks?.findIndex(t => t.id === nowPlayingTrack.id) ?? -1;
-    if (currentIndex !== -1) {
-      if (currentIndex < (nowPlayingAlbum.tracks?.length || 0) - 1) {
-        handlePlayTrack(nowPlayingAlbum.tracks![currentIndex + 1], nowPlayingAlbum);
-      } else if (repeatMode === 'all') {
-        handlePlayTrack(nowPlayingAlbum.tracks![0], nowPlayingAlbum);
-      }
+    if (repeatMode === 'all' && playContext?.tracks?.length) {
+      playAlbum(playContext);
+      return;
     }
+    // Queue finished: keep the music going with the first suggestion
+    const auto = recommendations[0];
+    if (auto) handlePlayTrack(auto.track, auto.album, { keepQueue: true });
   };
 
   const handlePrevTrack = () => {
     if (!nowPlayingAlbum || !nowPlayingTrack) return;
-    
+
     // Rule: If playing for more than 5 seconds, restart song. If less than 5 seconds, go to previous track.
     if (audioRef.current && audioRef.current.currentTime >= 5) {
       audioRef.current.currentTime = 0;
       setProgress(0);
-      
+
       if (!isPlaying) {
         audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
       }
       return;
     }
 
-    const currentIndex = nowPlayingAlbum.tracks?.findIndex(t => t.id === nowPlayingTrack.id) ?? -1;
-    if (currentIndex > 0) {
-      handlePlayTrack(nowPlayingAlbum.tracks![currentIndex - 1], nowPlayingAlbum);
-    } else {
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-      }
+    const prev = history[history.length - 1];
+    if (prev) {
+      setHistory(history.slice(0, -1));
+      // The current song goes back to the front of the queue
+      setQueue([{ track: nowPlayingTrack, album: nowPlayingAlbum }, ...withoutTrack(queue, nowPlayingTrack.id)]);
+      handlePlayTrack(prev.track, prev.album, { keepQueue: true, fromHistory: true });
+    } else if (audioRef.current) {
+      audioRef.current.currentTime = 0;
     }
+  };
+
+  const nowPlayingOrigin: Album | null = (() => {
+    if (!nowPlayingAlbum || !nowPlayingTrack) return null;
+    if (!isPlaylistAlbum(nowPlayingAlbum)) return nowPlayingAlbum;
+    return albums.find(a => a.id === nowPlayingTrack.albumId)
+      ?? { id: nowPlayingTrack.albumId as number, title: nowPlayingTrack.albumTitle || '', artist: nowPlayingTrack.artist, coverUrl: nowPlayingTrack.albumCover || '', year: '', genre: '', trackCount: 0 };
+  })();
+
+  const playback = {
+    nowPlayingTrackId: nowPlayingTrack?.id,
+    nowPlayingOrigin,
+    upNext,
+    recommendations,
+    playAlbum,
+    playNext: (track: Track, album: Album) => {
+      if (!nowPlayingTrack) { handlePlayTrack(track, album); return; }
+      if (track.id === nowPlayingTrack.id) return;
+      const rest = withoutTrack(upNext, track.id);
+      setQueue([{ track, album }, ...rest]);
+      setManualCount(c => Math.min(c + 1, rest.length + 1));
+      toast(`'${track.title}' sonará a continuación`);
+    },
+    addToQueue: (track: Track, album: Album) => {
+      if (!nowPlayingTrack) { handlePlayTrack(track, album); return; }
+      if (track.id === nowPlayingTrack.id) return;
+      const rest = withoutTrack(upNext, track.id);
+      const at = Math.min(manualCount, rest.length);
+      setQueue([...rest.slice(0, at), { track, album }, ...rest.slice(at)]);
+      setManualCount(at + 1);
+      toast(`'${track.title}' añadida a la cola`);
+    },
+    removeFromQueue: (trackId: number) => {
+      const idx = upNext.findIndex(e => e.track.id === trackId);
+      if (idx >= 0 && idx < manualCount) setManualCount(c => c - 1);
+      setQueue(withoutTrack(upNext, trackId));
+    },
+    jumpTo: (trackId: number) => {
+      const idx = upNext.findIndex(e => e.track.id === trackId);
+      if (idx >= 0) {
+        handlePlayTrack(upNext[idx].track, upNext[idx].album, { keepQueue: true });
+        setQueue(upNext.slice(idx + 1));
+        setManualCount(Math.max(0, manualCount - idx - 1));
+        return;
+      }
+      const rec = recommendations.find(e => e.track.id === trackId);
+      if (rec) handlePlayTrack(rec.track, rec.album, { keepQueue: true });
+    },
+    goToAlbum: (album: Album) => { setIsPlayerExpanded(false); handleSelectAlbum(album); },
+    goToArtist,
   };
 
   const togglePlay = () => {
@@ -602,6 +677,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   return (
     <DownloadsProvider>
+    <PlaylistsProvider>
+    <PlaybackContext.Provider value={playback}>
       <ToastContainer />
       <AnimatePresence>
         {loading && <PlayerLoadingScreen />}
@@ -610,9 +687,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       {/* Unified Global Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-[#050505] to-blue-900/20 pointer-events-none z-0"></div>
       <div className={`absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#a855f7]/15 to-transparent pointer-events-none z-0 transition-opacity duration-700 ${['album', 'downloads', 'library', 'artist'].includes(currentView) ? 'opacity-0' : 'opacity-100'}`}></div>
-      
+
       {/* Dynamic Album Background Glow (Expanded to entire web page) */}
-      <div 
+      <div
         className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="absolute inset-0 bg-black/45 z-10"></div>
@@ -620,15 +697,15 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       </div>
 
       {/* Dynamic Artist Background Glow */}
-      <div 
+      <div
         className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'artist' && selectedArtist ? 'opacity-50' : 'opacity-0'}`}
         style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
       >
         <div className="absolute inset-0 bg-cover bg-center blur-[150px] scale-110 opacity-70" style={{ backgroundImage: currentView === 'artist' && selectedArtist ? `url(${selectedArtist.img})` : 'none' }}></div>
       </div>
-      
+
       {/* Downloads View Background Glow */}
-      <div 
+      <div
         className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'downloads' ? 'opacity-40' : 'opacity-0'}`}
         style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
       >
@@ -636,19 +713,19 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       </div>
 
       {/* Library Views Background Glows */}
-      <div 
+      <div
         className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'library' || currentView === 'library-favorites' ? 'opacity-40' : 'opacity-0'}`}
         style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
       >
         <div className="absolute inset-0 blur-[150px] scale-110 opacity-70 bg-gradient-to-br from-pink-500 to-purple-600"></div>
       </div>
-      <div 
+      <div
         className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'library-playlists' ? 'opacity-40' : 'opacity-0'}`}
         style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
       >
         <div className="absolute inset-0 blur-[150px] scale-110 opacity-70 bg-gradient-to-br from-green-400 to-emerald-500"></div>
       </div>
-      <div 
+      <div
         className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'library-licenses' ? 'opacity-40' : 'opacity-0'}`}
         style={{ WebkitMaskImage: 'radial-gradient(ellipse at top, black 0%, transparent 80%)' }}
       >
@@ -658,12 +735,12 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none z-0"></div>
 
       {/* SEAMLESS GLOBAL GLASS LAYER using a single blurred pane and a vector clip-path */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none z-20 overflow-hidden transition-opacity duration-700"
         style={{ opacity: loading ? 0 : 1 }}
       >
         {/* The single glass pane with a vector clip-path to perfectly cut out the L-shape and rounded corner without ANY masking artifacts */}
-        <div 
+        <div
           className="absolute inset-0 bg-black/30 backdrop-blur-xl transition-all duration-300"
           style={{
             clipPath: `path('M 0 0 L 4000 0 L 4000 ${headerH} L ${sidebarW + cornerR} ${headerH} A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${headerH + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`,
@@ -672,22 +749,22 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         ></div>
 
         {/* The precise borders (drawn completely separate from the glass to guarantee sub-pixel alignment) */}
-        
+
         {/* Vertical Line */}
-        <div 
-          className="absolute bottom-0 w-[1px] bg-white/10 transition-all duration-300" 
+        <div
+          className="absolute bottom-0 w-[1px] bg-white/10 transition-all duration-300"
           style={{ left: `${sidebarW}px`, top: `${headerH + cornerR}px`, opacity: sidebarInFlow ? 1 : 0 }}
         ></div>
-        
+
         {/* Horizontal Line */}
-        <div 
-          className="absolute right-0 h-[1px] bg-white/10 transition-all duration-300" 
+        <div
+          className="absolute right-0 h-[1px] bg-white/10 transition-all duration-300"
           style={{ top: `${headerH}px`, left: `${sidebarW + cornerR}px` }}
         ></div>
-        
+
         {/* Curved Corner SVG */}
-        <div 
-          className="absolute transition-all duration-300" 
+        <div
+          className="absolute transition-all duration-300"
           style={{ top: `${headerH}px`, left: `${sidebarW}px`, width: `${cornerR}px`, height: `${cornerR}px`, opacity: sidebarInFlow ? 1 : 0 }}
         >
           <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" preserveAspectRatio="none">
@@ -696,18 +773,18 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           </svg>
         </div>
       </div>
-      <motion.div 
+      <motion.div
         initial={false}
-        animate={{ 
-          y: !hasEntered && loading ? -70 : 0, 
-          opacity: !hasEntered && loading ? 0 : 1 
+        animate={{
+          y: !hasEntered && loading ? -70 : 0,
+          opacity: !hasEntered && loading ? 0 : 1
         }}
         transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
         className="absolute top-0 left-0 right-0 z-50 pointer-events-auto"
       >
-        <TopNav 
-          currentView={currentView} 
-          onViewChange={navigate} 
+        <TopNav
+          currentView={currentView}
+          onViewChange={navigate}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           isSidebarOpen={isSidebarOpen}
           loading={loading}
@@ -732,16 +809,16 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             : `h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}
           aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
         >
-          <motion.div 
+          <motion.div
             initial={false}
-            animate={{ 
-              x: !hasEntered && loading ? -80 : 0, 
-              opacity: !hasEntered && loading ? 0 : 1 
+            animate={{
+              x: !hasEntered && loading ? -80 : 0,
+              opacity: !hasEntered && loading ? 0 : 1
             }}
             transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
             className={isCompact ? 'w-full h-full overflow-y-auto overscroll-contain' : 'w-64 h-full'}
           >
-            <Sidebar currentView={currentView} onViewChange={navigate} isShortcutsOpen={isShortcutsOpen} onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)} onToggleConfig={() => { setIsConfigOpen(!isConfigOpen); if (isCompact) setIsSidebarOpen(false); }} isMobile={isCompact} />
+            <Sidebar currentView={navSection} onViewChange={navigate} isShortcutsOpen={isShortcutsOpen} onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)} onToggleConfig={() => { setIsConfigOpen(!isConfigOpen); if (isCompact) setIsSidebarOpen(false); }} isMobile={isCompact} />
           </motion.div>
         </div>
 
@@ -751,25 +828,25 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             <div className="flex-1 relative flex min-h-0 z-10">
               {/* Actual scrollable content */}
               <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden z-10">
-              
-              
-              <main 
-                id="main-scroll-container" 
+
+
+              <main
+                id="main-scroll-container"
                 ref={mainScrollRef}
                 {...mainScrollProps}
-                className="flex-1 overflow-y-auto overscroll-y-contain relative z-10 scrollbar-hide" 
+                className="flex-1 overflow-y-auto overscroll-y-contain relative z-10 scrollbar-hide"
                 style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
               >
-                <motion.div 
+                <motion.div
                   style={{ y: springMainY }}
                   className="pt-16 md:pt-20 pb-6 md:pb-0 min-h-full flex flex-col"
                 >
                   {currentView === 'catalog' && (
-                    <CatalogView 
-                      albums={albums} 
-                      loading={loading} 
+                    <CatalogView
+                      albums={albums}
+                      loading={loading}
                       isInitialEntrance={!hasEntered}
-                      onSelectAlbum={handleSelectAlbum} 
+                      onSelectAlbum={handleSelectAlbum}
                       onPlayTrack={handlePlayTrack}
                       onSelectArtist={(artist) => {
                         setSelectedArtist(artist);
@@ -778,10 +855,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     />
                   )}
                   {currentView === 'album' && (
-                    <AlbumView 
-                      album={selectedAlbumFull || selectedAlbum} 
+                    <AlbumView
+                      album={selectedAlbumFull || selectedAlbum}
                       loading={!selectedAlbumFull}
-                      onViewChange={setCurrentView}
+                      onViewChange={(v) => setCurrentView(v === 'catalog' ? viewBeforeAlbumRef.current : v)}
                       onPlayTrack={handlePlayTrack}
                       nowPlayingTrackId={nowPlayingTrack?.id}
                       isPlaying={isPlaying}
@@ -791,11 +868,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   {currentView === 'downloads' && <DownloadsView type="downloads" albums={albums} onPlayTrack={handlePlayTrack} onSelectAlbum={handleSelectAlbum} />}
                   {currentView.startsWith('library') && <LibraryView albums={albums} handlePlayTrack={handlePlayTrack} handleSelectAlbum={handleSelectAlbum} currentView={currentView} setCurrentView={setCurrentView} />}
                   {currentView === 'artist' && selectedArtist && (
-                    <ArtistView 
-                      artist={selectedArtist} 
-                      albums={albums} 
+                    <ArtistView
+                      artist={selectedArtist}
+                      albums={albums}
                       onBack={() => setCurrentView('catalog')}
-                      onSelectAlbum={handleSelectAlbum} 
+                      onSelectAlbum={handleSelectAlbum}
                     />
                   )}
                 </motion.div>
@@ -819,14 +896,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             {/* Fusionado Player at the bottom of the body - Sits structurally in flex flow */}
             <AnimatePresence>
               {nowPlayingTrack && nowPlayingAlbum && (
-                <motion.div 
+                <motion.div
                   initial={{ y: 80, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 80, opacity: 0 }}
                   transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
                   className="shrink-0 z-30 border-t border-white/5 bg-black/40 backdrop-blur-3xl"
                 >
-                  <MiniPlayer 
+                  <MiniPlayer
                     isShuffle={isShuffle}
                     repeatMode={repeatMode}
                     onToggleShuffle={() => setIsShuffle(!isShuffle)}
@@ -839,14 +916,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     volume={volume}
                     onExpand={() => setIsPlayerExpanded(true)}
                     isLyricsOpen={isLyricsOpen}
-                    onToggleLyrics={() => { 
-                      if (isMobile) { 
-                        setImmersiveTab("letra"); 
-                        setIsLyricsOpen(true); 
-                        setIsPlayerExpanded(true); 
-                      } else { 
-                        setIsLyricsOpen(!isLyricsOpen); 
-                      } 
+                    onToggleLyrics={() => {
+                      if (isMobile) {
+                        setImmersiveTab("letra");
+                        setIsLyricsOpen(true);
+                        setIsPlayerExpanded(true);
+                      } else {
+                        setIsLyricsOpen(!isLyricsOpen);
+                      }
                     }}
                     onNext={handleNextTrack}
                     onPrev={handlePrevTrack}
@@ -860,7 +937,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       if (audioRef.current) audioRef.current.volume = v / 100;
                     }}
                     onToggleMute={toggleMute}
-                    onSelectAlbum={() => handleSelectAlbum(nowPlayingAlbum)}
+                    onSelectAlbum={() => nowPlayingOrigin && handleSelectAlbum(nowPlayingOrigin)}
                     onSelectArtist={() => {
                       setSelectedArtist({ name: nowPlayingAlbum.artist, img: nowPlayingAlbum.coverUrl, type: nowPlayingAlbum.artist.includes('Combo') || nowPlayingAlbum.artist.includes('Orquesta') ? 'Grupo Musical' : 'Artista' });
                       setCurrentView('artist');
@@ -870,11 +947,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               )}
             </AnimatePresence>
 
-            <MobileTabBar currentView={currentView} onViewChange={navigate} />
+            <MobileTabBar currentView={navSection} onViewChange={navigate} />
         </div>
       </div>
 
-      <ImmersivePlayer 
+      <ImmersivePlayer
         isShuffle={isShuffle}
         repeatMode={repeatMode}
         onToggleShuffle={() => setIsShuffle(!isShuffle)}
@@ -910,7 +987,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       {/* Modals */}
       <AnimatePresence>
         {isConfigOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.25 } }}
             exit={{ opacity: 0, transition: { duration: 0.1 } }}
@@ -919,13 +996,13 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 md:p-8 overscroll-contain select-none"
             role="presentation"
           >
-            <div 
-              className="absolute inset-0 cursor-pointer" 
-              onClick={() => setIsConfigOpen(false)} 
+            <div
+              className="absolute inset-0 cursor-pointer"
+              onClick={() => setIsConfigOpen(false)}
               title="Cerrar modal de configuración"
               aria-label="Cerrar modal de configuración"
             />
-            
+
             <motion.div
               id="config-modal-card"
               role="dialog"
@@ -940,8 +1017,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               {/* Config Header */}
               <div className="p-5 md:p-8 pb-4 md:pb-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.02]">
                 <h2 id="config-modal-title" className="text-2xl md:text-3xl font-bold text-white tracking-wide">Configuración</h2>
-                <button 
-                  onClick={() => setIsConfigOpen(false)} 
+                <button
+                  onClick={() => setIsConfigOpen(false)}
                   className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                   title="Cerrar configuración (Esc)"
                   aria-label="Cerrar ventana de configuración"
@@ -949,7 +1026,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
               </div>
-              
+
               {/* Config Body */}
               <div className="flex-1 overflow-y-auto p-6 md:p-12 flex items-center justify-center">
                 <div className="text-center flex flex-col items-center gap-4">
@@ -1019,6 +1096,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         )}
       </AnimatePresence>
     </div>
+    </PlaybackContext.Provider>
+    </PlaylistsProvider>
     </DownloadsProvider>
   );
 };

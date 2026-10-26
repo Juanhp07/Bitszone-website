@@ -32,6 +32,9 @@ interface DownloadsContextType {
 
 const DownloadsContext = createContext<DownloadsContextType | undefined>(undefined);
 
+// Songs saved from a playlist keep the album they really belong to
+const sourceAlbum = (album?: Album) => (album && String(album.id).startsWith('playlist:') ? undefined : album);
+
 export const DownloadsProvider = ({ children }: { children: React.ReactNode }) => {
   const [downloadedTracks, setDownloadedTracks] = useState<Track[]>([]);
   const [favoriteTracks, setFavoriteTracks] = useState<Track[]>([]);
@@ -125,7 +128,8 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     setTotalBytes(totalMb * 1024 * 1024);
   };
 
-  const downloadTrack = async (track: Track, album?: Album, silent: boolean = false) => {
+  const downloadTrack = async (track: Track, rawAlbum?: Album, silent: boolean = false) => {
+    const album = sourceAlbum(rawAlbum);
     return new Promise<void>(async (resolve) => {
       let realSizeMb = track.sizeMb;
       try {
@@ -170,7 +174,8 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     return downloadedTracks.some(t => t.id === trackId);
   };
 
-  const toggleFavorite = (track: Track, album?: Album) => {
+  const toggleFavorite = (track: Track, rawAlbum?: Album) => {
+    const album = sourceAlbum(rawAlbum);
     const isFav = isFavorite(track.id);
     window.dispatchEvent(new CustomEvent('show-toast', { detail: isFav ? `Canción '${track.title}' eliminada de tu Biblioteca` : `Canción '${track.title}' agregada a tu Biblioteca` }));
     
@@ -203,7 +208,10 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
       } else {
         const tracksToAdd = album.tracks!
           .filter(t => !prev.some(pt => pt.id === t.id))
-          .map(track => ({ ...track, albumId: album.id, albumTitle: album.title, albumCover: album.coverUrl, addedAt: track.addedAt || new Date().toISOString() }));
+          .map(track => {
+            const src = sourceAlbum(album);
+            return { ...track, albumId: src?.id ?? track.albumId, albumTitle: src?.title ?? track.albumTitle, albumCover: src?.coverUrl ?? track.albumCover, addedAt: track.addedAt || new Date().toISOString() };
+          });
         updated = [...updated, ...tracksToAdd];
       }
       localStorage.setItem('bz_favorites', JSON.stringify(updated));

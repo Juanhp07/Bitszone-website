@@ -6,6 +6,7 @@ import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, 
 import FuseButton from '../ui/FuseButton';
 import HoldButton from '../ui/HoldButton';
 import { useDownloads } from './DownloadsContext';
+import { usePlayback } from './PlaybackContext';
 import { DownloadProgressPill } from './DownloadProgressPill';
 import type { Track, Album } from './types';
 
@@ -61,6 +62,7 @@ export const DownloadsView = ({
   albums?: Album[]
 }) => {
   const { downloadedTracks, licensedTracks, favoriteTracks, clearLicenses, removeAlbumFromLicenses, removeDownload, toggleFavorite, removeLicensedTrack, isLicensed, toggleFavoriteAlbum, isFavorite, isDownloaded, clearNewDownloads, totalBytes, clearDownloads, clearFavorites, removeAlbumFromDownloads, removeAlbumFromFavorites, downloadingAlbums, cancelAlbumDownload } = useDownloads();
+  const playback = usePlayback();
   const { containerRef: listScrollRef, springValue: listSpringY, scrollProps: listScrollProps } = useRubberBand({ axis: 'y' });
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [trackToRemove, setTrackToRemove] = useState<Track | null>(null);
@@ -691,7 +693,7 @@ export const DownloadsView = ({
                 <p className="text-white/50 text-sm md:text-base">{groupedTracks[selectedAlbumId].tracks[0]?.artist || 'Artista'} • {groupedTracks[selectedAlbumId].tracks.length} {groupedTracks[selectedAlbumId].tracks.length === 1 ? 'canción' : 'canciones'}</p>
                 <div className="flex flex-wrap items-center gap-3 mt-2">
                   <button 
-                    onClick={() => onPlayTrack && onPlayTrack(groupedTracks[selectedAlbumId].tracks[0], groupedTracks[selectedAlbumId] as any)} 
+                    onClick={() => playback.playAlbum(groupedTracks[selectedAlbumId] as any)} 
                     title={`Reproducir álbum ${groupedTracks[selectedAlbumId].title}`}
                     aria-label={`Reproducir álbum ${groupedTracks[selectedAlbumId].title}`}
                     className="h-11 md:h-auto px-6 md:py-2 rounded-full bg-white hover:bg-white/90 text-black font-bold flex items-center gap-2 transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
@@ -769,7 +771,7 @@ export const DownloadsView = ({
                   </div>
                   <div className="flex items-center gap-1 md:gap-2 shrink-0">
                     <button 
-                      onClick={() => onPlayTrack && onPlayTrack(group.tracks[0], group as any)} 
+                      onClick={() => playback.playAlbum(group as any)} 
                       title={`Reproducir ${group.title}`}
                       aria-label={`Reproducir ${group.title}`}
                       className={`w-11 h-11 md:w-10 md:h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : type === 'downloads' ? 'hover:bg-blue-500 hover:border-blue-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}
@@ -855,7 +857,7 @@ export const DownloadsView = ({
                         onClick={(e) => {
                           e.stopPropagation();
                           if (album.tracks && album.tracks.length > 0) {
-                            onPlayTrack && onPlayTrack(album.tracks[0], album as any);
+                            playback.playAlbum(album as any);
                           }
                         }}
                       >
