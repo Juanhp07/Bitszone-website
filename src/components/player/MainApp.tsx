@@ -449,22 +449,30 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     return null; // Return null if all fail so we can skip
   };
 
-  // Up next: the explicit queue. Tapping a single song plays only that song; "play album" queues the album.
-  const [queue, setQueue] = useState<QueueEntry[]>([]);
-  // How many entries at the front of the queue were added by hand (they play before the album continues)
+  // The queue is one ordered list (YT Music style): songs already played stay in it, `queueIndex` marks
+  // the one playing. Tapping a single song starts a list with just that song; "play album" loads the album.
+  const [queueList, setQueueList] = useState<QueueEntry[]>([]);
+  const [queueIndex, setQueueIndex] = useState(0);
+  // How many entries right after the current one were added by hand (they play before the album continues)
   const [manualCount, setManualCount] = useState(0);
-  // Album/playlist being played as a whole (for repeat-all), and what played before (for "previous")
-  const [playContext, setPlayContext] = useState<Album | null>(null);
-  const [history, setHistory] = useState<QueueEntry[]>([]);
-  const upNext = queue;
-  const withoutTrack = (entries: QueueEntry[], id: number) => entries.filter(e => e.track.id !== id);
+  const upNext = queueList.slice(queueIndex + 1);
   const toast = (msg: string) => window.dispatchEvent(new CustomEvent('show-toast', { detail: msg }));
+
+  /** Insert `entry` at `offset` places after the current song, dropping any other copy of it. */
+  const insertAfterCurrent = (entry: QueueEntry, offset: number) => {
+    const current = queueList[queueIndex];
+    const others = queueList.filter((e, i) => i === queueIndex || e.track.id !== entry.track.id);
+    const cur = current ? others.indexOf(current) : -1;
+    const at = Math.min(cur + 1 + offset, others.length);
+    setQueueList([...others.slice(0, at), entry, ...others.slice(at)]);
+    setQueueIndex(Math.max(0, cur));
+  };
 
   // Autoplay suggestions (kept apart from the queue): same artist first, then the rest of the catalog,
   // in a stable order per song so the list doesn't reshuffle on every render.
   const recommendations: QueueEntry[] = (() => {
     if (!nowPlayingTrack) return [];
-    const taken = new Set([nowPlayingTrack.id, ...queue.map(e => e.track.id)]);
+    const taken = new Set([nowPlayingTrack.id, ...queueList.map(e => e.track.id)]);
     const seed = nowPlayingTrack.id;
     const score = (id: number) => ((id * 9301 + seed * 49297) % 233280) / 233280;
     const pool = albums.flatMap(a => (a.tracks ?? []).map(track => ({ track, album: a })))
@@ -482,23 +490,19 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     setCurrentView('artist');
   };
 
-  type PlayOptions = { mode?: 'single' | 'context'; keepQueue?: boolean; fromHistory?: boolean };
+  type PlayOptions = { mode?: 'single' | 'context'; keepQueue?: boolean };
 
   const handlePlayTrack = async (track: Track, album: Album, opts: PlayOptions = {}) => {
     if (!opts.keepQueue) {
       if (opts.mode === 'context') {
         const tracks = album.tracks ?? [];
-        const idx = tracks.findIndex(t => t.id === track.id);
-        setQueue(tracks.slice(idx + 1).map(t => ({ track: t, album })));
-        setPlayContext(album);
+        setQueueList(tracks.map(t => ({ track: t, album })));
+        setQueueIndex(Math.max(0, tracks.findIndex(t => t.id === track.id)));
       } else {
-        setQueue([]);
-        setPlayContext(null);
+        setQueueList([{ track, album }]);
+        setQueueIndex(0);
       }
       setManualCount(0);
-    }
-    if (!opts.fromHistory && nowPlayingTrack && nowPlayingAlbum && nowPlayingTrack.id !== track.id) {
-      setHistory(h => [...h.slice(-49), { track: nowPlayingTrack, album: nowPlayingAlbum }]);
     }
     playRequestIdRef.current += 1;
     const currentRequestId = playRequestIdRef.current;
@@ -550,24 +554,40 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     if (first) handlePlayTrack(first, album, { mode: 'context' });
   };
 
+  /** Play the entry at `index` of `list`, keeping the list as the queue. */
+  const playAt = (list: QueueEntry[], index: number) => {
+    const entry = list[index];
+    if (!entry) return;
+    setQueueList(list);
+    setQueueIndex(index);
+    handlePlayTrack(entry.track, entry.album, { keepQueue: true });
+  };
+
   const handleNextTrack = () => {
     if (!nowPlayingTrack) return;
+    const remaining = queueList.length - queueIndex - 1;
 
-    if (queue.length > 0) {
-      const idx = isShuffle ? Math.floor(Math.random() * queue.length) : 0;
-      const next = queue[idx];
-      handlePlayTrack(next.track, next.album, { keepQueue: true });
-      setQueue(queue.filter((_, i) => i !== idx));
-      setManualCount(idx < manualCount ? manualCount - 1 : manualCount);
+    if (remaining > 0) {
+      if (isShuffle) {
+        // Bring a random upcoming song right after the current one, then play it
+        const pick = queueIndex + 1 + Math.floor(Math.random() * remaining);
+        const list = [...queueList];
+        const [entry] = list.splice(pick, 1);
+        list.splice(queueIndex + 1, 0, entry);
+        playAt(list, queueIndex + 1);
+      } else {
+        playAt(queueList, queueIndex + 1);
+      }
+      setManualCount(Math.max(0, manualCount - 1));
       return;
     }
-    if (repeatMode === 'all' && playContext?.tracks?.length) {
-      playAlbum(playContext);
+    if (repeatMode === 'all' && queueList.length > 1) {
+      playAt(queueList, 0);
       return;
     }
-    // Queue finished: keep the music going with the first suggestion
+    // Queue finished: keep the music going with the first suggestion (it joins the queue)
     const auto = recommendations[0];
-    if (auto) handlePlayTrack(auto.track, auto.album, { keepQueue: true });
+    if (auto) playAt([...queueList, auto], queueList.length);
   };
 
   const handlePrevTrack = () => {
@@ -584,12 +604,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       return;
     }
 
-    const prev = history[history.length - 1];
-    if (prev) {
-      setHistory(history.slice(0, -1));
-      // The current song goes back to the front of the queue
-      setQueue([{ track: nowPlayingTrack, album: nowPlayingAlbum }, ...withoutTrack(queue, nowPlayingTrack.id)]);
-      handlePlayTrack(prev.track, prev.album, { keepQueue: true, fromHistory: true });
+    if (queueIndex > 0) {
+      playAt(queueList, queueIndex - 1);
     } else if (audioRef.current) {
       audioRef.current.currentTime = 0;
     }
@@ -608,38 +624,51 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     upNext,
     recommendations,
     playAlbum,
+    queueList,
+    queueIndex,
     playNext: (track: Track, album: Album) => {
       if (!nowPlayingTrack) { handlePlayTrack(track, album); return; }
       if (track.id === nowPlayingTrack.id) return;
-      const rest = withoutTrack(upNext, track.id);
-      setQueue([{ track, album }, ...rest]);
-      setManualCount(c => Math.min(c + 1, rest.length + 1));
+      insertAfterCurrent({ track, album }, 0);
+      setManualCount(c => c + 1);
       toast(`'${track.title}' sonará a continuación`);
     },
     addToQueue: (track: Track, album: Album) => {
       if (!nowPlayingTrack) { handlePlayTrack(track, album); return; }
       if (track.id === nowPlayingTrack.id) return;
-      const rest = withoutTrack(upNext, track.id);
-      const at = Math.min(manualCount, rest.length);
-      setQueue([...rest.slice(0, at), { track, album }, ...rest.slice(at)]);
-      setManualCount(at + 1);
+      insertAfterCurrent({ track, album }, Math.min(manualCount, upNext.length));
+      setManualCount(c => c + 1);
       toast(`'${track.title}' añadida a la cola`);
     },
     removeFromQueue: (trackId: number) => {
-      const idx = upNext.findIndex(e => e.track.id === trackId);
-      if (idx >= 0 && idx < manualCount) setManualCount(c => c - 1);
-      setQueue(withoutTrack(upNext, trackId));
+      const pos = queueList.findIndex(e => e.track.id === trackId);
+      if (pos < 0) return;
+      const list = queueList.filter((_, i) => i !== pos);
+      if (pos > queueIndex && pos <= queueIndex + manualCount) setManualCount(c => Math.max(0, c - 1));
+      if (pos < queueIndex) { setQueueList(list); setQueueIndex(queueIndex - 1); }
+      else if (pos > queueIndex) setQueueList(list);
+      // Removing the song that's playing moves on to the next one
+      else if (list[queueIndex]) playAt(list, queueIndex);
+      else if (list.length) playAt(list, list.length - 1);
+    },
+    reorderQueue: (entries: QueueEntry[]) => {
+      setQueueList(entries);
+      const cur = entries.findIndex(e => e.track.id === nowPlayingTrack?.id);
+      if (cur >= 0) setQueueIndex(cur);
     },
     jumpTo: (trackId: number) => {
-      const idx = upNext.findIndex(e => e.track.id === trackId);
-      if (idx >= 0) {
-        handlePlayTrack(upNext[idx].track, upNext[idx].album, { keepQueue: true });
-        setQueue(upNext.slice(idx + 1));
-        setManualCount(Math.max(0, manualCount - idx - 1));
+      const pos = queueList.findIndex(e => e.track.id === trackId);
+      if (pos >= 0) {
+        if (pos > queueIndex) setManualCount(Math.max(0, manualCount - (pos - queueIndex)));
+        playAt(queueList, pos);
         return;
       }
+      // An autoplay suggestion joins the queue right after the current song
       const rec = recommendations.find(e => e.track.id === trackId);
-      if (rec) handlePlayTrack(rec.track, rec.album, { keepQueue: true });
+      if (rec) {
+        const list = [...queueList.slice(0, queueIndex + 1), rec, ...queueList.slice(queueIndex + 1)];
+        playAt(list, queueIndex + 1);
+      }
     },
     goToAlbum: (album: Album) => { setIsPlayerExpanded(false); handleSelectAlbum(album); },
     goToArtist,

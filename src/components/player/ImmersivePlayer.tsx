@@ -1,16 +1,37 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
-import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus } from 'lucide-react';
+import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical } from 'lucide-react';
 import { TrackMenu } from './TrackMenu';
 import { usePlayback } from './PlaybackContext';
 import { usePlaylists, withAlbumInfo } from './PlaylistsContext';
 import { ListScrollbar } from '../ui/ListScrollbar';
 import { WavyProgress } from './MiniPlayer';
 import { useDownloads } from './DownloadsContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder, useDragControls, type DragControls } from 'framer-motion';
 import { useRubberBand } from '../ui/useRubberBand';
+import { useIsMobile } from './useIsMobile';
 
+
+// Queue row that can only be dragged by its grip, so swiping the list still scrolls on phones
+const QueueReorderItem = ({ value, constraintsRef, children }: { value: unknown; constraintsRef: React.RefObject<HTMLElement | null>; children: (controls: DragControls) => React.ReactNode }) => {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      value={value}
+      dragListener={false}
+      dragControls={controls}
+      // Can't be dragged outside the "A continuación" block
+      dragConstraints={constraintsRef}
+      dragElastic={0.04}
+      layout="position"
+      whileDrag={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.06)', boxShadow: '0 12px 30px rgba(0,0,0,0.35)' }}
+      className="relative rounded-xl list-none"
+    >
+      {children(controls)}
+    </Reorder.Item>
+  );
+};
 
 const MarqueeTitle = ({ text, active = false }: { text: string; active?: boolean }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -120,7 +141,6 @@ export const ImmersivePlayer = ({
   const currentIndex = album?.tracks?.findIndex(t => t.id === track.id) ?? -1;
   const playback = usePlayback();
   const { createPlaylist } = usePlaylists();
-  const upcomingEntries = playback.upNext;
 
   // Apple-style rubber band bounce for right scrollable area
   const { containerRef: rightScrollRef, springValue: rightSpringY, scrollProps: rightScrollProps, triggerBounce: rightBounce } = useRubberBand({ axis: 'y' });
@@ -262,6 +282,52 @@ export const ImmersivePlayer = ({
 
   const coverRef = useRef<HTMLDivElement>(null);
   const swipeRef = useRef<{ startY: number; dy: number } | null>(null);
+  const queueGroupRef = useRef<HTMLUListElement>(null);
+  // Pull-to-dismiss feedback: nudge and dim the player's content (not its opaque backdrop),
+  // capped so the page behind never shows through
+  const pullFeedback = (root: HTMLElement, dy: number) => {
+    const eased = Math.min(dy, 220) * 0.35;
+    Array.from(root.children).forEach((child, i) => {
+      if (i === 0) return; // album ambience stays put
+      const c = child as HTMLElement;
+      if (c.dataset.sheet !== undefined) return;
+      c.style.transition = dy ? 'none' : 'transform 0.35s cubic-bezier(0.32,0.72,0,1), opacity 0.35s';
+      c.style.transform = dy ? `translateY(${eased}px)` : '';
+      c.style.opacity = dy ? String(Math.max(0.6, 1 - dy / 500)) : '';
+    });
+  };
+  const isMobile = useIsMobile();
+  // Phones: the tabs/list live in a bottom sheet (YT Music style) instead of scrolling the page
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const sheetDrag = useRef<{ startY: number; dy: number; moved: boolean } | null>(null);
+  useEffect(() => { if (!isExpanded) setSheetOpen(false); }, [isExpanded]);
+  const SHEET_PEEK = 30;
+  const sheetTransform = (open: boolean, extra = 0) =>
+    open ? `translateY(${Math.max(0, extra)}px)` : `translateY(calc(100% - ${SHEET_PEEK}px + ${Math.min(0, extra)}px))`;
+  const onSheetHandleDown = (e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    sheetDrag.current = { startY: e.clientY, dy: 0, moved: false };
+    if (sheetRef.current) sheetRef.current.style.transition = 'none';
+  };
+  const onSheetHandleMove = (e: React.PointerEvent) => {
+    const d = sheetDrag.current;
+    if (!d || !sheetRef.current) return;
+    d.dy = e.clientY - d.startY;
+    if (Math.abs(d.dy) > 6) d.moved = true;
+    sheetRef.current.style.transform = sheetTransform(sheetOpen, d.dy);
+  };
+  const onSheetHandleUp = () => {
+    const d = sheetDrag.current;
+    sheetDrag.current = null;
+    if (!sheetRef.current) return;
+    sheetRef.current.style.transition = '';
+    sheetRef.current.style.transform = '';
+    if (!d) return;
+    if (!d.moved) setSheetOpen(o => !o);
+    else if (sheetOpen && d.dy > 80) setSheetOpen(false);
+    else if (!sheetOpen && d.dy < -60) setSheetOpen(true);
+  };
   useEffect(() => {
     if (!isExpanded) return;
     const dest = coverRef.current;
@@ -318,35 +384,27 @@ export const ImmersivePlayer = ({
 
       {/* Fullscreen Modal Container */}
       <div
-        onClick={(e) => {
-          e.stopPropagation();
-          // Click-on-empty-space closes on desktop only; on touch it's too easy to hit between rows
-          if (!window.matchMedia('(hover: hover)').matches) return;
-          const target = e.target as HTMLElement;
-          if (!target.closest('button, a, input, img, [role="slider"], [role="tab"], [role="menu"], .cursor-pointer, h2, p')) onClose();
-        }}
+        onClick={(e) => e.stopPropagation()}
         // Swipe down from the top to dismiss (phones), like iOS sheets
         onTouchStart={(e) => {
           const el = e.currentTarget;
-          const onControl = (e.target as HTMLElement).closest('[role="slider"], .touch-none');
+          const onControl = sheetOpen || (e.target as HTMLElement).closest('[role="slider"], .touch-none, [data-sheet]');
           swipeRef.current = el.scrollTop <= 0 && !onControl ? { startY: e.touches[0].clientY, dy: 0 } : null;
         }}
         onTouchMove={(e) => {
           const sw = swipeRef.current;
           if (!sw) return;
           sw.dy = Math.max(0, e.touches[0].clientY - sw.startY);
-          e.currentTarget.style.transform = sw.dy ? `translateY(${sw.dy * 0.6}px)` : '';
-          e.currentTarget.style.transition = 'none';
+          pullFeedback(e.currentTarget, sw.dy);
         }}
         onTouchEnd={(e) => {
           const sw = swipeRef.current;
           const el = e.currentTarget;
-          el.style.transition = 'transform 0.35s cubic-bezier(0.32,0.72,0,1), opacity 0.3s';
-          el.style.transform = '';
+          pullFeedback(el, 0);
           if (sw && sw.dy > 120) onClose();
           swipeRef.current = null;
         }}
-        className={`fixed z-[100] inset-0 w-full h-full overflow-x-hidden overflow-y-auto md:overflow-hidden overscroll-contain scrollbar-hide bg-[#050505] flex flex-col md:flex-row transition-opacity ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        className={`fixed z-[100] inset-0 w-full h-full overflow-hidden overscroll-contain bg-[#050505] flex flex-col md:flex-row transition-opacity ease-[cubic-bezier(0.32,0.72,0,1)] ${
           isExpanded ? 'opacity-100 pointer-events-auto duration-500' : 'opacity-0 pointer-events-none duration-300'
         }`}
       >
@@ -359,15 +417,16 @@ export const ImmersivePlayer = ({
 
         <button
           onClick={onClose}
-          className="absolute top-6 md:top-8 xl:top-10 left-6 md:left-8 xl:left-10 z-50 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] rounded-full text-white/60 hover:text-white backdrop-blur-2xl border border-white/[0.12] shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_8px_20px_rgba(0,0,0,0.3)] transition-all duration-300 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          className="absolute top-3 md:top-8 xl:top-10 left-3 md:left-8 xl:left-10 z-50 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 md:bg-white/[0.04] md:hover:bg-white/[0.08] md:active:bg-white/[0.12] rounded-full text-white/80 md:text-white/60 hover:text-white md:backdrop-blur-2xl md:border md:border-white/[0.12] md:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_8px_20px_rgba(0,0,0,0.3)] transition-all duration-300 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           title="Minimizar reproductor (F o Esc)"
           aria-label="Minimizar reproductor"
         >
-          <Minimize2 className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-90 transition-transform" aria-hidden="true" />
+          <ChevronDown className="md:hidden w-7 h-7" strokeWidth={2.2} aria-hidden="true" />
+          <Minimize2 className="hidden md:block w-5 h-5 group-hover:scale-90 transition-transform" aria-hidden="true" />
         </button>
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
-        <div className={`w-full md:w-[52%] min-h-[100dvh] md:min-h-0 md:h-full shrink-0 relative flex flex-col justify-center items-center group px-6 md:px-12 md:pl-24 pt-20 pb-10 md:py-8 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 scale-100 duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
+        <div className={`w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex flex-col justify-center items-center group px-6 md:px-12 md:pl-24 pt-14 pb-[44px] md:py-8 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 scale-100 duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
            {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
            <div className="hidden md:flex absolute left-6 md:left-8 xl:left-10 top-1/2 -translate-y-1/2 z-50 w-11 md:w-12 flex-col items-center gap-2 opacity-100 transition-all duration-300">
              <button
@@ -438,8 +497,12 @@ export const ImmersivePlayer = ({
 
            {/* Floating Content: Album Title -> Square -> Artist -> Player Controls */}
            <div className="relative z-30 flex flex-col items-center justify-center w-full max-w-2xl">
+              {/* Phones: song title sits above the cover */}
+              <h2 className="md:hidden w-full text-center font-inter font-bold text-white text-[26px] leading-tight tracking-tight truncate mb-4 px-2">
+                {track.title}
+              </h2>
               {/* Cover: same glass sleeve as the album page */}
-              <div ref={coverRef} className="w-[min(75vw,18rem)] h-[min(75vw,18rem)] sm:w-[min(70vw,22rem)] sm:h-[min(70vw,22rem)] md:w-[min(30vw,520px,46vh)] md:h-[min(30vw,520px,46vh)] aspect-square rounded-2xl md:rounded-[22px] overflow-hidden border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)] shrink-0 relative">
+              <div ref={coverRef} className="w-[min(calc(100vw-48px),46dvh)] h-[min(calc(100vw-48px),46dvh)] md:w-[min(30vw,520px,46vh)] md:h-[min(30vw,520px,46vh)] aspect-square rounded-2xl md:rounded-[22px] overflow-hidden border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)] shrink-0 relative">
                 <img
                   src={(track.albumCover || album.coverUrl)}
                   alt={album.title}
@@ -450,11 +513,11 @@ export const ImmersivePlayer = ({
               </div>
 
               {/* Title + meta, laid out like the album page */}
-              <div className="flex flex-col items-center text-center mt-5 md:mt-7 mb-5 md:mb-6 w-full md:w-[min(40vw,680px)] min-w-0 px-4">
-                <h2 className="font-inter font-bold text-white text-2xl md:text-4xl xl:text-5xl leading-tight tracking-tight truncate max-w-full">
+              <div className="flex flex-col items-center text-center mt-4 md:mt-7 mb-3 md:mb-6 w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
+                <h2 className="hidden md:block font-inter font-bold text-white text-2xl md:text-4xl xl:text-5xl leading-tight tracking-tight truncate max-w-full">
                   {track.title}
                 </h2>
-                <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 mt-2 text-sm md:text-base xl:text-lg text-white/70 font-medium [&>span]:whitespace-nowrap">
+                <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 mt-0 md:mt-2 text-[15px] md:text-base xl:text-lg text-white/70 font-medium [&>span]:whitespace-nowrap">
                   <button
                     onClick={() => playback.goToArtist(playback.nowPlayingOrigin ?? album)}
                     className="text-white font-semibold uppercase tracking-wide hover:underline underline-offset-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded"
@@ -480,28 +543,28 @@ export const ImmersivePlayer = ({
               </div>
 
               {/* Controls (Below Artist, More Compact) */}
-              <div className="flex items-center gap-3 sm:gap-4 md:gap-12 mb-4 md:mb-6">
+              <div className="max-md:order-last w-full md:w-auto flex items-center justify-between md:justify-center gap-3 md:gap-12 mt-5 md:mt-0 mb-0 md:mb-6">
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleShuffle?.(); }}
-                  className={`w-9 h-9 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                   title={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
                   aria-label={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
                   aria-pressed={isShuffle}
                 >
-                  <Shuffle className="w-3.5 h-3.5 md:w-6 md:h-6" aria-hidden="true" />
+                  <Shuffle className="w-6 h-6" aria-hidden="true" />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-                  className="w-10 h-10 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                   title="Canción anterior"
                   aria-label="Reproducir canción anterior"
                 >
-                  <SkipBack className="w-4 h-4 md:w-7 md:h-7 group-hover:-translate-x-0.5 transition-transform" fill="currentColor" aria-hidden="true" />
+                  <SkipBack className="w-6 h-6 md:w-7 md:h-7 group-hover:-translate-x-0.5 transition-transform" fill="currentColor" aria-hidden="true" />
                 </button>
 
                 <button
                   onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                  className="w-14 h-14 md:w-24 md:h-24 flex items-center justify-center rounded-full text-white transition-all border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] group relative overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 cursor-pointer shrink-0"
+                  className="w-[76px] h-[76px] md:w-24 md:h-24 flex items-center justify-center rounded-full text-white transition-all border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] group relative overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400 cursor-pointer shrink-0"
                   title={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
                   aria-label={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
                   aria-pressed={isPlaying}
@@ -535,24 +598,24 @@ export const ImmersivePlayer = ({
 
                 <button
                   onClick={(e) => { e.stopPropagation(); onNext?.(); }}
-                  className="w-10 h-10 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                   title="Siguiente canción"
                   aria-label="Reproducir siguiente canción"
                 >
-                  <SkipForward className="w-4 h-4 md:w-7 md:h-7 group-hover:translate-x-0.5 transition-transform" fill="currentColor" aria-hidden="true" />
+                  <SkipForward className="w-6 h-6 md:w-7 md:h-7 group-hover:translate-x-0.5 transition-transform" fill="currentColor" aria-hidden="true" />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleRepeat?.(); }}
-                  className={`w-9 h-9 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
                   title={repeatMode === 'one' ? "Repetir una canción" : repeatMode === 'all' ? "Repetir todo" : "Activar repetición"}
                   aria-label={`Modo de repetición: ${repeatMode === 'one' ? 'una canción' : repeatMode === 'all' ? 'todas' : 'desactivado'}`}
                 >
-                  {repeatMode === 'one' ? <Repeat1 className="w-3.5 h-3.5 md:w-6 md:h-6" aria-hidden="true" /> : <Repeat className="w-3.5 h-3.5 md:w-6 md:h-6" aria-hidden="true" />}
+                  {repeatMode === 'one' ? <Repeat1 className="w-6 h-6" aria-hidden="true" /> : <Repeat className="w-6 h-6" aria-hidden="true" />}
                 </button>
               </div>
 
               {/* Squiggly Timeline Progress Bar (More Compact) */}
-              <div className="w-full max-w-md md:max-w-none md:w-[min(42vw,760px)] flex items-center gap-2.5 md:gap-4 font-bold text-white/50 tracking-wider tabular-nums text-xs md:text-base">
+              <div className="w-full md:w-[min(42vw,760px)] flex items-center gap-2.5 md:gap-4 font-bold text-white/50 tracking-wider tabular-nums text-xs md:text-base">
                  <span className="text-right w-9 md:w-12">{formatTime(progress * track.duration)}</span>
 
                  <div
@@ -593,22 +656,30 @@ export const ImmersivePlayer = ({
            </div>
         </div>
 
-        {/* Phones: cue that the list lives below; tap to jump there */}
-        <button
-          onClick={(e) => {
-            const sheet = e.currentTarget.parentElement;
-            sheet?.scrollTo({ top: sheet.clientHeight, behavior: 'smooth' });
-          }}
-          className={`md:hidden absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-0.5 text-white/55 active:text-white transition-opacity duration-500 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}
-          style={{ top: 'calc(100dvh - 64px)' }}
-          aria-label="Ver lista de canciones y cola"
-        >
-          <span className="text-[10px] font-bold tracking-[0.25em] uppercase">Pistas · Letra · Cola</span>
-          <ChevronDown className="w-5 h-5 animate-bounce" aria-hidden="true" />
-        </button>
+        {/* Phones: tapping the player behind the open sheet tucks the sheet away */}
+        {sheetOpen && (
+          <div className="md:hidden fixed inset-0 z-[35]" onClick={(e) => { e.stopPropagation(); setSheetOpen(false); }} aria-hidden="true" />
+        )}
 
         {/* 2. RIGHT: Tracklist, Lyrics & Queue Tabs */}
-        <div className={`group/list w-full md:w-[48%] h-[100dvh] md:h-full shrink-0 relative overflow-hidden flex flex-col pt-8 md:pt-[19vh] pb-0 md:pb-[8vh] transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 duration-700 delay-75' : 'translate-y-10 duration-300'}`}>
+        <div
+          ref={sheetRef}
+          data-sheet
+          style={isMobile ? { transform: sheetTransform(sheetOpen) } : undefined}
+          className={`group/list max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:h-[88dvh] max-md:rounded-t-[28px] max-md:border-t max-md:border-white/10 max-md:bg-black/45 max-md:backdrop-blur-3xl max-md:backdrop-saturate-150 max-md:shadow-[0_-20px_60px_rgba(0,0,0,0.5)] max-md:transition-transform max-md:duration-500 w-full md:w-[48%] md:h-full shrink-0 relative overflow-hidden flex flex-col md:pt-[19vh] pb-0 md:pb-[8vh] md:transition-transform md:ease-[cubic-bezier(0.32,0.72,0,1)] ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'md:translate-y-0 md:duration-700 md:delay-75' : 'md:translate-y-10 md:duration-300'}`}
+        >
+           {/* Phones: grab handle — tap or drag to open/close the sheet */}
+           <div
+             className="md:hidden shrink-0 flex flex-col items-center pt-3 pb-3 cursor-grab active:cursor-grabbing touch-none select-none"
+             onPointerDown={onSheetHandleDown}
+             onPointerMove={onSheetHandleMove}
+             onPointerUp={onSheetHandleUp}
+             onPointerCancel={onSheetHandleUp}
+             role="button"
+             aria-label={sheetOpen ? 'Ocultar lista' : 'Mostrar pistas, letra y cola'}
+           >
+             <span className="w-11 h-1.5 rounded-full bg-white/40" />
+           </div>
            <ListScrollbar containerRef={rightScrollRef} onBounce={rightBounce} springY={rightSpringY} className="hidden md:flex right-8 xl:right-12 top-[19vh] bottom-[8vh]" />
            <TrackMenu
              track={rowMenu?.track ?? null}
@@ -668,6 +739,8 @@ export const ImmersivePlayer = ({
            <div
              ref={rightScrollRef}
              {...rightScrollProps}
+             onWheel={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) rightScrollProps.onWheel(e); }}
+             onTouchMove={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) rightScrollProps.onTouchMove(e); }}
              className="relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start px-5 md:pl-6 md:pr-12 xl:pl-4 xl:pr-[8rem] pb-20 pt-1 scrollbar-hide"
              style={{
                scrollbarWidth: 'none',
@@ -793,83 +866,81 @@ export const ImmersivePlayer = ({
                      exit="exit"
                      className="w-full flex flex-col gap-6"
                    >
-                     {/* Currently Playing Track */}
-                     <motion.div variants={cascadedItemVariants} className="flex flex-col gap-1.5 pb-3 border-b border-white/5">
-                       <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/70">
-                         En Reproducción
-                       </span>
-                       <div className="py-1.5 text-xl md:text-3xl font-bold text-white flex items-center gap-4">
-                         <div className="flex items-center min-w-[2.5rem] shrink-0 text-[#a855f7]">
-                           <span className="text-base md:text-lg font-medium tracking-widest">01</span>
-                         </div>
-                         <div className="flex items-center flex-1 min-w-0">
-                           <MarqueeTitle text={track.title} active />
-                         </div>
-                         <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 ml-2 md:ml-4 shrink-0 opacity-80">
-                           <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
-                           <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[20px] animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
-                           <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[16px] animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
-                           <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[24px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
-                         </div>
-                       </div>
-                     </motion.div>
-
-                     {/* Upcoming Queue Tracks */}
+                     {/* Queue: one ordered list (played songs stay, the current one is highlighted) */}
                      <div className="flex flex-col gap-1">
                        <motion.div variants={cascadedItemVariants} className="flex items-center justify-between mb-2">
-                         <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/40">A Continuación</span>
+                         <span className="text-xs md:text-sm font-bold tracking-[0.22em] uppercase text-white">Tu cola</span>
                          <button
-                           onClick={() => createPlaylist([withAlbumInfo(track, album), ...upcomingEntries.map(e => withAlbumInfo(e.track, e.album))])}
-                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wide text-white/70 hover:text-white bg-black/30 hover:bg-black/40 backdrop-blur-2xl border border-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-                           title="Crear una lista con la canción actual y la cola"
+                           onClick={() => createPlaylist(playback.queueList.map(e => withAlbumInfo(e.track, e.album)))}
+                           className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold tracking-wide text-white bg-white/[0.12] hover:bg-white/[0.2] backdrop-blur-2xl border border-white/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                           title="Crear una lista con toda la cola"
                          >
                            <ListPlus className="w-3.5 h-3.5" aria-hidden="true" />
                            Guardar como lista
                          </button>
                        </motion.div>
-                       {upcomingEntries.length > 0 ? (
-                         upcomingEntries.map(({ track: t, album: from }, idx) => (
-                           <motion.div
-                             key={t.id}
-                             variants={cascadedItemVariants}
-                             onClick={() => playback.jumpTo(t.id)}
-                             onContextMenu={(e) => openRowMenu(e, t, from, true, true)}
-                             className="group py-1.5 md:py-2.5 text-lg md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 text-white/50 hover:text-white/80"
-                           >
-                             <div className="flex items-center gap-4 md:gap-6">
-                               <div className="flex items-center relative min-w-[2.75rem] md:min-w-[3.5rem] shrink-0">
-                                 <button
-                                   onClick={(e) => { e.stopPropagation(); toggleFavorite(t, from); }}
-                                   className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
-                                   title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
-                                   aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
-                                 >
-                                   {isFavorite(t.id) ? (
-                                     <>
-                                       <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
-                                       <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" aria-hidden="true" />
-                                     </>
-                                   ) : (
-                                     <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
-                                   )}
-                                 </button>
-                                 <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} text-white/40`}>
-                                   {(idx + 2).toString().padStart(2, '0')}
-                                 </span>
-                               </div>
-                               <div className="flex items-center flex-1 min-w-0">
-                                 {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
-                                 <MarqueeTitle text={t.title} />
-                               </div>
-                               {renderRowActions(t, from, true)}
+                       <Reorder.Group ref={queueGroupRef} axis="y" values={playback.queueList} onReorder={playback.reorderQueue} className="relative flex flex-col">
+                       {playback.queueList.map((entry, idx) => {
+                         const { track: t, album: from } = entry;
+                         const isCurrent = idx === playback.queueIndex;
+                         const isPlayed = idx < playback.queueIndex;
+                         return (
+                         <QueueReorderItem key={t.id} value={entry} constraintsRef={queueGroupRef}>{(controls) => (
+                         <div
+                           onClick={() => (isCurrent ? togglePlay() : playback.jumpTo(t.id))}
+                           onContextMenu={(e) => openRowMenu(e, t, from, true, true)}
+                           className={`group py-1.5 md:py-2.5 px-2 -mx-2 rounded-xl text-lg md:text-3xl xl:text-4xl font-bold cursor-pointer transition-colors duration-300 shrink-0 ${
+                             isCurrent ? 'text-white bg-white/[0.06]' : isPlayed ? 'text-white/30 hover:text-white/70' : 'text-white/50 hover:text-white/80'
+                           }`}
+                         >
+                           <div className="flex items-center gap-4 md:gap-6">
+                             <div className="flex items-center relative min-w-[2.75rem] md:min-w-[3.5rem] shrink-0">
+                               <button
+                                 onClick={(e) => { e.stopPropagation(); toggleFavorite(t, from); }}
+                                 className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                                 title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                                 aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
+                               >
+                                 {isFavorite(t.id) ? (
+                                   <>
+                                     <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+                                     <HeartOff className="w-4 h-4 md:w-5 md:h-5 text-[#b066f8] hidden group-hover/favbtn:block" aria-hidden="true" />
+                                   </>
+                                 ) : (
+                                   <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
+                                 )}
+                               </button>
+                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isCurrent ? 'text-[#a855f7]' : 'text-white/40'}`}>
+                                 {(idx + 1).toString().padStart(2, '0')}
+                               </span>
                              </div>
-                           </motion.div>
-                         ))
-                       ) : (
-                         <motion.div variants={cascadedItemVariants} className="py-4 text-white/35 text-sm font-medium">
-                           Tu cola está vacía. Usa ⋯ o clic derecho en una canción para añadirla.
-                         </motion.div>
-                       )}
+                             <div className="flex items-center flex-1 min-w-0">
+                               {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
+                               <MarqueeTitle text={t.title} active={isCurrent} />
+                             </div>
+                             {isCurrent && (
+                               <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 shrink-0 opacity-80" aria-label="Sonando ahora">
+                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
+                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[20px] animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
+                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[16px] animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
+                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[24px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
+                               </div>
+                             )}
+                             {renderRowActions(t, from, true)}
+                             <button
+                               onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); controls.start(e); }}
+                               onClick={(e) => e.stopPropagation()}
+                               className="w-9 h-9 -mr-1 flex items-center justify-center rounded-full text-white/40 hover:text-white touch-none cursor-grab active:cursor-grabbing shrink-0"
+                               aria-label={`Arrastrar para mover ${t.title}`}
+                               title="Arrastrar para cambiar el orden"
+                             >
+                               <GripVertical className="w-5 h-5" aria-hidden="true" />
+                             </button>
+                           </div>
+                         </div>
+                         )}</QueueReorderItem>
+                       ); })}
+                       </Reorder.Group>
                      </div>
 
                      {/* Autoplay suggestions: separate from the queue (YT Music style) */}
@@ -896,8 +967,8 @@ export const ImmersivePlayer = ({
                                <span className="text-white/80 group-hover:text-white text-base md:text-lg font-semibold truncate transition-colors">{t.title}</span>
                                <span className="text-white/45 text-sm truncate">{t.artist}</span>
                              </div>
-                             <span className="text-white/40 text-sm tabular-nums shrink-0">{formatTime(t.duration)}</span>
                              {renderRowActions(t, from, false)}
+                             <span className="text-white/40 text-sm tabular-nums shrink-0 w-10 text-right">{formatTime(t.duration)}</span>
                            </motion.div>
                          ))}
                        </div>
