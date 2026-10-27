@@ -209,26 +209,21 @@ export const ImmersivePlayer = ({
   }
 
   useEffect(() => {
-    if (activeTab === 'letra' && lyricsContainerRef.current) {
-      if (activeIndex === -1) {
-        lyricsContainerRef.current.scrollTo({
-          top: 0,
-          behavior: 'smooth'
-        });
-      } else if (activeLyricRef.current) {
-        const container = lyricsContainerRef.current;
-        const element = activeLyricRef.current;
-        const containerHeight = container.clientHeight;
-        const elementOffset = element.offsetTop;
-        const elementHeight = element.clientHeight;
-
-        container.scrollTo({
-          top: elementOffset - (containerHeight / 2) + (elementHeight / 2),
-          behavior: 'smooth'
-        });
-      }
+    // The tab's scroller is rightScrollRef (the lyrics wrapper itself doesn't scroll)
+    const scroller = rightScrollRef.current;
+    if (currentTab !== 'letra' || !scroller) return;
+    const active = scroller.querySelector<HTMLElement>('[data-active-lyric]');
+    if (activeIndex === -1 || !active) {
+      scroller.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
-  }, [activeIndex, activeTab]);
+    const sc = scroller.getBoundingClientRect();
+    const el = active.getBoundingClientRect();
+    scroller.scrollTo({
+      top: scroller.scrollTop + (el.top - sc.top) - sc.height / 2 + el.height / 2,
+      behavior: 'smooth'
+    });
+  }, [activeIndex, currentTab]);
 
 
 
@@ -281,7 +276,6 @@ export const ImmersivePlayer = ({
     );
   };
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
-  const activeLyricRef = useRef<HTMLParagraphElement>(null);
 
   const coverRef = useRef<HTMLDivElement>(null);
   const swipeRef = useRef<{ startY: number; dy: number } | null>(null);
@@ -521,7 +515,7 @@ export const ImmersivePlayer = ({
                   </div>
                 </div>
 
-                <div ref={coverRef} className="relative z-10 w-[min(calc(100vw-48px),46dvh)] h-[min(calc(100vw-48px),46dvh)] md:w-[min(28vw,540px,50vh)] md:h-[min(28vw,540px,50vh)] aspect-square rounded-2xl md:rounded-[22px] overflow-hidden border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)] shrink-0">
+                <div ref={coverRef} className="relative z-10 w-[min(calc(100vw-48px),46dvh)] h-[min(calc(100vw-48px),46dvh)] md:w-[clamp(140px,min(28vw,540px,calc(100dvh-440px)),540px)] md:h-[clamp(140px,min(28vw,540px,calc(100dvh-440px)),540px)] aspect-square rounded-2xl md:rounded-[22px] overflow-hidden border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)] shrink-0">
                   <img
                     src={(track.albumCover || album.coverUrl)}
                     alt={album.title}
@@ -572,7 +566,7 @@ export const ImmersivePlayer = ({
               </div>
 
               {/* Title + meta, laid out like the album page */}
-              <div className="flex flex-col items-center text-center mt-4 md:mt-14 mb-3 md:mb-8 w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
+              <div className="flex flex-col items-center text-center mt-4 md:mt-[clamp(12px,3dvh,56px)] mb-3 md:mb-[clamp(8px,2dvh,32px)] w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
                 <h2 className="hidden md:block font-inter font-bold text-white text-2xl md:text-4xl xl:text-5xl leading-tight tracking-tight truncate max-w-full">
                   {track.title}
                 </h2>
@@ -789,7 +783,7 @@ export const ImmersivePlayer = ({
                      {isSomewhereIBelong ? (
                        <div
                          ref={lyricsContainerRef}
-                         className="relative w-full h-full pt-[18vh] pb-[25vh] flex flex-col gap-6"
+                         className="relative w-full h-full pt-6 pb-[40dvh] flex flex-col gap-6"
                        >
                          {activeLyrics?.map((line, i) => {
                            const isActive = i === activeIndex;
@@ -798,7 +792,7 @@ export const ImmersivePlayer = ({
                              <motion.p
                                key={i}
                                variants={cascadedItemVariants}
-                               ref={isActive ? activeLyricRef : null}
+                               data-active-lyric={isActive ? '' : undefined}
                                className={`text-left text-xl md:text-2xl xl:text-3xl transition-all duration-500 font-bold leading-relaxed ${
                                  isActive
                                    ? 'text-white scale-[1.03] origin-left drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]'
