@@ -199,6 +199,37 @@ html {
   animation: marquee-pingpong 14s ease-in-out infinite;
   width: max-content;
 }
+/* Now-playing equalizer bars */
+.eq-bar {
+  transform-origin: bottom;
+  animation: eq-bounce 1s ease-in-out infinite alternate;
+  transition: transform 0.4s ease;
+}
+@keyframes eq-bounce {
+  0% { transform: scaleY(0.25); }
+  35% { transform: scaleY(0.9); }
+  60% { transform: scaleY(0.45); }
+  100% { transform: scaleY(1); }
+}
+
+/* Now-playing row: dark glow in the album's colour that fills with the song, its leading edge a soft diagonal */
+.aurora-fill {
+  background:
+    radial-gradient(80% 180% at 0% 50%, color-mix(in srgb, var(--album-tint, #6b21a8) 55%, black 30%), transparent 75%),
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--album-tint, #6b21a8) 45%, black 55%),
+      color-mix(in srgb, var(--album-tint, #6b21a8) 35%, black 65%));
+  background-size: 100% 100%, 200% 100%;
+  animation: aurora-drift 7s ease-in-out infinite alternate;
+  mask-image: linear-gradient(110deg, black 0%, black calc(100% - 70px), transparent 100%);
+  -webkit-mask-image: linear-gradient(110deg, black 0%, black calc(100% - 70px), transparent 100%);
+}
+@keyframes aurora-drift {
+  from { background-position: 0 0, 0% 0; }
+  to { background-position: 0 0, 100% 0; }
+}
+@media (prefers-reduced-motion: reduce) { .aurora-fill, .eq-bar { animation: none; } }
+
 /* Long titles only scroll while their row is hovered */
 .marquee-on-hover { width: max-content; }
 .group:hover .marquee-on-hover {

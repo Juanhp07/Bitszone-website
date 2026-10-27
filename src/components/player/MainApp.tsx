@@ -567,17 +567,17 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     if (!nowPlayingTrack) return;
     const remaining = queueList.length - queueIndex - 1;
 
+    // Shuffle picks any song of the queue (other than the current one); with a single song it repeats it
+    if (isShuffle && queueList.length > 0) {
+      if (queueList.length === 1) { playAt(queueList, 0); return; }
+      let pick = Math.floor(Math.random() * (queueList.length - 1));
+      if (pick >= queueIndex) pick += 1;
+      playAt(queueList, pick);
+      return;
+    }
+
     if (remaining > 0) {
-      if (isShuffle) {
-        // Bring a random upcoming song right after the current one, then play it
-        const pick = queueIndex + 1 + Math.floor(Math.random() * remaining);
-        const list = [...queueList];
-        const [entry] = list.splice(pick, 1);
-        list.splice(queueIndex + 1, 0, entry);
-        playAt(list, queueIndex + 1);
-      } else {
-        playAt(queueList, queueIndex + 1);
-      }
+      playAt(queueList, queueIndex + 1);
       setManualCount(Math.max(0, manualCount - 1));
       return;
     }
@@ -620,6 +620,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const playback = {
     nowPlayingTrackId: nowPlayingTrack?.id,
+    progress,
     nowPlayingOrigin,
     upNext,
     recommendations,
@@ -811,7 +812,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       <motion.div
         initial={false}
         animate={{
-          y: !hasEntered && loading ? -70 : 0,
+          y: (!hasEntered && loading) || isPlayerExpanded ? -90 : 0,
           opacity: !hasEntered && loading ? 0 : 1
         }}
         transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
@@ -933,7 +934,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               {nowPlayingTrack && nowPlayingAlbum && (
                 <motion.div
                   initial={{ y: 80, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
+                  animate={{ y: isPlayerExpanded ? 110 : 0, opacity: 1 }}
                   exit={{ y: 80, opacity: 0 }}
                   transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
                   className="shrink-0 z-30 border-t border-white/5 bg-black/40 backdrop-blur-3xl"
