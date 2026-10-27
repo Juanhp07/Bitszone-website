@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Album, Track } from './types';
 import { createClient } from '@supabase/supabase-js';
 
@@ -6,8 +6,11 @@ export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Usar el cliente de Supabase solo si tenemos las credenciales
-  const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+  // Usar el cliente de Supabase solo si tenemos las credenciales (uno solo, no en cada render)
+  const supabase = useMemo(
+    () => (supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null),
+    [supabaseUrl, supabaseAnonKey]
+  );
 
   useEffect(() => {
     const fetchCatalog = async () => {

@@ -8,6 +8,8 @@ export interface QueueEntry {
 
 export interface PlaybackContextType {
   nowPlayingTrackId?: number;
+  /** 0..1 position of the song that's playing */
+  progress: number;
   /** Real album of the song that's playing (with year), even when playing from a playlist */
   nowPlayingOrigin: Album | null;
   /** The whole queue in order (played songs included) and the position of the one playing */

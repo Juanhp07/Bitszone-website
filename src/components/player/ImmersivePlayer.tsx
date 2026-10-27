@@ -3,6 +3,9 @@ import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
 import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical } from 'lucide-react';
 import { TrackMenu } from './TrackMenu';
+import { EqBars } from '../ui/EqBars';
+import { LiquidTabs } from '../ui/LiquidTabs';
+import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
 import { usePlaylists, withAlbumInfo } from './PlaylistsContext';
 import { ListScrollbar } from '../ui/ListScrollbar';
@@ -426,7 +429,7 @@ export const ImmersivePlayer = ({
         </button>
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
-        <div className={`w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex flex-col justify-center items-center group px-6 md:px-12 md:pl-24 pt-14 pb-[44px] md:py-8 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 scale-100 duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
+        <div className={`w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex flex-col justify-center items-center group px-6 md:px-12 md:pl-32 xl:pl-40 pt-14 pb-[44px] md:pt-20 md:pb-10 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 scale-100 duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
            {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
            <div className="hidden md:flex absolute left-6 md:left-8 xl:left-10 top-1/2 -translate-y-1/2 z-50 w-11 md:w-12 flex-col items-center gap-2 opacity-100 transition-all duration-300">
              <button
@@ -501,19 +504,75 @@ export const ImmersivePlayer = ({
               <h2 className="md:hidden w-full text-center font-inter font-bold text-white text-[26px] leading-tight tracking-tight truncate mb-4 px-2">
                 {track.title}
               </h2>
-              {/* Cover: same glass sleeve as the album page */}
-              <div ref={coverRef} className="w-[min(calc(100vw-48px),46dvh)] h-[min(calc(100vw-48px),46dvh)] md:w-[min(30vw,520px,46vh)] md:h-[min(30vw,520px,46vh)] aspect-square rounded-2xl md:rounded-[22px] overflow-hidden border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)] shrink-0 relative">
-                <img
-                  src={(track.albumCover || album.coverUrl)}
-                  alt={album.title}
-                  className="w-full h-full object-cover select-none"
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0.08)_22%,transparent_40%,transparent_70%,rgba(255,255,255,0.10)_100%)] pointer-events-none" />
-                <div className="absolute inset-0 rounded-[inherit] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),inset_0_0_0_1px_rgba(255,255,255,0.06)] pointer-events-none" />
+              {/* Cover + vinyl + reactions dock: the album page's left column, carried into the player */}
+              <div className="relative md:mr-[min(11vw,190px)]">
+                {/* Vinyl peeking out (desktop), spinning only while playing */}
+                <div aria-hidden="true" className="hidden md:block absolute top-[5%] bottom-[5%] right-[5%] aspect-square translate-x-[48%]">
+                  <div
+                    className="relative w-full h-full rounded-full animate-[spin_6s_linear_infinite] shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
+                    style={{
+                      animationPlayState: isPlaying ? 'running' : 'paused',
+                      background: 'radial-gradient(circle, transparent 0 31%, rgba(255,255,255,0.05) 31.5% 32%, transparent 32.5%), repeating-radial-gradient(circle, #0c0c0e 0 2px, #17171a 2.5px 3.5px), #111',
+                    }}
+                  >
+                    <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_30deg,transparent_0deg,rgba(255,255,255,0.10)_40deg,transparent_80deg,transparent_180deg,rgba(255,255,255,0.07)_220deg,transparent_260deg)]" />
+                    <img src={track.albumCover || album.coverUrl} alt="" className="absolute inset-[34%] w-[32%] h-[32%] rounded-full object-cover ring-2 ring-black/60" />
+                    <div className="absolute left-1/2 top-1/2 w-[3%] h-[3%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0a0a0a]" />
+                  </div>
+                </div>
+
+                <div ref={coverRef} className="relative z-10 w-[min(calc(100vw-48px),46dvh)] h-[min(calc(100vw-48px),46dvh)] md:w-[min(28vw,540px,50vh)] md:h-[min(28vw,540px,50vh)] aspect-square rounded-2xl md:rounded-[22px] overflow-hidden border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)] shrink-0">
+                  <img
+                    src={(track.albumCover || album.coverUrl)}
+                    alt={album.title}
+                    className="w-full h-full object-cover select-none"
+                  />
+                  <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0.08)_22%,transparent_40%,transparent_70%,rgba(255,255,255,0.10)_100%)] pointer-events-none" />
+                  <div className="absolute inset-0 rounded-[inherit] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),inset_0_0_0_1px_rgba(255,255,255,0.06)] pointer-events-none" />
+                </div>
+
+                {/* Reactions dock for the song (desktop), same pill as the album page */}
+                <div className="hidden md:flex absolute -bottom-6 -right-6 z-20 items-center gap-1 p-1.5 rounded-full overflow-hidden isolate [&>*:not(:first-child)]:relative [&>*:not(:first-child)]:z-10 backdrop-blur-[40px] backdrop-saturate-[1.8] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_20px_44px_rgba(0,0,0,0.5)]">
+                  <SmokedGlass src={track.albumCover || album.coverUrl} />
+                  <button
+                    onClick={() => toggleFavorite(track, album)}
+                    className={`group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/60 hover:text-white'}`}
+                    title={isFavorite(track.id) ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+                    aria-label={isFavorite(track.id) ? `Quitar ${track.title} de favoritos` : `Añadir ${track.title} a favoritos`}
+                  >
+                    {isFavorite(track.id) ? (
+                      <>
+                        <Heart className="w-5 h-5 block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+                        <HeartOff className="w-5 h-5 hidden group-hover/favbtn:block" aria-hidden="true" />
+                      </>
+                    ) : (
+                      <Heart className="w-5 h-5" fill="none" aria-hidden="true" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleRowDownload(track, album)}
+                    disabled={isDownloaded(track.id) || downloadingIds.includes(track.id)}
+                    className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors disabled:hover:bg-transparent disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                    title={downloadingIds.includes(track.id) ? 'Descargando...' : isDownloaded(track.id) ? 'Canción descargada' : `Descargar ${track.title}`}
+                    aria-label={downloadingIds.includes(track.id) ? 'Descargando canción' : isDownloaded(track.id) ? 'Canción descargada' : `Descargar ${track.title}`}
+                  >
+                    {downloadingIds.includes(track.id) ? <Loader2 className="w-5 h-5 animate-spin text-[#a855f7]" aria-hidden="true" />
+                      : isDownloaded(track.id) ? <CheckCircle className="w-5 h-5 text-[#a855f7]" strokeWidth={2.5} aria-hidden="true" />
+                      : <Download className="w-5 h-5" aria-hidden="true" />}
+                  </button>
+                  <button
+                    onClick={(e) => openRowMenu(e, track, album, true, false)}
+                    className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                    title="Más opciones"
+                    aria-label={`Más opciones para ${track.title}`}
+                  >
+                    <MoreHorizontal className="w-5 h-5" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
 
               {/* Title + meta, laid out like the album page */}
-              <div className="flex flex-col items-center text-center mt-4 md:mt-7 mb-3 md:mb-6 w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
+              <div className="flex flex-col items-center text-center mt-4 md:mt-14 mb-3 md:mb-8 w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
                 <h2 className="hidden md:block font-inter font-bold text-white text-2xl md:text-4xl xl:text-5xl leading-tight tracking-tight truncate max-w-full">
                   {track.title}
                 </h2>
@@ -690,48 +749,16 @@ export const ImmersivePlayer = ({
            />
            {/* Top Tabs (PISTAS / LETRA / COLA) - Centered Liquid Glass Pill */}
            <div className="md:absolute md:top-8 xl:top-10 md:right-8 xl:right-10 w-full md:w-auto mb-6 md:mb-0 shrink-0 z-40 flex items-center justify-center px-4 md:px-0">
-              <div
-                className="relative inline-flex items-center rounded-full p-1 w-[270px] sm:w-[300px] md:w-[330px] bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] transition-colors duration-300"
-                role="tablist"
-              >
-                {/* Sliding Background */}
-                <div
-                  className="absolute top-1 bottom-1 rounded-full bg-white/[0.1] backdrop-blur-md border border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                  style={{
-                    width: 'calc(33.333% - 4px)',
-                    left: currentTab === 'pistas' ? '4px' : currentTab === 'letra' ? 'calc(33.333% + 2px)' : 'calc(66.666% - 0px)'
-                  }}
+              <div className="rounded-full p-1.5 w-[300px] sm:w-[340px] md:w-[380px] bg-black/30 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)]">
+                <LiquidTabs
+                  value={currentTab}
+                  onChange={handleTabSelect}
+                  tabs={[
+                    { id: 'pistas', label: 'Pistas', title: 'Mostrar pistas del álbum', icon: <ListMusic className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+                    { id: 'letra', label: 'Letra', title: 'Mostrar letra sincronizada', icon: <Mic2 className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+                    { id: 'cola', label: 'Cola', title: 'Mostrar cola de reproducción', icon: <ListOrdered className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+                  ]}
                 />
-                <button
-                  role="tab"
-                  aria-selected={currentTab === 'pistas'}
-                  onClick={() => handleTabSelect('pistas')}
-                  className={`relative z-10 flex-1 flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${currentTab === 'pistas' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
-                  title="Mostrar pistas del álbum"
-                  aria-label="Ver lista de pistas"
-                >
-                  <ListMusic className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" />Pistas
-                </button>
-                <button
-                  role="tab"
-                  aria-selected={currentTab === 'letra'}
-                  onClick={() => handleTabSelect('letra')}
-                  className={`relative z-10 flex-1 flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${currentTab === 'letra' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
-                  title="Mostrar letra sincronizada"
-                  aria-label="Ver letra sincronizada"
-                >
-                  <Mic2 className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" />Letra
-                </button>
-                <button
-                  role="tab"
-                  aria-selected={currentTab === 'cola'}
-                  onClick={() => handleTabSelect('cola')}
-                  className={`relative z-10 flex-1 flex items-center justify-center py-1.5 text-[10px] md:text-[11px] font-semibold tracking-[0.2em] indent-[0.2em] uppercase transition-colors duration-300 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${currentTab === 'cola' ? 'text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-white/35 hover:text-white/60'}`}
-                  title="Mostrar cola de reproducción"
-                  aria-label="Ver cola de reproducción"
-                >
-                  <ListOrdered className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" />Cola
-                </button>
               </div>
            </div>
 
@@ -812,7 +839,7 @@ export const ImmersivePlayer = ({
                            onContextMenu={(e) => openRowMenu(e, t, album, false, true)}
                            className={`group py-1.5 md:py-2.5 text-lg md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
                              isActive
-                               ? 'text-[#a855f7] drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] translate-x-4'
+                               ? 'text-white translate-x-4'
                                : 'text-white/50 hover:text-white/80'
                            }`}
                          >
@@ -833,7 +860,7 @@ export const ImmersivePlayer = ({
                                    <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
                                  )}
                                </button>
-                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#a855f7]/80' : 'text-white/40'}`}>
+                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#e9d5ff]' : 'text-white/40'}`}>
                                  {(t.trackNumber || i + 1).toString().padStart(2, '0')}
                                </span>
                              </div>
@@ -842,12 +869,7 @@ export const ImmersivePlayer = ({
                                <MarqueeTitle text={t.title} active={isActive} />
                              </div>
                              {isActive && (
-                               <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 ml-2 md:ml-4 shrink-0 opacity-80">
-                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
-                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[20px] animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
-                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[16px] animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
-                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[24px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
-                               </div>
+                               <EqBars playing={isPlaying} className="h-5 md:h-6 ml-2 md:ml-4" barClassName="w-[3px] md:w-[4px] bg-[#e9d5ff]" />
                              )}
                              {renderRowActions(t, album, false)}
                            </div>
@@ -910,7 +932,7 @@ export const ImmersivePlayer = ({
                                    <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
                                  )}
                                </button>
-                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isCurrent ? 'text-[#a855f7]' : 'text-white/40'}`}>
+                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isCurrent ? 'text-[#e9d5ff]' : 'text-white/40'}`}>
                                  {(idx + 1).toString().padStart(2, '0')}
                                </span>
                              </div>
@@ -919,12 +941,7 @@ export const ImmersivePlayer = ({
                                <MarqueeTitle text={t.title} active={isCurrent} />
                              </div>
                              {isCurrent && (
-                               <div className="flex items-end justify-center gap-[3px] h-5 md:h-6 shrink-0 opacity-80" aria-label="Sonando ahora">
-                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[12px] animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
-                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[20px] animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
-                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[16px] animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
-                                 <div className={`w-[3px] md:w-[4px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[24px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
-                               </div>
+                               <EqBars playing={isPlaying} className="h-5 md:h-6" barClassName="w-[3px] md:w-[4px] bg-[#e9d5ff]" />
                              )}
                              {renderRowActions(t, from, true)}
                              <button

@@ -9,6 +9,8 @@ import { useRubberBand } from '../ui/useRubberBand';
 import { ListScrollbar } from '../ui/ListScrollbar';
 import { PopoverMenu, type PopoverMenuItem } from '../ui/PopoverMenu';
 import { TrackMenu } from './TrackMenu';
+import { EqBars } from '../ui/EqBars';
+import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
 import { usePlaylists, isPlaylistAlbum, withAlbumInfo, PLAYLIST_ID_PREFIX } from './PlaylistsContext';
 
@@ -39,16 +41,16 @@ const useAverageColor = (src: string) => {
   return color;
 };
 
-export const AlbumView = ({ 
-  album: albumProp, 
+export const AlbumView = ({
+  album: albumProp,
   loading,
   onViewChange,
   onPlayTrack,
   nowPlayingTrackId,
   isPlaying,
   togglePlay
-}: { 
-  album: Album | null, 
+}: {
+  album: Album | null,
   loading: boolean,
   onViewChange: (view: any) => void,
   onPlayTrack: (t: Track, a: Album) => void,
@@ -174,7 +176,7 @@ useEffect(() => {
     toggleFavorite(track, album);
   };
 
-  
+
   const handleDownloadAlbum = () => {
     setShowDownloadConfirm(false);
     downloadAlbum(album);
@@ -193,17 +195,17 @@ useEffect(() => {
       // Desktop album page fits one screen: keep the page-level bounce for mobile only
       onWheel={(e) => { if (window.innerWidth >= 1024) e.stopPropagation(); }}
     >
-      
+
 
       {/* Static Volver Button (Unscrolled State) */}
-      <div 
+      <div
         className="absolute top-4 left-4 md:top-8 md:left-8 z-40 transition-opacity duration-300"
-        style={{ 
-          opacity: scrollY > 150 ? 0 : 1, 
-          pointerEvents: scrollY > 150 ? 'none' : 'auto' 
+        style={{
+          opacity: scrollY > 150 ? 0 : 1,
+          pointerEvents: scrollY > 150 ? 'none' : 'auto'
         }}
       >
-        <button 
+        <button
           onClick={() => onViewChange('catalog')}
           className="flex items-center justify-center w-11 h-11 -ml-2 rounded-full opacity-80 hover:opacity-100 hover:-translate-x-0.5 transition-[opacity,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
           style={{ color: `color-mix(in srgb, ${dominantColor} 30%, #e9e6ee)` }}
@@ -222,7 +224,7 @@ useEffect(() => {
           <div className="lg:sticky lg:top-8 flex flex-col items-center w-full">
 
             {/* Glass vinyl sleeve */}
-            <div className={`relative w-[min(64vw,260px)] md:w-[300px] lg:w-[min(27vw,500px)] [perspective:1400px] mt-6 lg:mt-10 transition-[margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAlbumActive ? 'lg:mr-[min(12vw,220px)]' : ''}`}>
+            <div className={`relative w-[min(64vw,260px)] md:w-[300px] lg:w-[min(27vw,500px)] mt-6 lg:mt-10 transition-[margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAlbumActive ? 'lg:mr-[min(12vw,220px)]' : ''}`}>
               {/* Vinyl: slides out from behind the sleeve while a track of this album is loaded, spins only while playing */}
               <div
                 aria-hidden="true"
@@ -243,7 +245,7 @@ useEffect(() => {
                 </div>
               </div>
               <div
-                className="relative z-10 aspect-square transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] [transform-style:preserve-3d]"
+                className="relative z-10 aspect-square "
               >
                 {/* Shadow tinted with the album color */}
                 <div className="absolute inset-4 translate-y-8 rounded-[22px] blur-3xl opacity-70" style={{ background: dominantColor }} aria-hidden="true" />
@@ -263,7 +265,8 @@ useEffect(() => {
               </div>
 
               {/* Actions — bottom-right of the sleeve */}
-              <div className="relative lg:absolute lg:-bottom-4 lg:-right-2 mt-5 lg:mt-0 flex items-center justify-center gap-1 p-1.5 rounded-full bg-black/50 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] w-max mx-auto lg:mx-0 z-20">
+              <div className="relative lg:absolute lg:-bottom-4 lg:-right-2 mt-5 lg:mt-0 flex items-center justify-center gap-1 p-1.5 rounded-full overflow-hidden isolate [&>*:not(:first-child)]:relative [&>*:not(:first-child)]:z-10 backdrop-blur-[40px] backdrop-saturate-[1.8] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_20px_44px_rgba(0,0,0,0.5)] w-max mx-auto lg:mx-0 z-20">
+                <SmokedGlass src={album.coverUrl} />
                 <button
                   className="w-12 h-12 bg-[#a855f7] hover:bg-[#b066f8] hover:scale-105 active:scale-95 rounded-full flex items-center justify-center text-white transition-all shadow-[0_6px_14px_rgba(168,85,247,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
                   onClick={() => {
@@ -477,18 +480,26 @@ useEffect(() => {
                     setTrackMenuPos({ top: e.clientY, left: e.clientX, isUpward: false });
                     setOpenTrackMenu(track.id);
                   }}
-                  className={`group/row relative overflow-hidden grid grid-cols-[28px_minmax(0,1fr)_auto] lg:grid-cols-[44px_minmax(0,1fr)_auto] gap-2 lg:gap-4 px-2 lg:px-5 py-2.5 lg:py-3.5 xl:py-4 items-center rounded-xl cursor-pointer transition-colors ${
-                    isPlayingTrack ? 'bg-[color-mix(in_srgb,var(--album-tint)_30%,rgba(255,255,255,0.06))] backdrop-blur-2xl ring-1 ring-white/10' : 'hover:bg-[color-mix(in_srgb,var(--album-tint)_22%,rgba(255,255,255,0.05))] hover:backdrop-blur-2xl'
+                  className={`group/row relative overflow-hidden grid grid-cols-[28px_minmax(0,1fr)_auto] lg:grid-cols-[44px_minmax(0,1fr)_auto] gap-2 lg:gap-4 px-2 lg:px-5 py-2.5 lg:py-3.5 xl:py-4 items-center rounded-full cursor-pointer transition-[background-color,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    isPlayingTrack ? 'isolate lg:py-4 xl:py-5 border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]' : 'hover:bg-[color-mix(in_srgb,var(--album-tint)_22%,rgba(255,255,255,0.05))] hover:backdrop-blur-2xl'
                   }`}
                 >
+                  {isPlayingTrack && (() => {
+                    const p = Math.max(6, playback.progress * 100);
+                    const edge = `linear-gradient(105deg, black ${p - 8}%, transparent ${p + 4}%)`;
+                    return (
+                      <span
+                        aria-hidden="true"
+                        className="absolute inset-0 -z-10 rounded-full overflow-hidden pointer-events-none"
+                        style={{ maskImage: edge, WebkitMaskImage: edge }}
+                      >
+                        <SmokedGlass src={track.albumCover || album.coverUrl} />
+                      </span>
+                    );
+                  })()}
                   <div className="relative text-white/50 font-medium flex items-center justify-center tabular-nums">
                     {isPlayingTrack ? (
-                      <div className="flex items-end justify-center gap-[2.5px] h-4 w-4">
-                        <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-2 animate-[bounce_1s_infinite]' : 'h-[4px]'}`}></div>
-                        <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-4 animate-[bounce_1.2s_infinite]' : 'h-[4px]'}`}></div>
-                        <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-3 animate-[bounce_0.8s_infinite]' : 'h-[4px]'}`}></div>
-                        <div className={`w-[3px] bg-[#a855f7] rounded-full transition-all duration-150 ${isPlaying ? 'h-[10px] animate-[bounce_1.1s_infinite]' : 'h-[4px]'}`}></div>
-                      </div>
+                      <EqBars playing={isPlaying} className="h-4 w-4" barClassName="w-[3px] bg-white" />
                     ) : isHovered ? (
                       <Play className="w-4 h-4 text-white" fill="currentColor" />
                     ) : (
@@ -497,7 +508,7 @@ useEffect(() => {
                   </div>
 
                   <div className="relative flex flex-col min-w-0">
-                    <span className={`text-[15px] lg:text-base xl:text-[17px] font-medium flex items-center gap-1.5 min-w-0 ${isPlayingTrack ? 'text-[#a855f7]' : 'text-white'}`}>
+                    <span className={`text-[15px] lg:text-base xl:text-[17px] flex items-center gap-1.5 min-w-0 ${isPlayingTrack ? 'text-white font-bold' : 'text-white font-medium'}`}>
                       {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
                       <span className="truncate">{track.title}</span>
                     </span>
@@ -581,7 +592,7 @@ useEffect(() => {
         </div>
       </div>
 
-      
+
       {/* Download Confirmation Modal */}
       {showDownloadConfirm && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setShowDownloadConfirm(false)}>
@@ -596,16 +607,16 @@ useEffect(() => {
               ¿Estás seguro que deseas descargar todas las canciones de <strong>{album.title}</strong>?
             </p>
             <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => setShowDownloadConfirm(false)} 
+              <button
+                onClick={() => setShowDownloadConfirm(false)}
                 title="Cancelar descarga del álbum"
                 aria-label="Cancelar descarga del álbum"
                 className="px-4 py-2 rounded-lg font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
               >
                 Cancelar
               </button>
-              <button 
-                onClick={handleDownloadAlbum} 
+              <button
+                onClick={handleDownloadAlbum}
                 title="Descargar todas las canciones de este álbum"
                 aria-label="Descargar todas las canciones de este álbum"
                 className="px-4 py-2 rounded-lg font-medium bg-[#a855f7] hover:bg-[#b066f8] text-white transition-colors shadow-lg shadow-[#a855f7]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
@@ -618,9 +629,9 @@ useEffect(() => {
         document.body
       )}
 
-    
+
       {/* Cancel Download Confirmation Modal */}
-      
+
       {(() => {
         const menuTrack = openTrackMenu !== null ? album.tracks?.find(t => t.id === openTrackMenu) ?? null : null;
         return (
@@ -658,19 +669,19 @@ useEffect(() => {
               ¿Estás seguro que deseas cancelar la descarga de <strong>{album.title}</strong>? Las canciones que ya se han descargado se mantendrán.
             </p>
             <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => setShowCancelConfirm(false)} 
+              <button
+                onClick={() => setShowCancelConfirm(false)}
                 title="Continuar con la descarga"
                 aria-label="Continuar con la descarga"
                 className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
               >
                 Continuar descarga
               </button>
-              <button 
+              <button
                 onClick={() => {
                   cancelAlbumDownload(String(album.id));
                   setShowCancelConfirm(false);
-                }} 
+                }}
                 title="Confirmar cancelación de descarga"
                 aria-label="Confirmar cancelación de descarga"
                 className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
@@ -683,7 +694,7 @@ useEffect(() => {
         document.body
       )}
 
-    
+
       {/* Delete Download Confirmation Modal */}
       {showDeleteConfirm && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(false); }}>
@@ -698,15 +709,15 @@ useEffect(() => {
               ¿Estás seguro que deseas eliminar todas las canciones descargadas de <strong>{album.title}</strong>? Perderás el acceso sin conexión a este álbum.
             </p>
             <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => setShowDeleteConfirm(false)} 
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
                 title="Cancelar y mantener descargas"
                 aria-label="Cancelar y mantener descargas"
                 className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 title="Confirmar eliminación de descargas"
                 aria-label="Confirmar eliminación de descargas"
                 onClick={() => {
