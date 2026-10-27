@@ -636,9 +636,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     addToQueue: (track: Track, album: Album) => {
       if (!nowPlayingTrack) { handlePlayTrack(track, album); return; }
       if (track.id === nowPlayingTrack.id) return;
-      insertAfterCurrent({ track, album }, Math.min(manualCount, upNext.length));
-      setManualCount(c => c + 1);
-      toast(`'${track.title}' añadida a la cola`);
+      // Always goes to the very end of the queue ("Reproducir a continuación" is the one that plays next)
+      insertAfterCurrent({ track, album }, Number.MAX_SAFE_INTEGER);
+      toast(`'${track.title}' añadida al final de la cola`);
     },
     removeFromQueue: (trackId: number) => {
       const pos = queueList.findIndex(e => e.track.id === trackId);
