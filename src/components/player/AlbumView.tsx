@@ -112,10 +112,14 @@ export const AlbumView = ({
     const measure = () => {
       const inner = el.firstElementChild as HTMLElement | null;
       const rows = inner ? (Array.from(inner.children) as HTMLElement[]) : [];
-      if (window.innerWidth < 1024 || rows.length <= VISIBLE_TRACKS) { setListMaxHeight(undefined); return; }
+      if (window.innerWidth < 1024 || rows.length === 0) { setListMaxHeight(undefined); return; }
       const first = rows[0].getBoundingClientRect();
-      const last = rows[VISIBLE_TRACKS - 1].getBoundingClientRect();
-      setListMaxHeight(Math.ceil(last.bottom - first.top) + 8);
+      const last = rows[Math.min(rows.length, VISIBLE_TRACKS) - 1].getBoundingClientRect();
+      const capped = Math.ceil(last.bottom - first.top) + 8;
+      // Never taller than the screen (header + player bar take ~260px) so short laptops don't scroll the page
+      const avail = Math.max(240, window.innerHeight - 260);
+      if (rows.length <= VISIBLE_TRACKS && capped <= avail) { setListMaxHeight(undefined); return; }
+      setListMaxHeight(Math.min(capped, avail));
     };
     measure();
     window.addEventListener('resize', measure);
@@ -224,7 +228,7 @@ useEffect(() => {
           <div className="lg:sticky lg:top-8 flex flex-col items-center w-full">
 
             {/* Glass vinyl sleeve */}
-            <div className={`relative w-[min(64vw,260px)] md:w-[300px] lg:w-[min(27vw,500px)] mt-6 lg:mt-10 transition-[margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAlbumActive ? 'lg:mr-[min(12vw,220px)]' : ''}`}>
+            <div className={`relative w-[min(64vw,260px)] md:w-[300px] lg:w-[clamp(160px,min(27vw,calc(100dvh-450px)),500px)] mt-6 lg:mt-[clamp(4px,2dvh,40px)] transition-[margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAlbumActive ? 'lg:mr-[min(12vw,220px)]' : ''}`}>
               {/* Vinyl: slides out from behind the sleeve while a track of this album is loaded, spins only while playing */}
               <div
                 aria-hidden="true"
@@ -362,7 +366,7 @@ useEffect(() => {
             </div>
 
             {/* Title + meta */}
-            <div className="flex flex-col items-center text-center mt-6 lg:mt-14 w-full lg:w-[min(31vw,580px)] min-w-0">
+            <div className="flex flex-col items-center text-center mt-6 lg:mt-[clamp(16px,4dvh,56px)] w-full lg:w-[min(31vw,580px)] min-w-0">
               <span className="text-white/60 text-xs font-semibold tracking-[0.25em] uppercase">{isPlaylist ? 'Lista de reproducción' : 'Álbum'}</span>
               {isPlaylist && isRenaming ? (
                 <input
@@ -381,7 +385,7 @@ useEffect(() => {
                 <h1
                   onDoubleClick={() => isPlaylist && setIsRenaming(true)}
                   title={isPlaylist ? 'Doble clic para cambiar el nombre' : undefined}
-                  className="mt-2 font-inter font-bold text-white text-4xl md:text-5xl xl:text-6xl leading-[1.1] tracking-tight [overflow-wrap:anywhere] pb-1"
+                  className="mt-2 font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight [overflow-wrap:anywhere] pb-1"
                 >
                   {album.title}
                 </h1>
