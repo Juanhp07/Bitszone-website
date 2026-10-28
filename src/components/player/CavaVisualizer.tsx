@@ -121,25 +121,28 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
       const playStateBlend = playStateBlendRef.current;
 
       // 2. Audio Energy & Bass Sampling
-      const freqData = playing ? audioVisualizer.getByteFrequencyData() : null;
+      const stereoData = playing ? audioVisualizer.getStereoFrequencyData() : null;
 
       let instantBass = 0;
       let instantEnergy = 0.25;
 
-      if (freqData && freqData.length > 0) {
+      if (stereoData && stereoData.left.length > 0) {
+        const left = stereoData.left;
+        const right = stereoData.right;
+
         // Bass bins: 0 to 6 (~0 to 350 Hz, capturing kick drums & 808s)
         let bassSum = 0;
-        const bassBins = Math.min(7, freqData.length);
+        const bassBins = Math.min(7, left.length);
         for (let b = 0; b < bassBins; b++) {
-          bassSum += freqData[b];
+          bassSum += (left[b] + right[b]) * 0.5;
         }
         instantBass = bassSum / (bassBins * 255);
 
         // General energy bins: 0 to 80 (~0 to 4 kHz)
         let energySum = 0;
-        const energyBins = Math.min(80, freqData.length);
+        const energyBins = Math.min(80, left.length);
         for (let b = 0; b < energyBins; b++) {
-          energySum += freqData[b];
+          energySum += (left[b] + right[b]) * 0.5;
         }
         instantEnergy = energySum / (energyBins * 255);
       }
@@ -165,17 +168,25 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
       const baselineY = height - 12;
 
       const distribution = settings.distribution || 'distributed';
-      const phi = 0.618033988749895; // Golden ratio fractional part for non-repeating low-discrepancy dispersion
+
+      // Organic dynamic spatial tide (Marea sonora que hace fluctuar los lados)
+      // Generates natural asymmetry where one side rises higher, then shifts to the other side!
+      const tideWave1 = Math.sin(t * 1.15) * 0.22;
+      const tideWave2 = Math.cos(t * 0.58) * 0.14;
+      const tide = (tideWave1 + tideWave2) * (0.7 + smoothedBass * 0.6);
 
       // Pass 1: Calculate raw frequency targets per bar
       for (let i = 0; i < barCount; i++) {
         const x = i / Math.max(1, barCount - 1); // 0 (left) to 1 (right)
 
-        // Calculate assigned frequency bin, band tilt, and bass designation based on distribution mode
         let targetBin = 0;
         let bandTilt = 1.0;
         let isBass = false;
-        const scatter = (i * phi) % 1;
+
+        // Organic micro-jitter per bar (creates organic, non-uniform texture across bars)
+        const barJitter = Math.sin(i * 3.82) * 0.045;
+        // Traveling spatial ripple across the visualizer width
+        const waveSlosh = Math.sin(t * 1.7 - x * Math.PI * 2.4) * 0.08;
 
         if (distribution === 'center') {
           // Symmetrical: Sub-bass in center, expanding outward to treble at edges
@@ -201,24 +212,44 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
           bandTilt = 1.0 + Math.pow(x, 0.72) * 1.75;
           isBass = x < 0.18;
         } else {
-          // 'distributed' (Default: Dispersión Armónica Natural con Golden Ratio)
-          // Reparte los bajos, medios y agudos de forma orgánica y desordenada sin patrones repetitivos
-          targetBin = Math.floor(Math.pow(scatter, 1.35) * 138);
-          const normBin = Math.min(1, targetBin / 120);
-          bandTilt = 0.95 + Math.pow(normBin, 0.65) * 1.55;
-          isBass = targetBin < 12;
+          // 'distributed' (Default: Marea Sonora Orgánica Asimétrica)
+          // 3 Dynamic Acoustic Zones:
+          // Left (x < 0.36): Sub-bass & Kick punch (bombo/808 potente)
+          // Center (0.36 <= x < 0.68): Vocals & melodic body (voces e instrumentos)
+          // Right (x >= 0.68): Snare body, claps, hi-hats & shimmer (cajas y percusión)
+          if (x < 0.36) {
+            const subProg = x / 0.36;
+            targetBin = Math.floor(Math.pow(subProg, 1.55) * 20); // 0 to 20
+            bandTilt = 1.0 + subProg * 0.25;
+            isBass = targetBin < 10;
+          } else if (x < 0.68) {
+            const midProg = (x - 0.36) / 0.32;
+            targetBin = Math.floor(15 + Math.pow(midProg, 1.25) * 50); // 15 to 65
+            bandTilt = 1.30 + midProg * 0.35;
+            isBass = false;
+          } else {
+            const highProg = (x - 0.68) / 0.32;
+            targetBin = Math.floor(55 + Math.pow(highProg, 1.35) * 85); // 55 to 140
+            bandTilt = 1.65 + Math.pow(highProg, 0.7) * 0.65;
+            isBass = false;
+          }
         }
 
-        // Ambient fluid wave harmonics (liquid breathing motion with organic phase offset)
-        const arch = Math.sin(x * Math.PI) * 0.14 + 0.08;
-        const wave1 = Math.sin(t * 1.8 + x * Math.PI * 2.2) * 0.07;
+        // Ambient fluid wave harmonics
+        const arch = Math.sin(x * Math.PI) * 0.12 + 0.08;
+        const wave1 = Math.sin(t * 1.8 + x * Math.PI * 2.2) * 0.06;
         const wave2 = Math.cos(t * 2.6 - x * Math.PI * 3.4) * 0.05;
-        const waveOrganic = Math.sin(t * 2.2 + scatter * Math.PI * 2) * 0.04;
-        let waveProfile = arch + wave1 + wave2 + waveOrganic;
+        let waveProfile = arch + wave1 + wave2 + barJitter;
 
-        if (freqData && freqData.length > 0) {
-          const safeBin = Math.min(freqData.length - 1, targetBin);
-          let rawFreqVal = freqData[safeBin] / 255;
+        if (stereoData) {
+          const safeBin = Math.min(stereoData.left.length - 1, targetBin);
+
+          // Stereo spatial weighting: Left bars favor left channel, right bars favor right channel
+          const leftWeight = 1.0 - x * 0.75;
+          const rightWeight = 0.25 + x * 0.75;
+          const blendedSample = (stereoData.left[safeBin] * leftWeight + stereoData.right[safeBin] * rightWeight) / (leftWeight + rightWeight);
+
+          let rawFreqVal = blendedSample / 255;
 
           // Bass dynamic kick velocity multiplier (bounces on kicks without flat saturating)
           if (isBass) {
@@ -229,15 +260,21 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
           const compensatedFreq = rawFreqVal * bandTilt;
 
           const attackRate = compensatedFreq > smoothedFreq[i]
-            ? 0.055
-            : (settings.gravity === 'fast' ? 0.018 : settings.gravity === 'slow' ? 0.008 : 0.012);
+            ? 0.058
+            : (settings.gravity === 'fast' ? 0.019 : settings.gravity === 'slow' ? 0.008 : 0.012);
           smoothedFreq[i] += (compensatedFreq - smoothedFreq[i]) * Math.min(1, dt * attackRate);
 
-          waveProfile = waveProfile * 0.22 + smoothedFreq[i] * 0.82;
+          waveProfile = waveProfile * 0.20 + smoothedFreq[i] * 0.82;
         }
 
-        // Active target modulated by music presence (collapses down during silence!)
-        const activeTarget = waveProfile * (0.38 + smoothedEnergy * 0.78) * musicPresence * settings.sensitivity;
+        // Spatial side sway: creates the user's requested shifting heights where
+        // one side is sometimes higher and the other lower, swaying dynamically
+        const spatialMod = distribution === 'distributed'
+          ? Math.max(0.68, Math.min(1.36, 1.0 + (x - 0.5) * tide * 1.45 + waveSlosh))
+          : 1.0;
+
+        // Active target modulated by music presence and spatial tide
+        const activeTarget = waveProfile * (0.38 + smoothedEnergy * 0.78) * musicPresence * settings.sensitivity * spatialMod;
 
         // Soft-knee dynamic compression: allows energetic bars to punch up dynamically (~0.88-0.91),
         // but smoothly saturates so NO bars ever form a flat ceiling against the top!
@@ -250,10 +287,8 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
         const prev = i > 0 ? rawTargets[i - 1] : rawTargets[i];
         const next = i < barCount - 1 ? rawTargets[i + 1] : rawTargets[i];
 
-        // In distributed mode, neighbor blending creates gorgeous rolling crests;
-        // in center or linear modes, mild blending maintains continuous silhouette.
         const coupled = distribution === 'distributed'
-          ? 0.76 * rawTargets[i] + 0.12 * (prev + next)
+          ? 0.78 * rawTargets[i] + 0.11 * (prev + next)
           : 0.86 * rawTargets[i] + 0.07 * (prev + next);
 
         // Resting stubs (when paused or silent)
@@ -263,7 +298,7 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
         const target = restTarget + (Math.max(restTarget, coupled) - restTarget) * playStateBlend;
 
         // Damped fluid interpolation: silky smooth 60-144fps movement
-        const interpRate = settings.gravity === 'fast' ? 0.019 : settings.gravity === 'slow' ? 0.010 : 0.014;
+        const interpRate = settings.gravity === 'fast' ? 0.020 : settings.gravity === 'slow' ? 0.010 : 0.014;
         heights[i] += (target - heights[i]) * Math.min(1, dt * interpRate);
       }
 

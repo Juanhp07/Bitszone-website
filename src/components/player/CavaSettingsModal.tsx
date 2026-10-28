@@ -260,9 +260,9 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
                 {[
                   {
                     id: 'distributed' as CavaDistribution,
-                    label: 'Repartido Armónico',
+                    label: 'Marea Orgánica',
                     badge: 'Recomendado',
-                    desc: 'Bajos, medios y agudos dispersados de forma natural y orgánica en todo el ancho',
+                    desc: 'Asimetría viva: lados fluctuantes entre bombos, voces y cajas con movimiento natural',
                   },
                   {
                     id: 'center' as CavaDistribution,

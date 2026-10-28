@@ -5,10 +5,15 @@
 
 class AudioVisualizerService {
   private audioCtx: AudioContext | null = null;
+  private analyser: AnalyserNode | null = null;
+  private leftAnalyser: AnalyserNode | null = null;
+  private rightAnalyser: AnalyserNode | null = null;
   private gainNode: GainNode | null = null;
   private mediaSource: MediaElementAudioSourceNode | null = null;
   private connectedElement: HTMLAudioElement | null = null;
   private frequencyData: Uint8Array | null = null;
+  private leftFreqData: Uint8Array | null = null;
+  private rightFreqData: Uint8Array | null = null;
   private hasRealData = false;
   private zeroCheckCount = 0;
 
@@ -52,6 +57,27 @@ class AudioVisualizerService {
         this.analyser.smoothingTimeConstant = 0.3; // Responsive attack for CAVA
         this.analyser.minDecibels = -90;
         this.analyser.maxDecibels = -10;
+
+        // Try creating stereo channel splitter for real left/right differential
+        try {
+          const splitter = this.audioCtx.createChannelSplitter(2);
+          this.mediaSource.connect(splitter);
+
+          this.leftAnalyser = this.audioCtx.createAnalyser();
+          this.leftAnalyser.fftSize = 512;
+          this.leftAnalyser.smoothingTimeConstant = 0.3;
+          splitter.connect(this.leftAnalyser, 0);
+
+          this.rightAnalyser = this.audioCtx.createAnalyser();
+          this.rightAnalyser.fftSize = 512;
+          this.rightAnalyser.smoothingTimeConstant = 0.3;
+          splitter.connect(this.rightAnalyser, 1);
+
+          this.leftFreqData = new Uint8Array(this.leftAnalyser.frequencyBinCount);
+          this.rightFreqData = new Uint8Array(this.rightAnalyser.frequencyBinCount);
+        } catch (_) {
+          // Fallback gracefully to mono analyser
+        }
 
         // Route: source -> analyser -> gainNode -> destination
         this.mediaSource.connect(this.analyser);
@@ -98,6 +124,33 @@ class AudioVisualizerService {
     }
 
     return this.frequencyData;
+  }
+
+  /**
+   * Reads stereo frequency data { left, right } [0..255] for 256 bins.
+   * Gracefully mirrors mono data if stereo splitter is unavailable or audio is mono.
+   */
+  public getStereoFrequencyData(): { left: Uint8Array; right: Uint8Array } | null {
+    const mono = this.getByteFrequencyData();
+    if (!mono) return null;
+
+    if (!this.leftAnalyser || !this.rightAnalyser || !this.leftFreqData || !this.rightFreqData) {
+      return { left: mono, right: mono };
+    }
+
+    this.leftAnalyser.getByteFrequencyData(this.leftFreqData);
+    this.rightAnalyser.getByteFrequencyData(this.rightFreqData);
+
+    // If right channel is silent (mono audio), duplicate left
+    let rightSum = 0;
+    for (let i = 0; i < 16; i++) {
+      rightSum += this.rightFreqData[i];
+    }
+    if (rightSum === 0) {
+      return { left: mono, right: mono };
+    }
+
+    return { left: this.leftFreqData, right: this.rightFreqData };
   }
 
   public isRealAudioActive(): boolean {
