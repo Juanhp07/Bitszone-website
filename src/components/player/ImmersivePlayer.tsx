@@ -454,6 +454,28 @@ export const ImmersivePlayer = ({
           </button>
         </div>
 
+        {/* Botón Inmersión estilo circular Liquid Glass con expansión suave a texto en hover (en la parte superior derecha) */}
+        <div className="absolute top-3 md:top-8 xl:top-10 right-3 md:right-8 xl:right-10 z-50">
+          <button
+            onClick={() => handleTabSelect(currentTab === 'inmersion' ? 'pistas' : 'inmersion')}
+            className={`group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[118px] md:hover:w-[128px] rounded-full backdrop-blur-2xl border shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none ${
+              currentTab === 'inmersion'
+                ? 'bg-white/25 border-white/40 text-white shadow-[0_0_24px_rgba(168,85,247,0.35)]'
+                : 'bg-white/10 hover:bg-white/15 active:bg-white/20 border-white/20 hover:border-white/30 text-white/90 hover:text-white'
+            }`}
+            title={currentTab === 'inmersion' ? "Salir de modo inmersión" : "Modo inmersión visual"}
+            aria-label="Modo inmersión"
+            aria-pressed={currentTab === 'inmersion'}
+          >
+            <div className="w-10 md:w-11 h-10 md:h-11 flex items-center justify-center shrink-0">
+              <Sparkles className={`w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-110 ${currentTab === 'inmersion' ? 'text-purple-300' : 'text-white/90'}`} strokeWidth={2.2} aria-hidden="true" />
+            </div>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
+              Inmersión
+            </span>
+          </button>
+        </div>
+
         {/* 1. LEFT: Unified Cover, Info & Controls */}
         <div className={`w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex flex-col justify-center items-center group px-6 md:px-12 md:pl-32 xl:pl-40 pt-14 pb-[44px] md:pt-20 md:pb-10 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 scale-100 duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
            {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
@@ -762,9 +784,9 @@ export const ImmersivePlayer = ({
              onClose={() => setRowMenu(null)}
              trailingItems={rowMenu?.inQueue ? [{ label: 'Eliminar de la cola', icon: <ListX className="w-4 h-4" />, onSelect: () => playback.removeFromQueue(rowMenu.track.id), danger: true }] : []}
            />
-           {/* Top Tabs (PISTAS / LETRA / COLA / INMERSIÓN) - Centered Liquid Glass Pill */}
-           <div className="md:absolute md:top-8 xl:top-10 md:right-8 xl:right-10 w-full md:w-auto mb-6 md:mb-0 shrink-0 z-40 flex items-center justify-center px-4 md:px-0">
-              <div className="rounded-full p-1.5 w-[370px] sm:w-[450px] md:w-[500px] xl:w-[540px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
+           {/* Top Tabs (PISTAS / LETRA / COLA) - Left-aligned Liquid Glass Pill */}
+           <div className="md:absolute md:top-8 xl:top-10 md:left-6 xl:left-4 w-full md:w-auto mb-6 md:mb-0 shrink-0 z-40 flex items-center justify-start px-5 md:px-0">
+              <div className="rounded-full p-1.5 w-[290px] sm:w-[330px] md:w-[360px] xl:w-[385px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
                 <LiquidTabs
                   value={currentTab}
                   onChange={handleTabSelect}
@@ -772,7 +794,6 @@ export const ImmersivePlayer = ({
                     { id: 'pistas', label: 'Pistas', title: 'Mostrar pistas del álbum', icon: <ListMusic className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
                     { id: 'letra', label: 'Letra', title: 'Mostrar letra sincronizada', icon: <Mic2 className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
                     { id: 'cola', label: 'Cola', title: 'Mostrar cola de reproducción', icon: <ListOrdered className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
-                    { id: 'inmersion', label: 'Inmersión', title: 'Modo inmersión visual', icon: <Sparkles className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
                   ]}
                 />
               </div>

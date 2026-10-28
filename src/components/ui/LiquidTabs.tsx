@@ -23,7 +23,9 @@ export function LiquidTabs<T extends string>({
   const [pressed, setPressed] = useState(false);
   const drag = useRef<{ startX: number; startLeft: number; moved: boolean } | null>(null);
 
-  const index = Math.max(0, tabs.findIndex((t) => t.id === value));
+  const hasActive = tabs.some((t) => t.id === value);
+  const activeIndex = tabs.findIndex((t) => t.id === value);
+  const index = activeIndex >= 0 ? activeIndex : 0;
   const x = useMotionValue(0);
   const springX = useSpring(x, { stiffness: 420, damping: 32, mass: 0.7 });
 
@@ -75,10 +77,11 @@ export function LiquidTabs<T extends string>({
       {/* Indicador activo estilo Liquid Glass (detrás del texto para nitidez absoluta sin distorsión) */}
       <motion.div
         aria-hidden="true"
-        className="absolute top-0 bottom-0 left-0 z-0 rounded-full pointer-events-none border border-white/25 bg-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_4px_16px_rgba(0,0,0,0.3)] backdrop-blur-md"
+        className="absolute top-0 bottom-0 left-0 z-0 rounded-full pointer-events-none border border-white/25 bg-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_4px_16px_rgba(0,0,0,0.3)] backdrop-blur-md transition-opacity duration-200"
         style={{
           width: segment || `${100 / tabs.length}%`,
           x: springX,
+          opacity: hasActive ? 1 : 0,
         }}
         animate={{ scaleX: pressed ? 1.05 : 1, scaleY: pressed ? 1.08 : 1 }}
         transition={{ type: 'spring', stiffness: 500, damping: 28 }}

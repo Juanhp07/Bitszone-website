@@ -46,7 +46,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   }, [isCompact]);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
-  const [immersiveTab, setImmersiveTab] = useState<"pistas" | "letra" | "cola">("pistas");
+  const [immersiveTab, setImmersiveTab] = useState<"pistas" | "letra" | "cola" | "inmersion">("pistas");
   const consecutivePlaysRef = useRef<{ trackId: number | string | null, count: number }>({ trackId: null, count: 0 });
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
