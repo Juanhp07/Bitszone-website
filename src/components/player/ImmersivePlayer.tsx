@@ -548,8 +548,20 @@ export const ImmersivePlayer = ({
 
         {/* Album ambience: same blurred cover as the album page, a touch darker */}
         <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-           <div className={`absolute inset-0 bg-cover bg-center blur-[120px] saturate-150 opacity-90 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'scale-125' : 'scale-150'}`} style={{ backgroundImage: `url(${coverSource})` }} />
-           <div className="absolute inset-0 bg-black/55" />
+           <div className="absolute inset-0 bg-black/55 z-10" />
+           <AnimatePresence>
+             {coverSource && (
+               <motion.div
+                 key={coverSource}
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 0.9 }}
+                 exit={{ opacity: 0 }}
+                 transition={{ duration: 0.8, ease: 'easeInOut' }}
+                 className={`absolute inset-0 bg-cover bg-center blur-[120px] saturate-150 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'scale-125' : 'scale-150'}`}
+                 style={{ backgroundImage: `url(${coverSource})` }}
+               />
+             )}
+           </AnimatePresence>
         </div>
 
         {/* Botón Minimizar estilo circular Liquid Glass con expansión suave a texto en hover */}

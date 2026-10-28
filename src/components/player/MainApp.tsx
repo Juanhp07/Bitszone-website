@@ -691,6 +691,18 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     };
   })();
 
+  const currentViewingAlbum = selectedAlbumFull || selectedAlbum;
+  const albumBackgroundCover = (() => {
+    if (!currentViewingAlbum) return '';
+    const isSongRadio = isSongRadioAlbum(currentViewingAlbum);
+    if (isSongRadio) {
+      const activeTrack = currentViewingAlbum.tracks?.find(t => t.id === nowPlayingTrack?.id)
+        || currentViewingAlbum.tracks?.[0];
+      return activeTrack?.albumCover || nowPlayingOrigin?.coverUrl || currentViewingAlbum.coverUrl || '';
+    }
+    return currentViewingAlbum.coverUrl || '';
+  })();
+
   const playback = {
     nowPlayingTrackId: nowPlayingTrack?.id,
     progress,
@@ -793,10 +805,22 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
       {/* Dynamic Album Background Glow (Expanded to entire web page) */}
       <div
-        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && currentViewingAlbum ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="absolute inset-0 bg-black/45 z-10"></div>
-        <div className="absolute inset-0 bg-cover bg-center blur-[120px] scale-125 saturate-150 opacity-90" style={{ backgroundImage: currentView === 'album' && (selectedAlbumFull || selectedAlbum) ? `url(${(selectedAlbumFull || selectedAlbum)?.coverUrl})` : 'none' }}></div>
+        <AnimatePresence>
+          {albumBackgroundCover && (
+            <motion.div
+              key={albumBackgroundCover}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.9 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
+              className="absolute inset-0 bg-cover bg-center blur-[120px] scale-125 saturate-150"
+              style={{ backgroundImage: `url(${albumBackgroundCover})` }}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Dynamic Artist Background Glow */}
