@@ -5,7 +5,7 @@
 
 class AudioVisualizerService {
   private audioCtx: AudioContext | null = null;
-  private analyser: AnalyserNode | null = null;
+  private gainNode: GainNode | null = null;
   private mediaSource: MediaElementAudioSourceNode | null = null;
   private connectedElement: HTMLAudioElement | null = null;
   private frequencyData: Uint8Array | null = null;
@@ -44,16 +44,19 @@ class AudioVisualizerService {
 
         this.mediaSource = this.audioCtx.createMediaElementSource(audio);
         this.analyser = this.audioCtx.createAnalyser();
-        
+        this.gainNode = this.audioCtx.createGain();
+        this.gainNode.gain.setValueAtTime(1.0, this.audioCtx.currentTime);
+
         // 512 fftSize gives 256 frequency bins (0 Hz to 22.05 kHz, ~86 Hz per bin)
         this.analyser.fftSize = 512;
         this.analyser.smoothingTimeConstant = 0.3; // Responsive attack for CAVA
         this.analyser.minDecibels = -90;
         this.analyser.maxDecibels = -10;
 
-        // Route: source -> analyser -> destination (so user continues to hear audio)
+        // Route: source -> analyser -> gainNode -> destination
         this.mediaSource.connect(this.analyser);
-        this.analyser.connect(this.audioCtx.destination);
+        this.analyser.connect(this.gainNode);
+        this.gainNode.connect(this.audioCtx.destination);
 
         this.connectedElement = audio;
         this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
@@ -109,6 +112,31 @@ class AudioVisualizerService {
 
   public getContext(): AudioContext | null {
     return this.audioCtx;
+  }
+
+  /**
+   * Smoothly fades output gain to target [0..1] over durationSecs using Web Audio hardware interpolation.
+   */
+  public fadeGain(targetGain: number, durationSecs: number = 0.15): void {
+    if (!this.audioCtx || !this.gainNode) return;
+    try {
+      const now = this.audioCtx.currentTime;
+      this.gainNode.gain.cancelScheduledValues(now);
+      this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+      this.gainNode.gain.linearRampToValueAtTime(Math.max(0, Math.min(1, targetGain)), now + Math.max(0.015, durationSecs));
+    } catch (_) {}
+  }
+
+  /**
+   * Sets output gain instantaneously (for start of new tracks or mute).
+   */
+  public setGainInstant(gain: number): void {
+    if (!this.audioCtx || !this.gainNode) return;
+    try {
+      const now = this.audioCtx.currentTime;
+      this.gainNode.gain.cancelScheduledValues(now);
+      this.gainNode.gain.setValueAtTime(Math.max(0, Math.min(1, gain)), now);
+    } catch (_) {}
   }
 }
 

@@ -928,30 +928,22 @@ export const ImmersivePlayer = ({
 
               {/* Squiggly Timeline Progress Bar (More Compact) */}
               <div className="w-full md:w-[min(42vw,760px)] flex items-center gap-2.5 md:gap-4 font-bold text-white/50 tracking-wider tabular-nums text-xs md:text-base">
-                 <span className="text-right w-9 md:w-12">{formatTime(progress * track.duration)}</span>
+                 <span className="text-right w-9 md:w-12">{formatTime((scrubProgress !== null ? scrubProgress : progress) * track.duration)}</span>
 
                  <div
                    role="slider"
                    aria-label="Progreso de la canción"
                    aria-valuemin={0}
                    aria-valuemax={100}
-                   aria-valuenow={Math.round(progress * 100)}
+                   aria-valuenow={Math.round((scrubProgress !== null ? scrubProgress : progress) * 100)}
                    className="flex-1 h-9 md:h-8 flex items-center relative cursor-pointer group touch-none py-2"
-                   onPointerDown={(e) => {
-                      e.stopPropagation();
-                      e.currentTarget.setPointerCapture(e.pointerId);
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      onSeek?.(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
-                   }}
-                   onPointerMove={(e) => {
-                      if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      onSeek?.(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
-                   }}
-                   onPointerUp={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
+                   onPointerDown={handleTimelinePointerDown}
+                   onPointerMove={handleTimelinePointerMove}
+                   onPointerUp={handleTimelinePointerUp}
+                   onPointerCancel={handleTimelinePointerUp}
                  >
                     {/* Unified seekbar line: wavy played curves, straight unplayed track and handle dot in one seamless SVG */}
-                    <WavyProgress progress={progress} isPlaying={isPlaying} />
+                    <WavyProgress progress={scrubProgress !== null ? scrubProgress : progress} isPlaying={isPlaying} />
                  </div>
 
                  <span className="w-9 md:w-12">{formatTime(track.duration)}</span>

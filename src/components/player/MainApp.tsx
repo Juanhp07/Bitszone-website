@@ -25,6 +25,7 @@ import { Heart } from 'lucide-react';
 import { MobileTabBar } from './MobileTabBar';
 import { useIsMobile, useIsCompact } from './useIsMobile';
 import { useRubberBand } from '../ui/useRubberBand';
+import { audioVisualizer } from './audioVisualizer';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   const { containerRef: mainScrollRef, springValue: springMainY, scrollProps: mainScrollProps } = useRubberBand({ axis: 'y' });
@@ -185,15 +186,104 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playRequestIdRef = useRef(0);
+  const volumeFadeRef = useRef<{ cancel: () => void } | null>(null);
+  const seekFadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isSeekingRef = useRef(false);
+
+  /**
+   * Fades audio volume smoothly to targetNormalized [0..1] over durationMs.
+   * Modulates both Web Audio hardware GainNode and HTMLAudioElement.volume.
+   */
+  const fadeAudioVolume = (targetNormalized: number, durationMs: number = 180): Promise<void> => {
+    return new Promise((resolve) => {
+      if (volumeFadeRef.current) {
+        volumeFadeRef.current.cancel();
+        volumeFadeRef.current = null;
+      }
+
+      const audio = audioRef.current;
+      const masterVol = volume / 100;
+      const targetVol = Math.max(0, Math.min(1, targetNormalized * masterVol));
+
+      audioVisualizer.fadeGain(targetNormalized, durationMs / 1000);
+
+      if (!audio || durationMs <= 10 || Math.abs(audio.volume - targetVol) < 0.01) {
+        if (audio) audio.volume = targetVol;
+        resolve();
+        return;
+      }
+
+      const startVol = audio.volume;
+      const startTime = performance.now();
+      let isCancelled = false;
+
+      volumeFadeRef.current = {
+        cancel: () => {
+          isCancelled = true;
+        }
+      };
+
+      const step = (now: number) => {
+        if (isCancelled) {
+          resolve();
+          return;
+        }
+        const elapsed = now - startTime;
+        const p = Math.min(1, elapsed / durationMs);
+        const eased = 0.5 - 0.5 * Math.cos(p * Math.PI);
+        audio.volume = Math.max(0, Math.min(1, startVol + (targetVol - startVol) * eased));
+
+        if (p < 1) {
+          requestAnimationFrame(step);
+        } else {
+          audio.volume = targetVol;
+          volumeFadeRef.current = null;
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(step);
+    });
+  };
+
+  /**
+   * Safe seek with micro-ducking fade to eliminate pops, clicks, and buffer cuts across all players.
+   */
+  const handleSeek = (p: number) => {
+    const audio = audioRef.current;
+    if (!audio || !audio.duration) return;
+
+    const targetTime = Math.max(0, Math.min(audio.duration, p * audio.duration));
+
+    // Duck volume to near silence (35ms) on scrub start to eliminate any pops
+    if (!isSeekingRef.current) {
+      isSeekingRef.current = true;
+      fadeAudioVolume(0.04, 35);
+    }
+
+    audio.currentTime = targetTime;
+    setProgress(p);
+
+    if (seekFadeTimeoutRef.current) {
+      clearTimeout(seekFadeTimeoutRef.current);
+    }
+
+    // Settle timer: smoothly fade back up to full master volume
+    seekFadeTimeoutRef.current = setTimeout(() => {
+      isSeekingRef.current = false;
+      fadeAudioVolume(1.0, 95);
+    }, 65);
+  };
 
   const toggleMute = () => {
     if (volume > 0) {
       setPrevVolume(volume);
       setVolume(0);
-      if (audioRef.current) audioRef.current.volume = 0;
+      fadeAudioVolume(0, 80);
     } else {
-      setVolume(prevVolume > 0 ? prevVolume : 100);
-      if (audioRef.current) audioRef.current.volume = (prevVolume > 0 ? prevVolume : 100) / 100;
+      const restored = prevVolume > 0 ? prevVolume : 100;
+      setVolume(restored);
+      fadeAudioVolume(1.0, 100);
     }
   };
 
@@ -315,7 +405,16 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       if (now - lastTime >= 40) {
         lastTime = now;
         if (audioRef.current && !audioRef.current.paused && audioRef.current.duration) {
-          setProgress(audioRef.current.currentTime / audioRef.current.duration);
+          const curr = audioRef.current.currentTime;
+          const dur = audioRef.current.duration;
+          setProgress(curr / dur);
+
+          // Smooth fade-out in final 1.8 seconds of song
+          const remaining = dur - curr;
+          if (remaining <= 1.8 && remaining > 0.05 && !isSeekingRef.current) {
+            const endRatio = Math.max(0, Math.min(1, remaining / 1.8));
+            fadeAudioVolume(endRatio, 60);
+          }
         }
       }
       raf = requestAnimationFrame(smoothTick);
@@ -577,6 +676,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     setNowPlayingAlbum(album);
 
     if (audioRef.current) {
+      if (isPlaying) {
+        await fadeAudioVolume(0, 200);
+      }
       audioRef.current.pause();
       setIsPlaying(false);
 
@@ -602,10 +704,16 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       if (audioRef.current.src !== workingUrl) {
         audioRef.current.src = workingUrl;
       }
+
+      // Start new track silently and fade in smoothly
+      audioRef.current.volume = 0;
+      audioVisualizer.setGainInstant(0);
+
       audioRef.current.play().then(() => {
          if (currentRequestId === playRequestIdRef.current) {
            setIsPlaying(true);
            setIsAudioLoading(false);
+           fadeAudioVolume(1.0, 320); // 320ms smooth crossfade in
          }
       }).catch((err) => {
          console.error(err);
@@ -660,12 +768,22 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
     // Rule: If playing for more than 5 seconds, restart song. If less than 5 seconds, go to previous track.
     if (audioRef.current && audioRef.current.currentTime >= 5) {
-      audioRef.current.currentTime = 0;
-      setProgress(0);
-
-      if (!isPlaying) {
-        audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
-      }
+      fadeAudioVolume(0, 140).then(() => {
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          setProgress(0);
+          if (!isPlaying) {
+            audioRef.current.volume = 0;
+            audioVisualizer.setGainInstant(0);
+            audioRef.current.play().then(() => {
+              setIsPlaying(true);
+              fadeAudioVolume(1.0, 260);
+            }).catch(console.error);
+          } else {
+            fadeAudioVolume(1.0, 260);
+          }
+        }
+      });
       return;
     }
 
@@ -761,17 +879,21 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     goToArtist,
   };
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (!audioRef.current || !nowPlayingTrack) return;
     if (isPlaying) {
+      await fadeAudioVolume(0, 140);
       audioRef.current.pause();
       setIsPlaying(false);
       setIsAudioLoading(false);
     } else {
       setIsAudioLoading(true);
+      audioRef.current.volume = 0;
+      audioVisualizer.setGainInstant(0);
       audioRef.current.play().then(() => {
         setIsPlaying(true);
         setIsAudioLoading(false);
+        fadeAudioVolume(1.0, 220);
       }).catch((e) => {
         console.error(e);
         setIsAudioLoading(false);
@@ -1038,11 +1160,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     }}
                     onNext={handleNextTrack}
                     onPrev={handlePrevTrack}
-                    onSeek={(p) => {
-                      if (audioRef.current && audioRef.current.duration) {
-                        audioRef.current.currentTime = p * audioRef.current.duration;
-                      }
-                    }}
+                    onSeek={handleSeek}
                     onVolumeChange={(v) => {
                       setVolume(v);
                       if (audioRef.current) audioRef.current.volume = v / 100;
@@ -1088,11 +1206,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         onNext={handleNextTrack}
         onPrev={handlePrevTrack}
         onToggleMute={toggleMute}
-        onSeek={(p) => {
-          if (audioRef.current && audioRef.current.duration) {
-            audioRef.current.currentTime = p * audioRef.current.duration;
-          }
-        }}
+        onSeek={handleSeek}
         audioElement={audioRef.current}
       />
 

@@ -173,14 +173,46 @@ export const MiniPlayer = ({
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  // Fluid scrubbing for MiniPlayer top bar
+  const [scrubProgress, setScrubProgress] = React.useState<number | null>(null);
+  const isScrubbingRef = React.useRef(false);
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    isScrubbingRef.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setScrubProgress(p);
+    onSeek?.(p);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isScrubbingRef.current || !e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setScrubProgress(p);
+    onSeek?.(p);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isScrubbingRef.current) return;
+    isScrubbingRef.current = false;
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (scrubProgress !== null) {
+      onSeek?.(scrubProgress);
+      setScrubProgress(null);
+    }
+  };
+
+  const activeProgress = scrubProgress !== null ? scrubProgress : progress;
 
   return (
     <>
     {/* Phone: compact bar. Tapping it opens the full-screen player; buttons keep their own action. */}
     <div className="md:hidden relative w-full">
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/10" aria-hidden="true">
-        <div className="h-full bg-gradient-to-r from-[#a855f7] to-[#FF9FFC]" style={{ width: `${progress * 100}%` }} />
+        <div className="h-full bg-gradient-to-r from-[#a855f7] to-[#FF9FFC]" style={{ width: `${activeProgress * 100}%` }} />
       </div>
       <div
         role="button"
@@ -238,23 +270,18 @@ export const MiniPlayer = ({
 
       <div className="absolute left-[-50px] top-[-50px] bottom-[-50px] w-[600px] pointer-events-none z-0 opacity-50 saturate-150" style={{ backgroundImage: `url(${(track.albumCover || album.coverUrl)})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(60px)', maskImage: 'linear-gradient(to right, black 5%, transparent 70%)', WebkitMaskImage: 'linear-gradient(to right, black 5%, transparent 70%)' }} />
       </div>
-      {/* Seek bar on the top edge (YouTube Music style) */}
-          <div className="absolute left-0 right-0 top-0 -translate-y-1/2 h-6 z-20 group flex items-center cursor-pointer">
-            {/* Unified seekbar line: wavy played curves, straight unplayed track and handle dot in one seamless SVG */}
-            <WavyProgress progress={progress} isPlaying={isPlaying} />
-
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.001"
-              value={progress}
-              onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
-              className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10 focus-visible:outline-none"
-              title={`Progreso: ${formatTime(currentSecs)} de ${formatTime(durationSecs)}`}
-              aria-label="Barra de progreso de la canción"
-            />
-          </div>
+      {/* Seek bar on the top edge with fluid pointer scrubbing */}
+      <div
+        className="absolute left-0 right-0 top-0 -translate-y-1/2 h-6 z-20 group flex items-center cursor-pointer touch-none"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        title={`Progreso: ${formatTime(Math.floor(durationSecs * activeProgress))} de ${formatTime(durationSecs)}`}
+        aria-label="Barra de progreso de la canción"
+      >
+        <WavyProgress progress={activeProgress} isPlaying={isPlaying} />
+      </div>
       {/* Left: Now Playing Info */}
       <div className="flex items-center gap-4 w-[30%] min-w-[200px] relative z-10">
         <div
