@@ -527,7 +527,7 @@ export const ImmersivePlayer = ({
            {/* Floating Content: Album Title -> Square -> Artist -> Player Controls */}
            <div className="relative z-30 flex flex-col items-center justify-center w-full max-w-2xl">
               {/* Phones: song title sits above the cover */}
-              <h2 className="md:hidden w-full text-center font-inter font-bold text-white text-[26px] leading-tight tracking-tight truncate mb-4 px-2">
+              <h2 className="md:hidden w-full text-center font-inter font-bold text-white text-[26px] leading-normal tracking-tight truncate mb-4 px-2 py-1">
                 {track.title}
               </h2>
               {/* Cover + vinyl + reactions dock: the album page's left column, carried into the player */}
@@ -602,8 +602,8 @@ export const ImmersivePlayer = ({
               </div>
 
               {/* Title + meta, laid out like the album page */}
-              <div className="flex flex-col items-center text-center mt-4 md:mt-[clamp(12px,3dvh,56px)] mb-3 md:mb-[clamp(8px,2dvh,32px)] w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
-                <h2 className="hidden md:block font-inter font-bold text-white text-2xl md:text-4xl xl:text-5xl leading-tight tracking-tight truncate max-w-full">
+              <div className="flex flex-col items-center text-center mt-6 md:mt-[clamp(24px,5.5dvh,76px)] mb-3 md:mb-[clamp(8px,2dvh,32px)] w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
+                <h2 className="hidden md:block font-inter font-bold text-white text-2xl md:text-4xl xl:text-5xl leading-normal tracking-tight truncate max-w-full py-1.5 px-2">
                   {track.title}
                 </h2>
                 <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 mt-0 md:mt-2 text-[15px] md:text-base xl:text-lg text-white/70 font-medium [&>span]:whitespace-nowrap">
@@ -713,7 +713,7 @@ export const ImmersivePlayer = ({
                    aria-valuemin={0}
                    aria-valuemax={100}
                    aria-valuenow={Math.round(progress * 100)}
-                   className="flex-1 h-8 md:h-7 flex items-center relative cursor-pointer group touch-none"
+                   className="flex-1 h-9 md:h-8 flex items-center relative cursor-pointer group touch-none py-2"
                    onPointerDown={(e) => {
                       e.stopPropagation();
                       e.currentTarget.setPointerCapture(e.pointerId);
@@ -728,14 +728,17 @@ export const ImmersivePlayer = ({
                    onPointerUp={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
                  >
                     {/* Unplayed straight line */}
-                    <div className="absolute right-0 h-[4px] md:h-[5px] bg-white/25 rounded-full" style={{ left: `${progress * 100}%` }} />
+                    <div
+                      className="absolute right-0 h-[4px] md:h-[5px] group-hover:h-[6px] md:group-hover:h-[7px] bg-white/25 group-hover:bg-white/40 rounded-full transition-all duration-200"
+                      style={{ left: `${progress * 100}%` }}
+                    />
 
                     {/* Played part: same live squiggle as the mini player */}
                     <WavyProgress progress={progress} isPlaying={isPlaying} />
 
                     {/* The Dot (Handle) */}
                     <div
-                       className="absolute w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.9)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-transform"
+                       className="absolute w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.9)] transform -translate-x-1/2 pointer-events-none group-hover:scale-135 transition-transform duration-200"
                        style={{ left: `${progress * 100}%` }}
                     />
                  </div>

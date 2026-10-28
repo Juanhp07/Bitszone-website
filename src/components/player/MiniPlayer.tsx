@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { Star, Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Repeat1, Heart, HeartOff, Mic2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import { usePlayback } from './PlaybackContext';
@@ -10,27 +10,40 @@ import type { Album, Track } from './types';
 export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlaying: boolean }) => {
   const pathRef = useRef<SVGPathElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const state = useRef({ phase: 0, amp: isPlaying ? 1 : 0, progress, isPlaying });
+  const state = useRef({ phase: 0, amp: isPlaying ? 1 : 0, hoverAmp: 0, progress, isPlaying });
   state.current.progress = progress;
   state.current.isPlaying = isPlaying;
+  const gradientId = useId().replace(/:/g, '');
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let raf = 0;
     let last = performance.now();
-    const WAVELENGTH = 34, AMPLITUDE = 2.2, TAPER = 18;
+    const WAVELENGTH = 34;
+    const BASE_AMPLITUDE = 2.2;
+    const HOVER_AMPLITUDE = 3.6;
+    const TAPER = 24;
+
     const draw = (now: number) => {
-      const dt = Math.min(64, now - last); last = now;
+      const dt = Math.min(64, now - last);
+      last = now;
       const st = state.current;
       const target = st.isPlaying && !reduce ? 1 : 0;
       st.amp += (target - st.amp) * Math.min(1, dt / 220);
-      if (!reduce) st.phase += dt * 0.0022;
+
+      // Smoothly expand curves when hovering over seek bar
+      const isHovered = Boolean(svgRef.current?.closest('.group')?.matches(':hover'));
+      st.hoverAmp += ((isHovered ? 1 : 0) - st.hoverAmp) * Math.min(1, dt / 140);
+
+      if (!reduce) st.phase += dt * 0.0036;
       const width = (svgRef.current?.clientWidth ?? 0) * st.progress;
       const MID = (svgRef.current?.clientHeight ?? 24) / 2;
+      const effectiveAmp = (BASE_AMPLITUDE + (HOVER_AMPLITUDE - BASE_AMPLITUDE) * st.hoverAmp) * st.amp;
+
       let d = `M0 ${MID}`;
       for (let x = 0; x <= width; x += 2) {
         const taper = Math.min(1, x / TAPER, (width - x) / TAPER);
-        const y = MID + Math.sin((x / WAVELENGTH) * Math.PI * 2 - st.phase) * AMPLITUDE * st.amp * Math.max(0, taper);
+        const y = MID + Math.sin((x / WAVELENGTH) * Math.PI * 2 - st.phase) * effectiveAmp * Math.max(0, taper);
         d += ` L${x.toFixed(1)} ${y.toFixed(2)}`;
       }
       pathRef.current?.setAttribute('d', d);
@@ -42,7 +55,23 @@ export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlay
 
   return (
     <svg ref={svgRef} className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" aria-hidden="true">
-      <path ref={pathRef} fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <defs>
+        {/* Soft feathering / fade at the start (difuminado al inicio) */}
+        <linearGradient id={`wave-fade-${gradientId}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="36" y2="0">
+          <stop offset="0%" stopColor="white" stopOpacity="0.1" />
+          <stop offset="35%" stopColor="white" stopOpacity="0.55" />
+          <stop offset="70%" stopColor="white" stopOpacity="0.88" />
+          <stop offset="100%" stopColor="white" stopOpacity="1" />
+        </linearGradient>
+      </defs>
+      <path
+        ref={pathRef}
+        fill="none"
+        stroke={`url(#wave-fade-${gradientId})`}
+        className="transition-[stroke-width,filter] duration-200 stroke-[3.5px] md:stroke-[4px] group-hover:stroke-[5.5px] md:group-hover:stroke-[6px] drop-shadow-[0_0_6px_rgba(255,255,255,0.4)] group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.75)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 };
@@ -179,7 +208,7 @@ export const MiniPlayer = ({
       {/* Seek bar on the top edge (YouTube Music style) */}
           <div className="absolute left-0 right-0 top-0 -translate-y-1/2 h-6 z-20 group flex items-center cursor-pointer">
             {/* Unplayed straight line */}
-            <div className="absolute right-0 h-[4px] bg-white/30 rounded-full pointer-events-none" style={{ left: `${progress * 100}%` }} />
+            <div className="absolute right-0 h-[4px] group-hover:h-[6px] bg-white/30 group-hover:bg-white/45 rounded-full pointer-events-none transition-all duration-200" style={{ left: `${progress * 100}%` }} />
 
             {/* Played part: live squiggle (Android 13 / YT Music style) */}
             <WavyProgress progress={progress} isPlaying={isPlaying} />
