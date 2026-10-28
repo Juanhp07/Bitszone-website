@@ -751,7 +751,7 @@ export const ImmersivePlayer = ({
            />
            {/* Top Tabs (PISTAS / LETRA / COLA / INMERSIÓN) - Centered Liquid Glass Pill */}
            <div className="md:absolute md:top-8 xl:top-10 md:right-8 xl:right-10 w-full md:w-auto mb-6 md:mb-0 shrink-0 z-40 flex items-center justify-center px-4 md:px-0">
-              <div className="rounded-full p-1.5 w-[340px] sm:w-[410px] md:w-[460px] xl:w-[490px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
+              <div className="rounded-full p-1.5 w-[370px] sm:w-[450px] md:w-[500px] xl:w-[540px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
                 <LiquidTabs
                   value={currentTab}
                   onChange={handleTabSelect}
