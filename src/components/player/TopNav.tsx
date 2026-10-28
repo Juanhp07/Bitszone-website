@@ -2,20 +2,27 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { User } from 'lucide-react';
 import { SpecularText } from '../ui/SpecularText';
+import { PopoverMenu } from '../ui/PopoverMenu';
+import { LogOut } from 'lucide-react';
 
 export const TopNav = ({ 
   currentView, 
   onViewChange, 
   onToggleSidebar, 
   isSidebarOpen,
-  loading = false
+  loading = false,
+  account = null,
+  onSignOut
 }: { 
   currentView: string, 
   onViewChange: (view: any) => void, 
   onToggleSidebar: () => void, 
   isSidebarOpen: boolean,
-  loading?: boolean
+  loading?: boolean,
+  account?: { name: string, avatarUrl?: string | null } | null,
+  onSignOut?: () => void
 }) => {
+    const [menu, setMenu] = useState<{ x: number, y: number } | null>(null);
     return (
     <header className="h-16 md:h-20 w-full bg-transparent flex items-center px-3 md:px-8 relative z-20 shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <style>{`
@@ -88,6 +95,28 @@ export const TopNav = ({
         className="flex-1 flex items-center justify-end transition-opacity duration-700 ease-out"
         style={{ opacity: loading ? 0 : 1 }}
       >
+        {account ? (
+          <>
+            <button
+              onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setMenu({ x: r.right, y: r.bottom + 8 }); }}
+              aria-label={`Cuenta de ${account.name}`}
+              aria-haspopup="menu"
+              className="h-11 md:h-auto pl-1 pr-1 md:pl-1.5 md:pr-4 md:py-1.5 rounded-full border border-white/20 hover:bg-white/10 transition-colors flex items-center gap-2 text-white text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+            >
+              <span className="w-9 h-9 md:w-7 md:h-7 rounded-full bg-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                {account.avatarUrl ? <img src={account.avatarUrl} alt="" className="w-full h-full object-cover" /> : <User className="w-4 h-4 text-white/80" aria-hidden="true" />}
+              </span>
+              <span className="hidden md:inline max-w-[140px] truncate">{account.name}</span>
+            </button>
+            <PopoverMenu
+              open={!!menu}
+              anchor={menu}
+              width={200}
+              onClose={() => setMenu(null)}
+              items={[{ label: 'Cerrar sesión', icon: <LogOut className="w-4 h-4" />, danger: true, onSelect: () => onSignOut?.() }]}
+            />
+          </>
+        ) : (
         <a 
           href="/login" 
           aria-label="Acceder a tu cuenta"
@@ -97,6 +126,7 @@ export const TopNav = ({
           <User className="w-[18px] h-[18px] md:w-4 md:h-4" aria-hidden="true" />
           <span className="hidden md:inline">Acceder</span>
         </a>
+        )}
       </div>
     </header>
   );

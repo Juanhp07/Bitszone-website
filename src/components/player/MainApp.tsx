@@ -1,5 +1,5 @@
 import { ArtistView } from "./ArtistView";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { TopNav } from './TopNav';
 import { Sidebar } from './Sidebar';
@@ -12,6 +12,10 @@ import { ImmersivePlayer } from './ImmersivePlayer';
 import { LyricsSidebar } from './LyricsSidebar';
 import { ToastContainer } from './ToastContainer';
 import { useCatalog } from './useCatalog';
+import { Onboarding } from './Onboarding';
+import { useProfile } from '../../lib/useProfile';
+import { supabase } from '../../lib/supabase';
+import { genreScore } from '../../lib/genres';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
 import { PlaylistsProvider, isPlaylistAlbum } from './PlaylistsContext';
@@ -45,6 +49,30 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
 
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
+
+  // account: the profile card opens right after the first sign-in, and the tastes it collects reorder the home
+  const { user, profile, ready: profileReady, reload: reloadProfile } = useProfile();
+  const [onboarding, setOnboarding] = useState(false);
+  const [pickedGenres, setPickedGenres] = useState<string[] | null>(null);
+  const likedGenres: string[] = pickedGenres ?? (user?.user_metadata?.genres as string[] | undefined) ?? [];
+  const personalized = likedGenres.length > 0;
+  const orderedAlbums = useMemo(
+    () => (personalized ? [...albums].sort((a, b) => genreScore(b.genres, likedGenres) - genreScore(a.genres, likedGenres)) : albums),
+    [albums, personalized, likedGenres.join(',')]
+  );
+  useEffect(() => { if (profileReady && user && profile && !profile.username) setOnboarding(true); }, [profileReady, user, profile]);
+  useEffect(() => { if (!user) setPickedGenres(null); }, [user]);
+  // dev only: /player?onboarding=preview shows the card without an account or saving anything
+  const [previewOnboarding, setPreviewOnboarding] = useState(false);
+  useEffect(() => {
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('onboarding') === 'preview') {
+      setPreviewOnboarding(true);
+      setOnboarding(true);
+    }
+  }, []);
+  const account = user
+    ? { name: profile?.username ?? user.email?.split('@')[0] ?? 'Tú', avatarUrl: profile?.avatar_url ?? user.user_metadata?.avatar_url ?? null }
+    : null;
   const [hasEntered, setHasEntered] = useState(false);
 
   useEffect(() => {
@@ -824,8 +852,22 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           isSidebarOpen={isSidebarOpen}
           loading={loading}
+          account={account}
+          onSignOut={() => supabase.auth.signOut()}
         />
       </motion.div>
+
+      <AnimatePresence>
+        {hasEntered && onboarding && (user || previewOnboarding) && (
+          <Onboarding
+            key="onboarding"
+            userId={user?.id ?? 'preview'}
+            userMeta={user?.user_metadata}
+            preview={!user}
+            onDone={(r) => { setPickedGenres(r.genres); setOnboarding(false); reloadProfile(); }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Main Container - Sidebar Flush, Body Floating */}
       <div className="w-full h-full flex overflow-hidden relative">
@@ -879,7 +921,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                 >
                   {currentView === 'catalog' && (
                     <CatalogView
-                      albums={albums}
+                      albums={orderedAlbums}
+                      personalized={personalized}
                       loading={loading}
                       isInitialEntrance={!hasEntered}
                       onSelectAlbum={handleSelectAlbum}

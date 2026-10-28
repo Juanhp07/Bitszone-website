@@ -1,19 +1,20 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Mail, User, UserCog, ArrowLeft, Check, Link2 } from 'lucide-react';
+import { Mail, UserCog, ArrowLeft, Check, Link2 } from 'lucide-react';
 import GradientASCII from '../ui/GradientASCII';
 import { LiquidButton } from '../ui/LiquidButton';
 import { supabase } from '../../lib/supabase';
+import { Heading, cardStyle, inputClass, slide, titleStyle } from './authUi';
 
 // One flow for everyone: no separate "register" and "login". First time = account is created.
-// Email: 6-digit code (or the link in the same email). Google: OAuth. Both come back through /login.
-type Step = 'choose' | 'google' | 'code' | 'profile' | 'done';
+// Email: one-time code (or the link in the same email). Google: OAuth. Both come back through /login.
+// The profile (photo, username, tastes) is completed inside the player, in <Onboarding />.
+type Step = 'choose' | 'google' | 'code' | 'done';
 type Status = 'idle' | 'loading' | 'success';
 
 // must match Supabase > Authentication > Providers > Email > Email OTP Length
 const CODE_LENGTH = 8;
 const RESEND_SECONDS = 30;
-const USERNAME_RE = /^[a-z0-9_.]{3,20}$/i;
 const AFTER_LOGIN = '/player';
 
 const friendly = (e: { message?: string; status?: number }) =>
@@ -51,31 +52,9 @@ const SUBTITLE: Record<Method, string> = {
 };
 
 const stepIndex: Record<Method, Record<Step, number>> = {
-  email: { choose: 0, google: 0, code: 1, profile: 2, done: 2 },
-  google: { choose: 0, google: 1, code: 1, profile: 2, done: 2 },
+  email: { choose: 0, google: 0, code: 1, done: 2 },
+  google: { choose: 0, google: 1, code: 1, done: 2 },
 };
-
-const inputClass =
-  'w-full pl-12 pr-4 py-4 text-base leading-normal bg-black/30 border border-white/25 rounded-xl text-white placeholder-white/75 focus:placeholder-white focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 transition-all text-left';
-
-const titleStyle: React.CSSProperties = { fontFamily: '"DM Serif Display", serif', fontStyle: 'italic' };
-
-const slide = {
-  initial: { opacity: 0, x: 28 },
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -28 },
-  transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const },
-};
-
-const TITLE_CLASS = 'text-5xl font-bold mb-3';
-const SUBTITLE_CLASS = 'text-base text-white/85';
-
-const Heading = ({ title, subtitle }: { title: string; subtitle: React.ReactNode }) => (
-  <div className="mb-8 text-center">
-    <h2 className={TITLE_CLASS} style={titleStyle}>{title}</h2>
-    <p className={SUBTITLE_CLASS}>{subtitle}</p>
-  </div>
-);
 
 export const AuthContainer = () => {
   const [step, setStep] = useState<Step>('choose');
@@ -86,9 +65,6 @@ export const AuthContainer = () => {
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [codeError, setCodeError] = useState('');
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
-  const [username, setUsername] = useState('');
-  const [profileError, setProfileError] = useState('');
-  const userRef = useRef<{ id: string; user_metadata?: any } | null>(null);
   const handled = useRef(false);
   const digitRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -107,22 +83,12 @@ export const AuthContainer = () => {
     return () => clearTimeout(t);
   }, [step, seconds]);
 
-  // decides where a fresh session goes: no username yet -> ask for one, otherwise straight in
-  const afterSignIn = async (session: { user: { id: string; app_metadata?: any; user_metadata?: any } }) => {
+  const afterSignIn = (session: { user: { app_metadata?: any } }) => {
     if (handled.current) return;
     handled.current = true;
-    const { user } = session;
-    userRef.current = user;
-    const viaGoogle = user.app_metadata?.provider === 'google';
-    setMethod(viaGoogle ? 'google' : 'email');
-    const { data: profile, error } = await supabase.from('profiles').select('username').eq('id', user.id).maybeSingle();
-    if (error) console.error('profiles lookup failed', error);
-    if (profile?.username) { setStatus('success'); setStep('done'); return; }
-    const suggested = String(user.user_metadata?.name ?? user.user_metadata?.full_name ?? '')
-      .toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').slice(0, 20);
-    if (viaGoogle && suggested) setUsername(suggested);
-    setStatus('idle');
-    setStep('profile');
+    setMethod(session.user.app_metadata?.provider === 'google' ? 'google' : 'email');
+    setStatus('success');
+    setStep('done');
   };
 
   // coming back from Google or from the link in the email
@@ -224,27 +190,7 @@ export const AuthContainer = () => {
       digitRefs.current[0]?.focus();
       return;
     }
-    await afterSignIn(data.session);
-  };
-
-  const finish = async () => {
-    if (status !== 'idle' || !userRef.current) return;
-    const name = username.trim();
-    if (!USERNAME_RE.test(name)) { setProfileError('Usa de 3 a 20 letras, números, punto o guion bajo'); return; }
-    setProfileError('');
-    setStatus('loading');
-    const { error } = await supabase.from('profiles').upsert({
-      id: userRef.current.id,
-      username: name.toLowerCase(),
-      avatar_url: userRef.current.user_metadata?.avatar_url ?? null,
-    });
-    if (error) {
-      setStatus('idle');
-      setProfileError(error.code === '23505' ? 'Ese nombre ya está en uso' : friendly(error));
-      return;
-    }
-    setStatus('success');
-    setTimeout(() => { setStatus('idle'); setStep('done'); }, 450);
+    afterSignIn(data.session);
   };
 
   const active = stepIndex[method][step];
@@ -266,13 +212,7 @@ export const AuthContainer = () => {
 
       <div
         className="relative z-10 w-full max-w-[960px] md:h-[min(600px,calc(100vh-2rem))] flex rounded-3xl overflow-hidden shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
-        style={{
-          background: 'transparent',
-          border: '1px solid rgba(216, 180, 254, 0.18)',
-          boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-        }}
+        style={cardStyle}
       >
         {/* Left: the flow */}
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
@@ -385,32 +325,6 @@ export const AuthContainer = () => {
                   <div className="mt-6 flex items-start gap-3 rounded-xl bg-black/25 border border-white/15 px-4 py-3 text-sm text-white/85">
                     <Link2 className="w-4 h-4 mt-0.5 shrink-0" />
                     <span>El correo también trae un enlace: ábrelo desde ese mismo dispositivo y entrarás sin escribir nada.</span>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 'profile' && (
-                <motion.div key="profile" {...slide}>
-                  <Heading title="Casi listo" subtitle="Elige tu nombre de usuario para entrar." />
-                  <div className="space-y-4">
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-white/85" />
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Nombre de usuario"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && finish()}
-                        className={inputClass}
-                        autoFocus
-                      />
-                    </div>
-                    {profileError && <p className="text-sm text-pink-200 text-center -mt-2">{profileError}</p>}
-                    <LiquidButton onClick={finish} status={status} className="w-full h-14">
-                      Entrar a Bitszone
-                    </LiquidButton>
                   </div>
                 </motion.div>
               )}

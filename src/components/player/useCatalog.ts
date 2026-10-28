@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { Album, Track } from './types';
 import { createClient } from '@supabase/supabase-js';
+import { artistGenres } from '../../lib/genres';
 
 export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
   const [albums, setAlbums] = useState<Album[]>([]);
@@ -66,6 +67,7 @@ export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
               year: ALBUM_YEARS[albumKey] || '2023', // Asignado dinámicamente
               totalDuration: 0,
               genre: 'Pop/Rock',
+              genres: artistGenres(t.artist),
               trackCount: 0, // Lo calculamos luego
               tracks: []
             });

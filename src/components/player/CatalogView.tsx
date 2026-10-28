@@ -15,14 +15,17 @@ export const CatalogView = ({
   isInitialEntrance = false,
   onSelectAlbum,
   onPlayTrack,
-  onSelectArtist
+  onSelectArtist,
+  personalized = false
 }: { 
   albums: Album[],
   loading: boolean,
   isInitialEntrance?: boolean,
   onSelectAlbum: (album: Album) => void,
   onPlayTrack: (t: Track, a: Album) => void,
-  onSelectArtist?: (artist: {name: string, img: string, type?: string}) => void
+  onSelectArtist?: (artist: {name: string, img: string, type?: string}) => void,
+  /** albums arrive ordered by the user's tastes */
+  personalized?: boolean
 }) => {
   const [hoveredAlbum, setHoveredAlbum] = useState<string | number | null>(null);
   const { downloadTrack, isDownloaded, isFavorite, toggleFavoriteAlbum, cancelAlbumDownload, downloadingAlbums, downloadAlbum } = useDownloads();
@@ -258,7 +261,7 @@ export const CatalogView = ({
                 <ChevronLeft className="w-6 h-6" aria-hidden="true" />
               </button>
             )}
-            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">Canciones del momento</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">{personalized ? 'Para ti' : 'Canciones del momento'}</h2>
           </div>
           {!expandedSection && (
             <button 
@@ -354,7 +357,7 @@ export const CatalogView = ({
             </button>
           )}
         </div>
-        {loading ? renderSkeletonCards() : renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 96)}
+        {loading ? renderSkeletonCards() : renderList(personalized ? albums : [...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 96)}
       </motion.section>
       )}
       
