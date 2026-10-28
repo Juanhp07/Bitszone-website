@@ -96,10 +96,10 @@ export function LiquidTabs<T extends string>({
             title={t.title}
             // pointer handling lives on the track; keep keyboard activation
             onClick={(e) => { if (e.detail === 0) onChange(t.id); }}
-            className={`relative z-0 flex items-center justify-center py-2.5 md:py-3 text-[11px] md:text-xs font-semibold tracking-[0.2em] indent-[0.2em] uppercase rounded-full transition-colors duration-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${active ? 'text-white font-bold' : 'text-white/45 hover:text-white/70'}`}
+            className={`relative z-0 flex items-center justify-center py-2 md:py-2.5 px-1 sm:px-1.5 text-[10px] sm:text-[11px] md:text-xs font-semibold tracking-[0.12em] sm:tracking-[0.15em] md:tracking-[0.18em] indent-[0.12em] sm:indent-[0.15em] md:indent-[0.18em] uppercase rounded-full transition-colors duration-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer ${active ? 'text-white font-bold' : 'text-white/60 hover:text-white/90'}`}
           >
             {t.icon}
-            {t.label}
+            <span className="truncate">{t.label}</span>
           </button>
         );
       })}
@@ -107,14 +107,14 @@ export function LiquidTabs<T extends string>({
       {/* The lens: above the labels, bending them live */}
       <motion.div
         aria-hidden="true"
-        className="absolute top-0 bottom-0 left-0 z-10 rounded-full pointer-events-none border border-white/25 bg-white/[0.05] shadow-[inset_0_1px_0_rgba(255,255,255,0.45),inset_0_-1px_0_rgba(255,255,255,0.08),0_6px_18px_rgba(0,0,0,0.28)]"
+        className="absolute top-0 bottom-0 left-0 z-10 rounded-full pointer-events-none border border-white/25 bg-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_4px_16px_rgba(0,0,0,0.3)]"
         style={{
           width: segment || `${100 / tabs.length}%`,
           x: springX,
           backdropFilter: `url(#${filterId}) saturate(1.6) brightness(1.15)`,
-          WebkitBackdropFilter: 'blur(6px) saturate(1.6) brightness(1.15)',
+          WebkitBackdropFilter: 'blur(12px) saturate(1.6) brightness(1.15)',
         }}
-        animate={{ scaleX: pressed ? 1.12 : 1, scaleY: pressed ? 1.16 : 1 }}
+        animate={{ scaleX: pressed ? 1.08 : 1, scaleY: pressed ? 1.12 : 1 }}
         transition={{ type: 'spring', stiffness: 500, damping: 28 }}
       />
     </div>

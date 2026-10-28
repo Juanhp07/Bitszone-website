@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
-import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical } from 'lucide-react';
+import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical, Sparkles } from 'lucide-react';
 import { TrackMenu } from './TrackMenu';
 import { EqBars } from '../ui/EqBars';
 import { LiquidTabs } from '../ui/LiquidTabs';
@@ -121,22 +121,22 @@ export const ImmersivePlayer = ({
   repeatMode?: "off" | "all" | "one",
   onToggleShuffle?: () => void,
   onToggleRepeat?: () => void,
-  activeTab?: "portada" | "letra" | "pistas" | "cola",
-  onTabChange?: (tab: "portada" | "letra" | "pistas" | "cola") => void
+  activeTab?: "portada" | "letra" | "pistas" | "cola" | "inmersion",
+  onTabChange?: (tab: "portada" | "letra" | "pistas" | "cola" | "inmersion") => void
 }) => {
   if (!track || !album) return null;
 
-  const [currentTab, setCurrentTab] = useState<"pistas" | "letra" | "cola">(
-    activeTab === "letra" ? "letra" : activeTab === "cola" ? "cola" : "pistas"
+  const [currentTab, setCurrentTab] = useState<"pistas" | "letra" | "cola" | "inmersion">(
+    activeTab === "letra" ? "letra" : activeTab === "cola" ? "cola" : activeTab === "inmersion" ? "inmersion" : "pistas"
   );
 
   useEffect(() => {
-    if (activeTab === "letra" || activeTab === "cola" || activeTab === "pistas") {
+    if (activeTab === "letra" || activeTab === "cola" || activeTab === "pistas" || activeTab === "inmersion") {
       setCurrentTab(activeTab);
     }
   }, [activeTab]);
 
-  const handleTabSelect = (tab: "pistas" | "letra" | "cola") => {
+  const handleTabSelect = (tab: "pistas" | "letra" | "cola" | "inmersion") => {
     setCurrentTab(tab);
     onTabChange?.(tab);
   };
@@ -175,7 +175,7 @@ export const ImmersivePlayer = ({
       y: 0,
       transition: {
         duration: 0.42,
-        ease: [0.16, 1, 0.3, 1]
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number]
       }
     }
   };
@@ -412,15 +412,23 @@ export const ImmersivePlayer = ({
            <div className="absolute inset-0 bg-black/55" />
         </div>
 
-        <button
-          onClick={onClose}
-          className="absolute top-3 md:top-8 xl:top-10 left-3 md:left-8 xl:left-10 z-50 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 md:bg-white/[0.04] md:hover:bg-white/[0.08] md:active:bg-white/[0.12] rounded-full text-white/80 md:text-white/60 hover:text-white md:backdrop-blur-2xl md:border md:border-white/[0.12] md:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_8px_20px_rgba(0,0,0,0.3)] transition-all duration-300 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
-          title="Minimizar reproductor (F o Esc)"
-          aria-label="Minimizar reproductor"
-        >
-          <ChevronDown className="md:hidden w-7 h-7" strokeWidth={2.2} aria-hidden="true" />
-          <Minimize2 className="hidden md:block w-5 h-5 group-hover:scale-90 transition-transform" aria-hidden="true" />
-        </button>
+        {/* Botón Minimizar estilo circular Liquid Glass con expansión suave a texto en hover */}
+        <div className="absolute top-3 md:top-8 xl:top-10 left-3 md:left-8 xl:left-10 z-50">
+          <button
+            onClick={onClose}
+            className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[114px] md:hover:w-[124px] rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-2xl border border-white/20 hover:border-white/30 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none"
+            title="Minimizar reproductor (F o Esc)"
+            aria-label="Minimizar reproductor"
+          >
+            <div className="w-10 md:w-11 h-10 md:h-11 flex items-center justify-center shrink-0">
+              <ChevronDown className="md:hidden w-5 h-5 transition-transform duration-300 group-hover:translate-y-0.5" strokeWidth={2.2} aria-hidden="true" />
+              <Minimize2 className="hidden md:block w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-90" strokeWidth={2.2} aria-hidden="true" />
+            </div>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
+              Minimizar
+            </span>
+          </button>
+        </div>
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
         <div className={`w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex flex-col justify-center items-center group px-6 md:px-12 md:pl-32 xl:pl-40 pt-14 pb-[44px] md:pt-20 md:pb-10 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 scale-100 duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
@@ -741,9 +749,9 @@ export const ImmersivePlayer = ({
              onClose={() => setRowMenu(null)}
              trailingItems={rowMenu?.inQueue ? [{ label: 'Eliminar de la cola', icon: <ListX className="w-4 h-4" />, onSelect: () => playback.removeFromQueue(rowMenu.track.id), danger: true }] : []}
            />
-           {/* Top Tabs (PISTAS / LETRA / COLA) - Centered Liquid Glass Pill */}
+           {/* Top Tabs (PISTAS / LETRA / COLA / INMERSIÓN) - Centered Liquid Glass Pill */}
            <div className="md:absolute md:top-8 xl:top-10 md:right-8 xl:right-10 w-full md:w-auto mb-6 md:mb-0 shrink-0 z-40 flex items-center justify-center px-4 md:px-0">
-              <div className="rounded-full p-1.5 w-[300px] sm:w-[340px] md:w-[380px] bg-black/30 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)]">
+              <div className="rounded-full p-1.5 w-[340px] sm:w-[410px] md:w-[460px] xl:w-[490px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
                 <LiquidTabs
                   value={currentTab}
                   onChange={handleTabSelect}
@@ -751,6 +759,7 @@ export const ImmersivePlayer = ({
                     { id: 'pistas', label: 'Pistas', title: 'Mostrar pistas del álbum', icon: <ListMusic className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
                     { id: 'letra', label: 'Letra', title: 'Mostrar letra sincronizada', icon: <Mic2 className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
                     { id: 'cola', label: 'Cola', title: 'Mostrar cola de reproducción', icon: <ListOrdered className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+                    { id: 'inmersion', label: 'Inmersión', title: 'Modo inmersión visual', icon: <Sparkles className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
                   ]}
                 />
               </div>
@@ -984,6 +993,71 @@ export const ImmersivePlayer = ({
                          ))}
                        </div>
                      )}
+                   </motion.div>
+                 )}
+
+                 {currentTab === 'inmersion' && (
+                   <motion.div
+                     key="inmersion"
+                     variants={tabListVariants}
+                     initial="hidden"
+                     animate="visible"
+                     exit="exit"
+                     className="w-full flex flex-col items-center justify-center min-h-[50vh] md:min-h-[58vh] gap-6 px-4 text-center my-auto"
+                   >
+                     {/* Holographic Glowing Ambient Orb */}
+                     <div className="relative flex items-center justify-center">
+                       <div 
+                         className="w-48 h-48 md:w-64 md:h-64 rounded-full blur-3xl opacity-40 animate-pulse pointer-events-none absolute"
+                         style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.7) 0%, rgba(99,102,241,0.4) 50%, transparent 70%)' }}
+                       />
+                       {/* Visualizer Wave Bars */}
+                       <div className="relative z-10 flex items-end justify-center gap-1.5 h-28 md:h-36 px-6 py-4 rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                         {Array.from({ length: 24 }).map((_, i) => {
+                           const heights = [35, 55, 80, 45, 95, 65, 30, 75, 100, 85, 40, 60, 90, 70, 50, 85, 40, 65, 95, 75, 45, 60, 80, 50];
+                           const baseHeight = heights[i % heights.length];
+                           return (
+                             <motion.div
+                               key={i}
+                               className="w-1.5 md:w-2 rounded-full bg-gradient-to-t from-purple-500/80 via-fuchsia-400 to-white"
+                               animate={isPlaying ? {
+                                 height: [`${Math.max(12, baseHeight * 0.3)}%`, `${baseHeight}%`, `${Math.max(16, baseHeight * 0.5)}%`],
+                               } : {
+                                 height: '14%'
+                               }}
+                               transition={{
+                                 duration: 0.8 + (i % 5) * 0.15,
+                                 repeat: Infinity,
+                                 repeatType: "reverse",
+                                 ease: "easeInOut",
+                                 delay: (i * 0.05) % 0.4
+                               }}
+                             />
+                           );
+                         })}
+                       </div>
+                     </div>
+
+                     {/* Immersion Header and Meta Info */}
+                     <div className="flex flex-col items-center max-w-md">
+                       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-sm mb-3">
+                         <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+                         <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/90">Modo Inmersión</span>
+                       </div>
+                       <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight line-clamp-1">
+                         {track.title}
+                       </h3>
+                       <p className="text-sm md:text-base text-white/60 mt-1 line-clamp-1">
+                         {track.artist || album.artist} • {album.title}
+                       </p>
+                       <div className="flex items-center gap-2 mt-3 text-xs text-white/40 font-medium">
+                         <span>Audio espacial</span>
+                         <span>•</span>
+                         <span>Lossless 24-bit</span>
+                         <span>•</span>
+                         <span>{formatTime(track.duration)}</span>
+                       </div>
+                     </div>
                    </motion.div>
                  )}
                </AnimatePresence>
