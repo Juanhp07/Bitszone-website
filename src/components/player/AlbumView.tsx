@@ -195,15 +195,15 @@ useEffect(() => {
 
   return (
     <div
-      className="h-full flex flex-col relative"
+      className="flex-1 w-full min-h-full flex flex-col justify-center relative"
       // Desktop album page fits one screen: keep the page-level bounce for mobile only
       onWheel={(e) => { if (window.innerWidth >= 1024) e.stopPropagation(); }}
     >
 
 
-      {/* Static Volver Button (Unscrolled State) */}
+      {/* Botón Atrás estilo circular Liquid Glass con expansión a texto en hover */}
       <div
-        className="absolute top-4 left-4 md:top-8 md:left-8 z-40 transition-opacity duration-300"
+        className="absolute top-6 left-6 md:top-8 md:left-8 z-40 transition-opacity duration-300"
         style={{
           opacity: scrollY > 150 ? 0 : 1,
           pointerEvents: scrollY > 150 ? 'none' : 'auto'
@@ -211,24 +211,28 @@ useEffect(() => {
       >
         <button
           onClick={() => onViewChange('catalog')}
-          className="flex items-center justify-center w-11 h-11 -ml-2 rounded-full opacity-80 hover:opacity-100 hover:-translate-x-0.5 transition-[opacity,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-          style={{ color: `color-mix(in srgb, ${dominantColor} 30%, #e9e6ee)` }}
-          title="Volver"
-          aria-label="Volver"
+          className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[94px] md:hover:w-[102px] rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-2xl border border-white/20 hover:border-white/30 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none"
+          title="Atrás"
+          aria-label="Volver al catálogo"
         >
-          <ArrowLeft className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+          <div className="w-10 md:w-11 h-10 md:h-11 flex items-center justify-center shrink-0">
+            <ArrowLeft className="w-5 h-5 transition-transform duration-300 group-hover:-translate-x-0.5" strokeWidth={2.2} aria-hidden="true" />
+          </div>
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3 whitespace-nowrap">
+            Atrás
+          </span>
         </button>
       </div>
 
       {/* Album layout: glass sleeve (left, sticky on desktop) + tracklist (right) */}
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row lg:items-center lg:justify-center w-full max-w-[1680px] mx-auto lg:min-h-[calc(100dvh-170px)] gap-8 lg:gap-10 2xl:gap-20 px-4 md:px-8 lg:px-10 2xl:px-20 pt-6 pb-10">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row lg:items-center lg:justify-center w-full max-w-[1680px] mx-auto gap-8 lg:gap-10 2xl:gap-20 px-4 md:px-8 lg:px-10 2xl:px-20 py-6 lg:py-0 my-auto">
 
         {/* Left column */}
         <div className="lg:w-auto shrink-0 flex justify-center">
-          <div className="lg:sticky lg:top-8 flex flex-col items-center w-full">
+          <div className="flex flex-col items-center justify-center w-full">
 
             {/* Glass vinyl sleeve */}
-            <div className={`relative w-[min(64vw,260px)] md:w-[300px] lg:w-[clamp(160px,min(27vw,calc(100dvh-450px)),500px)] mt-6 lg:mt-[clamp(4px,2dvh,40px)] transition-[margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAlbumActive ? 'lg:mr-[min(12vw,220px)]' : ''}`}>
+            <div className={`relative w-[min(64vw,260px)] md:w-[300px] lg:w-[clamp(160px,min(27vw,calc(100dvh-450px)),500px)] mt-4 lg:mt-0 transition-[margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAlbumActive ? 'lg:mr-[min(12vw,220px)]' : ''}`}>
               {/* Vinyl: slides out from behind the sleeve while a track of this album is loaded, spins only while playing */}
               <div
                 aria-hidden="true"
@@ -366,7 +370,7 @@ useEffect(() => {
             </div>
 
             {/* Title + meta */}
-            <div className="flex flex-col items-center text-center mt-6 lg:mt-[clamp(16px,4dvh,56px)] w-full lg:w-[min(31vw,580px)] min-w-0">
+            <div className="flex flex-col items-center text-center mt-5 lg:mt-6 w-full lg:w-[min(31vw,580px)] min-w-0">
               <span className="text-white/60 text-xs font-semibold tracking-[0.25em] uppercase">{isPlaylist ? 'Lista de reproducción' : 'Álbum'}</span>
               {isPlaylist && isRenaming ? (
                 <input
@@ -599,23 +603,24 @@ useEffect(() => {
 
       {/* Download Confirmation Modal */}
       {showDownloadConfirm && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setShowDownloadConfirm(false)}>
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-[#a855f7]/20 flex items-center justify-center shrink-0">
-                <Download className="w-6 h-6 text-[#a855f7]" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md px-4" onClick={() => setShowDownloadConfirm(false)}>
+          <div className="relative bg-[#121214]/85 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 max-w-sm w-full shadow-[0_24px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] animate-in fade-in zoom-in-95 duration-200 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute -top-12 -left-12 w-28 h-28 bg-[#a855f7]/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex items-center gap-3.5 mb-3 relative z-10">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#a855f7]/25 to-indigo-500/10 border border-[#a855f7]/30 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(168,85,247,0.25)]">
+                <Download className="w-5 h-5 text-purple-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" />
               </div>
-              <h3 className="text-xl font-bold text-white">¿Descargar Álbum?</h3>
+              <h3 className="text-lg font-bold text-white tracking-tight">¿Descargar Álbum?</h3>
             </div>
-            <p className="text-white/70 mb-6 leading-relaxed">
-              ¿Estás seguro que deseas descargar todas las canciones de <strong>{album.title}</strong>?
+            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+              ¿Descargar todas las canciones de <span className="text-white font-medium">{album.title}</span>?
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-2.5 justify-end relative z-10">
               <button
                 onClick={() => setShowDownloadConfirm(false)}
                 title="Cancelar descarga del álbum"
                 aria-label="Cancelar descarga del álbum"
-                className="px-4 py-2 rounded-lg font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-white/70 hover:text-white bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-white/20 backdrop-blur-lg transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
               >
                 Cancelar
               </button>
@@ -623,7 +628,7 @@ useEffect(() => {
                 onClick={handleDownloadAlbum}
                 title="Descargar todas las canciones de este álbum"
                 aria-label="Descargar todas las canciones de este álbum"
-                className="px-4 py-2 rounded-lg font-medium bg-[#a855f7] hover:bg-[#b066f8] text-white transition-colors shadow-lg shadow-[#a855f7]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-[#a855f7] hover:bg-[#b066f8] active:scale-95 border border-white/20 shadow-[0_4px_20px_rgba(168,85,247,0.35)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300 cursor-pointer"
               >
                 Descargar Todo
               </button>
@@ -661,25 +666,26 @@ useEffect(() => {
       })()}
 
       {showCancelConfirm && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(false); }}>
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                <AlertCircle className="w-6 h-6 text-red-500" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md px-4" onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(false); }}>
+          <div className="relative bg-[#121214]/85 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 max-w-sm w-full shadow-[0_24px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] animate-in fade-in zoom-in-95 duration-200 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute -top-12 -left-12 w-28 h-28 bg-red-500/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex items-center gap-3.5 mb-3 relative z-10">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-500/25 to-rose-500/10 border border-red-400/30 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(239,68,68,0.25)]">
+                <AlertCircle className="w-5 h-5 text-red-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" />
               </div>
-              <h3 className="text-xl font-bold text-white">¿Cancelar descarga?</h3>
+              <h3 className="text-lg font-bold text-white tracking-tight">¿Cancelar descarga?</h3>
             </div>
-            <p className="text-white/70 mb-6 leading-relaxed text-sm">
-              ¿Estás seguro que deseas cancelar la descarga de <strong>{album.title}</strong>? Las canciones que ya se han descargado se mantendrán.
+            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+              Se detendrá la descarga de <span className="text-white font-medium">{album.title}</span>. Se mantendrán las canciones ya descargadas.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2.5 relative z-10">
               <button
                 onClick={() => setShowCancelConfirm(false)}
                 title="Continuar con la descarga"
                 aria-label="Continuar con la descarga"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-white/70 hover:text-white bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-white/20 backdrop-blur-lg transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
               >
-                Continuar descarga
+                Continuar
               </button>
               <button
                 onClick={() => {
@@ -688,7 +694,7 @@ useEffect(() => {
                 }}
                 title="Confirmar cancelación de descarga"
                 aria-label="Confirmar cancelación de descarga"
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500 active:scale-95 border border-white/20 shadow-[0_4px_20px_rgba(239,68,68,0.35)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 cursor-pointer"
               >
                 Sí, cancelar
               </button>
@@ -698,26 +704,26 @@ useEffect(() => {
         document.body
       )}
 
-
       {/* Delete Download Confirmation Modal */}
       {showDeleteConfirm && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(false); }}>
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                <Trash2 className="w-6 h-6 text-red-500" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md px-4" onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(false); }}>
+          <div className="relative bg-[#121214]/85 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 max-w-sm w-full shadow-[0_24px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] animate-in fade-in zoom-in-95 duration-200 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute -top-12 -left-12 w-28 h-28 bg-red-500/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex items-center gap-3.5 mb-3 relative z-10">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-500/25 to-rose-500/10 border border-red-400/30 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(239,68,68,0.25)]">
+                <Trash2 className="w-5 h-5 text-red-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" />
               </div>
-              <h3 className="text-xl font-bold text-white">¿Eliminar descargas?</h3>
+              <h3 className="text-lg font-bold text-white tracking-tight">¿Eliminar descargas?</h3>
             </div>
-            <p className="text-white/70 mb-6 leading-relaxed text-sm">
-              ¿Estás seguro que deseas eliminar todas las canciones descargadas de <strong>{album.title}</strong>? Perderás el acceso sin conexión a este álbum.
+            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+              Se eliminarán las descargas de <span className="text-white font-medium">{album.title}</span> del dispositivo.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2.5 relative z-10">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 title="Cancelar y mantener descargas"
                 aria-label="Cancelar y mantener descargas"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-white/70 hover:text-white bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-white/20 backdrop-blur-lg transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
               >
                 Cancelar
               </button>
@@ -731,7 +737,7 @@ useEffect(() => {
                   }
                   setShowDeleteConfirm(false);
                 }}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500 active:scale-95 border border-white/20 shadow-[0_4px_20px_rgba(239,68,68,0.35)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 cursor-pointer"
               >
                 Sí, eliminar
               </button>

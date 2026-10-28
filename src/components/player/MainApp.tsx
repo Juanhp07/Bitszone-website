@@ -20,7 +20,7 @@ import { DownloadsProvider } from './DownloadsContext';
 import { PlaylistsProvider, isPlaylistAlbum } from './PlaylistsContext';
 import { PlaybackContext, type QueueEntry } from './PlaybackContext';
 import { PlayerLoadingScreen } from './PlayerLoadingScreen';
-import { Heart } from 'lucide-react';
+import { Heart, PanelLeftOpen } from 'lucide-react';
 import { MobileTabBar } from './MobileTabBar';
 import { useIsMobile, useIsCompact } from './useIsMobile';
 import { useRubberBand } from '../ui/useRubberBand';
@@ -817,11 +817,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             title="Mostrar menú lateral"
             aria-label="Mostrar menú lateral"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <line x1="4" y1="6" x2="20" y2="6" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-              <line x1="4" y1="18" x2="20" y2="18" />
-            </svg>
+            <PanelLeftOpen className="w-5 h-5 shrink-0" aria-hidden="true" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -892,12 +888,12 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                 id="main-scroll-container"
                 ref={mainScrollRef}
                 {...mainScrollProps}
-                className="flex-1 overflow-y-auto overscroll-y-contain relative z-10 scrollbar-hide"
+                className="flex-1 overflow-y-auto overscroll-y-contain relative z-10 scrollbar-hide flex flex-col"
                 style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
               >
                 <motion.div
                   style={{ y: springMainY }}
-                  className="pt-3 md:pt-4 pb-6 md:pb-0 min-h-full flex flex-col"
+                  className={`min-h-full flex flex-col flex-1 ${(currentView === 'album' || currentView === 'artist') ? 'p-0' : 'pt-3 md:pt-4 pb-6 md:pb-0'}`}
                 >
                   {currentView === 'catalog' && (
                     <CatalogView
@@ -939,13 +935,13 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
               {/* Fade-out gradients applied to the scrollable area bounds */}
               {/* Bottom gradient */}
-              <div className={`absolute bottom-0 left-0 right-0 h-8 md:h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20 ${currentView === 'album' ? 'hidden' : ''}`}></div>
+              <div className={`absolute bottom-0 left-0 right-0 h-8 md:h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20 ${(currentView === 'album' || currentView === 'artist') ? 'hidden' : ''}`}></div>
               {/* Right side gradient */}
               <div className={`hidden absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20 ${currentView === 'album' ? '' : 'md:block'}`}></div>
               </div>
 
               {/* Right Lyrics Sidebar */}
-              <div className={`hidden md:block h-full pt-3 md:pt-4 shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
+              <div className={`hidden md:block h-full shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
                 <div className="w-80 h-full">
                   <LyricsSidebar track={nowPlayingTrack} album={nowPlayingAlbum} progress={progress} />
                 </div>
@@ -1107,7 +1103,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="absolute left-[270px] bottom-[105px] w-64 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)]"
+              style={{
+                left: isCompact ? '16px' : isSidebarOpen ? '270px' : '86px'
+              }}
+              className="absolute bottom-[105px] w-64 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
             >
             <h3 className="text-white text-[11px] font-bold mb-4 uppercase tracking-[0.15em]">Atajos de teclado</h3>
             <div className="flex flex-col gap-3 text-xs text-white/60">
