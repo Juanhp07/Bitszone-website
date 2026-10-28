@@ -622,12 +622,6 @@ export const ImmersivePlayer = ({
                   >
                     {playback.nowPlayingOrigin?.title || track.albumTitle || album.title}
                   </button>
-                  {playback.nowPlayingOrigin?.year && (
-                    <>
-                      <span aria-hidden="true">•</span>
-                      <span className="text-white/50">{playback.nowPlayingOrigin.year}</span>
-                    </>
-                  )}
                 </div>
               </div>
 
@@ -729,7 +723,7 @@ export const ImmersivePlayer = ({
                  >
                     {/* Unplayed straight line */}
                     <div
-                      className="absolute right-0 h-[4px] md:h-[5px] group-hover:h-[6px] md:group-hover:h-[7px] bg-white/25 group-hover:bg-white/40 rounded-full transition-all duration-200"
+                      className="absolute right-0 h-[6px] md:h-[7px] group-hover:h-[7px] md:group-hover:h-[8px] bg-white/25 group-hover:bg-white/40 rounded-full transition-all duration-200"
                       style={{ left: `${progress * 100}%` }}
                     />
 
@@ -738,7 +732,7 @@ export const ImmersivePlayer = ({
 
                     {/* The Dot (Handle) */}
                     <div
-                       className="absolute w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.9)] transform -translate-x-1/2 pointer-events-none group-hover:scale-135 transition-transform duration-200"
+                       className="absolute w-4 h-4 md:w-5 md:h-5 bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.95)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-[transform,left] duration-75 ease-linear"
                        style={{ left: `${progress * 100}%` }}
                     />
                  </div>

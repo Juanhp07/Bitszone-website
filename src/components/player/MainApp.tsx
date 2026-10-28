@@ -304,6 +304,24 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     };
   }, [nowPlayingAlbum, nowPlayingTrack, isShuffle, repeatMode]);
 
+  // Ultra-fluid progress updates during playback (eliminates choppy jumps)
+  useEffect(() => {
+    if (!isPlaying) return;
+    let raf = 0;
+    let lastTime = 0;
+    const smoothTick = (now: number) => {
+      if (now - lastTime >= 40) {
+        lastTime = now;
+        if (audioRef.current && !audioRef.current.paused && audioRef.current.duration) {
+          setProgress(audioRef.current.currentTime / audioRef.current.duration);
+        }
+      }
+      raf = requestAnimationFrame(smoothTick);
+    };
+    raf = requestAnimationFrame(smoothTick);
+    return () => cancelAnimationFrame(raf);
+  }, [isPlaying]);
+
 
   // Keyboard Shortcuts Refs
   const togglePlayRef = useRef<(() => void) | null>(null);
