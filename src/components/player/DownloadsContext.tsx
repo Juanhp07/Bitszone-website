@@ -274,6 +274,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     
     if (!cancelRef.current[albumId]) {
       window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${album.title}' descargado` }));
+      window.dispatchEvent(new CustomEvent('bz-album-download-completed', { detail: { albumId } }));
     }
     setDownloadingAlbums(prev => prev.filter(id => id !== albumId));
   };

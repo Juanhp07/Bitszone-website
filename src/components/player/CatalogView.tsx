@@ -32,23 +32,30 @@ export const CatalogView = ({
   const [completedFlashIds, setCompletedFlashIds] = useState<string[]>([]);
 
   useEffect(() => {
+    const handleCompleted = (e: any) => {
+      const id = String(e.detail?.albumId);
+      if (!id) return;
+      setCompletedFlashIds(curr => [...new Set([...curr, id])]);
+      setTimeout(() => {
+        setCompletedFlashIds(curr => curr.filter(item => item !== id));
+      }, 2200);
+    };
+    window.addEventListener('bz-album-download-completed', handleCompleted);
+    return () => window.removeEventListener('bz-album-download-completed', handleCompleted);
+  }, []);
+
+  useEffect(() => {
     const prev = prevDownloadingRef.current;
     const finished = prev.filter(id => !downloadingAlbums.includes(id));
     if (finished.length > 0) {
-      const reallyCompleted = finished.filter(id => {
-        const albumObj = albums.find(a => String(a.id) === id);
-        return albumObj?.tracks?.length ? albumObj.tracks.every(t => isDownloaded(t.id)) : false;
-      });
-      if (reallyCompleted.length > 0) {
-        setCompletedFlashIds(curr => [...curr, ...reallyCompleted]);
-        const timer = setTimeout(() => {
-          setCompletedFlashIds(curr => curr.filter(id => !reallyCompleted.includes(id)));
-        }, 2000);
-        return () => clearTimeout(timer);
-      }
+      setCompletedFlashIds(curr => [...new Set([...curr, ...finished])]);
+      const timer = setTimeout(() => {
+        setCompletedFlashIds(curr => curr.filter(id => !finished.includes(id)));
+      }, 2200);
+      return () => clearTimeout(timer);
     }
     prevDownloadingRef.current = downloadingAlbums;
-  }, [downloadingAlbums, albums, isDownloaded]);
+  }, [downloadingAlbums]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -152,6 +159,8 @@ export const CatalogView = ({
     const isDownloading = downloadingAlbums?.includes(String(album.id));
     const isJustCompleted = completedFlashIds.includes(String(album.id));
 
+    const safeSvgId = 'card_' + String(album.id).replace(/[^a-zA-Z0-9_-]/g, '_') + (showTrackTitle ? '_track' : '_album');
+
     return (
     <div 
       key={album.id}
@@ -184,13 +193,13 @@ export const CatalogView = ({
         {isDownloading && (
           <svg className="absolute -inset-[1px] w-[calc(100%+2px)] h-[calc(100%+2px)] pointer-events-none z-20 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
-              <linearGradient id={`snake-grad-${album.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id={`snake-grad-${safeSvgId}`} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
                 <stop offset="25%" stopColor="#e879f9" stopOpacity="0.95" />
                 <stop offset="60%" stopColor="#a855f7" stopOpacity="0.8" />
                 <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
               </linearGradient>
-              <filter id={`snake-glow-${album.id}`} x="-30%" y="-30%" width="160%" height="160%">
+              <filter id={`snake-glow-${safeSvgId}`} x="-30%" y="-30%" width="160%" height="160%">
                 <feGaussianBlur stdDeviation="1" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
@@ -218,14 +227,14 @@ export const CatalogView = ({
               height="98.5"
               rx="6.5"
               fill="none"
-              stroke={`url(#snake-grad-${album.id})`}
+              stroke={`url(#snake-grad-${safeSvgId})`}
               strokeWidth="1.75"
               strokeLinecap="round"
               vectorEffect="non-scaling-stroke"
               strokeDasharray="80 300"
               animate={{ strokeDashoffset: [0, -380] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
-              filter={`url(#snake-glow-${album.id})`}
+              filter={`url(#snake-glow-${safeSvgId})`}
             />
           </svg>
         )}

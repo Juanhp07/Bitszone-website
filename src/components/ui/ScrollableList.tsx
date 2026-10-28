@@ -270,7 +270,7 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
         onMouseDown={handleMouseDown}
         onClickCapture={handleClickCapture}
         onDragStart={(e) => e.preventDefault()}
-        className={`overflow-x-auto pb-2.5 md:pb-3 scrollbar-hide overscroll-x-contain select-none -mx-4 px-4 md:mx-0 md:px-0 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
+        className={`overflow-x-auto pt-3 -mt-3 pb-2.5 md:pb-3 scrollbar-hide overscroll-x-contain select-none -mx-4 px-4 md:mx-0 md:px-0 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none', 
