@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { DownloadCloud } from 'lucide-react';
 import { Play, Pause, Download, Check, CheckCircle, Loader2, ChevronLeft, Heart, AlertCircle, HeartOff, X } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 import { usePlayback } from './PlaybackContext';
 import { ScrollableList } from '../ui/ScrollableList';
-import { DownloadProgressPill } from './DownloadProgressPill';
 
 export const CatalogView = ({ 
   albums,
@@ -128,8 +126,9 @@ export const CatalogView = ({
   const renderAlbumCard = (album: Album, showTrackTitle: boolean = false) => {
     const downloadedCount = album.tracks?.filter(t => isDownloaded(t.id)).length || 0;
     const totalCount = album.tracks?.length || 0;
-    const isComplete = downloadedCount > 0 && downloadedCount === totalCount;
+    const isComplete = totalCount > 0 && downloadedCount === totalCount;
     const isPartial = downloadedCount > 0 && downloadedCount < totalCount;
+    const isDownloading = downloadingAlbums?.includes(String(album.id));
 
     return (
     <div 
@@ -139,17 +138,6 @@ export const CatalogView = ({
     >
       <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-64 md:h-64'} rounded-2xl overflow-hidden relative shadow-xl transition-all duration-500`}>
         <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        {downloadingAlbums?.includes(String(album.id)) && (
-          <button 
-            onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
-            className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-black/75 hover:bg-black/90 border border-emerald-500/35 hover:border-red-500/40 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 cursor-pointer"
-            title={`Cancelar descarga de ${album.title}`}
-            aria-label={`Cancelar descarga de ${album.title}`}
-          >
-            <Loader2 className="w-5 h-5 animate-spin text-emerald-400 group-hover/cancel:hidden" aria-hidden="true" />
-            <X className="w-5 h-5 hidden group-hover/cancel:block text-red-400" aria-hidden="true" />
-          </button>
-        )}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button 
             className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
@@ -165,23 +153,6 @@ export const CatalogView = ({
             <Play className="w-6 h-6 ml-1" fill="currentColor" aria-hidden="true" />
           </button>
         </div>
-        {album.tracks && album.tracks.length > 0 && (
-          <button 
-            onClick={(e) => handleDownloadAlbumClick(e, album)}
-            aria-label={album.tracks.every(t => isDownloaded(t.id)) ? `Álbum ${album.title} ya descargado` : `Descargar álbum ${album.title}`}
-            title={album.tracks.every(t => isDownloaded(t.id)) ? "Álbum ya descargado" : `Descargar ${album.title}`}
-            className="absolute bottom-2.5 right-2.5 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 z-10 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-            disabled={album.tracks.every(t => isDownloaded(t.id)) || downloadingAlbums?.includes(String(album.id))}
-          >
-            {downloadingAlbums?.includes(String(album.id)) ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#a855f7]" aria-hidden="true" />
-            ) : album.tracks.every(t => isDownloaded(t.id)) ? (
-              <CheckCircle className="w-4 h-4 text-[#a855f7]" strokeWidth={2.5} aria-hidden="true" />
-            ) : (
-              <Download className="w-4 h-4" aria-hidden="true" />
-            )}
-          </button>
-        )}
       </div>
       <div className="flex flex-col mt-1">
         <div className="flex items-start justify-between gap-2">
@@ -189,40 +160,63 @@ export const CatalogView = ({
             <h3 className="text-white font-semibold text-sm md:text-[15px] line-clamp-1">{showTrackTitle && album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
             <span className="text-white/50 text-xs md:text-[13px] mt-0.5 truncate">{album.artist}</span>
           </div>
-          {(() => {
-            const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
-            return (
-              <button 
-                 onClick={(e) => { e.stopPropagation(); toggleFavoriteAlbum(album); }}
-                 className={`group/favbtn shrink-0 p-2 -m-1.5 md:p-1 md:-mt-0.5 md:-mr-1 md:m-0 rounded-full transition-colors hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/30 hover:text-white'}`}
-                 title={isEntireAlbumFavorited ? "Quitar álbum de favoritos" : "Añadir álbum a favoritos"}
-                 aria-label={isEntireAlbumFavorited ? `Quitar ${album.title} de favoritos` : `Añadir ${album.title} a favoritos`}
-              >
-                 {isEntireAlbumFavorited ? (
-                   <>
-                     <Heart className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
-                     <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" aria-hidden="true" />
-                   </>
-                 ) : (
-                   <Heart className="w-4 h-4" fill="none" aria-hidden="true" />
-                 )}
-              </button>
-            );
-          })()}
-        </div>
-        {downloadingAlbums?.includes(String(album.id)) ? (
-          <DownloadProgressPill 
-            downloadedCount={downloadedCount}
-            totalCount={totalCount}
-            onCancel={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
-          />
-        ) : (isComplete || isPartial) ? (
-          <div className="mt-2 w-max px-2.5 py-1 rounded-full bg-[#a855f7]/15 backdrop-blur-md border border-[#a855f7]/20 flex items-center justify-center shadow-sm">
-            <span className="text-[#c084fc] text-[9px] font-bold tracking-wider uppercase">
-              {isComplete ? 'Descarga Completa' : 'Descarga Parcial'}
-            </span>
+          <div className="flex items-center gap-0.5 md:gap-1 shrink-0 -mr-1 -mt-0.5">
+            {album.tracks && album.tracks.length > 0 && (
+              isDownloading ? (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
+                  className="group/cancel p-1.5 md:p-1 rounded-full transition-all hover:scale-110 text-[#a855f7] hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  title={`Descargando canciones (${downloadedCount}/${totalCount}) - Clic para cancelar`}
+                  aria-label={`Descargando canciones (${downloadedCount} de ${totalCount}). Clic para cancelar`}
+                >
+                  <Loader2 className="w-4 h-4 animate-spin group-hover/cancel:hidden" aria-hidden="true" />
+                  <X className="w-4 h-4 hidden group-hover/cancel:block text-red-400" aria-hidden="true" />
+                </button>
+              ) : isComplete ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); }}
+                  className="p-1.5 md:p-1 text-[#a855f7] flex items-center justify-center cursor-default focus-visible:outline-none"
+                  title="Álbum descargado"
+                  aria-label="Álbum descargado"
+                >
+                  <CheckCircle className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
+                </button>
+              ) : (
+                <button 
+                  onClick={(e) => handleDownloadAlbumClick(e, album)}
+                  className={`p-1.5 md:p-1 rounded-full transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
+                    isPartial ? 'text-[#a855f7]/80 hover:text-[#a855f7]' : 'text-white/30 hover:text-white'
+                  }`}
+                  title={isPartial ? `Descarga parcial (${downloadedCount}/${totalCount}) - Continuar descarga` : (showTrackTitle ? "Descargar álbum" : `Descargar ${album.title}`)}
+                  aria-label={isPartial ? `Descarga parcial (${downloadedCount} de ${totalCount})` : `Descargar ${album.title}`}
+                >
+                  <Download className="w-4 h-4" aria-hidden="true" />
+                </button>
+              )
+            )}
+
+            {(() => {
+              const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
+              return (
+                <button 
+                   onClick={(e) => { e.stopPropagation(); toggleFavoriteAlbum(album); }}
+                   className={`group/favbtn p-1.5 md:p-1 rounded-full transition-colors hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/30 hover:text-white'}`}
+                   title={isEntireAlbumFavorited ? "Quitar álbum de favoritos" : "Añadir álbum a favoritos"}
+                   aria-label={isEntireAlbumFavorited ? `Quitar ${album.title} de favoritos` : `Añadir ${album.title} a favoritos`}
+                >
+                   {isEntireAlbumFavorited ? (
+                     <>
+                       <Heart className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+                       <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" aria-hidden="true" />
+                     </>
+                   ) : (
+                     <Heart className="w-4 h-4" fill="none" aria-hidden="true" />
+                   )}
+                </button>
+              );
+            })()}
           </div>
-        ) : null}
+        </div>
       </div>
     </div>
   );
