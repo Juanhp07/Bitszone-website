@@ -93,8 +93,8 @@ export const CatalogView = ({
   const renderSkeletonCards = () => (
     <div className="flex gap-6 overflow-hidden">
       {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="w-56 shrink-0 flex flex-col gap-3 animate-pulse">
-          <div className="w-56 h-56 rounded-2xl bg-white/[0.04] border border-white/5 relative overflow-hidden" />
+        <div key={i} className="w-64 shrink-0 flex flex-col gap-3 animate-pulse">
+          <div className="w-64 h-64 rounded-2xl bg-white/[0.04] border border-white/5 relative overflow-hidden" />
           <div className="flex flex-col gap-2 mt-1">
             <div className="h-4 w-3/4 rounded-md bg-white/[0.06]" />
             <div className="h-3 w-1/2 rounded-md bg-white/[0.04]" />
@@ -107,8 +107,8 @@ export const CatalogView = ({
   const renderSkeletonArtists = () => (
     <div className="flex gap-6 overflow-hidden">
       {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="w-48 shrink-0 flex flex-col items-center gap-4 animate-pulse">
-          <div className="w-48 h-48 rounded-full bg-white/[0.04] border border-white/5 relative overflow-hidden" />
+        <div key={i} className="w-56 shrink-0 flex flex-col items-center gap-4 animate-pulse">
+          <div className="w-56 h-56 rounded-full bg-white/[0.04] border border-white/5 relative overflow-hidden" />
           <div className="flex flex-col items-center gap-2">
             <div className="h-3.5 w-28 rounded-md bg-white/[0.06]" />
             <div className="h-3 w-20 rounded-md bg-white/[0.03]" />
@@ -134,10 +134,10 @@ export const CatalogView = ({
     return (
     <div 
       key={album.id}
-      className={`${expandedSection ? 'w-full' : 'w-[44vw] max-w-[185px] sm:w-52 md:w-56 md:max-w-none'} shrink-0 snap-start flex flex-col gap-2 md:gap-3 group cursor-pointer`}
+      className={`${expandedSection ? 'w-full' : 'w-[48vw] max-w-[210px] sm:w-56 md:w-64 md:max-w-none'} shrink-0 snap-start flex flex-col gap-2 md:gap-3 group cursor-pointer`}
       onClick={() => onSelectAlbum(album)}
     >
-      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-56 md:h-56'} rounded-2xl overflow-hidden relative shadow-xl transition-all duration-500`}>
+      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-64 md:h-64'} rounded-2xl overflow-hidden relative shadow-xl transition-all duration-500`}>
         <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         {downloadingAlbums?.includes(String(album.id)) && (
           <button 
@@ -235,7 +235,7 @@ export const CatalogView = ({
   } : { duration: 0 };
 
   return (
-    <div className="flex flex-col gap-6 md:gap-8 pt-5 md:pt-7 pb-12">
+    <div className="flex flex-col gap-6 md:gap-8 pt-1.5 md:pt-2.5 pb-5 md:pb-6">
       {(!expandedSection || expandedSection === 'canciones') && (
       <motion.section 
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
@@ -268,7 +268,7 @@ export const CatalogView = ({
             </button>
           )}
         </div>
-        {loading ? renderSkeletonCards() : renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 112)}
+        {loading ? renderSkeletonCards() : renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 128)}
       </motion.section>
       )}
 
@@ -305,8 +305,8 @@ export const CatalogView = ({
           )}
         </div>
         {loading ? renderSkeletonArtists() : renderList(dynamicArtists, expandedSection === 'artistas', (artist, i) => (
-          <div key={i} className={`${expandedSection ? 'w-full' : 'w-[36vw] max-w-[155px] sm:w-44 md:w-48 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
-            <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-48 md:h-48'} rounded-full overflow-hidden shadow-xl relative`}>
+          <div key={i} className={`${expandedSection ? 'w-full' : 'w-[40vw] max-w-[180px] sm:w-48 md:w-56 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
+            <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-56 md:h-56'} rounded-full overflow-hidden shadow-xl relative`}>
               <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
@@ -315,7 +315,7 @@ export const CatalogView = ({
               <span className="text-white/50 text-xs md:text-[13px] mt-1">{artist.type || 'Artista'}</span>
             </div>
           </div>
-        ), 96)}
+        ), 112)}
       </motion.section>
       )}
 
@@ -351,7 +351,7 @@ export const CatalogView = ({
             </button>
           )}
         </div>
-        {loading ? renderSkeletonCards() : renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 112)}
+        {loading ? renderSkeletonCards() : renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 128)}
       </motion.section>
       )}
       
