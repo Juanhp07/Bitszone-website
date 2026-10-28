@@ -421,7 +421,7 @@ export const CatalogView = ({
           <div key={i} className={`${expandedSection ? 'w-full' : 'w-[40vw] max-w-[180px] sm:w-48 md:w-56 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
             <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-56 md:h-56'} rounded-full overflow-hidden shadow-xl relative`}>
               <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none"></div>
             </div>
             <div className="flex flex-col items-center">
               <h3 className="text-white font-semibold text-sm md:text-[15px] text-center line-clamp-1">{artist.name}</h3>

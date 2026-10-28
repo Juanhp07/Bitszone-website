@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, LogOut, ChevronLeft } from "lucide-react";
 import { PopoverMenu } from "../ui/PopoverMenu";
 import { useDownloads } from "./DownloadsContext";
 
@@ -76,11 +76,13 @@ export const Sidebar = ({
             title={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
             aria-label={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
           >
-            {isCollapsed ? (
-              <PanelLeftOpen className="w-5 h-5 shrink-0" aria-hidden="true" />
-            ) : (
-              <PanelLeftClose className="w-5 h-5 shrink-0" aria-hidden="true" />
-            )}
+            <ChevronLeft
+              className={`w-5 h-5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                isCollapsed ? "rotate-180" : "rotate-0"
+              }`}
+              strokeWidth={2.2}
+              aria-hidden="true"
+            />
           </button>
         )}
       </div>
