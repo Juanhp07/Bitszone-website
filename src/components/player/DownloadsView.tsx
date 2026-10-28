@@ -520,7 +520,7 @@ export const DownloadsView = ({
       </div>
 
       {/* Action Bar (Search & Tabs) */}
-      <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 sticky top-16 md:top-0 bg-[#07050c]/80 md:bg-transparent backdrop-blur-md z-30 border-b border-white/5">
+      <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 sticky top-0 bg-[#07050c]/80 md:bg-transparent backdrop-blur-md z-30 border-b border-white/5">
         <div className="relative flex bg-white/5 rounded-full p-1 border border-white/10">
           {/* Animated Background Pill */}
           <div 
