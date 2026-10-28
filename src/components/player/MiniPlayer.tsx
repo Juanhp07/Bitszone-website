@@ -101,9 +101,9 @@ export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlay
       {/* Círculo indicador perfectamente unido al punto de transición */}
       <circle
         ref={circleRef}
-        r="4.5"
+        r="6"
         fill="white"
-        className="transition-[r] duration-150 group-hover:r-[6.5] drop-shadow-[0_0_10px_rgba(255,255,255,0.95)]"
+        className="transition-[r] duration-150 group-hover:r-[8] drop-shadow-[0_0_10px_rgba(255,255,255,0.95)]"
       />
     </svg>
   );
