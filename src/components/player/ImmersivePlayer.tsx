@@ -136,34 +136,34 @@ const AnimatedSongTitle = ({
           0% {
             color: #ffffff;
             text-shadow: none;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
           }
-          3% {
-            color: #f5d0fe;
-            text-shadow: 0 0 10px rgba(192, 132, 252, 0.9), 0 0 20px rgba(168, 85, 247, 0.7);
-            transform: translateY(-2px) scale(1.08);
+          1.8% {
+            color: #f5eeff;
+            text-shadow: 0 0 6px rgba(192, 132, 252, 0.35);
+            transform: translateY(-0.5px);
           }
-          6% {
-            color: #ffffff;
-            text-shadow: 0 0 14px rgba(192, 132, 252, 1), 0 0 28px rgba(168, 85, 247, 0.95), 0 0 4px #ffffff;
-            transform: translateY(-2px) scale(1.1);
+          3.6% {
+            color: #ebd5ff;
+            text-shadow: 0 0 10px rgba(192, 132, 252, 0.55), 0 0 18px rgba(168, 85, 247, 0.25);
+            transform: translateY(-0.8px);
           }
-          10% {
-            color: #e9d5ff;
-            text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
-            transform: translateY(0) scale(1.02);
+          5.4% {
+            color: #f5eeff;
+            text-shadow: 0 0 6px rgba(192, 132, 252, 0.3);
+            transform: translateY(-0.3px);
           }
-          15%, 100% {
+          7.2%, 100% {
             color: #ffffff;
             text-shadow: none;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
           }
         }
         .animate-title-char-roll {
           animation: titleCharRollUpOnce 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
         .animate-letter-sparkle {
-          animation: letterSparkleGlint 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+          animation: letterSparkleGlint 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
         @media (prefers-reduced-motion: reduce) {
           .animate-title-char-roll {
@@ -186,7 +186,7 @@ const AnimatedSongTitle = ({
             {word.split('').map((char) => {
               const charIndex = charCounter++;
               const enterDelay = Math.min(0.35, charIndex * 0.022);
-              const shimmerDelay = 1.1 + charIndex * 0.035;
+              const shimmerDelay = 1.3 + charIndex * 0.032;
               return (
                 <div key={`${wIdx}-${charIndex}`} className="relative h-[1.32em] -my-[0.16em] py-[0.08em] overflow-hidden flex items-center">
                   {/* Outer wrapper: executes roll up from below strictly ONCE */}
@@ -194,7 +194,7 @@ const AnimatedSongTitle = ({
                     className="inline-block leading-none text-white animate-title-char-roll whitespace-pre"
                     style={{ animationDelay: `${enterDelay}s` }}
                   >
-                    {/* Inner wrapper: executes recurring letter-by-letter purple shimmer every 3s after entrance */}
+                    {/* Inner wrapper: executes subtle recurring letter-by-letter purple shimmer every 5s after entrance */}
                     <span
                       className="inline-block leading-none animate-letter-sparkle whitespace-pre transition-transform duration-200"
                       style={{ animationDelay: `${shimmerDelay}s` }}
