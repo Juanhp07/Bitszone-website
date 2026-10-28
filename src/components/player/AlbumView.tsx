@@ -221,7 +221,7 @@ useEffect(() => {
       </div>
 
       {/* Album layout: glass sleeve (left, sticky on desktop) + tracklist (right) */}
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row lg:items-center lg:justify-center w-full max-w-[1680px] mx-auto lg:min-h-[calc(100dvh-170px)] gap-8 lg:gap-10 2xl:gap-20 px-4 md:px-8 lg:px-10 2xl:px-20 pt-14 lg:pt-6 pb-10">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row lg:items-center lg:justify-center w-full max-w-[1680px] mx-auto lg:min-h-[calc(100dvh-170px)] gap-8 lg:gap-10 2xl:gap-20 px-4 md:px-8 lg:px-10 2xl:px-20 pt-6 pb-10">
 
         {/* Left column */}
         <div className="lg:w-auto shrink-0 flex justify-center">

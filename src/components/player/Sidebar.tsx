@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings } from "lucide-react";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User } from "lucide-react";
 import { useDownloads } from "./DownloadsContext";
 
 export const Sidebar = ({
@@ -8,6 +8,7 @@ export const Sidebar = ({
   onViewChange,
   onToggleShortcuts,
   onToggleConfig,
+  onToggleSidebar,
   isShortcutsOpen,
   isMobile = false
 }: {
@@ -15,6 +16,7 @@ export const Sidebar = ({
   onViewChange: (view: any) => void;
   onToggleShortcuts: () => void;
   onToggleConfig: () => void;
+  onToggleSidebar?: () => void;
   isShortcutsOpen: boolean;
   isMobile?: boolean;
 }) => {
@@ -30,11 +32,43 @@ export const Sidebar = ({
   const usedPercent = (totalUsedGB / 5.0) * 100;
 
   return (
-    <aside className={`w-full h-full flex flex-col bg-transparent ${isMobile ? 'pt-[max(1.25rem,env(safe-area-inset-top))]' : 'pt-14'}`}>
-      {isMobile && (
-        <div className="px-8 pb-2 text-white/40 text-[11px] font-bold uppercase tracking-[0.2em]">Menú</div>
-      )}
-      <div className="flex-1 px-4 py-3 flex flex-col gap-2">
+    <aside className={`w-full h-full flex flex-col bg-transparent ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : 'pt-3'}`}>
+      {/* Sidebar Header: Brand Logo & Menu Toggle */}
+      <div className="px-5 pt-1 pb-3 flex items-center justify-between shrink-0">
+        <button
+          onClick={() => {
+            if (currentView !== 'catalog') {
+              onViewChange('catalog');
+            } else {
+              window.location.reload();
+            }
+          }}
+          className="cursor-pointer hover:opacity-85 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg py-1 px-1 flex items-center transition-transform"
+          title="Bitszone - Inicio"
+          aria-label="Bitszone - Ir al catálogo"
+        >
+          <span className="font-inter font-bold text-2xl text-white tracking-tight select-none">
+            Bitszone
+          </span>
+        </button>
+
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="w-10 h-10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg p-1.5 cursor-pointer"
+            title="Ocultar menú lateral"
+            aria-label="Ocultar menú lateral"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="18" x2="20" y2="18" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      <div className="flex-1 px-4 py-2 flex flex-col gap-1.5">
         <button
           onClick={() => onViewChange("catalog")}
           className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
@@ -103,8 +137,18 @@ export const Sidebar = ({
       </div>
 
       <div className="mt-auto flex flex-col pb-4" style={isMobile ? { paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' } : undefined}>
-        {/* Buttons (Atajos / Configuración) */}
+        {/* Buttons (Acceder / Atajos / Configuración) */}
         <div className="px-4 pb-4 flex flex-col gap-1 relative">
+           <a 
+             href="/login"
+             className="flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors text-white/60 hover:text-white hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+             title="Acceder a tu cuenta"
+             aria-label="Acceder a tu cuenta"
+           >
+             <User className="w-5 h-5 shrink-0" aria-hidden="true" />
+             <span>Acceder</span>
+           </a>
+
            {!isMobile && <button 
              onClick={onToggleShortcuts}
              className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShortcutsOpen ? "text-white bg-white/10" : "text-white/60 hover:text-white hover:bg-white/5"}`}

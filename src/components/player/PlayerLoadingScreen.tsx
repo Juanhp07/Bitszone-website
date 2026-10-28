@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export const PlayerLoadingScreen: React.FC = () => {
-  const [targetY, setTargetY] = useState(-360);
+  const [target, setTarget] = useState({ x: -500, y: -360 });
 
   useEffect(() => {
     const updateTarget = () => {
-      setTargetY(-(window.innerHeight / 2 - 40));
+      // Coordenadas del logo Bitszone dentro del sidebar (aprox X: 76px, Y: 34px)
+      const targetX = -(window.innerWidth / 2 - 76);
+      const targetY = -(window.innerHeight / 2 - 34);
+      setTarget({ x: targetX, y: targetY });
     };
     updateTarget();
     window.addEventListener('resize', updateTarget);
@@ -36,13 +39,19 @@ export const PlayerLoadingScreen: React.FC = () => {
         <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
       </motion.div>
 
-      {/* Centered logo that glides to header and shrinks to fit */}
+      {/* Centered logo that glides smoothly into the sidebar logo position */}
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] pointer-events-none flex items-center justify-center">
         <motion.div
           exit={{
-            y: targetY,
-            scale: 1,
-            transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
+            x: target.x,
+            y: target.y,
+            scale: 0.67,
+            opacity: [1, 1, 0],
+            transition: { 
+              duration: 0.8, 
+              ease: [0.16, 1, 0.3, 1],
+              opacity: { duration: 0.8, times: [0, 0.75, 1] }
+            }
           }}
           style={{
             scale: 1.55,
