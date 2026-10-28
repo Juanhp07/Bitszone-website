@@ -99,8 +99,10 @@ const MarqueeTitle = ({ text, active = false }: { text: string; active?: boolean
 };
 
 /**
- * Título de canción animado con entrada escalonada letra por letra desde abajo (estilo biblioteca)
- * y destello brillante en degradado lila/morado que recorre todo el texto de izquierda a derecha.
+ * Título de canción animado:
+ * 1. Entrada escalonada letra por letra desde abajo que se ejecuta SOLO UNA VEZ al cambiar de canción.
+ * 2. Destello morado/lila que recorre letra por letra de forma individual, apareciendo cada 2.5-3 segundos
+ *    después de que el texto ha terminado de aparecer.
  */
 const AnimatedSongTitle = ({
   title,
@@ -120,59 +122,48 @@ const AnimatedSongTitle = ({
       className={`relative inline-flex items-center justify-center max-w-full overflow-visible group/title select-none ${className}`}
     >
       <style>{`
-        @keyframes titleCharRollUp {
+        @keyframes titleCharRollUpOnce {
           0% {
-            transform: translateY(115%);
+            transform: translateY(125%);
             opacity: 0;
-          }
-          60% {
-            opacity: 0.9;
           }
           100% {
             transform: translateY(0);
             opacity: 1;
           }
         }
-        @keyframes purpleShimmerSweep {
+        @keyframes letterSparkleGlint {
           0% {
-            background-position: 220% 0;
-            opacity: 0;
+            color: #ffffff;
+            text-shadow: none;
+            transform: translateY(0) scale(1);
           }
-          15% {
-            opacity: 1;
+          3% {
+            color: #f5d0fe;
+            text-shadow: 0 0 10px rgba(192, 132, 252, 0.9), 0 0 20px rgba(168, 85, 247, 0.7);
+            transform: translateY(-2px) scale(1.08);
           }
-          85% {
-            opacity: 1;
+          6% {
+            color: #ffffff;
+            text-shadow: 0 0 14px rgba(192, 132, 252, 1), 0 0 28px rgba(168, 85, 247, 0.95), 0 0 4px #ffffff;
+            transform: translateY(-2px) scale(1.1);
           }
-          100% {
-            background-position: -120% 0;
-            opacity: 0;
+          10% {
+            color: #e9d5ff;
+            text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+            transform: translateY(0) scale(1.02);
           }
-        }
-        @keyframes purpleGlowSweep {
-          0% {
-            transform: translateX(-140%) skewX(-18deg);
-            opacity: 0;
-          }
-          20% {
-            opacity: 0.75;
-          }
-          80% {
-            opacity: 0.75;
-          }
-          100% {
-            transform: translateX(240%) skewX(-18deg);
-            opacity: 0;
+          15%, 100% {
+            color: #ffffff;
+            text-shadow: none;
+            transform: translateY(0) scale(1);
           }
         }
         .animate-title-char-roll {
-          animation: titleCharRollUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+          animation: titleCharRollUpOnce 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-        .animate-purple-shimmer {
-          animation: purpleShimmerSweep 1.35s cubic-bezier(0.25, 1, 0.5, 1) 0.12s both;
-        }
-        .animate-purple-glow {
-          animation: purpleGlowSweep 1.35s cubic-bezier(0.25, 1, 0.5, 1) 0.12s both;
+        .animate-letter-sparkle {
+          animation: letterSparkleGlint 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
         @media (prefers-reduced-motion: reduce) {
           .animate-title-char-roll {
@@ -180,65 +171,42 @@ const AnimatedSongTitle = ({
             transform: none !important;
             opacity: 1 !important;
           }
-          .animate-purple-shimmer {
-            display: none !important;
-          }
-          .animate-purple-glow {
-            display: none !important;
+          .animate-letter-sparkle {
+            animation: none !important;
+            text-shadow: none !important;
+            transform: none !important;
           }
         }
       `}</style>
 
-      {/* 1. Base Rolling Text: Letter by Letter staggered entrance from below */}
+      {/* Base Rolling Text with Letter-by-Letter recurring shimmer */}
       <div className="flex flex-wrap items-center justify-center gap-x-[0.26em] gap-y-1 relative z-10 leading-tight">
         {words.map((word, wIdx) => (
           <div key={wIdx} className="inline-flex items-center">
             {word.split('').map((char) => {
-              const delay = Math.min(0.38, (charCounter++) * 0.022);
+              const charIndex = charCounter++;
+              const enterDelay = Math.min(0.35, charIndex * 0.022);
+              const shimmerDelay = 1.1 + charIndex * 0.035;
               return (
-                <div key={`${wIdx}-${charCounter}`} className="relative h-[1.32em] -my-[0.16em] py-[0.08em] overflow-hidden flex items-center">
+                <div key={`${wIdx}-${charIndex}`} className="relative h-[1.32em] -my-[0.16em] py-[0.08em] overflow-hidden flex items-center">
+                  {/* Outer wrapper: executes roll up from below strictly ONCE */}
                   <span
                     className="inline-block leading-none text-white animate-title-char-roll whitespace-pre"
-                    style={{ animationDelay: `${delay}s` }}
+                    style={{ animationDelay: `${enterDelay}s` }}
                   >
-                    {char}
+                    {/* Inner wrapper: executes recurring letter-by-letter purple shimmer every 3s after entrance */}
+                    <span
+                      className="inline-block leading-none animate-letter-sparkle whitespace-pre transition-transform duration-200"
+                      style={{ animationDelay: `${shimmerDelay}s` }}
+                    >
+                      {char}
+                    </span>
                   </span>
                 </div>
               );
             })}
           </div>
         ))}
-      </div>
-
-      {/* 2. Shimmer Text Overlay: Purple / Lilac sweep running across the typography */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 z-20 pointer-events-none flex flex-wrap items-center justify-center gap-x-[0.26em] gap-y-1 leading-tight animate-purple-shimmer"
-        style={{
-          background: 'linear-gradient(110deg, transparent 20%, rgba(216,180,254,0.4) 36%, rgba(192,132,252,0.95) 47%, #ffffff 51%, rgba(168,85,247,0.95) 56%, rgba(216,180,254,0.4) 66%, transparent 82%)',
-          backgroundSize: '240% 100%',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          color: 'transparent',
-          WebkitTextFillColor: 'transparent',
-        }}
-      >
-        {words.map((word, wIdx) => (
-          <div key={wIdx} className="inline-flex items-center">
-            {word.split('').map((char, cIdx) => (
-              <div key={cIdx} className="relative h-[1.32em] -my-[0.16em] py-[0.08em] overflow-hidden flex items-center">
-                <span className="inline-block leading-none whitespace-pre opacity-90 drop-shadow-[0_0_12px_rgba(168,85,247,0.85)]">
-                  {char}
-                </span>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {/* 3. Volumetric Ambient Optical Glow: beam passing over the entire title area */}
-      <div aria-hidden="true" className="absolute inset-x-0 -inset-y-3 pointer-events-none overflow-hidden rounded-full z-15">
-        <div className="absolute top-0 bottom-0 w-32 md:w-48 bg-gradient-to-r from-transparent via-[#c084fc]/35 via-white/20 to-transparent blur-md mix-blend-screen animate-purple-glow" />
       </div>
     </div>
   );
