@@ -692,10 +692,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     }
   };
 
-  // On phones the sidebar is an overlay drawer, so the glass frame never reserves room for it,
-  // and the top bar is shorter (56px).
-  const sidebarInFlow = isSidebarOpen && !isCompact;
-  const sidebarW = sidebarInFlow ? 256 : 0;
+  // On phones the sidebar is an overlay drawer, so the glass frame never reserves room for it.
+  // On desktop, the sidebar is either expanded (256px) or compact (72px).
+  const sidebarInFlow = !isCompact;
+  const sidebarW = isCompact ? 0 : (isSidebarOpen ? 256 : 72);
   const cornerR = sidebarInFlow ? 24 : 0.01;
   const headerH = 56;
 
@@ -771,14 +771,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         {!isCompact && (
           <div
             className="absolute top-0 bottom-0 left-0 bg-black/30 backdrop-blur-xl border-r border-white/10 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
-            style={{ width: `${sidebarW}px`, opacity: sidebarInFlow ? 1 : 0 }}
+            style={{ width: `${sidebarW}px` }}
           />
         )}
       </div>
 
-      {/* Floating Menu Toggle Button when sidebar is collapsed */}
+      {/* Floating Menu Toggle Button when on mobile and drawer is closed */}
       <AnimatePresence>
-        {!isSidebarOpen && (
+        {isCompact && !isSidebarOpen && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -813,7 +813,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         <div
           className={isCompact
             ? `fixed inset-y-0 left-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/95 backdrop-blur-xl border-r border-white/10 shadow-[20px_0_60px_rgba(0,0,0,0.6)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
-            : `h-full shrink-0 relative z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-0'}`}
+            : `h-full shrink-0 relative z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-[72px]'}`}
           aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
         >
           <motion.div
@@ -823,7 +823,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               opacity: !hasEntered && loading ? 0 : 1
             }}
             transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-            className={isCompact ? 'w-full h-full overflow-y-auto overscroll-contain' : 'w-64 h-full'}
+            className="w-full h-full overflow-hidden"
           >
             <Sidebar
               currentView={navSection}
@@ -833,6 +833,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
               isShortcutsOpen={isShortcutsOpen}
               isMobile={isCompact}
+              isCollapsed={!isCompact && !isSidebarOpen}
             />
           </motion.div>
         </div>
