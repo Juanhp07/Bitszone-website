@@ -33,6 +33,12 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const isMobile = useIsMobile();   // phone layout (header, mini player, lyrics)
   const isCompact = useIsCompact(); // phones + tablets: the sidebar is an overlay drawer
+  const [drawerReady, setDrawerReady] = useState(false);
+  useEffect(() => {
+    if (!isSidebarOpen) { setDrawerReady(false); return; }
+    const t = setTimeout(() => setDrawerReady(true), 450);
+    return () => clearTimeout(t);
+  }, [isSidebarOpen]);
 
   // Phones and tablets start with the drawer closed; desktop keeps the sidebar open.
   React.useLayoutEffect(() => {
@@ -823,14 +829,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           <div
             onClick={() => setIsSidebarOpen(false)}
             aria-hidden="true"
-            className={`fixed inset-0 z-[55] bg-black/60 transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            className={`fixed inset-0 z-[55] bg-black/60 transition-opacity duration-300 ${isSidebarOpen ? (drawerReady ? 'opacity-100' : 'opacity-100 pointer-events-none') : 'opacity-0 pointer-events-none'}`}
           />
         )}
 
         {/* Sidebar: flush left and pushing content on desktop; an overlay drawer on phones and tablets */}
         <div
           className={isCompact
-            ? `fixed inset-y-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/95 backdrop-blur-xl border-white/10 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] right-0 border-l shadow-[-20px_0_60px_rgba(0,0,0,0.6)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`
+            ? `fixed inset-y-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/[0.97] border-white/10 will-change-transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] right-0 border-l shadow-[-12px_0_32px_rgba(0,0,0,0.5)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`
             : `h-full shrink-0 relative z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-[72px]'}`}
           aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
         >
