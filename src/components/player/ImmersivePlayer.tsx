@@ -298,6 +298,50 @@ export const ImmersivePlayer = ({
     onTabChange?.(tab);
   };
 
+  // Ultra-fluid scrub handling for full-screen immersion timeline
+  const [scrubProgress, setScrubProgress] = useState<number | null>(null);
+  const isScrubbingTimeline = useRef(false);
+  const seekRafRef = useRef<number>(0);
+
+  const handleTimelinePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    isScrubbingTimeline.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setScrubProgress(p);
+    onSeek?.(p);
+  };
+
+  const handleTimelinePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isScrubbingTimeline.current || !e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setScrubProgress(p);
+    if (!seekRafRef.current) {
+      seekRafRef.current = requestAnimationFrame(() => {
+        seekRafRef.current = 0;
+        onSeek?.(p);
+      });
+    }
+  };
+
+  const handleTimelinePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isScrubbingTimeline.current) return;
+    isScrubbingTimeline.current = false;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (_) {}
+    if (seekRafRef.current) {
+      cancelAnimationFrame(seekRafRef.current);
+      seekRafRef.current = 0;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setScrubProgress(null);
+    onSeek?.(p);
+  };
+
   const currentIndex = album?.tracks?.findIndex(t => t.id === track.id) ?? -1;
   const playback = usePlayback();
   const { createPlaylist } = usePlaylists();
@@ -608,12 +652,14 @@ export const ImmersivePlayer = ({
           {currentTab === 'inmersion' && (
             <button
               onClick={() => setIsCavaSettingsOpen(true)}
-              className="group flex items-center h-10 md:h-11 px-3.5 md:px-4 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur-2xl border border-white/20 hover:border-white/35 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer select-none gap-2"
+              className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[154px] md:hover:w-[164px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur-2xl border border-white/20 hover:border-white/35 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none"
               title="Ajustes de inmersión"
-              aria-label="Ajustes inmersión"
+              aria-label="Ajustes de inmersión"
             >
-              <Sliders className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:rotate-90 text-purple-300 shrink-0" strokeWidth={2.2} />
-              <span className="text-xs md:text-sm font-medium tracking-wide whitespace-nowrap">
+              <div className="w-10 md:w-11 h-10 md:h-11 flex items-center justify-center shrink-0">
+                <Sliders className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:rotate-90 text-purple-300" strokeWidth={2.2} />
+              </div>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-xs md:text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
                 Ajustes inmersión
               </span>
             </button>
@@ -1263,27 +1309,29 @@ export const ImmersivePlayer = ({
             <div className="w-full relative z-30 select-none pointer-events-auto group/timeline">
               {/* Time Indicators above timeline */}
               <div className="flex justify-between items-center px-4 md:px-8 pb-1.5 text-xs font-mono font-medium text-white/60 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                <span className="tracking-wider">{formatTime(progress * track.duration)}</span>
+                <span className="tracking-wider">{formatTime((scrubProgress !== null ? scrubProgress : progress) * track.duration)}</span>
                 <span className="tracking-wider text-white/40">{formatTime(track.duration)}</span>
               </div>
 
-              {/* Thick full-width timeline bar */}
-              <div className="relative w-full h-3 md:h-3.5 bg-white/15 hover:bg-white/25 transition-all cursor-pointer">
-                <div
-                  className="h-full bg-white relative shadow-[0_0_16px_rgba(255,255,255,0.85)] transition-[width] duration-75"
-                  style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.0005"
-                  value={progress}
-                  onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 focus:outline-none"
-                  title="Buscar en la canción"
-                  aria-label="Línea de tiempo"
-                />
+              {/* Thick full-width timeline bar with instant, ultra-fluid pointer capture */}
+              <div
+                className="relative w-full h-8 flex items-end cursor-pointer touch-none group/scrub"
+                onPointerDown={handleTimelinePointerDown}
+                onPointerMove={handleTimelinePointerMove}
+                onPointerUp={handleTimelinePointerUp}
+                onPointerCancel={handleTimelinePointerUp}
+                title="Línea de tiempo"
+                aria-label="Buscar en la canción"
+              >
+                <div className="w-full h-3 md:h-3.5 bg-white/15 group-hover/scrub:bg-white/25 transition-colors relative overflow-hidden">
+                  <div
+                    className="h-full bg-white relative shadow-[0_0_16px_rgba(255,255,255,0.9)]"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, (scrubProgress !== null ? scrubProgress : progress) * 100))}%`,
+                      transition: scrubProgress !== null ? 'none' : 'width 0.1s linear',
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
