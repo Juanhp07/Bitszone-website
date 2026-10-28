@@ -721,20 +721,8 @@ export const ImmersivePlayer = ({
                    }}
                    onPointerUp={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
                  >
-                    {/* Unplayed straight line */}
-                    <div
-                      className="absolute right-0 h-[6px] md:h-[7px] group-hover:h-[7px] md:group-hover:h-[8px] bg-white/25 group-hover:bg-white/40 rounded-full transition-all duration-200"
-                      style={{ left: `${progress * 100}%` }}
-                    />
-
-                    {/* Played part: same live squiggle as the mini player */}
+                    {/* Unified seekbar line: wavy played curves, straight unplayed track and handle dot in one seamless SVG */}
                     <WavyProgress progress={progress} isPlaying={isPlaying} />
-
-                    {/* The Dot (Handle) */}
-                    <div
-                       className="absolute w-4 h-4 md:w-5 md:h-5 bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.95)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-[transform,left] duration-75 ease-linear"
-                       style={{ left: `${progress * 100}%` }}
-                    />
                  </div>
 
                  <span className="w-9 md:w-12">{formatTime(track.duration)}</span>

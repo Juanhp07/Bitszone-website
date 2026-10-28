@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Star, Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Repeat1, Heart, HeartOff, Mic2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import { usePlayback } from './PlaybackContext';
@@ -7,17 +7,16 @@ import type { Album, Track } from './types';
 
 // Squiggly seek line: sine wave that tapers flat at both ends, drifts toward the handle
 // while playing and eases into a straight line when paused.
+// Unifies played curves and unplayed straight track in the exact same SVG to guarantee
+// a single continuous line without gaps, divisions, or overlapping artifacts.
 export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlaying: boolean }) => {
-  const pathRef = useRef<SVGPathElement>(null);
+  const playedPathRef = useRef<SVGPathElement>(null);
+  const unplayedPathRef = useRef<SVGPathElement>(null);
+  const circleRef = useRef<SVGCircleElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const gradRef = useRef<SVGLinearGradientElement>(null);
-  const stop1Ref = useRef<SVGStopElement>(null);
-  const stop2Ref = useRef<SVGStopElement>(null);
-  const stop3Ref = useRef<SVGStopElement>(null);
-  const state = useRef({ phase: 0, amp: isPlaying ? 1 : 0, hoverAmp: 0, smoothProgress: progress, progress, isPlaying });
+  const state = useRef({ phase: 0, amp: isPlaying ? 1 : 0, hoverAmp: 0, progress, isPlaying });
   state.current.progress = progress;
   state.current.isPlaying = isPlaying;
-  const gradientId = useId().replace(/:/g, '');
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -25,7 +24,7 @@ export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlay
     let last = performance.now();
     const WAVELENGTH = 34;
     const BASE_AMPLITUDE = 3.2;
-    const HOVER_AMPLITUDE = 3.8;
+    const HOVER_AMPLITUDE = 4.0;
     const TAPER = 24;
 
     const draw = (now: number) => {
@@ -41,36 +40,39 @@ export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlay
 
       if (!reduce) st.phase += dt * 0.0036;
 
-      // Ultra-fluid progress lerp to eliminate discrete jumps
-      if (st.smoothProgress === undefined || Math.abs(st.progress - st.smoothProgress) > 0.05) {
-        st.smoothProgress = st.progress;
-      } else if (st.isPlaying && !reduce) {
-        st.smoothProgress += (st.progress - st.smoothProgress) * Math.min(1, dt * 0.02);
-      } else {
-        st.smoothProgress = st.progress;
-      }
-
-      const width = (svgRef.current?.clientWidth ?? 0) * st.smoothProgress;
+      const totalWidth = svgRef.current?.clientWidth ?? 0;
+      const width = Math.max(0, Math.min(totalWidth, totalWidth * st.progress));
       const MID = (svgRef.current?.clientHeight ?? 24) / 2;
       const effectiveAmp = (BASE_AMPLITUDE + (HOVER_AMPLITUDE - BASE_AMPLITUDE) * st.hoverAmp) * st.amp;
 
-      // Update dual fade gradient (difuminado al inicio Y al final de la onda)
-      if (gradRef.current && stop1Ref.current && stop2Ref.current && stop3Ref.current) {
-        gradRef.current.setAttribute('x2', Math.max(1, width).toFixed(1));
-        const startPx = Math.min(width * 0.35, 32);
-        const endPx = Math.max(startPx, width - 28);
-        stop1Ref.current.setAttribute('offset', `${startPx.toFixed(1)}px`);
-        stop2Ref.current.setAttribute('offset', `${endPx.toFixed(1)}px`);
-        stop3Ref.current.setAttribute('offset', `${width.toFixed(1)}px`);
+      // 1. Played wavy path (0 -> width): pure white sine wave
+      let dPlayed = `M0 ${MID}`;
+      if (width > 0) {
+        for (let x = 0; x <= width; x += 2) {
+          const taper = Math.min(1, x / TAPER, (width - x) / TAPER);
+          const y = MID + Math.sin((x / WAVELENGTH) * Math.PI * 2 - st.phase) * effectiveAmp * Math.max(0, taper);
+          dPlayed += ` L${x.toFixed(1)} ${y.toFixed(2)}`;
+        }
+        dPlayed += ` L${width.toFixed(1)} ${MID}`;
+      }
+      playedPathRef.current?.setAttribute('d', dPlayed);
+
+      // 2. Unplayed straight path (width -> totalWidth):
+      // Starts EXACTLY at (width, MID) where the curves end, so it is impossible
+      // for the straight line to be visible behind the curves or to have a division gap!
+      if (width < totalWidth) {
+        const dUnplayed = `M${width.toFixed(1)} ${MID} L${totalWidth.toFixed(1)} ${MID}`;
+        unplayedPathRef.current?.setAttribute('d', dUnplayed);
+      } else {
+        unplayedPathRef.current?.setAttribute('d', '');
       }
 
-      let d = `M0 ${MID}`;
-      for (let x = 0; x <= width; x += 2) {
-        const taper = Math.min(1, x / TAPER, (width - x) / TAPER);
-        const y = MID + Math.sin((x / WAVELENGTH) * Math.PI * 2 - st.phase) * effectiveAmp * Math.max(0, taper);
-        d += ` L${x.toFixed(1)} ${y.toFixed(2)}`;
+      // 3. Handle dot centered at the exact joint (width, MID)
+      if (circleRef.current) {
+        circleRef.current.setAttribute('cx', width.toFixed(1));
+        circleRef.current.setAttribute('cy', MID.toString());
       }
-      pathRef.current?.setAttribute('d', d);
+
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
@@ -79,22 +81,29 @@ export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlay
 
   return (
     <svg ref={svgRef} className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" aria-hidden="true">
-      <defs>
-        {/* Difuminado suave tanto al inicio como al final de la animación de ondas */}
-        <linearGradient ref={gradRef} id={`wave-fade-${gradientId}`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="0">
-          <stop offset="0%" stopColor="white" stopOpacity="0.1" />
-          <stop ref={stop1Ref} offset="32px" stopColor="white" stopOpacity="1" />
-          <stop ref={stop2Ref} offset="70px" stopColor="white" stopOpacity="1" />
-          <stop ref={stop3Ref} offset="100px" stopColor="white" stopOpacity="0.15" />
-        </linearGradient>
-      </defs>
+      {/* Línea recta unplayed: comienza exactamente donde termina la onda */}
       <path
-        ref={pathRef}
+        ref={unplayedPathRef}
         fill="none"
-        stroke={`url(#wave-fade-${gradientId})`}
-        className="transition-[stroke-width,filter] duration-200 stroke-[5px] md:stroke-[5.5px] group-hover:stroke-[6px] md:group-hover:stroke-[6.5px] drop-shadow-[0_0_8px_rgba(255,255,255,0.45)] group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,0.85)]"
+        stroke="rgba(255, 255, 255, 0.28)"
+        className="transition-[stroke-width,stroke] duration-200 stroke-[5px] md:stroke-[5.5px] group-hover:stroke-[6.5px] md:group-hover:stroke-[7px] group-hover:stroke-white/45"
+        strokeLinecap="round"
+      />
+      {/* Ondas reproducidas: blanco puro brillante con resplandor */}
+      <path
+        ref={playedPathRef}
+        fill="none"
+        stroke="white"
+        className="transition-[stroke-width] duration-200 stroke-[5px] md:stroke-[5.5px] group-hover:stroke-[6.5px] md:group-hover:stroke-[7px] drop-shadow-[0_0_8px_rgba(255,255,255,0.7)] group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,0.95)]"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+      {/* Círculo indicador perfectamente unido al punto de transición */}
+      <circle
+        ref={circleRef}
+        r="4.5"
+        fill="white"
+        className="transition-[r] duration-150 group-hover:r-[6.5] drop-shadow-[0_0_10px_rgba(255,255,255,0.95)]"
       />
     </svg>
   );
@@ -231,17 +240,8 @@ export const MiniPlayer = ({
       </div>
       {/* Seek bar on the top edge (YouTube Music style) */}
           <div className="absolute left-0 right-0 top-0 -translate-y-1/2 h-6 z-20 group flex items-center cursor-pointer">
-            {/* Unplayed straight line */}
-            <div className="absolute right-0 h-[6px] group-hover:h-[7px] bg-white/30 group-hover:bg-white/45 rounded-full pointer-events-none transition-all duration-200" style={{ left: `${progress * 100}%` }} />
-
-            {/* Played part: live squiggle (Android 13 / YT Music style) */}
+            {/* Unified seekbar line: wavy played curves, straight unplayed track and handle dot in one seamless SVG */}
             <WavyProgress progress={progress} isPlaying={isPlaying} />
-
-            {/* The Dot (Handle) */}
-            <div
-               className="absolute w-3.5 h-3.5 md:w-4 md:h-4 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.9)] transform -translate-x-1/2 pointer-events-none group-hover:scale-125 transition-[transform,left] duration-75 ease-linear"
-               style={{ left: `${progress * 100}%` }}
-            />
 
             <input
               type="range"
