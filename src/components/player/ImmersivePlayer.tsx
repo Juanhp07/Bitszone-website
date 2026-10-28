@@ -15,6 +15,28 @@ import { motion, AnimatePresence, Reorder, useDragControls, type DragControls } 
 import { useRubberBand } from '../ui/useRubberBand';
 import { useIsMobile } from './useIsMobile';
 
+const useAverageColor = (src: string) => {
+  const [color, setColor] = useState('rgba(45, 10, 70, 0.8)');
+  useEffect(() => {
+    if (!src) return;
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        setColor(`rgba(${r}, ${g}, ${b}, 0.85)`);
+      }
+    };
+    img.onerror = () => setColor('rgba(45, 10, 70, 0.8)');
+    img.src = src;
+  }, [src]);
+  return color;
+};
 
 // Queue row that can only be dragged by its grip, so swiping the list still scrolls on phones
 const QueueReorderItem = ({ value, constraintsRef, children }: { value: unknown; constraintsRef: React.RefObject<HTMLElement | null>; children: (controls: DragControls) => React.ReactNode }) => {
@@ -144,6 +166,8 @@ export const ImmersivePlayer = ({
   const currentIndex = album?.tracks?.findIndex(t => t.id === track.id) ?? -1;
   const playback = usePlayback();
   const { createPlaylist } = usePlaylists();
+  const coverSource = album?.coverUrl || track?.albumCover || '';
+  const dominantColor = useAverageColor(coverSource);
 
   // Apple-style rubber band bounce for right scrollable area
   const { containerRef: rightScrollRef, springValue: rightSpringY, scrollProps: rightScrollProps, triggerBounce: rightBounce } = useRubberBand({ axis: 'y' });
@@ -518,24 +542,28 @@ export const ImmersivePlayer = ({
                     }}
                   >
                     <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_30deg,transparent_0deg,rgba(255,255,255,0.10)_40deg,transparent_80deg,transparent_180deg,rgba(255,255,255,0.07)_220deg,transparent_260deg)]" />
-                    <img src={track.albumCover || album.coverUrl} alt="" className="absolute inset-[34%] w-[32%] h-[32%] rounded-full object-cover ring-2 ring-black/60" />
+                    <img src={coverSource} alt="" className="absolute inset-[34%] w-[32%] h-[32%] rounded-full object-cover ring-2 ring-black/60" />
                     <div className="absolute left-1/2 top-1/2 w-[3%] h-[3%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0a0a0a]" />
                   </div>
                 </div>
 
+                {/* Shadow tinted with the album color */}
+                <div className="absolute inset-4 translate-y-8 rounded-[22px] blur-3xl opacity-70 pointer-events-none z-0" style={{ background: dominantColor }} aria-hidden="true" />
+
                 <div ref={coverRef} className="relative z-10 w-[min(calc(100vw-48px),46dvh)] h-[min(calc(100vw-48px),46dvh)] md:w-[clamp(140px,min(28vw,540px,calc(100dvh-440px)),540px)] md:h-[clamp(140px,min(28vw,540px,calc(100dvh-440px)),540px)] aspect-square rounded-2xl md:rounded-[22px] overflow-hidden border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)] shrink-0">
                   <img
-                    src={(track.albumCover || album.coverUrl)}
+                    src={coverSource}
                     alt={album.title}
                     className="w-full h-full object-cover select-none"
                   />
                   <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0.08)_22%,transparent_40%,transparent_70%,rgba(255,255,255,0.10)_100%)] pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
                   <div className="absolute inset-0 rounded-[inherit] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),inset_0_0_0_1px_rgba(255,255,255,0.06)] pointer-events-none" />
                 </div>
 
-                {/* Reactions dock for the song (desktop), same pill as the album page */}
-                <div className="hidden md:flex absolute -bottom-6 -right-6 z-20 items-center gap-1 p-1.5 rounded-full overflow-hidden isolate [&>*:not(:first-child)]:relative [&>*:not(:first-child)]:z-10 backdrop-blur-[40px] backdrop-saturate-[1.8] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_20px_44px_rgba(0,0,0,0.5)]">
-                  <SmokedGlass src={track.albumCover || album.coverUrl} />
+                {/* Reactions dock for the song (desktop), same pill and blur as the album page */}
+                <div className="hidden md:flex absolute -bottom-4 -right-2 z-20 items-center justify-center gap-1 p-1.5 rounded-full overflow-hidden isolate [&>*:not(:first-child)]:relative [&>*:not(:first-child)]:z-10 backdrop-blur-[40px] backdrop-saturate-[1.8] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_20px_44px_rgba(0,0,0,0.5)]">
+                  <SmokedGlass src={coverSource} />
                   <button
                     onClick={() => toggleFavorite(track, album)}
                     className={`group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/60 hover:text-white'}`}
