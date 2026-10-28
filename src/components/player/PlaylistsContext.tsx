@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Album, Track } from './types';
+import { userStorage, useUserStorageVersion } from '../../lib/userStorage';
 
 export interface Playlist {
   id: string;
@@ -66,16 +67,18 @@ export const PlaylistsProvider = ({ children }: { children: React.ReactNode }) =
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [covers, setCovers] = useState<Record<string, string>>({});
 
+  // re-read whenever the account's data is replaced (login, logout, changes from another device)
+  const storageVersion = useUserStorageVersion();
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setPlaylists(JSON.parse(saved));
-    } catch { /* storage unavailable: start empty */ }
-  }, []);
+      const saved = userStorage.getItem(STORAGE_KEY);
+      setPlaylists(saved ? JSON.parse(saved) : []);
+    } catch { setPlaylists([]); }
+  }, [storageVersion]);
 
   const persist = (next: Playlist[]) => {
     setPlaylists(next);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+    userStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   };
 
   // Rebuild mosaics only when a playlist's first covers change

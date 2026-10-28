@@ -13,7 +13,7 @@ import { ToastContainer } from './ToastContainer';
 import { useCatalog } from './useCatalog';
 import { Onboarding } from './Onboarding';
 import { useProfile } from '../../lib/useProfile';
-import { supabase } from '../../lib/supabase';
+import { signOutUser } from '../../lib/userStorage';
 import { genreScore } from '../../lib/genres';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
@@ -871,7 +871,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               isMobile={isCompact}
               isCollapsed={!isCompact && !isSidebarOpen}
               account={account}
-              onSignOut={() => supabase.auth.signOut()}
+              onSignOut={signOutUser}
             />
           </motion.div>
         </div>

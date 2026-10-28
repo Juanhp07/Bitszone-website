@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Track, Album } from './types';
+import { userStorage, useUserStorageVersion } from '../../lib/userStorage';
 
 interface DownloadsContextType {
   downloadedTracks: Track[];
@@ -44,8 +45,14 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
   const [downloadingAlbums, setDownloadingAlbums] = useState<string[]>([]);
   const cancelRef = React.useRef<Record<string, boolean>>({});
   
+  // re-read whenever the account's data is replaced (login, logout, changes from another device)
+  const storageVersion = useUserStorageVersion();
   useEffect(() => {
-    const savedDownloads = localStorage.getItem('bz_downloads');
+    setDownloadedTracks([]);
+    setFavoriteTracks([]);
+    setLicensedTracks([]);
+    setTotalBytes(0);
+    const savedDownloads = userStorage.getItem('bz_downloads');
     if (savedDownloads) {
       try {
         const parsed = JSON.parse(savedDownloads);
@@ -69,20 +76,20 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
         })).then(updated => {
           if (changed) {
             setDownloadedTracks([...updated]);
-            localStorage.setItem('bz_downloads', JSON.stringify(updated));
+            userStorage.setItem('bz_downloads', JSON.stringify(updated));
             calculateBytes(updated);
           }
         });
       } catch (e) {}
     }
 
-    const savedFavs = localStorage.getItem('bz_favorites');
+    const savedFavs = userStorage.getItem('bz_favorites');
     if (savedFavs) {
       try {
         setFavoriteTracks(JSON.parse(savedFavs));
       } catch (e) {}
     }
-    const savedLicenses = localStorage.getItem('bz_licenses');
+    const savedLicenses = userStorage.getItem('bz_licenses');
     if (savedLicenses) {
       try {
         const parsed = JSON.parse(savedLicenses);
@@ -112,14 +119,14 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
 
         setLicensedTracks(validLicenses);
         if (expiredCount > 0) {
-          localStorage.setItem('bz_licenses', JSON.stringify(validLicenses));
+          userStorage.setItem('bz_licenses', JSON.stringify(validLicenses));
           setTimeout(() => {
              window.dispatchEvent(new CustomEvent('show-toast', { detail: `${expiredCount} canción(es) con licencia expirada fueron removidas` }));
           }, 500);
         }
       } catch (e) {}
     }
-  }, []);
+  }, [storageVersion]);
 
   const calculateBytes = (tracks: Track[]) => {
     // Calculamos los megabytes usando el campo sizeMb o el estimado por duracion
@@ -144,7 +151,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
           if (prev.find(t => t.id === trackWithRealSize.id)) return prev;
           const trackToSave = { ...trackWithRealSize, albumId: album?.id || track.albumId, albumTitle: album?.title || track.albumTitle, albumCover: album?.coverUrl || track.albumCover, addedAt: track.addedAt || new Date().toISOString() };
           const updated = [...prev, trackToSave];
-          localStorage.setItem('bz_downloads', JSON.stringify(updated));
+          userStorage.setItem('bz_downloads', JSON.stringify(updated));
           calculateBytes(updated);
           return updated;
         });
@@ -161,7 +168,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     setDownloadedTracks(prev => {
       const removedTrack = prev.find(t => t.id === trackId);
       const updated = prev.filter(t => t.id !== trackId);
-      localStorage.setItem('bz_downloads', JSON.stringify(updated));
+      userStorage.setItem('bz_downloads', JSON.stringify(updated));
       calculateBytes(updated);
       if (!silent && removedTrack) {
         window.dispatchEvent(new CustomEvent('show-toast', { detail: `Canción '${removedTrack.title}' eliminada de Descargas` }));
@@ -188,7 +195,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
         const trackToSave = { ...track, albumId: album?.id || track.albumId, albumTitle: album?.title || track.albumTitle, albumCover: album?.coverUrl || track.albumCover, addedAt: track.addedAt || new Date().toISOString() };
         updated = [...prev, trackToSave];
       }
-      localStorage.setItem('bz_favorites', JSON.stringify(updated));
+      userStorage.setItem('bz_favorites', JSON.stringify(updated));
       return updated;
     });
   };
@@ -214,7 +221,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
           });
         updated = [...updated, ...tracksToAdd];
       }
-      localStorage.setItem('bz_favorites', JSON.stringify(updated));
+      userStorage.setItem('bz_favorites', JSON.stringify(updated));
       return updated;
     });
   };
@@ -227,7 +234,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
       if (prev.some(t => t.id === track.id)) return prev;
       const trackToSave = { ...track, albumId: album?.id || track.albumId, albumTitle: album?.title || track.albumTitle, albumCover: album?.coverUrl || track.albumCover, addedAt: track.addedAt || new Date().toISOString() };
       const updated = [...prev, trackToSave];
-      localStorage.setItem('bz_licenses', JSON.stringify(updated));
+      userStorage.setItem('bz_licenses', JSON.stringify(updated));
       window.dispatchEvent(new CustomEvent('show-toast', { detail: `La canción '${track.title}' se agregó a Canciones con licencia` }));
       return updated;
     });
@@ -247,7 +254,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     setLicensedTracks(prev => {
       const removedTrack = prev.find(t => t.id === trackId);
       const updated = prev.filter(t => t.id !== trackId);
-      localStorage.setItem('bz_licenses', JSON.stringify(updated));
+      userStorage.setItem('bz_licenses', JSON.stringify(updated));
       if (removedTrack) {
         window.dispatchEvent(new CustomEvent('show-toast', { detail: `La canción '${removedTrack.title}' se eliminó de Canciones con licencia` }));
       }
@@ -289,7 +296,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     setDownloadedTracks(prev => {
       const albumTitle = prev.find(t => (t.albumId ? String(t.albumId) : 'unknown') === albumId)?.albumTitle || 'Álbum';
       const updated = prev.filter(t => (t.albumId ? String(t.albumId) : 'unknown') !== albumId);
-      localStorage.setItem('bz_downloads', JSON.stringify(updated));
+      userStorage.setItem('bz_downloads', JSON.stringify(updated));
       calculateBytes(updated);
       window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${albumTitle}' eliminado de Descargas` }));
       return updated;
@@ -300,7 +307,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     setFavoriteTracks(prev => {
       const albumTitle = prev.find(t => (t.albumId ? String(t.albumId) : 'unknown') === albumId)?.albumTitle || 'Álbum';
       const updated = prev.filter(t => (t.albumId ? String(t.albumId) : 'unknown') !== albumId);
-      localStorage.setItem('bz_favorites', JSON.stringify(updated));
+      userStorage.setItem('bz_favorites', JSON.stringify(updated));
       window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${albumTitle}' eliminado de tu Biblioteca` }));
       return updated;
     });
@@ -308,20 +315,20 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
 
   const clearDownloads = () => {
     setDownloadedTracks([]);
-    localStorage.setItem('bz_downloads', JSON.stringify([]));
+    userStorage.setItem('bz_downloads', JSON.stringify([]));
     calculateBytes([]);
     window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Todas las descargas eliminadas' }));
   };
 
   const clearFavorites = () => {
     setFavoriteTracks([]);
-    localStorage.setItem('bz_favorites', JSON.stringify([]));
+    userStorage.setItem('bz_favorites', JSON.stringify([]));
     window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Todas tus canciones favoritas fueron eliminadas' }));
   };
 
   const clearLicenses = () => {
     setLicensedTracks([]);
-    localStorage.setItem('bz_licenses', JSON.stringify([]));
+    userStorage.setItem('bz_licenses', JSON.stringify([]));
     window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Todas las canciones con licencia fueron eliminadas' }));
   };
 
@@ -329,7 +336,7 @@ export const DownloadsProvider = ({ children }: { children: React.ReactNode }) =
     setLicensedTracks(prev => {
       const albumTitle = prev.find(t => (t.albumId ? String(t.albumId) : 'unknown') === albumId)?.albumTitle || 'Álbum';
       const updated = prev.filter(t => (t.albumId ? String(t.albumId) : 'unknown') !== albumId);
-      localStorage.setItem('bz_licenses', JSON.stringify(updated));
+      userStorage.setItem('bz_licenses', JSON.stringify(updated));
       window.dispatchEvent(new CustomEvent('show-toast', { detail: `Álbum '${albumTitle}' eliminado de Licencias` }));
       return updated;
     });
