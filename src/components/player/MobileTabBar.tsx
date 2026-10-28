@@ -4,7 +4,7 @@ import { Home, Library, DownloadCloud, Menu } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 
 /**
- * Phone-only primary navigation (hidden from `md` up, where the sidebar takes over).
+ * Primary navigation for phones and tablets (hidden from `lg` up, where the sidebar takes over).
  * Floating liquid-glass pill like iOS: the selection bubble springs between tabs, and you can
  * press and slide a finger across the bar — the bubble follows and the tab under the finger
  * opens on release. Each target stays at least 44px tall.
@@ -35,12 +35,12 @@ export const MobileTabBar = ({ currentView, onViewChange, onOpenMenu, menuOpen =
   return (
     <nav
       aria-label="Navegación principal"
-      className="md:hidden shrink-0 relative z-30 px-4 pt-2"
+      className="lg:hidden shrink-0 relative z-30 px-4 pt-2"
       style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}
     >
       <div
         ref={barRef}
-        className="relative flex items-stretch rounded-full p-1.5 bg-white/[0.08] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-1px_0_rgba(255,255,255,0.04),0_12px_32px_rgba(0,0,0,0.45)] touch-none select-none"
+        className="relative flex items-stretch w-full max-w-[560px] mx-auto rounded-full p-1.5 bg-white/[0.08] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-1px_0_rgba(255,255,255,0.04),0_12px_32px_rgba(0,0,0,0.45)] touch-none select-none"
         onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setPressIndex(indexAt(e.clientX)); }}
         onPointerMove={(e) => { if (pressIndex !== null) setPressIndex(indexAt(e.clientX)); }}
         onPointerUp={(e) => {

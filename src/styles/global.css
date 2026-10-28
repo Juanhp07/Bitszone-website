@@ -310,3 +310,15 @@ html {
   background: transparent !important;
 }
 
+
+/* The player fills the visible screen: dvh follows the browser toolbar, vh is the fallback for old browsers.
+   Two Tailwind utilities (h-screen + h-[100dvh]) can't do this: whichever the compiled CSS lists last wins,
+   and that was 100vh, which hides the bottom of the app behind the phone's toolbar. */
+.app-viewport-height {
+  height: 100vh;
+}
+@supports (height: 100dvh) {
+  .app-viewport-height {
+    height: 100dvh;
+  }
+}

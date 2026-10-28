@@ -20,7 +20,7 @@ import { DownloadsProvider } from './DownloadsContext';
 import { PlaylistsProvider, isPlaylistAlbum } from './PlaylistsContext';
 import { PlaybackContext, type QueueEntry } from './PlaybackContext';
 import { PlayerLoadingScreen } from './PlayerLoadingScreen';
-import { Heart, ChevronLeft } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { MobileTabBar } from './MobileTabBar';
 import { useIsMobile, useIsCompact } from './useIsMobile';
 import { useRubberBand } from '../ui/useRubberBand';
@@ -740,7 +740,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       <AnimatePresence>
         {loading && <PlayerLoadingScreen />}
       </AnimatePresence>
-      <div id="player-app-root" className="w-full h-screen h-[100dvh] bg-[#050505] text-white font-inter overflow-clip flex flex-col relative [-webkit-tap-highlight-color:transparent] scrollbar-hide">
+      <div id="player-app-root" className="w-full app-viewport-height bg-[#050505] text-white font-inter overflow-clip flex flex-col relative [-webkit-tap-highlight-color:transparent] scrollbar-hide">
       {/* Unified Global Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-[#050505] to-blue-900/20 pointer-events-none z-0"></div>
       <div className={`absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#a855f7]/15 to-transparent pointer-events-none z-0 transition-opacity duration-700 ${['album', 'downloads', 'library', 'artist'].includes(currentView) ? 'opacity-0' : 'opacity-100'}`}></div>
@@ -804,24 +804,6 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         )}
       </div>
 
-      {/* Floating Menu Toggle Button when on mobile and drawer is closed */}
-      <AnimatePresence>
-        {isCompact && !isMobile && !isSidebarOpen && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => setIsSidebarOpen(true)}
-            className="fixed top-4 left-4 z-50 w-11 h-11 flex items-center justify-center rounded-xl bg-black/50 backdrop-blur-xl border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-colors shadow-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
-            title="Mostrar menú lateral"
-            aria-label="Mostrar menú lateral"
-          >
-            <ChevronLeft className="w-5 h-5 shrink-0 rotate-180" strokeWidth={2.2} aria-hidden="true" />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
       <AnimatePresence>
         {hasEntered && onboarding && (user || previewOnboarding) && (
           <Onboarding
@@ -848,7 +830,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         {/* Sidebar: flush left and pushing content on desktop; an overlay drawer on phones and tablets */}
         <div
           className={isCompact
-            ? `fixed inset-y-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/95 backdrop-blur-xl border-white/10 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${isMobile ? `right-0 border-l shadow-[-20px_0_60px_rgba(0,0,0,0.6)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}` : `left-0 border-r shadow-[20px_0_60px_rgba(0,0,0,0.6)] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}`
+            ? `fixed inset-y-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/95 backdrop-blur-xl border-white/10 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] right-0 border-l shadow-[-20px_0_60px_rgba(0,0,0,0.6)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`
             : `h-full shrink-0 relative z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-[72px]'}`}
           aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
         >
@@ -870,7 +852,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               isShortcutsOpen={isShortcutsOpen}
               isMobile={isCompact}
               isCollapsed={!isCompact && !isSidebarOpen}
-              drawerOnRight={isMobile}
+              drawerOnRight={isCompact}
               account={account}
               onSignOut={signOutUser}
             />
@@ -894,7 +876,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               >
                 <motion.div
                   style={{ y: springMainY }}
-                  className={`min-h-full flex flex-col flex-auto shrink-0 ${(currentView === 'album' || currentView === 'artist') ? 'p-0' : isCompact && !isMobile ? 'pt-[4.25rem] pb-6' : 'pt-3 md:pt-4 pb-6 md:pb-0'}`}
+                  className={`min-h-full flex flex-col flex-auto shrink-0 ${(currentView === 'album' || currentView === 'artist') ? 'p-0' : 'pt-3 md:pt-4 pb-6 md:pb-0'}`}
                 >
                   {currentView === 'catalog' && (
                     <CatalogView
