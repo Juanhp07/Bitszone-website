@@ -624,7 +624,7 @@ useEffect(() => {
                 onClick={handleDownloadAlbum}
                 title="Descargar todas las canciones de este álbum"
                 aria-label="Descargar todas las canciones de este álbum"
-                className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 active:scale-95 border border-white/20 shadow-[0_4px_20px_rgba(168,85,247,0.35)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300 cursor-pointer"
+                className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-[#a855f7] hover:bg-[#b066f8] active:scale-95 border border-white/20 shadow-[0_4px_20px_rgba(168,85,247,0.35)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300 cursor-pointer"
               >
                 Descargar Todo
               </button>
