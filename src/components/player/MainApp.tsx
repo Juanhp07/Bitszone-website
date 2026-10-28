@@ -256,6 +256,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
+      audioRef.current.crossOrigin = 'anonymous';
     }
 
     const handleTimeUpdate = () => {
@@ -1092,6 +1093,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             audioRef.current.currentTime = p * audioRef.current.duration;
           }
         }}
+        audioElement={audioRef.current}
       />
 
       {/* Modals */}

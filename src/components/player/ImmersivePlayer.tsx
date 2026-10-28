@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
-import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical, Sparkles } from 'lucide-react';
+import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical, Sparkles, Sliders } from 'lucide-react';
 import { TrackMenu } from './TrackMenu';
 import { EqBars } from '../ui/EqBars';
 import { LiquidTabs } from '../ui/LiquidTabs';
@@ -14,6 +14,9 @@ import { useDownloads } from './DownloadsContext';
 import { motion, AnimatePresence, Reorder, useDragControls, type DragControls } from 'framer-motion';
 import { useRubberBand } from '../ui/useRubberBand';
 import { useIsMobile } from './useIsMobile';
+import { CavaVisualizer } from './CavaVisualizer';
+import { CavaSettingsModal } from './CavaSettingsModal';
+import { loadCavaSettings, saveCavaSettings, DEFAULT_CAVA_SETTINGS, type CavaSettings } from './cavaTypes';
 
 const useAverageColor = (src: string) => {
   const [color, setColor] = useState('rgba(45, 10, 70, 0.8)');
@@ -236,6 +239,7 @@ export const ImmersivePlayer = ({
   repeatMode,
   onToggleShuffle,
   onToggleRepeat,
+  audioElement,
   activeTab = "pistas",
   onTabChange
 }: {
@@ -243,6 +247,7 @@ export const ImmersivePlayer = ({
   onClose: () => void,
   track: Track | null,
   album: Album | null,
+  audioElement?: HTMLAudioElement | null,
   isPlaying: boolean,
   togglePlay: () => void,
   onPlayTrack?: (t: Track, a: Album) => void,
@@ -261,6 +266,22 @@ export const ImmersivePlayer = ({
   onTabChange?: (tab: "portada" | "letra" | "pistas" | "cola" | "inmersion") => void
 }) => {
   if (!track || !album) return null;
+
+  const [cavaSettings, setCavaSettings] = useState<CavaSettings>(loadCavaSettings);
+  const [isCavaSettingsOpen, setIsCavaSettingsOpen] = useState(false);
+
+  const handleUpdateCavaSettings = (updater: (prev: CavaSettings) => CavaSettings) => {
+    setCavaSettings((prev) => {
+      const next = updater(prev);
+      saveCavaSettings(next);
+      return next;
+    });
+  };
+
+  const handleResetCavaSettings = () => {
+    setCavaSettings(DEFAULT_CAVA_SETTINGS);
+    saveCavaSettings(DEFAULT_CAVA_SETTINGS);
+  };
 
   const [currentTab, setCurrentTab] = useState<"pistas" | "letra" | "cola" | "inmersion">(
     activeTab === "letra" ? "letra" : activeTab === "cola" ? "cola" : activeTab === "inmersion" ? "inmersion" : "pistas"
@@ -582,13 +603,29 @@ export const ImmersivePlayer = ({
           </button>
         </div>
 
-        {/* Botón Inmersión estilo circular Liquid Glass con expansión suave a texto en hover (en la parte superior derecha) */}
-        <div className="absolute top-3 md:top-8 xl:top-10 right-3 md:right-8 xl:right-10 z-50">
+        {/* Botón Inmersión y Ajustes estilo circular Liquid Glass con expansión suave a texto en hover (en la parte superior derecha) */}
+        <div className="absolute top-3 md:top-8 xl:top-10 right-3 md:right-8 xl:right-10 z-50 flex items-center gap-2.5">
+          {currentTab === 'inmersion' && (
+            <button
+              onClick={() => setIsCavaSettingsOpen(true)}
+              className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[134px] md:hover:w-[144px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur-2xl border border-white/20 hover:border-white/35 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none"
+              title="Ajustes de visualizador CAVA"
+              aria-label="Ajustes CAVA"
+            >
+              <div className="w-10 md:w-11 h-10 md:h-11 flex items-center justify-center shrink-0">
+                <Sliders className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:rotate-90 text-purple-300" strokeWidth={2.2} />
+              </div>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
+                Ajustes CAVA
+              </span>
+            </button>
+          )}
+
           <button
             onClick={() => handleTabSelect(currentTab === 'inmersion' ? 'pistas' : 'inmersion')}
             className={`group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[118px] md:hover:w-[128px] rounded-full backdrop-blur-2xl border shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none ${
               currentTab === 'inmersion'
-                ? 'bg-white/25 border-white/40 text-white shadow-[0_0_24px_rgba(168,85,247,0.35)]'
+                ? 'bg-purple-600/35 border-purple-400/80 text-white shadow-[0_0_24px_rgba(168,85,247,0.4)]'
                 : 'bg-white/10 hover:bg-white/15 active:bg-white/20 border-white/20 hover:border-white/30 text-white/90 hover:text-white'
             }`}
             title={currentTab === 'inmersion' ? "Salir de modo inmersión" : "Modo inmersión visual"}
@@ -605,7 +642,7 @@ export const ImmersivePlayer = ({
         </div>
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
-        <div className={`w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex flex-col justify-center items-center group px-6 md:px-12 md:pl-32 xl:pl-40 pt-14 pb-[44px] md:pt-20 md:pb-10 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 scale-100 duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
+        <div className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex-col justify-center items-center group px-6 md:px-12 md:pl-32 xl:pl-40 pt-14 pb-[44px] md:pt-20 md:pb-10 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'translate-y-0 scale-100 duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
            {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
            <div className="hidden md:flex absolute left-6 md:left-8 xl:left-10 top-1/2 -translate-y-1/2 z-50 w-11 md:w-12 flex-col items-center gap-2 opacity-100 transition-all duration-300">
              <button
@@ -890,7 +927,7 @@ export const ImmersivePlayer = ({
           ref={sheetRef}
           data-sheet
           style={isMobile ? { transform: sheetTransform(sheetOpen) } : undefined}
-          className={`group/list max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:h-[88dvh] max-md:rounded-t-[28px] max-md:border-t max-md:border-white/10 max-md:bg-black/45 max-md:backdrop-blur-3xl max-md:backdrop-saturate-150 max-md:shadow-[0_-20px_60px_rgba(0,0,0,0.5)] max-md:transition-transform max-md:duration-500 w-full md:w-[48%] md:h-full shrink-0 relative overflow-hidden flex flex-col md:pt-[19vh] pb-0 md:pb-[8vh] md:transition-transform md:ease-[cubic-bezier(0.32,0.72,0,1)] ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'md:translate-y-0 md:duration-700 md:delay-75' : 'md:translate-y-10 md:duration-300'}`}
+          className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} group/list max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:h-[88dvh] max-md:rounded-t-[28px] max-md:border-t max-md:border-white/10 max-md:bg-black/45 max-md:backdrop-blur-3xl max-md:backdrop-saturate-150 max-md:shadow-[0_-20px_60px_rgba(0,0,0,0.5)] max-md:transition-transform max-md:duration-500 w-full md:w-[48%] md:h-full shrink-0 relative overflow-hidden flex-col md:pt-[19vh] pb-0 md:pb-[8vh] md:transition-transform md:ease-[cubic-bezier(0.32,0.72,0,1)] ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'md:translate-y-0 md:duration-700 md:delay-75' : 'md:translate-y-10 md:duration-300'}`}
         >
            {/* Phones: grab handle — tap or drag to open/close the sheet */}
            <div
@@ -1165,74 +1202,126 @@ export const ImmersivePlayer = ({
                    </motion.div>
                  )}
 
-                 {currentTab === 'inmersion' && (
-                   <motion.div
-                     key="inmersion"
-                     variants={tabListVariants}
-                     initial="hidden"
-                     animate="visible"
-                     exit="exit"
-                     className="w-full flex flex-col items-center justify-center min-h-[50vh] md:min-h-[58vh] gap-6 px-4 text-center my-auto"
-                   >
-                     {/* Holographic Glowing Ambient Orb */}
-                     <div className="relative flex items-center justify-center">
-                       <div 
-                         className="w-48 h-48 md:w-64 md:h-64 rounded-full blur-3xl opacity-40 animate-pulse pointer-events-none absolute"
-                         style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.7) 0%, rgba(99,102,241,0.4) 50%, transparent 70%)' }}
-                       />
-                       {/* Visualizer Wave Bars */}
-                       <div className="relative z-10 flex items-end justify-center gap-1.5 h-28 md:h-36 px-6 py-4 rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                         {Array.from({ length: 24 }).map((_, i) => {
-                           const heights = [35, 55, 80, 45, 95, 65, 30, 75, 100, 85, 40, 60, 90, 70, 50, 85, 40, 65, 95, 75, 45, 60, 80, 50];
-                           const baseHeight = heights[i % heights.length];
-                           return (
-                             <motion.div
-                               key={i}
-                               className="w-1.5 md:w-2 rounded-full bg-gradient-to-t from-purple-500/80 via-fuchsia-400 to-white"
-                               animate={isPlaying ? {
-                                 height: [`${Math.max(12, baseHeight * 0.3)}%`, `${baseHeight}%`, `${Math.max(16, baseHeight * 0.5)}%`],
-                               } : {
-                                 height: '14%'
-                               }}
-                               transition={{
-                                 duration: 0.8 + (i % 5) * 0.15,
-                                 repeat: Infinity,
-                                 repeatType: "reverse",
-                                 ease: "easeInOut",
-                                 delay: (i * 0.05) % 0.4
-                               }}
-                             />
-                           );
-                         })}
-                       </div>
-                     </div>
-
-                     {/* Immersion Header and Meta Info */}
-                     <div className="flex flex-col items-center max-w-md">
-                       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-sm mb-3">
-                         <Sparkles className="w-3.5 h-3.5 text-purple-300" />
-                         <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/90">Modo Inmersión</span>
-                       </div>
-                       <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight line-clamp-1">
-                         {track.title}
-                       </h3>
-                       <p className="text-sm md:text-base text-white/60 mt-1 line-clamp-1">
-                         {track.artist || album.artist} • {album.title}
-                       </p>
-                       <div className="flex items-center gap-2 mt-3 text-xs text-white/40 font-medium">
-                         <span>Audio espacial</span>
-                         <span>•</span>
-                         <span>Lossless 24-bit</span>
-                         <span>•</span>
-                         <span>{formatTime(track.duration)}</span>
-                       </div>
-                     </div>
-                   </motion.div>
-                 )}
                </AnimatePresence>
              </motion.div>
            </div>
         </div>
+
+        {/* 3. FULL IMMERSION CAVA STAGE */}
+        {currentTab === 'inmersion' && (
+          <div className="absolute inset-0 z-40 flex flex-col justify-between overflow-hidden pt-12 md:pt-16 pb-6 px-4 md:px-8 select-none">
+            {/* Top Area: Clean Song Title, Artist and CAVA badge */}
+            <div className="flex flex-col items-center justify-center text-center mt-3 md:mt-6 z-20 max-w-4xl mx-auto pointer-events-auto">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_4px_20px_rgba(0,0,0,0.3)] mb-3 transition-colors">
+                <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-pulse" />
+                <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/90">Inmersión CAVA</span>
+              </div>
+
+              <AnimatedSongTitle
+                title={track.title}
+                trackId={track.id}
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.7)] text-center leading-[1.1] max-w-full"
+              />
+
+              <p className="text-base sm:text-lg md:text-xl text-white/75 font-semibold mt-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] flex items-center justify-center gap-2 flex-wrap">
+                <span className="text-white uppercase tracking-wide">{track.artist || album.artist}</span>
+                <span className="text-white/40">•</span>
+                <span className="text-white/80">{track.albumTitle || playback.nowPlayingOrigin?.title || album.title}</span>
+              </p>
+            </div>
+
+            {/* Center / Bottom Area: Thick CAVA Bars Visualizer filling almost entire width */}
+            <div className="w-full flex-1 flex items-end justify-center relative min-h-[220px] md:min-h-[380px] pb-3 md:pb-5">
+              <CavaVisualizer
+                audioElement={audioElement ?? null}
+                isPlaying={isPlaying}
+                settings={cavaSettings}
+                dominantColor={dominantColor}
+              />
+            </div>
+
+            {/* Bottom Floating Minimalist Player Controls */}
+            <div className="w-full max-w-2xl mx-auto z-30 pointer-events-auto px-2">
+              <div className="flex flex-col items-center gap-2.5 p-3.5 md:p-4 rounded-3xl bg-black/40 hover:bg-black/50 backdrop-blur-3xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.6)] transition-all">
+                {/* Seek Line with Time */}
+                <div className="w-full flex items-center gap-3 text-xs font-mono font-medium text-white/70">
+                  <span className="w-12 text-right">{formatTime(progress * track.duration)}</span>
+                  <div className="relative flex-1 h-5 flex items-center group/seek cursor-pointer">
+                    <WavyProgress progress={progress} isPlaying={isPlaying} />
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.001"
+                      value={progress}
+                      onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
+                      className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10 focus-visible:outline-none"
+                      title="Progreso de reproducción"
+                    />
+                  </div>
+                  <span className="w-12 text-left text-white/50">{formatTime(track.duration)}</span>
+                </div>
+
+                {/* Primary Playback Buttons */}
+                <div className="flex items-center justify-center gap-5 sm:gap-7 w-full">
+                  <button
+                    onClick={onToggleShuffle}
+                    className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${isShuffle ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}
+                    title="Aleatorio"
+                  >
+                    <Shuffle className="w-4 h-4 md:w-5 md:h-5" />
+                  </button>
+
+                  <button
+                    onClick={onPrev}
+                    className="p-2 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
+                    title="Anterior"
+                  >
+                    <SkipBack className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
+                  </button>
+
+                  <button
+                    onClick={togglePlay}
+                    className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white hover:bg-white/95 text-black flex items-center justify-center shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                    title={isPlaying ? "Pausar" : "Reproducir"}
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-5 h-5 md:w-6 md:h-6 fill-current" />
+                    ) : (
+                      <Play className="w-5 h-5 md:w-6 md:h-6 fill-current ml-0.5" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={onNext}
+                    className="p-2 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
+                    title="Siguiente"
+                  >
+                    <SkipForward className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
+                  </button>
+
+                  <button
+                    onClick={onToggleRepeat}
+                    className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${repeatMode !== 'off' ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}
+                    title="Repetir"
+                  >
+                    {repeatMode === 'one' ? <Repeat1 className="w-4 h-4 md:w-5 md:h-5" /> : <Repeat className="w-4 h-4 md:w-5 md:h-5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CAVA Settings Modal */}
+        <CavaSettingsModal
+          isOpen={isCavaSettingsOpen}
+          onClose={() => setIsCavaSettingsOpen(false)}
+          settings={cavaSettings}
+          onUpdateSettings={handleUpdateCavaSettings}
+          onReset={handleResetCavaSettings}
+        />
+
       </div>
     </>,
     document.body
