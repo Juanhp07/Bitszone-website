@@ -30,15 +30,15 @@ export interface CavaSettings {
 }
 
 export const DEFAULT_CAVA_SETTINGS: CavaSettings = {
-  barCount: 40,
+  barCount: 36,
   thickness: 'thick',
-  barGap: 6,
+  barGap: 8,
   containerWidthPercent: 96,
   colorTheme: 'dynamic',
   fillType: 'gradient',
   roundedCaps: true,
-  peakCaps: true,
-  sensitivity: 1.15,
+  peakCaps: false,
+  sensitivity: 1.0,
   gravity: 'fluid',
   glow: 'subtle',
 };

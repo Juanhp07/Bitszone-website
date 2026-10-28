@@ -1,7 +1,7 @@
 import React from 'react';
 
-// "Now playing" equalizer: bars breathe smoothly at different rhythms while playing,
-// and settle to short stubs when paused.
+// "Now playing" equalizer: bars breathe smoothly with independent rhythmic curves while playing,
+// and gracefully ease down to short stubs when paused.
 export const EqBars = ({ playing, className = '', barClassName = 'w-[3px] bg-[#e9d5ff]' }: {
   playing: boolean;
   className?: string;
@@ -11,12 +11,9 @@ export const EqBars = ({ playing, className = '', barClassName = 'w-[3px] bg-[#e
     {[0, 1, 2, 3].map((i) => (
       <span
         key={i}
-        className={`eq-bar h-full rounded-full ${barClassName}`}
+        className={`eq-bar eq-bar-${i + 1} h-full rounded-full ${barClassName}`}
         style={{
-          animationDelay: `${[-0.2, -0.65, -0.35, -0.9][i]}s`,
-          animationDuration: `${[0.9, 1.15, 0.8, 1.05][i]}s`,
-          // Paused: drop the animation so the bars ease down to short stubs
-          animationName: playing ? undefined : 'none',
+          animationPlayState: playing ? 'running' : 'paused',
           transform: playing ? undefined : 'scaleY(0.25)',
         }}
       />
