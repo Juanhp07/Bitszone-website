@@ -93,8 +93,8 @@ export const CatalogView = ({
   const renderSkeletonCards = () => (
     <div className="flex gap-6 overflow-hidden">
       {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="w-48 shrink-0 flex flex-col gap-3 animate-pulse">
-          <div className="w-48 h-48 rounded-xl bg-white/[0.04] border border-white/5 relative overflow-hidden" />
+        <div key={i} className="w-56 shrink-0 flex flex-col gap-3 animate-pulse">
+          <div className="w-56 h-56 rounded-2xl bg-white/[0.04] border border-white/5 relative overflow-hidden" />
           <div className="flex flex-col gap-2 mt-1">
             <div className="h-4 w-3/4 rounded-md bg-white/[0.06]" />
             <div className="h-3 w-1/2 rounded-md bg-white/[0.04]" />
@@ -107,11 +107,11 @@ export const CatalogView = ({
   const renderSkeletonArtists = () => (
     <div className="flex gap-6 overflow-hidden">
       {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="w-40 shrink-0 flex flex-col items-center gap-4 animate-pulse">
-          <div className="w-40 h-40 rounded-full bg-white/[0.04] border border-white/5 relative overflow-hidden" />
+        <div key={i} className="w-48 shrink-0 flex flex-col items-center gap-4 animate-pulse">
+          <div className="w-48 h-48 rounded-full bg-white/[0.04] border border-white/5 relative overflow-hidden" />
           <div className="flex flex-col items-center gap-2">
-            <div className="h-3.5 w-24 rounded-md bg-white/[0.06]" />
-            <div className="h-3 w-16 rounded-md bg-white/[0.03]" />
+            <div className="h-3.5 w-28 rounded-md bg-white/[0.06]" />
+            <div className="h-3 w-20 rounded-md bg-white/[0.03]" />
           </div>
         </div>
       ))}
@@ -134,15 +134,15 @@ export const CatalogView = ({
     return (
     <div 
       key={album.id}
-      className={`${expandedSection ? 'w-full' : 'w-[38vw] max-w-[160px] md:w-48 md:max-w-none'} shrink-0 snap-start flex flex-col gap-2 md:gap-3 group cursor-pointer`}
+      className={`${expandedSection ? 'w-full' : 'w-[44vw] max-w-[185px] sm:w-52 md:w-56 md:max-w-none'} shrink-0 snap-start flex flex-col gap-2 md:gap-3 group cursor-pointer`}
       onClick={() => onSelectAlbum(album)}
     >
-      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-48 md:h-48'} rounded-xl overflow-hidden relative shadow-lg transition-all duration-500`}>
+      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-56 md:h-56'} rounded-2xl overflow-hidden relative shadow-xl transition-all duration-500`}>
         <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         {downloadingAlbums?.includes(String(album.id)) && (
           <button 
             onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
-            className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-black/75 hover:bg-black/90 border border-emerald-500/35 hover:border-red-500/40 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 cursor-pointer"
+            className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-black/75 hover:bg-black/90 border border-emerald-500/35 hover:border-red-500/40 backdrop-blur-md flex items-center justify-center transition-all z-20 group/cancel shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 cursor-pointer"
             title={`Cancelar descarga de ${album.title}`}
             aria-label={`Cancelar descarga de ${album.title}`}
           >
@@ -152,7 +152,7 @@ export const CatalogView = ({
         )}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button 
-            className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+            className="w-14 h-14 bg-[#a855f7] hover:bg-[#b066f8] text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               if (album.tracks && album.tracks.length > 0) {
@@ -170,7 +170,7 @@ export const CatalogView = ({
             onClick={(e) => handleDownloadAlbumClick(e, album)}
             aria-label={album.tracks.every(t => isDownloaded(t.id)) ? `Álbum ${album.title} ya descargado` : `Descargar álbum ${album.title}`}
             title={album.tracks.every(t => isDownloaded(t.id)) ? "Álbum ya descargado" : `Descargar ${album.title}`}
-            className="absolute bottom-2 right-2 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 z-10 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+            className="absolute bottom-2.5 right-2.5 w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 z-10 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
             disabled={album.tracks.every(t => isDownloaded(t.id)) || downloadingAlbums?.includes(String(album.id))}
           >
             {downloadingAlbums?.includes(String(album.id)) ? (
@@ -183,12 +183,11 @@ export const CatalogView = ({
           </button>
         )}
       </div>
-      <div className="flex flex-col mt-2">
+      <div className="flex flex-col mt-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-col min-w-0">
-            <h3 className="text-white font-semibold text-sm line-clamp-1">{showTrackTitle && album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
-            <span className="text-white/50 text-xs mt-0.5 truncate">{album.artist}</span>
-            
+            <h3 className="text-white font-semibold text-sm md:text-[15px] line-clamp-1">{showTrackTitle && album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
+            <span className="text-white/50 text-xs md:text-[13px] mt-0.5 truncate">{album.artist}</span>
           </div>
           {(() => {
             const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
@@ -236,15 +235,15 @@ export const CatalogView = ({
   } : { duration: 0 };
 
   return (
-    <div className="flex flex-col gap-4 md:gap-6">
+    <div className="flex flex-col gap-10 md:gap-14 pb-12">
       {(!expandedSection || expandedSection === 'canciones') && (
       <motion.section 
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={getSectionSpring(0.08)}
-        className="px-4 md:px-8 pt-2 md:pt-3"
+        className="px-4 md:px-8"
       >
-        <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
+        <div className="flex items-center justify-between gap-3 mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
               <button 
@@ -269,7 +268,7 @@ export const CatalogView = ({
             </button>
           )}
         </div>
-        {loading ? renderSkeletonCards() : renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 96)}
+        {loading ? renderSkeletonCards() : renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 112)}
       </motion.section>
       )}
 
@@ -278,9 +277,9 @@ export const CatalogView = ({
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={getSectionSpring(0.22)}
-        className={`px-4 md:px-8 ${expandedSection ? "pt-2 md:pt-3" : "pt-0"}`}
+        className="px-4 md:px-8"
       >
-        <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
+        <div className="flex items-center justify-between gap-3 mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
               <button 
@@ -306,17 +305,17 @@ export const CatalogView = ({
           )}
         </div>
         {loading ? renderSkeletonArtists() : renderList(dynamicArtists, expandedSection === 'artistas', (artist, i) => (
-          <div key={i} className={`${expandedSection ? 'w-full' : 'w-[30vw] max-w-[130px] md:w-40 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
-            <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-40 md:h-40'} rounded-full overflow-hidden shadow-lg relative`}>
+          <div key={i} className={`${expandedSection ? 'w-full' : 'w-[36vw] max-w-[155px] sm:w-44 md:w-48 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
+            <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-48 md:h-48'} rounded-full overflow-hidden shadow-xl relative`}>
               <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
             <div className="flex flex-col items-center">
-              <h3 className="text-white font-semibold text-sm text-center line-clamp-1">{artist.name}</h3>
-              <span className="text-white/50 text-xs mt-1">{artist.type || 'Artista'}</span>
+              <h3 className="text-white font-semibold text-sm md:text-[15px] text-center line-clamp-1">{artist.name}</h3>
+              <span className="text-white/50 text-xs md:text-[13px] mt-1">{artist.type || 'Artista'}</span>
             </div>
           </div>
-        ), 80)}
+        ), 96)}
       </motion.section>
       )}
 
@@ -325,9 +324,9 @@ export const CatalogView = ({
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={getSectionSpring(0.36)}
-        className={`px-4 md:px-8 ${expandedSection ? "pt-2 md:pt-3" : "pt-0"}`}
+        className="px-4 md:px-8"
       >
-        <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
+        <div className="flex items-center justify-between gap-3 mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
               <button 
@@ -352,7 +351,7 @@ export const CatalogView = ({
             </button>
           )}
         </div>
-        {loading ? renderSkeletonCards() : renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 96)}
+        {loading ? renderSkeletonCards() : renderList([...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 112)}
       </motion.section>
       )}
       
