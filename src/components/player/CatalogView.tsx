@@ -242,7 +242,7 @@ export const CatalogView = ({
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={getSectionSpring(0.08)}
-        className="px-4 md:px-8 pt-5 md:pt-8"
+        className="px-4 md:px-8 pt-2 md:pt-3"
       >
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
@@ -278,7 +278,7 @@ export const CatalogView = ({
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={getSectionSpring(0.22)}
-        className={`px-4 md:px-8 ${expandedSection ? "pt-5 md:pt-8" : "pt-0"}`}
+        className={`px-4 md:px-8 ${expandedSection ? "pt-2 md:pt-3" : "pt-0"}`}
       >
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
@@ -325,7 +325,7 @@ export const CatalogView = ({
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={getSectionSpring(0.36)}
-        className={`px-4 md:px-8 ${expandedSection ? "pt-5 md:pt-8" : "pt-0"}`}
+        className={`px-4 md:px-8 ${expandedSection ? "pt-2 md:pt-3" : "pt-0"}`}
       >
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">

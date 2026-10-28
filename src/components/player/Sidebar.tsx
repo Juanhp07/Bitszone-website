@@ -34,7 +34,7 @@ export const Sidebar = ({
       {isMobile && (
         <div className="px-8 pb-2 text-white/40 text-[11px] font-bold uppercase tracking-[0.2em]">Menú</div>
       )}
-      <div className="flex-1 px-4 py-6 flex flex-col gap-2">
+      <div className="flex-1 px-4 py-3 flex flex-col gap-2">
         <button
           onClick={() => onViewChange("catalog")}
           className={`flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
