@@ -851,7 +851,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               >
                 <motion.div
                   style={{ y: springMainY }}
-                  className={`min-h-full flex flex-col flex-1 ${currentView === 'album' ? 'p-0' : 'pt-3 md:pt-4 pb-6 md:pb-0'}`}
+                  className={`min-h-full flex flex-col flex-1 ${(currentView === 'album' || currentView === 'artist') ? 'p-0' : 'pt-3 md:pt-4 pb-6 md:pb-0'}`}
                 >
                   {currentView === 'catalog' && (
                     <CatalogView
@@ -892,7 +892,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
               {/* Fade-out gradients applied to the scrollable area bounds */}
               {/* Bottom gradient */}
-              <div className={`absolute bottom-0 left-0 right-0 h-8 md:h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20 ${currentView === 'album' ? 'hidden' : ''}`}></div>
+              <div className={`absolute bottom-0 left-0 right-0 h-8 md:h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20 ${(currentView === 'album' || currentView === 'artist') ? 'hidden' : ''}`}></div>
               {/* Right side gradient */}
               <div className={`hidden absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20 ${currentView === 'album' ? '' : 'md:block'}`}></div>
               </div>
