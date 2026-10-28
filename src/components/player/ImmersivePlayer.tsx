@@ -603,27 +603,25 @@ export const ImmersivePlayer = ({
           </button>
         </div>
 
-        {/* Botón Inmersión y Ajustes estilo circular Liquid Glass con expansión suave a texto en hover (en la parte superior derecha) */}
-        <div className="absolute top-3 md:top-8 xl:top-10 right-3 md:right-8 xl:right-10 z-50 flex items-center gap-2.5">
+        {/* Botón Inmersión y Ajustes en la parte superior derecha */}
+        <div className="absolute top-3 md:top-8 xl:top-10 right-3 md:right-8 xl:right-10 z-50 flex items-center gap-2 md:gap-2.5">
           {currentTab === 'inmersion' && (
             <button
               onClick={() => setIsCavaSettingsOpen(true)}
-              className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[134px] md:hover:w-[144px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur-2xl border border-white/20 hover:border-white/35 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none"
-              title="Ajustes de visualizador CAVA"
-              aria-label="Ajustes CAVA"
+              className="group flex items-center h-10 md:h-11 px-3.5 md:px-4 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur-2xl border border-white/20 hover:border-white/35 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer select-none gap-2"
+              title="Ajustes de inmersión"
+              aria-label="Ajustes inmersión"
             >
-              <div className="w-10 md:w-11 h-10 md:h-11 flex items-center justify-center shrink-0">
-                <Sliders className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:rotate-90 text-purple-300" strokeWidth={2.2} />
-              </div>
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
-                Ajustes CAVA
+              <Sliders className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:rotate-90 text-purple-300 shrink-0" strokeWidth={2.2} />
+              <span className="text-xs md:text-sm font-medium tracking-wide whitespace-nowrap">
+                Ajustes inmersión
               </span>
             </button>
           )}
 
           <button
             onClick={() => handleTabSelect(currentTab === 'inmersion' ? 'pistas' : 'inmersion')}
-            className={`group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[118px] md:hover:w-[128px] rounded-full backdrop-blur-2xl border shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none ${
+            className={`group flex items-center h-10 md:h-11 px-3.5 md:px-4 rounded-full backdrop-blur-2xl border shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer select-none gap-2 ${
               currentTab === 'inmersion'
                 ? 'bg-purple-600/35 border-purple-400/80 text-white shadow-[0_0_24px_rgba(168,85,247,0.4)]'
                 : 'bg-white/10 hover:bg-white/15 active:bg-white/20 border-white/20 hover:border-white/30 text-white/90 hover:text-white'
@@ -632,10 +630,8 @@ export const ImmersivePlayer = ({
             aria-label="Modo inmersión"
             aria-pressed={currentTab === 'inmersion'}
           >
-            <div className="w-10 md:w-11 h-10 md:h-11 flex items-center justify-center shrink-0">
-              <Sparkles className={`w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-110 ${currentTab === 'inmersion' ? 'text-purple-300' : 'text-white/90'}`} strokeWidth={2.2} aria-hidden="true" />
-            </div>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
+            <Sparkles className={`w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-110 shrink-0 ${currentTab === 'inmersion' ? 'text-purple-300' : 'text-white/90'}`} strokeWidth={2.2} aria-hidden="true" />
+            <span className="text-xs md:text-sm font-medium tracking-wide whitespace-nowrap">
               Inmersión
             </span>
           </button>
@@ -1209,14 +1205,9 @@ export const ImmersivePlayer = ({
 
         {/* 3. FULL IMMERSION CAVA STAGE */}
         {currentTab === 'inmersion' && (
-          <div className="absolute inset-0 z-40 flex flex-col justify-between overflow-hidden pt-12 md:pt-16 pb-0 select-none">
-            {/* Top Area: Clean Song Title with Prev/Next buttons on Left and Right, Artist and CAVA badge */}
-            <div className="flex flex-col items-center justify-center text-center mt-2 md:mt-5 z-20 max-w-5xl mx-auto pointer-events-auto w-full px-4 md:px-8">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_4px_20px_rgba(0,0,0,0.3)] mb-3 transition-colors">
-                <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-pulse" />
-                <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/90">Inmersión CAVA</span>
-              </div>
-
+          <div className="absolute inset-0 z-40 flex flex-col justify-between overflow-hidden pt-5 md:pt-8 pb-0 select-none">
+            {/* Top Area: Clean Song Title with Prev/Next buttons on Left and Right, and Artist */}
+            <div className="flex flex-col items-center justify-center text-center mt-1 md:mt-2 z-20 max-w-5xl mx-auto pointer-events-auto w-full px-4 md:px-8">
               {/* Title row flanked by Prev and Next buttons */}
               <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-8 w-full max-w-4xl">
                 <button
@@ -1246,7 +1237,7 @@ export const ImmersivePlayer = ({
                 </button>
               </div>
 
-              <p className="text-base sm:text-lg md:text-xl text-white/75 font-semibold mt-2.5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] flex items-center justify-center gap-2 flex-wrap">
+              <p className="text-base sm:text-lg md:text-xl text-white/75 font-semibold mt-1.5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] flex items-center justify-center gap-2 flex-wrap">
                 <span className="text-white uppercase tracking-wide">{track.artist || album.artist}</span>
                 <span className="text-white/40">•</span>
                 <span className="text-white/80">{track.albumTitle || playback.nowPlayingOrigin?.title || album.title}</span>

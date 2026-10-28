@@ -49,7 +49,7 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
               </div>
               <div>
                 <h2 className="text-lg md:text-xl font-bold tracking-tight text-white">
-                  Ajustes de Inmersión CAVA
+                  Ajustes de Inmersión
                 </h2>
                 <p className="text-xs text-white/50">Personaliza la física, grosor y colores del visualizador</p>
               </div>

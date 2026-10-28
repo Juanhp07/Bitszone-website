@@ -158,7 +158,7 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
         : 1.0;
 
       // 3. Fluid Harmonic Wave Physics & Equalizer Distribution
-      const maxBarHeight = height * 0.72; // leaves top clear for title & artist
+      const maxBarHeight = height * 0.84; // gives bars rich height reaching towards the top
       const baselineY = height - 12;
 
       for (let i = 0; i < barCount; i++) {
