@@ -233,21 +233,22 @@ export const ArtistView = ({
       
       {/* Download Confirmation Modal */}
       {showDownloadConfirm && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setShowDownloadConfirm(null)}>
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-[#a855f7]/20 flex items-center justify-center shrink-0">
-                <Download className="w-6 h-6 text-[#a855f7]" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md px-4" onClick={() => setShowDownloadConfirm(null)}>
+          <div className="relative bg-[#121214]/85 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 max-w-sm w-full shadow-[0_24px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] animate-in fade-in zoom-in-95 duration-200 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute -top-12 -left-12 w-28 h-28 bg-[#a855f7]/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex items-center gap-3.5 mb-3 relative z-10">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#a855f7]/25 to-indigo-500/10 border border-[#a855f7]/30 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(168,85,247,0.25)]">
+                <Download className="w-5 h-5 text-purple-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" />
               </div>
-              <h3 className="text-xl font-bold text-white">¿Descargar Álbum?</h3>
+              <h3 className="text-lg font-bold text-white tracking-tight">¿Descargar Álbum?</h3>
             </div>
-            <p className="text-white/70 mb-6 leading-relaxed">
-              ¿Estás seguro que deseas descargar todas las canciones de <strong>{showDownloadConfirm.title}</strong>?
+            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+              ¿Descargar todas las canciones de <span className="text-white font-medium">{showDownloadConfirm.title}</span>?
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-2.5 justify-end relative z-10">
               <button 
                 onClick={() => setShowDownloadConfirm(null)} 
-                className="px-4 py-2 rounded-lg font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-white/70 hover:text-white bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-white/20 backdrop-blur-lg transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
                 title="Cancelar y cerrar diálogo"
                 aria-label="Cancelar descarga"
               >
@@ -255,7 +256,7 @@ export const ArtistView = ({
               </button>
               <button 
                 onClick={executeDownloadAlbum} 
-                className="px-4 py-2 rounded-lg font-medium bg-[#a855f7] hover:bg-[#b066f8] text-white transition-colors shadow-lg shadow-[#a855f7]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+                className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 active:scale-95 border border-white/20 shadow-[0_4px_20px_rgba(168,85,247,0.35)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-300 cursor-pointer"
                 title="Confirmar descarga del álbum"
                 aria-label="Confirmar descarga del álbum"
               >
@@ -267,34 +268,34 @@ export const ArtistView = ({
         document.body
       )}
 
-    
       {showCancelConfirm && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(null); }}>
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                <AlertCircle className="w-6 h-6 text-red-500" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md px-4" onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(null); }}>
+          <div className="relative bg-[#121214]/85 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 max-w-sm w-full shadow-[0_24px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] animate-in fade-in zoom-in-95 duration-200 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute -top-12 -left-12 w-28 h-28 bg-red-500/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex items-center gap-3.5 mb-3 relative z-10">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-500/25 to-rose-500/10 border border-red-400/30 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(239,68,68,0.25)]">
+                <AlertCircle className="w-5 h-5 text-red-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" />
               </div>
-              <h3 className="text-xl font-bold text-white">¿Cancelar descarga?</h3>
+              <h3 className="text-lg font-bold text-white tracking-tight">¿Cancelar descarga?</h3>
             </div>
-            <p className="text-white/70 mb-6 leading-relaxed text-sm">
-              ¿Estás seguro que deseas cancelar la descarga de <strong>{showCancelConfirm.title}</strong>? Las canciones que ya se han descargado se mantendrán.
+            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+              Se detendrá la descarga de <span className="text-white font-medium">{showCancelConfirm.title}</span>. Se mantendrán las canciones ya descargadas.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2.5 relative z-10">
               <button 
                 onClick={() => setShowCancelConfirm(null)} 
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-white/70 hover:text-white bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-white/20 backdrop-blur-lg transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
                 title="Continuar con la descarga en curso"
                 aria-label="Continuar descarga"
               >
-                Continuar descarga
+                Continuar
               </button>
               <button 
                 onClick={() => {
                   cancelAlbumDownload(String(showCancelConfirm.id));
                   setShowCancelConfirm(null);
                 }} 
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition-colors shadow-lg shadow-red-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 cursor-pointer"
+                className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500 active:scale-95 border border-white/20 shadow-[0_4px_20px_rgba(239,68,68,0.35)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 cursor-pointer"
                 title="Confirmar cancelación de descarga"
                 aria-label="Confirmar cancelación de descarga"
               >
