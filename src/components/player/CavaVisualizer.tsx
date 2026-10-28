@@ -161,42 +161,118 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
       const maxBarHeight = height * 0.84; // gives bars rich height reaching towards the top
       const baselineY = height - 12;
 
-      for (let i = 0; i < barCount; i++) {
-        const x = i / (barCount - 1); // 0 (bass/left) to 1 (highs/right)
+      const distribution = settings.distribution || 'distributed';
 
-        // Musical wave harmonics across the bars
-        const arch = Math.sin(x * Math.PI) * 0.28 + 0.16;
-        const wave1 = Math.sin(t * 1.8 + x * Math.PI * 2.2) * 0.18;
-        const wave2 = Math.cos(t * 2.6 - x * Math.PI * 3.4) * 0.12;
-        const wave3 = Math.sin(t * (2.1 + (i % 4) * 0.4) + (i * 0.55)) * 0.09;
+      for (let i = 0; i < barCount; i++) {
+        const x = i / Math.max(1, barCount - 1); // 0 (left) to 1 (right)
+
+        // Calculate assigned frequency bin, band tilt, and bass designation based on distribution mode
+        let targetBin = 0;
+        let bandTilt = 1.0;
+        let isBass = false;
+
+        if (distribution === 'center') {
+          // Symmetrical: Sub-bass in center, expanding outward to treble at edges
+          const distFromCenter = Math.abs(x - 0.5) * 2;
+          targetBin = Math.floor(Math.pow(distFromCenter, 1.8) * 140);
+          bandTilt = 1.0 + Math.pow(distFromCenter, 0.7) * 1.65;
+          isBass = distFromCenter < 0.22;
+        } else if (distribution === 'interleaved') {
+          // Alternating: Even = Lows/Mids, Odd = High-Mids/Treble
+          const isEven = i % 2 === 0;
+          if (isEven) {
+            targetBin = Math.floor(Math.pow(x, 1.5) * 38);
+            bandTilt = 1.0 + Math.pow(x, 0.6) * 0.45;
+            isBass = targetBin < 8;
+          } else {
+            targetBin = Math.floor(18 + Math.pow(x, 1.3) * 120);
+            bandTilt = 1.35 + Math.pow(x, 0.7) * 0.95;
+            isBass = false;
+          }
+        } else if (distribution === 'linear') {
+          // Classic Left-to-Right: with Pink Noise tilt compensation
+          targetBin = Math.floor(Math.pow(x, 1.8) * 140);
+          bandTilt = 1.0 + Math.pow(x, 0.72) * 1.75;
+          isBass = x < 0.18;
+        } else {
+          // 'distributed' (Default: Repartido Armónico 5-bandas)
+          // Distributes sub-bass, punch bass, low-mids, vocals, and treble across the entire screen
+          const band = i % 5;
+          const col = Math.floor(i / 5);
+          const totalCols = Math.max(1, Math.ceil(barCount / 5));
+          const colProg = totalCols > 1 ? col / (totalCols - 1) : 0;
+
+          if (band === 0) {
+            // Sub-bass fundamental kick (~30-75Hz)
+            targetBin = Math.floor(colProg * 4);
+            bandTilt = 0.95;
+            isBass = true;
+          } else if (band === 1) {
+            // Punch-bass & 808 harmonics (~80-160Hz)
+            targetBin = Math.floor(3 + colProg * 7);
+            bandTilt = 1.08;
+            isBass = true;
+          } else if (band === 2) {
+            // Low-mids (~200-500Hz)
+            targetBin = Math.floor(8 + colProg * 14);
+            bandTilt = 1.28;
+            isBass = false;
+          } else if (band === 3) {
+            // Vocals & leads (~600-2500Hz)
+            targetBin = Math.floor(18 + Math.pow(colProg, 1.2) * 40);
+            bandTilt = 1.62;
+            isBass = false;
+          } else {
+            // Treble & shimmer (~3000-12000Hz)
+            targetBin = Math.floor(55 + Math.pow(colProg, 1.2) * 83);
+            bandTilt = 2.05;
+            isBass = false;
+          }
+        }
+
+        // Ambient fluid wave harmonics (liquid breathing motion)
+        const arch = Math.sin(x * Math.PI) * 0.14 + 0.08;
+        const wave1 = Math.sin(t * 1.8 + x * Math.PI * 2.2) * 0.08;
+        const wave2 = Math.cos(t * 2.6 - x * Math.PI * 3.4) * 0.06;
+        const wave3 = Math.sin(t * (2.1 + (i % 4) * 0.4) + (i * 0.55)) * 0.04;
         let waveProfile = arch + wave1 + wave2 + wave3;
 
         if (freqData && freqData.length > 0) {
-          // Logarithmic frequency distribution: allocates rich coverage to bass & low-mids
-          const logBinIdx = Math.min(freqData.length - 1, Math.floor(Math.pow(x, 2.0) * 140));
-          const rawFreqVal = freqData[logBinIdx] / 255;
+          const safeBin = Math.min(freqData.length - 1, targetBin);
+          let rawFreqVal = freqData[safeBin] / 255;
 
-          const barAttack = rawFreqVal > smoothedFreq[i] ? 0.045 : 0.01;
-          smoothedFreq[i] += (rawFreqVal - smoothedFreq[i]) * Math.min(1, dt * barAttack);
+          // Bass dynamic kick velocity multiplier (bounces on kicks without flat saturating)
+          if (isBass) {
+            rawFreqVal = rawFreqVal * (0.85 + smoothedBass * 0.45);
+          }
 
-          // Bass punch multiplier on lower and mid-bass bars
-          const isBassZone = Math.max(0, 1 - x * 2.2);
-          const bassThump = isBassZone * smoothedBass * 1.35;
+          // Equal Loudness / Pink Noise tilt compensation
+          const compensatedFreq = rawFreqVal * bandTilt;
 
-          waveProfile = waveProfile * 0.35 + smoothedFreq[i] * 0.85 + bassThump;
+          const attackRate = compensatedFreq > smoothedFreq[i]
+            ? 0.055
+            : (settings.gravity === 'fast' ? 0.018 : settings.gravity === 'slow' ? 0.008 : 0.012);
+          smoothedFreq[i] += (compensatedFreq - smoothedFreq[i]) * Math.min(1, dt * attackRate);
+
+          waveProfile = waveProfile * 0.22 + smoothedFreq[i] * 0.82;
         }
 
         // Active target modulated by music presence (collapses down during silence!)
-        const activeTarget = waveProfile * (0.35 + smoothedEnergy * 0.8) * musicPresence * settings.sensitivity;
+        const activeTarget = waveProfile * (0.38 + smoothedEnergy * 0.78) * musicPresence * settings.sensitivity;
 
         // Resting stubs (when paused or silent)
         const restTarget = 0.025 + Math.sin(x * Math.PI) * 0.015;
 
+        // Soft-knee dynamic compression: allows energetic bars to punch up dynamically (~0.88-0.91),
+        // but smoothly saturates so NO bars ever form a flat ceiling against the top!
+        const compressedTarget = 0.90 * Math.tanh(activeTarget / 0.82);
+
         // Blend with smooth play/pause state
-        const target = restTarget + (Math.min(0.96, Math.max(restTarget, activeTarget)) - restTarget) * playStateBlend;
+        const target = restTarget + (Math.max(restTarget, compressedTarget) - restTarget) * playStateBlend;
 
         // Damped fluid interpolation: silky smooth 60-144fps movement
-        heights[i] += (target - heights[i]) * Math.min(1, dt * 0.014);
+        const interpRate = settings.gravity === 'fast' ? 0.019 : settings.gravity === 'slow' ? 0.010 : 0.014;
+        heights[i] += (target - heights[i]) * Math.min(1, dt * interpRate);
       }
 
       // 4. Layout & Sizing

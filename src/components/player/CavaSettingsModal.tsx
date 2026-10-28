@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sliders, Palette, Activity, RotateCcw, Sparkles, Check } from 'lucide-react';
-import type { CavaSettings, CavaBarThickness, CavaColorTheme, CavaFillType, CavaGravity, CavaGlow } from './cavaTypes';
+import { X, Sliders, Palette, Activity, RotateCcw, Sparkles, Check, Layers } from 'lucide-react';
+import type { CavaSettings, CavaBarThickness, CavaColorTheme, CavaFillType, CavaGravity, CavaGlow, CavaDistribution } from './cavaTypes';
 import { DEFAULT_CAVA_SETTINGS } from './cavaTypes';
 
 interface CavaSettingsModalProps {
@@ -246,7 +246,70 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
               </div>
             </section>
 
-            {/* 3. SECCIÓN: DINÁMICA Y FÍSICA CAVA */}
+            {/* 3. SECCIÓN: DISTRIBUCIÓN Y MEZCLA DE FRECUENCIAS */}
+            <section className="space-y-3.5 pt-4 border-t border-white/10">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-300">
+                <Layers className="w-4 h-4" />
+                <span>Distribución y Mezcla de Barras</span>
+              </div>
+              <p className="text-[11px] text-white/50 -mt-1 leading-normal">
+                Distribuye los bajos y la energía musical a lo largo de las barras para evitar acumulaciones o saturación en un solo lado.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {[
+                  {
+                    id: 'distributed' as CavaDistribution,
+                    label: 'Repartido Armónico',
+                    badge: 'Recomendado',
+                    desc: 'Bajos, medios y agudos distribuidos en todo el ancho con rebote equilibrado',
+                  },
+                  {
+                    id: 'center' as CavaDistribution,
+                    label: 'Espejo Centrado',
+                    desc: 'Graves potentes en el centro expandiéndose armónicamente a los laterales',
+                  },
+                  {
+                    id: 'interleaved' as CavaDistribution,
+                    label: 'Alternado Dinámico',
+                    desc: 'Barras de graves y agudos intercaladas rítmicamente con alto contraste',
+                  },
+                  {
+                    id: 'linear' as CavaDistribution,
+                    label: 'Clásico (Izq a Der)',
+                    desc: 'De graves a agudos lineal con compresión suave anti-saturación',
+                  },
+                ].map((dist) => {
+                  const active = (settings.distribution || 'distributed') === dist.id;
+                  return (
+                    <button
+                      key={dist.id}
+                      onClick={() => onUpdateSettings(prev => ({ ...prev, distribution: dist.id }))}
+                      className={`relative flex flex-col items-start p-3.5 rounded-2xl border text-left transition-all duration-200 cursor-pointer ${
+                        active
+                          ? 'bg-purple-600/20 border-purple-400/80 shadow-[0_0_20px_rgba(168,85,247,0.25)]'
+                          : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-white tracking-tight">{dist.label}</span>
+                          {dist.badge && (
+                            <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-purple-500/30 text-purple-200 border border-purple-500/40">
+                              {dist.badge}
+                            </span>
+                          )}
+                        </div>
+                        {active && <Check className="w-4 h-4 text-purple-300 shrink-0" />}
+                      </div>
+                      <span className="text-[11px] text-white/50 leading-relaxed mt-1">{dist.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* 4. SECCIÓN: DINÁMICA Y FÍSICA CAVA */}
             <section className="space-y-3.5 pt-4 border-t border-white/10">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-300">
                 <Activity className="w-4 h-4" />

@@ -3,6 +3,7 @@ export type CavaColorTheme = 'dynamic' | 'bitszone' | 'cyan' | 'fire' | 'emerald
 export type CavaFillType = 'gradient' | 'solid';
 export type CavaGravity = 'fluid' | 'fast' | 'slow';
 export type CavaGlow = 'none' | 'subtle' | 'intense';
+export type CavaDistribution = 'distributed' | 'center' | 'interleaved' | 'linear';
 
 export interface CavaSettings {
   /** Number of frequency bars across the screen */
@@ -27,6 +28,8 @@ export interface CavaSettings {
   gravity: CavaGravity;
   /** Ambient neon glow behind/around the bars */
   glow: CavaGlow;
+  /** Frequency layout distribution across bars */
+  distribution: CavaDistribution;
 }
 
 export const DEFAULT_CAVA_SETTINGS: CavaSettings = {
@@ -41,6 +44,7 @@ export const DEFAULT_CAVA_SETTINGS: CavaSettings = {
   sensitivity: 1.15,
   gravity: 'fluid',
   glow: 'subtle',
+  distribution: 'distributed',
 };
 
 export const CAVA_SETTINGS_STORAGE_KEY = 'bz_cava_visualizer_settings_v1';
@@ -51,7 +55,13 @@ export const loadCavaSettings = (): CavaSettings => {
     const raw = localStorage.getItem(CAVA_SETTINGS_STORAGE_KEY);
     if (!raw) return DEFAULT_CAVA_SETTINGS;
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_CAVA_SETTINGS, ...parsed, peakCaps: false, colorTheme: parsed.colorTheme === 'dynamic' ? 'monochrome' : (parsed.colorTheme || 'monochrome') };
+    return {
+      ...DEFAULT_CAVA_SETTINGS,
+      ...parsed,
+      peakCaps: false,
+      colorTheme: parsed.colorTheme === 'dynamic' ? 'monochrome' : (parsed.colorTheme || 'monochrome'),
+      distribution: parsed.distribution || 'distributed',
+    };
   } catch (_) {
     return DEFAULT_CAVA_SETTINGS;
   }
