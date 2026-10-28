@@ -60,10 +60,8 @@ export const CatalogView = ({
     'Phil Collins': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Phil_Collins%2C_2025_for_%22Eras%22_%28cropped%29.jpg/500px-Phil_Collins%2C_2025_for_%22Eras%22_%28cropped%29.jpg',
     'Incubus': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Incubus.jpg/500px-Incubus.jpg',
     'Radiohead': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a1/RadioheadO2211125_composite.jpg/500px-RadioheadO2211125_composite.jpg',
-    'Avicii': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/83/Avicii_2014_003cr.jpg/500px-Avicii_2014_003cr.jpg',
     'Travis Scott': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/1/14/Travis_Scott_-_Openair_Frauenfeld_2019_08.jpg/500px-Travis_Scott_-_Openair_Frauenfeld_2019_08.jpg',
     'Whitesnake': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ec/Whitesnake_1984_Promo_2.jpg/500px-Whitesnake_1984_Promo_2.jpg',
-    'Kanye West': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Kanye_West_at_the_2009_Tribeca_Film_Festival-2_%28cropped%29.jpg/500px-Kanye_West_at_the_2009_Tribeca_Film_Festival-2_%28cropped%29.jpg',
     'Bruno Mars': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/BrunoMars24KMagicWorldTourLive_%28cropped%29.jpg/500px-BrunoMars24KMagicWorldTourLive_%28cropped%29.jpg',
     'Justin Bieber': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Justin_Bieber_20161111_009-2_%28cropped%29.jpg/500px-Justin_Bieber_20161111_009-2_%28cropped%29.jpg'
   };
@@ -247,7 +245,7 @@ export const CatalogView = ({
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={getSectionSpring(0.08)}
-        className="px-4 md:px-8 pt-5 md:pt-8"
+        className="px-4 md:px-8 pt-2 md:pt-3"
       >
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
@@ -283,7 +281,7 @@ export const CatalogView = ({
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={getSectionSpring(0.22)}
-        className={`px-4 md:px-8 ${expandedSection ? "pt-5 md:pt-8" : "pt-0"}`}
+        className={`px-4 md:px-8 ${expandedSection ? "pt-2 md:pt-3" : "pt-0"}`}
       >
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
@@ -330,7 +328,7 @@ export const CatalogView = ({
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={getSectionSpring(0.36)}
-        className={`px-4 md:px-8 ${expandedSection ? "pt-5 md:pt-8" : "pt-0"}`}
+        className={`px-4 md:px-8 ${expandedSection ? "pt-2 md:pt-3" : "pt-0"}`}
       >
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">

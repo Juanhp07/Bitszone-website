@@ -1,7 +1,6 @@
 import { ArtistView } from "./ArtistView";
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { TopNav } from './TopNav';
 import { Sidebar } from './Sidebar';
 import { MiniPlayer } from './MiniPlayer';
 import { CatalogView } from './CatalogView';
@@ -721,12 +720,12 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     }
   };
 
-  // On phones the sidebar is an overlay drawer, so the glass frame never reserves room for it,
-  // and the top bar is shorter (64px instead of 80px).
-  const sidebarInFlow = isSidebarOpen && !isCompact;
-  const sidebarW = sidebarInFlow ? 256 : 0;
+  // On phones the sidebar is an overlay drawer, so the glass frame never reserves room for it.
+  // On desktop, the sidebar is either expanded (256px) or compact (72px).
+  const sidebarInFlow = !isCompact;
+  const sidebarW = isCompact ? 0 : (isSidebarOpen ? 256 : 72);
   const cornerR = sidebarInFlow ? 24 : 0.01;
-  const headerH = isMobile ? 64 : 80;
+  const headerH = 56;
 
   const navigate = (view: string) => {
     setCurrentView(view);
@@ -792,70 +791,40 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
       <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none z-0"></div>
 
-      {/* SEAMLESS GLOBAL GLASS LAYER using a single blurred pane and a vector clip-path */}
+      {/* SEAMLESS GLASS LAYER for Sidebar */}
       <div
         className="absolute inset-0 pointer-events-none z-20 overflow-hidden transition-opacity duration-700"
         style={{ opacity: loading ? 0 : 1 }}
       >
-        {/* The single glass pane with a vector clip-path to perfectly cut out the L-shape and rounded corner without ANY masking artifacts */}
-        {sidebarInFlow ? (
+        {!isCompact && (
           <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-xl transition-all duration-300"
-            style={{
-              clipPath: `path('M 0 0 L 4000 0 L 4000 ${headerH} L ${sidebarW + cornerR} ${headerH} A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${headerH + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`,
-              WebkitClipPath: `path('M 0 0 L 4000 0 L 4000 ${headerH} L ${sidebarW + cornerR} ${headerH} A ${cornerR} ${cornerR} 0 0 0 ${sidebarW} ${headerH + cornerR} L ${sidebarW} 4000 L 0 4000 Z')`
-            }}
-          ></div>
-        ) : (
-          // Without the sidebar the glass is just the header strip. Mobile Chrome ignores clip-path on
-          // backdrop-filter layers and would blur the whole page, so no clip-path here.
-          <div className="absolute inset-x-0 top-0 bg-black/30 backdrop-blur-xl" style={{ height: headerH }}></div>
+            className="absolute top-0 bottom-0 left-0 bg-black/30 backdrop-blur-xl border-r border-white/10 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            style={{ width: `${sidebarW}px` }}
+          />
         )}
-
-        {/* The precise borders (drawn completely separate from the glass to guarantee sub-pixel alignment) */}
-
-        {/* Vertical Line */}
-        <div
-          className="absolute bottom-0 w-[1px] bg-white/10 transition-all duration-300"
-          style={{ left: `${sidebarW}px`, top: `${headerH + cornerR}px`, opacity: sidebarInFlow ? 1 : 0 }}
-        ></div>
-
-        {/* Horizontal Line */}
-        <div
-          className="absolute right-0 h-[1px] bg-white/10 transition-all duration-300"
-          style={{ top: `${headerH}px`, left: `${sidebarW + cornerR}px` }}
-        ></div>
-
-        {/* Curved Corner SVG */}
-        <div
-          className="absolute transition-all duration-300"
-          style={{ top: `${headerH}px`, left: `${sidebarW}px`, width: `${cornerR}px`, height: `${cornerR}px`, opacity: sidebarInFlow ? 1 : 0 }}
-        >
-          <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" preserveAspectRatio="none">
-             {/* Use sweep-flag 1 (clockwise) to curve INWARD (concave glass) so it perfectly hugs the Main Content */}
-             <path d="M 0.5 24 A 23.5 23.5 0 0 1 24 0.5" stroke="rgba(255,255,255,0.1)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-          </svg>
-        </div>
       </div>
-      <motion.div
-        initial={false}
-        animate={{
-          y: (!hasEntered && loading) || isPlayerExpanded ? -90 : 0,
-          opacity: !hasEntered && loading ? 0 : 1
-        }}
-        transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute top-0 left-0 right-0 z-50 pointer-events-auto"
-      >
-        <TopNav
-          currentView={currentView}
-          onViewChange={navigate}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-          isSidebarOpen={isSidebarOpen}
-          loading={loading}
-          account={account}
-          onSignOut={() => supabase.auth.signOut()}
-        />
-      </motion.div>
+
+      {/* Floating Menu Toggle Button when on mobile and drawer is closed */}
+      <AnimatePresence>
+        {isCompact && !isSidebarOpen && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setIsSidebarOpen(true)}
+            className="fixed top-4 left-4 z-50 w-11 h-11 flex items-center justify-center rounded-xl bg-black/50 backdrop-blur-xl border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-colors shadow-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+            title="Mostrar menú lateral"
+            aria-label="Mostrar menú lateral"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="18" x2="20" y2="18" />
+            </svg>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {hasEntered && onboarding && (user || previewOnboarding) && (
@@ -884,7 +853,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         <div
           className={isCompact
             ? `fixed inset-y-0 left-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/95 backdrop-blur-xl border-r border-white/10 shadow-[20px_0_60px_rgba(0,0,0,0.6)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
-            : `h-full shrink-0 relative z-30 transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-0 lg:w-64' : 'w-0'}`}
+            : `h-full shrink-0 relative z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-[72px]'}`}
           aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
         >
           <motion.div
@@ -894,9 +863,20 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               opacity: !hasEntered && loading ? 0 : 1
             }}
             transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-            className={isCompact ? 'w-full h-full overflow-y-auto overscroll-contain' : 'w-64 h-full'}
+            className="w-full h-full overflow-hidden"
           >
-            <Sidebar currentView={navSection} onViewChange={navigate} isShortcutsOpen={isShortcutsOpen} onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)} onToggleConfig={() => { setIsConfigOpen(!isConfigOpen); if (isCompact) setIsSidebarOpen(false); }} isMobile={isCompact} />
+            <Sidebar
+              currentView={navSection}
+              onViewChange={navigate}
+              onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)}
+              onToggleConfig={() => { setIsConfigOpen(!isConfigOpen); if (isCompact) setIsSidebarOpen(false); }}
+              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+              isShortcutsOpen={isShortcutsOpen}
+              isMobile={isCompact}
+              isCollapsed={!isCompact && !isSidebarOpen}
+              account={account}
+              onSignOut={() => supabase.auth.signOut()}
+            />
           </motion.div>
         </div>
 
@@ -917,7 +897,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               >
                 <motion.div
                   style={{ y: springMainY }}
-                  className="pt-16 md:pt-20 pb-6 md:pb-0 min-h-full flex flex-col"
+                  className="pt-3 md:pt-4 pb-6 md:pb-0 min-h-full flex flex-col"
                 >
                   {currentView === 'catalog' && (
                     <CatalogView
@@ -965,7 +945,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               </div>
 
               {/* Right Lyrics Sidebar */}
-              <div className={`hidden md:block h-full pt-20 shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
+              <div className={`hidden md:block h-full pt-3 md:pt-4 shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
                 <div className="w-80 h-full">
                   <LyricsSidebar track={nowPlayingTrack} album={nowPlayingAlbum} progress={progress} />
                 </div>
