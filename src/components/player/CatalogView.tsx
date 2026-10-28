@@ -235,7 +235,7 @@ export const CatalogView = ({
   } : { duration: 0 };
 
   return (
-    <div className="flex flex-col gap-10 md:gap-14 pb-12">
+    <div className="flex flex-col gap-6 md:gap-8 pt-5 md:pt-7 pb-12">
       {(!expandedSection || expandedSection === 'canciones') && (
       <motion.section 
         initial={isInitialEntrance ? { y: 100, opacity: 0, scale: 0.92 } : false}
