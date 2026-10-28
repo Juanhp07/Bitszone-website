@@ -38,10 +38,8 @@ export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
           'Face Value': '1981',
           'Make Yourself': '1999',
           'Pablo Honey': '1993',
-          'True': '2013',
           'UTOPIA': '2023',
           'Whitesnake': '1987',
-          'Yeezus': '2013',
           'Unorthodox Jukebox': '2012',
           'Purpose': '2015'
         };
@@ -49,8 +47,8 @@ export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
         tracks.forEach(t => {
           const albumKey = t.album;
           
-          // Filtrar álbumes o carpetas que comiencen con "_"
-          if (albumKey && albumKey.startsWith('_')) {
+          // Filtrar álbumes eliminados o carpetas que comiencen con "_"
+          if (!albumKey || albumKey === 'Yeezus' || albumKey === 'True' || albumKey.startsWith('_')) {
             return;
           }
           if (t.audio_url && t.audio_url.includes('/_')) {

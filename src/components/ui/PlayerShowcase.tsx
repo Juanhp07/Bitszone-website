@@ -20,7 +20,7 @@ const CARD = 150;
 
 const WIKI = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/';
 const ARTISTS = [
-  { name: 'Kanye West', img: WIKI + '0/0f/Kanye_West_at_the_2009_Tribeca_Film_Festival-2_%28cropped%29.jpg/500px-Kanye_West_at_the_2009_Tribeca_Film_Festival-2_%28cropped%29.jpg' },
+  { name: 'Travis Scott', img: WIKI + '1/14/Travis_Scott_-_Openair_Frauenfeld_2019_08.jpg/500px-Travis_Scott_-_Openair_Frauenfeld_2019_08.jpg' },
   { name: 'Incubus', img: WIKI + '7/7e/Incubus.jpg/500px-Incubus.jpg' },
   { name: 'LINKIN PARK', img: WIKI + 'd/d8/Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg/500px-Linkin_Park_-_From_Zero_Lead_Press_Photo_-_James_Minchin_III.jpg' },
   { name: 'Radiohead', img: WIKI + 'a/a1/RadioheadO2211125_composite.jpg/500px-RadioheadO2211125_composite.jpg' },
