@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PopoverMenu } from "../ui/PopoverMenu";
 import { useDownloads } from "./DownloadsContext";
 
 export const Sidebar = ({
@@ -11,7 +12,9 @@ export const Sidebar = ({
   onToggleSidebar,
   isShortcutsOpen,
   isMobile = false,
-  isCollapsed = false
+  isCollapsed = false,
+  account = null,
+  onSignOut
 }: {
   currentView: string;
   onViewChange: (view: any) => void;
@@ -21,8 +24,11 @@ export const Sidebar = ({
   isShortcutsOpen: boolean;
   isMobile?: boolean;
   isCollapsed?: boolean;
+  account?: { name: string; avatarUrl?: string | null } | null;
+  onSignOut?: () => void;
 }) => {
   const { totalBytes, newDownloadsCount } = useDownloads();
+  const [accountMenu, setAccountMenu] = useState<{ x: number; y: number } | null>(null);
 
   // Start precisely at 5.00 GB available
   const baseAvailableGB = 5.0;
@@ -173,6 +179,40 @@ export const Sidebar = ({
       <div className="mt-auto flex flex-col pb-4" style={isMobile ? { paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' } : undefined}>
         {/* Buttons (Acceder / Atajos / Configuración) */}
         <div className="pb-3 flex flex-col gap-1 overflow-hidden">
+          {account ? (
+            <>
+              <button
+                onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setAccountMenu({ x: r.left, y: r.top - 8 }); }}
+                aria-haspopup="menu"
+                aria-label={`Cuenta de ${account.name}`}
+                title={account.name}
+                className="flex items-center w-full h-11 rounded-xl font-medium transition-colors text-white/60 hover:text-white hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden"
+              >
+                <div className="w-11 h-11 flex items-center justify-center shrink-0">
+                  <span className="w-6 h-6 rounded-full bg-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                    {account.avatarUrl ? <img src={account.avatarUrl} alt="" className="w-full h-full object-cover" /> : <User className="w-4 h-4" aria-hidden="true" />}
+                  </span>
+                </div>
+                <div
+                  className="flex-1 min-w-0 pr-3 flex items-center overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                  style={{
+                    opacity: isCollapsed ? 0 : 1,
+                    transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)',
+                    maxWidth: isCollapsed ? '0px' : '180px'
+                  }}
+                >
+                  <span className="truncate">{account.name}</span>
+                </div>
+              </button>
+              <PopoverMenu
+                open={!!accountMenu}
+                anchor={accountMenu}
+                width={200}
+                onClose={() => setAccountMenu(null)}
+                items={[{ label: 'Cerrar sesión', icon: <LogOut className="w-4 h-4" />, danger: true, onSelect: () => onSignOut?.() }]}
+              />
+            </>
+          ) : (
            <a 
              href="/login"
              className="flex items-center w-full h-11 rounded-xl font-medium transition-colors text-white/60 hover:text-white hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden"
@@ -193,6 +233,7 @@ export const Sidebar = ({
                <span className="truncate">Acceder</span>
              </div>
            </a>
+          )}
 
            {!isMobile && (
              <button 
