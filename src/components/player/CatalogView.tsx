@@ -28,34 +28,28 @@ export const CatalogView = ({
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState<Album | null>(null);
-  const prevDownloadingRef = useRef<string[]>([]);
-  const [completedFlashIds, setCompletedFlashIds] = useState<string[]>([]);
+  const [completedFlashIds, setCompletedFlashIds] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const handleCompleted = (e: any) => {
       const id = String(e.detail?.albumId);
       if (!id) return;
-      setCompletedFlashIds(curr => [...new Set([...curr, id])]);
+      const flashTimestamp = Date.now();
+      setCompletedFlashIds(curr => ({ ...curr, [id]: flashTimestamp }));
       setTimeout(() => {
-        setCompletedFlashIds(curr => curr.filter(item => item !== id));
-      }, 2200);
+        setCompletedFlashIds(curr => {
+          if (curr[id] === flashTimestamp) {
+            const next = { ...curr };
+            delete next[id];
+            return next;
+          }
+          return curr;
+        });
+      }, 2000);
     };
     window.addEventListener('bz-album-download-completed', handleCompleted);
     return () => window.removeEventListener('bz-album-download-completed', handleCompleted);
   }, []);
-
-  useEffect(() => {
-    const prev = prevDownloadingRef.current;
-    const finished = prev.filter(id => !downloadingAlbums.includes(id));
-    if (finished.length > 0) {
-      setCompletedFlashIds(curr => [...new Set([...curr, ...finished])]);
-      const timer = setTimeout(() => {
-        setCompletedFlashIds(curr => curr.filter(id => !finished.includes(id)));
-      }, 2200);
-      return () => clearTimeout(timer);
-    }
-    prevDownloadingRef.current = downloadingAlbums;
-  }, [downloadingAlbums]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -157,7 +151,7 @@ export const CatalogView = ({
     const isComplete = totalCount > 0 && downloadedCount === totalCount;
     const isPartial = downloadedCount > 0 && downloadedCount < totalCount;
     const isDownloading = downloadingAlbums?.includes(String(album.id));
-    const isJustCompleted = completedFlashIds.includes(String(album.id));
+    const isJustCompleted = Boolean(completedFlashIds[String(album.id)]);
 
     const safeSvgId = 'card_' + String(album.id).replace(/[^a-zA-Z0-9_-]/g, '_') + (showTrackTitle ? '_track' : '_album');
 
@@ -195,19 +189,22 @@ export const CatalogView = ({
             <defs>
               <linearGradient id={`snake-grad-${safeSvgId}`} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                <stop offset="25%" stopColor="#e879f9" stopOpacity="0.95" />
-                <stop offset="60%" stopColor="#a855f7" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
+                <stop offset="15%" stopColor="#f0abfc" stopOpacity="1" />
+                <stop offset="40%" stopColor="#d946ef" stopOpacity="0.95" />
+                <stop offset="75%" stopColor="#9333ea" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
               </linearGradient>
-              <filter id={`snake-glow-${safeSvgId}`} x="-30%" y="-30%" width="160%" height="160%">
-                <feGaussianBlur stdDeviation="1" result="blur" />
+              <filter id={`snake-glow-${safeSvgId}`} x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor="#000000" floodOpacity="0.65" result="shadow" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="glow" />
                 <feMerge>
-                  <feMergeNode in="blur" />
+                  <feMergeNode in="shadow" />
+                  <feMergeNode in="glow" />
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
             </defs>
-            {/* Pista muy sutil y delgada del contorno */}
+            {/* Pista de contraste oscura para asegurar visibilidad en portadas claras/blancas */}
             <rect
               x="0.75"
               y="0.75"
@@ -215,11 +212,23 @@ export const CatalogView = ({
               height="98.5"
               rx="6.5"
               fill="none"
-              stroke="rgba(255, 255, 255, 0.12)"
-              strokeWidth="1"
+              stroke="rgba(0, 0, 0, 0.35)"
+              strokeWidth="2.5"
               vectorEffect="non-scaling-stroke"
             />
-            {/* Serpiente delgada que recorre exactamente el contorno exterior */}
+            {/* Pista de color sutil que marca el carril */}
+            <rect
+              x="0.75"
+              y="0.75"
+              width="98.5"
+              height="98.5"
+              rx="6.5"
+              fill="none"
+              stroke="rgba(192, 132, 252, 0.3)"
+              strokeWidth="1.5"
+              vectorEffect="non-scaling-stroke"
+            />
+            {/* Serpiente visible de 2.75px que recorre el contorno con alto contraste */}
             <motion.rect
               x="0.75"
               y="0.75"
@@ -228,11 +237,11 @@ export const CatalogView = ({
               rx="6.5"
               fill="none"
               stroke={`url(#snake-grad-${safeSvgId})`}
-              strokeWidth="1.75"
+              strokeWidth="2.75"
               strokeLinecap="round"
               vectorEffect="non-scaling-stroke"
-              strokeDasharray="80 300"
-              animate={{ strokeDashoffset: [0, -380] }}
+              strokeDasharray="90 300"
+              animate={{ strokeDashoffset: [0, -390] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
               filter={`url(#snake-glow-${safeSvgId})`}
             />
@@ -243,19 +252,20 @@ export const CatalogView = ({
         <AnimatePresence>
           {isJustCompleted && (
             <motion.div
+              key={`destello-${safeSvgId}`}
               initial={{ opacity: 0 }}
               animate={{ 
                 opacity: [0, 1, 1, 0],
                 boxShadow: [
                   "0 0 0px rgba(192,132,252,0)",
-                  "0 0 16px rgba(192,132,252,0.8), 0 0 4px rgba(255,255,255,0.9)",
-                  "0 0 16px rgba(192,132,252,0.8), 0 0 4px rgba(255,255,255,0.9)",
+                  "0 0 18px rgba(192,132,252,0.85), 0 0 6px rgba(255,255,255,0.9)",
+                  "0 0 18px rgba(192,132,252,0.85), 0 0 6px rgba(255,255,255,0.9)",
                   "0 0 0px rgba(192,132,252,0)"
                 ]
               }}
               exit={{ opacity: 0 }}
               transition={{ duration: 1.8, times: [0, 0.15, 0.65, 1], ease: "easeOut" }}
-              className="absolute -inset-[1px] rounded-[17px] pointer-events-none z-30 border border-white"
+              className="absolute -inset-[1px] rounded-[17px] pointer-events-none z-30 border-2 border-white"
             />
           )}
         </AnimatePresence>
