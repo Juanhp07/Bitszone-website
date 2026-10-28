@@ -20,6 +20,16 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  // Keep refs for smooth continuous animation without re-instantiation on play/pause
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
+
+  const heightsRef = useRef<Float32Array | null>(null);
+  const smoothedFreqRef = useRef<Float32Array | null>(null);
+  const playStateBlendRef = useRef(isPlaying ? 1.0 : 0.0);
+  const smoothedEnergyRef = useRef(0.2);
+  const smoothedBassRef = useRef(0.2);
+
   // Keep audio context connected to the audio element
   useEffect(() => {
     if (audioElement) {
@@ -42,9 +52,23 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
     let lastTime = performance.now();
 
     const barCount = Math.max(16, Math.min(64, settings.barCount));
-    const heights = new Float32Array(barCount);
-    const smoothedFreq = new Float32Array(barCount);
-    let smoothedEnergy = 0.2;
+
+    // Persist or re-allocate array preserving previous state
+    if (!heightsRef.current || heightsRef.current.length !== barCount) {
+      const prevHeights = heightsRef.current;
+      const newHeights = new Float32Array(barCount);
+      if (prevHeights) {
+        for (let i = 0; i < barCount; i++) {
+          const prevIdx = Math.floor((i / barCount) * prevHeights.length);
+          newHeights[i] = prevHeights[prevIdx] || 0.04;
+        }
+      }
+      heightsRef.current = newHeights;
+      smoothedFreqRef.current = new Float32Array(barCount);
+    }
+
+    const heights = heightsRef.current;
+    const smoothedFreq = smoothedFreqRef.current!;
 
     // Helper to extract RGB from dominantColor string
     const extractRgb = (str: string): [number, number, number] => {
@@ -60,7 +84,7 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
     const render = (now: number) => {
       const dt = Math.min(48, Math.max(8, now - lastTime));
       lastTime = now;
-      const t = now * 0.0018; // smooth time progress
+      const t = now * 0.0018; // smooth continuous time progress
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = container.getBoundingClientRect();
@@ -82,76 +106,104 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Audio Energy Sampling (smoothed heavily to prevent erratic jitter)
-      const freqData = isPlaying ? audioVisualizer.getByteFrequencyData() : null;
-      let instantEnergy = 0.35;
+      const playing = isPlayingRef.current;
+
+      // 1. Smooth Play/Pause Cinematic Transition (no abrupt cut-offs)
+      if (playing) {
+        playStateBlendRef.current += (1.0 - playStateBlendRef.current) * Math.min(1, dt * 0.007);
+      } else {
+        // Luxuriously smooth descent when paused
+        playStateBlendRef.current += (0.0 - playStateBlendRef.current) * Math.min(1, dt * 0.0035);
+      }
+      const playStateBlend = playStateBlendRef.current;
+
+      // 2. Audio Energy & Bass Sampling
+      const freqData = playing ? audioVisualizer.getByteFrequencyData() : null;
+
+      let instantBass = 0;
+      let instantEnergy = 0.25;
 
       if (freqData && freqData.length > 0) {
-        let sum = 0;
-        const sampleBins = Math.min(64, freqData.length);
-        for (let b = 0; b < sampleBins; b++) {
-          sum += freqData[b];
+        // Bass bins: 0 to 6 (~0 to 350 Hz, capturing kick drums & 808s)
+        let bassSum = 0;
+        const bassBins = Math.min(7, freqData.length);
+        for (let b = 0; b < bassBins; b++) {
+          bassSum += freqData[b];
         }
-        instantEnergy = sum / (sampleBins * 255);
+        instantBass = bassSum / (bassBins * 255);
+
+        // General energy bins: 0 to 80 (~0 to 4 kHz)
+        let energySum = 0;
+        const energyBins = Math.min(80, freqData.length);
+        for (let b = 0; b < energyBins; b++) {
+          energySum += freqData[b];
+        }
+        instantEnergy = energySum / (energyBins * 255);
       }
 
-      // Smooth exponential envelope for overall track volume/beat
-      smoothedEnergy += (instantEnergy - smoothedEnergy) * Math.min(1, dt * 0.008);
+      // Fast attack & smooth decay for kick-drum punch
+      const bassAttack = instantBass > smoothedBassRef.current ? 0.055 : 0.012;
+      smoothedBassRef.current += (instantBass - smoothedBassRef.current) * Math.min(1, dt * bassAttack);
 
-      // 2. Harmonic Fluid Wave Physics (inspired by the smooth rhythmic breathing of EqBars)
-      const maxBarHeight = height * 0.74; // leaves top ~26% clear for title & artist
-      const baselineY = height - 10;
+      const energyAttack = instantEnergy > smoothedEnergyRef.current ? 0.038 : 0.008;
+      smoothedEnergyRef.current += (instantEnergy - smoothedEnergyRef.current) * Math.min(1, dt * energyAttack);
+
+      const smoothedBass = smoothedBassRef.current;
+      const smoothedEnergy = smoothedEnergyRef.current;
+
+      // Silence detection: when track drops to quiet breakdown or silence, musicPresence falls to 0
+      const hasRealAudio = audioVisualizer.isRealAudioActive();
+      const musicPresence = hasRealAudio
+        ? Math.min(1, Math.max(0, (smoothedEnergy - 0.025) / 0.12))
+        : 1.0;
+
+      // 3. Fluid Harmonic Wave Physics & Equalizer Distribution
+      const maxBarHeight = height * 0.72; // leaves top clear for title & artist
+      const baselineY = height - 12;
 
       for (let i = 0; i < barCount; i++) {
-        const x = i / (barCount - 1); // 0 (left) to 1 (right)
+        const x = i / (barCount - 1); // 0 (bass/left) to 1 (highs/right)
 
         // Musical wave harmonics across the bars
-        // Natural equalizer arch: center & mid-bass have natural fullness
-        const arch = Math.sin(x * Math.PI) * 0.35 + 0.38;
+        const arch = Math.sin(x * Math.PI) * 0.28 + 0.16;
+        const wave1 = Math.sin(t * 1.8 + x * Math.PI * 2.2) * 0.18;
+        const wave2 = Math.cos(t * 2.6 - x * Math.PI * 3.4) * 0.12;
+        const wave3 = Math.sin(t * (2.1 + (i % 4) * 0.4) + (i * 0.55)) * 0.09;
+        let waveProfile = arch + wave1 + wave2 + wave3;
 
-        // Harmonic Wave 1: slow deep swell
-        const wave1 = Math.sin(t * 1.8 + x * Math.PI * 2.2) * 0.22;
+        if (freqData && freqData.length > 0) {
+          // Logarithmic frequency distribution: allocates rich coverage to bass & low-mids
+          const logBinIdx = Math.min(freqData.length - 1, Math.floor(Math.pow(x, 2.0) * 140));
+          const rawFreqVal = freqData[logBinIdx] / 255;
 
-        // Harmonic Wave 2: rhythmic counter-melody ripple
-        const wave2 = Math.cos(t * 2.6 - x * Math.PI * 3.4) * 0.16;
+          const barAttack = rawFreqVal > smoothedFreq[i] ? 0.045 : 0.01;
+          smoothedFreq[i] += (rawFreqVal - smoothedFreq[i]) * Math.min(1, dt * barAttack);
 
-        // Harmonic Wave 3: individual bar breathing offset (distinct rhythm like EqBars)
-        const wave3 = Math.sin(t * (2.1 + (i % 4) * 0.4) + (i * 0.55)) * 0.12;
+          // Bass punch multiplier on lower and mid-bass bars
+          const isBassZone = Math.max(0, 1 - x * 2.2);
+          const bassThump = isBassZone * smoothedBass * 1.35;
 
-        // Harmonic Wave 4: high shimmer
-        const wave4 = Math.sin(t * 3.8 + x * 6.0) * 0.08;
-
-        // Combine harmonic wave profile
-        let target = (arch + wave1 + wave2 + wave3 + wave4);
-
-        if (isPlaying) {
-          // If real audio data is available, blend smoothly without sharp spikes
-          if (freqData && freqData.length > 0) {
-            // Map bar to frequency bin with soft smoothing
-            const binIdx = Math.min(freqData.length - 1, Math.floor(Math.pow(x, 1.3) * 120));
-            const rawFreqVal = freqData[binIdx] / 255;
-            smoothedFreq[i] += (rawFreqVal - smoothedFreq[i]) * Math.min(1, dt * 0.007);
-            target = target * 0.55 + smoothedFreq[i] * 0.85;
-          }
-
-          // Modulate by smoothed energy and sensitivity
-          target = target * (0.65 + smoothedEnergy * 0.75) * settings.sensitivity;
-          target = Math.min(0.96, Math.max(0.08, target));
-        } else {
-          // When paused: smoothly glide down to short resting stubs (just like EqBars)
-          target = 0.05 + Math.sin(x * Math.PI) * 0.03;
+          waveProfile = waveProfile * 0.35 + smoothedFreq[i] * 0.85 + bassThump;
         }
 
-        // Fluid interpolation: critically damped movement (zero jitter!)
-        heights[i] += (target - heights[i]) * Math.min(1, dt * 0.012);
+        // Active target modulated by music presence (collapses down during silence!)
+        const activeTarget = waveProfile * (0.35 + smoothedEnergy * 0.8) * musicPresence * settings.sensitivity;
+
+        // Resting stubs (when paused or silent)
+        const restTarget = 0.025 + Math.sin(x * Math.PI) * 0.015;
+
+        // Blend with smooth play/pause state
+        const target = restTarget + (Math.min(0.96, Math.max(restTarget, activeTarget)) - restTarget) * playStateBlend;
+
+        // Damped fluid interpolation: silky smooth 60-144fps movement
+        heights[i] += (target - heights[i]) * Math.min(1, dt * 0.014);
       }
 
-      // 3. Layout & Geometry
+      // 4. Layout & Sizing
       const containerWidth = width * (settings.containerWidthPercent / 100);
       const gap = settings.barGap;
       const totalGaps = gap * (barCount - 1);
 
-      // Bar width based on thickness setting
       let barWidth = (containerWidth - totalGaps) / barCount;
       if (settings.thickness === 'thin') barWidth = Math.max(5, barWidth * 0.65);
       if (settings.thickness === 'ultra') barWidth = Math.max(16, barWidth * 1.3);
@@ -159,74 +211,51 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
       const actualTotalWidth = barWidth * barCount + totalGaps;
       const startX = Math.max(0, (width - actualTotalWidth) / 2);
 
-      // 4. Color & Gradient Styling
+      // 5. Color Styling: Pure White with Smooth Bottom Fade (difuminado suave)
       let barStyle: CanvasGradient | string;
-      let glowColor: string;
+      let glowColor = 'rgba(255, 255, 255, 0.6)';
 
-      const grad = ctx.createLinearGradient(0, baselineY, 0, baselineY - maxBarHeight);
+      const grad = ctx.createLinearGradient(0, baselineY - maxBarHeight, 0, baselineY);
 
-      switch (settings.colorTheme) {
-        case 'dynamic': {
-          const [r, g, b] = albumRgb;
-          grad.addColorStop(0, `rgba(${Math.max(0, r - 30)}, ${Math.max(0, g - 30)}, ${Math.max(0, b - 30)}, 0.4)`);
-          grad.addColorStop(0.55, `rgba(${r}, ${g}, ${b}, 0.95)`);
-          grad.addColorStop(0.9, `rgba(${Math.min(255, r + 70)}, ${Math.min(255, g + 70)}, ${Math.min(255, b + 70)}, 1)`);
-          grad.addColorStop(1, '#ffffff');
-          barStyle = settings.fillType === 'solid' ? `rgba(${r}, ${g}, ${b}, 0.95)` : grad;
-          glowColor = `rgba(${r}, ${g}, ${b}, 0.6)`;
-          break;
-        }
-        case 'bitszone': {
-          grad.addColorStop(0, 'rgba(124, 58, 237, 0.45)');
-          grad.addColorStop(0.5, 'rgba(168, 85, 247, 0.95)');
-          grad.addColorStop(0.85, 'rgba(236, 72, 153, 1)');
-          grad.addColorStop(1, '#ffffff');
-          barStyle = settings.fillType === 'solid' ? '#a855f7' : grad;
-          glowColor = 'rgba(168, 85, 247, 0.65)';
-          break;
-        }
-        case 'cyan': {
-          grad.addColorStop(0, 'rgba(2, 132, 199, 0.45)');
-          grad.addColorStop(0.5, 'rgba(6, 182, 212, 0.95)');
-          grad.addColorStop(0.85, 'rgba(103, 232, 249, 1)');
-          grad.addColorStop(1, '#ffffff');
-          barStyle = settings.fillType === 'solid' ? '#06b6d4' : grad;
-          glowColor = 'rgba(6, 182, 212, 0.65)';
-          break;
-        }
-        case 'fire': {
-          grad.addColorStop(0, 'rgba(185, 28, 28, 0.45)');
-          grad.addColorStop(0.5, 'rgba(234, 88, 12, 0.95)');
-          grad.addColorStop(0.85, 'rgba(250, 204, 21, 1)');
-          grad.addColorStop(1, '#ffffff');
-          barStyle = settings.fillType === 'solid' ? '#ea580c' : grad;
-          glowColor = 'rgba(234, 88, 12, 0.65)';
-          break;
-        }
-        case 'emerald': {
-          grad.addColorStop(0, 'rgba(4, 120, 87, 0.45)');
-          grad.addColorStop(0.5, 'rgba(16, 185, 129, 0.95)');
-          grad.addColorStop(0.85, 'rgba(110, 231, 183, 1)');
-          grad.addColorStop(1, '#ffffff');
-          barStyle = settings.fillType === 'solid' ? '#10b981' : grad;
-          glowColor = 'rgba(16, 185, 129, 0.65)';
-          break;
-        }
-        case 'monochrome':
-        default: {
-          grad.addColorStop(0, 'rgba(63, 63, 70, 0.45)');
-          grad.addColorStop(0.5, 'rgba(161, 161, 170, 0.9)');
-          grad.addColorStop(0.85, 'rgba(228, 228, 231, 1)');
-          grad.addColorStop(1, '#ffffff');
-          barStyle = settings.fillType === 'solid' ? '#e4e4e7' : grad;
-          glowColor = 'rgba(255, 255, 255, 0.5)';
-          break;
-        }
+      if (settings.colorTheme === 'monochrome' || !settings.colorTheme) {
+        // Pure White: solid top, ethereal soft fade to 0 opacity at bottom
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.35, 'rgba(255, 255, 255, 0.95)');
+        grad.addColorStop(0.65, 'rgba(255, 255, 255, 0.60)');
+        grad.addColorStop(0.88, 'rgba(255, 255, 255, 0.18)');
+        grad.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+        barStyle = settings.fillType === 'solid' ? '#ffffff' : grad;
+        glowColor = 'rgba(255, 255, 255, 0.55)';
+      } else if (settings.colorTheme === 'dynamic') {
+        const [r, g, b] = albumRgb;
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.35, `rgba(${Math.min(255, r + 60)}, ${Math.min(255, g + 60)}, ${Math.min(255, b + 60)}, 0.95)`);
+        grad.addColorStop(0.65, `rgba(${r}, ${g}, ${b}, 0.60)`);
+        grad.addColorStop(0.88, `rgba(${r}, ${g}, ${b}, 0.18)`);
+        grad.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+        barStyle = settings.fillType === 'solid' ? `rgba(${r}, ${g}, ${b}, 0.95)` : grad;
+        glowColor = `rgba(${r}, ${g}, ${b}, 0.6)`;
+      } else {
+        // Presets: bitszone, cyan, fire, emerald
+        const palette = {
+          bitszone: { top: '#ffffff', mid: 'rgba(168, 85, 247, 0.9)', low: 'rgba(124, 58, 237, 0.5)', glow: 'rgba(168, 85, 247, 0.6)' },
+          cyan: { top: '#ffffff', mid: 'rgba(6, 182, 212, 0.9)', low: 'rgba(2, 132, 199, 0.5)', glow: 'rgba(6, 182, 212, 0.6)' },
+          fire: { top: '#ffffff', mid: 'rgba(234, 88, 12, 0.9)', low: 'rgba(185, 28, 28, 0.5)', glow: 'rgba(234, 88, 12, 0.6)' },
+          emerald: { top: '#ffffff', mid: 'rgba(16, 185, 129, 0.9)', low: 'rgba(4, 120, 87, 0.5)', glow: 'rgba(16, 185, 129, 0.6)' },
+        }[settings.colorTheme as 'bitszone' | 'cyan' | 'fire' | 'emerald'] || {
+          top: '#ffffff', mid: 'rgba(255, 255, 255, 0.9)', low: 'rgba(255, 255, 255, 0.5)', glow: 'rgba(255, 255, 255, 0.6)'
+        };
+        grad.addColorStop(0, palette.top);
+        grad.addColorStop(0.4, palette.mid);
+        grad.addColorStop(0.75, palette.low);
+        grad.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+        barStyle = settings.fillType === 'solid' ? palette.mid : grad;
+        glowColor = palette.glow;
       }
 
-      // Neon glow setup
+      // Neon / ambient glow
       if (settings.glow === 'intense') {
-        ctx.shadowBlur = 24;
+        ctx.shadowBlur = 22;
         ctx.shadowColor = glowColor;
       } else if (settings.glow === 'subtle') {
         ctx.shadowBlur = 12;
@@ -235,13 +264,13 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
         ctx.shadowBlur = 0;
       }
 
-      // 5. Draw the Bars
+      // 6. Draw the Bars (No horizontal peak caps, clean elegant rounded pill tops)
       ctx.fillStyle = barStyle;
       const cornerRadius = settings.roundedCaps ? Math.min(barWidth / 2, 12) : 2;
 
       for (let i = 0; i < barCount; i++) {
         const x = startX + i * (barWidth + gap);
-        const barH = Math.max(barWidth * 0.8, heights[i] * maxBarHeight);
+        const barH = Math.max(barWidth * 0.75, heights[i] * maxBarHeight);
         const y = baselineY - barH;
 
         ctx.beginPath();
@@ -251,31 +280,7 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
           ctx.rect(x, y, barWidth, barH);
         }
         ctx.fill();
-
-        // Optional peak cap (only rendered if user explicitly enabled it)
-        if (settings.peakCaps) {
-          const capHeight = Math.max(3, Math.min(barWidth * 0.35, 6));
-          ctx.save();
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          if (typeof ctx.roundRect === 'function') {
-            ctx.roundRect(x, y - capHeight - 3, barWidth, capHeight, [cornerRadius, cornerRadius, cornerRadius, cornerRadius]);
-          } else {
-            ctx.rect(x, y - capHeight - 3, barWidth, capHeight);
-          }
-          ctx.fill();
-          ctx.restore();
-        }
       }
-
-      // 6. Base Line Ambient Reflection
-      ctx.shadowBlur = 0;
-      const baseGrad = ctx.createLinearGradient(startX, baselineY, startX + actualTotalWidth, baselineY);
-      baseGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-      baseGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.35)');
-      baseGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = baseGrad;
-      ctx.fillRect(startX, baselineY + 1, actualTotalWidth, 2);
 
       ctx.restore();
       animationFrameId = requestAnimationFrame(render);
@@ -286,10 +291,17 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [settings, isPlaying, dominantColor]);
+  }, [settings, dominantColor]);
 
   return (
-    <div ref={containerRef} className={`w-full h-full relative overflow-hidden select-none pointer-events-none ${className}`}>
+    <div
+      ref={containerRef}
+      className={`w-full h-full relative overflow-hidden select-none pointer-events-none ${className}`}
+      style={{
+        maskImage: 'linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 3%, rgba(0,0,0,1) 16%)',
+        WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 3%, rgba(0,0,0,1) 16%)',
+      }}
+    >
       <canvas ref={canvasRef} className="w-full h-full block" />
     </div>
   );

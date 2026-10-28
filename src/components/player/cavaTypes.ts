@@ -34,11 +34,11 @@ export const DEFAULT_CAVA_SETTINGS: CavaSettings = {
   thickness: 'thick',
   barGap: 8,
   containerWidthPercent: 96,
-  colorTheme: 'dynamic',
+  colorTheme: 'monochrome',
   fillType: 'gradient',
   roundedCaps: true,
   peakCaps: false,
-  sensitivity: 1.0,
+  sensitivity: 1.15,
   gravity: 'fluid',
   glow: 'subtle',
 };
@@ -51,7 +51,7 @@ export const loadCavaSettings = (): CavaSettings => {
     const raw = localStorage.getItem(CAVA_SETTINGS_STORAGE_KEY);
     if (!raw) return DEFAULT_CAVA_SETTINGS;
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_CAVA_SETTINGS, ...parsed };
+    return { ...DEFAULT_CAVA_SETTINGS, ...parsed, peakCaps: false, colorTheme: parsed.colorTheme === 'dynamic' ? 'monochrome' : (parsed.colorTheme || 'monochrome') };
   } catch (_) {
     return DEFAULT_CAVA_SETTINGS;
   }

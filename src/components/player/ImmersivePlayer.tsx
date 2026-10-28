@@ -1209,29 +1209,57 @@ export const ImmersivePlayer = ({
 
         {/* 3. FULL IMMERSION CAVA STAGE */}
         {currentTab === 'inmersion' && (
-          <div className="absolute inset-0 z-40 flex flex-col justify-between overflow-hidden pt-12 md:pt-16 pb-6 px-4 md:px-8 select-none">
-            {/* Top Area: Clean Song Title, Artist and CAVA badge */}
-            <div className="flex flex-col items-center justify-center text-center mt-3 md:mt-6 z-20 max-w-4xl mx-auto pointer-events-auto">
+          <div className="absolute inset-0 z-40 flex flex-col justify-between overflow-hidden pt-12 md:pt-16 pb-0 select-none">
+            {/* Top Area: Clean Song Title with Prev/Next buttons on Left and Right, Artist and CAVA badge */}
+            <div className="flex flex-col items-center justify-center text-center mt-2 md:mt-5 z-20 max-w-5xl mx-auto pointer-events-auto w-full px-4 md:px-8">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_4px_20px_rgba(0,0,0,0.3)] mb-3 transition-colors">
                 <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-pulse" />
                 <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/90">Inmersión CAVA</span>
               </div>
 
-              <AnimatedSongTitle
-                title={track.title}
-                trackId={track.id}
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.7)] text-center leading-[1.1] max-w-full"
-              />
+              {/* Title row flanked by Prev and Next buttons */}
+              <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-8 w-full max-w-4xl">
+                <button
+                  onClick={onPrev}
+                  className="p-3 md:p-3.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white backdrop-blur-2xl border border-white/20 shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                  title="Canción anterior"
+                  aria-label="Canción anterior"
+                >
+                  <SkipBack className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
+                </button>
 
-              <p className="text-base sm:text-lg md:text-xl text-white/75 font-semibold mt-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] flex items-center justify-center gap-2 flex-wrap">
+                <div className="flex-1 min-w-0 flex justify-center">
+                  <AnimatedSongTitle
+                    title={track.title}
+                    trackId={track.id}
+                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.7)] text-center leading-[1.1] max-w-full"
+                  />
+                </div>
+
+                <button
+                  onClick={onNext}
+                  className="p-3 md:p-3.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white backdrop-blur-2xl border border-white/20 shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                  title="Siguiente canción"
+                  aria-label="Siguiente canción"
+                >
+                  <SkipForward className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
+                </button>
+              </div>
+
+              <p className="text-base sm:text-lg md:text-xl text-white/75 font-semibold mt-2.5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] flex items-center justify-center gap-2 flex-wrap">
                 <span className="text-white uppercase tracking-wide">{track.artist || album.artist}</span>
                 <span className="text-white/40">•</span>
                 <span className="text-white/80">{track.albumTitle || playback.nowPlayingOrigin?.title || album.title}</span>
               </p>
             </div>
 
-            {/* Center / Bottom Area: Thick CAVA Bars Visualizer filling almost entire width */}
-            <div className="w-full flex-1 flex items-end justify-center relative min-h-[220px] md:min-h-[380px] pb-3 md:pb-5">
+            {/* Center Area: Full Screen CAVA Bars Visualizer - click anywhere to play/pause */}
+            <div
+              className="w-full flex-1 flex items-end justify-center relative min-h-[220px] md:min-h-[380px] pb-3 md:pb-4 cursor-pointer select-none group/stage"
+              onClick={togglePlay}
+              title={isPlaying ? "Clic para pausar" : "Clic para reproducir"}
+              aria-label={isPlaying ? "Pausar música" : "Reproducir música"}
+            >
               <CavaVisualizer
                 audioElement={audioElement ?? null}
                 isPlaying={isPlaying}
@@ -1240,74 +1268,31 @@ export const ImmersivePlayer = ({
               />
             </div>
 
-            {/* Bottom Floating Minimalist Player Controls */}
-            <div className="w-full max-w-2xl mx-auto z-30 pointer-events-auto px-2">
-              <div className="flex flex-col items-center gap-2.5 p-3.5 md:p-4 rounded-3xl bg-black/40 hover:bg-black/50 backdrop-blur-3xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.6)] transition-all">
-                {/* Seek Line with Time */}
-                <div className="w-full flex items-center gap-3 text-xs font-mono font-medium text-white/70">
-                  <span className="w-12 text-right">{formatTime(progress * track.duration)}</span>
-                  <div className="relative flex-1 h-5 flex items-center group/seek cursor-pointer">
-                    <WavyProgress progress={progress} isPlaying={isPlaying} />
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.001"
-                      value={progress}
-                      onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
-                      className="w-full h-full opacity-0 cursor-pointer absolute inset-0 z-10 focus-visible:outline-none"
-                      title="Progreso de reproducción"
-                    />
-                  </div>
-                  <span className="w-12 text-left text-white/50">{formatTime(track.duration)}</span>
-                </div>
+            {/* Bottom: Thick Full-Width Timeline stuck to the very bottom */}
+            <div className="w-full relative z-30 select-none pointer-events-auto group/timeline">
+              {/* Time Indicators above timeline */}
+              <div className="flex justify-between items-center px-4 md:px-8 pb-1.5 text-xs font-mono font-medium text-white/60 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                <span className="tracking-wider">{formatTime(progress * track.duration)}</span>
+                <span className="tracking-wider text-white/40">{formatTime(track.duration)}</span>
+              </div>
 
-                {/* Primary Playback Buttons */}
-                <div className="flex items-center justify-center gap-5 sm:gap-7 w-full">
-                  <button
-                    onClick={onToggleShuffle}
-                    className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${isShuffle ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}
-                    title="Aleatorio"
-                  >
-                    <Shuffle className="w-4 h-4 md:w-5 md:h-5" />
-                  </button>
-
-                  <button
-                    onClick={onPrev}
-                    className="p-2 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
-                    title="Anterior"
-                  >
-                    <SkipBack className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
-                  </button>
-
-                  <button
-                    onClick={togglePlay}
-                    className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white hover:bg-white/95 text-black flex items-center justify-center shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                    title={isPlaying ? "Pausar" : "Reproducir"}
-                  >
-                    {isPlaying ? (
-                      <Pause className="w-5 h-5 md:w-6 md:h-6 fill-current" />
-                    ) : (
-                      <Play className="w-5 h-5 md:w-6 md:h-6 fill-current ml-0.5" />
-                    )}
-                  </button>
-
-                  <button
-                    onClick={onNext}
-                    className="p-2 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
-                    title="Siguiente"
-                  >
-                    <SkipForward className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
-                  </button>
-
-                  <button
-                    onClick={onToggleRepeat}
-                    className={`p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer ${repeatMode !== 'off' ? 'text-[#a855f7]' : 'text-white/50 hover:text-white'}`}
-                    title="Repetir"
-                  >
-                    {repeatMode === 'one' ? <Repeat1 className="w-4 h-4 md:w-5 md:h-5" /> : <Repeat className="w-4 h-4 md:w-5 md:h-5" />}
-                  </button>
-                </div>
+              {/* Thick full-width timeline bar */}
+              <div className="relative w-full h-3 md:h-3.5 bg-white/15 hover:bg-white/25 transition-all cursor-pointer">
+                <div
+                  className="h-full bg-white relative shadow-[0_0_16px_rgba(255,255,255,0.85)] transition-[width] duration-75"
+                  style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.0005"
+                  value={progress}
+                  onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 focus:outline-none"
+                  title="Buscar en la canción"
+                  aria-label="Línea de tiempo"
+                />
               </div>
             </div>
           </div>

@@ -223,10 +223,13 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Toggles: Rounded caps & Peak caps */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* Toggles: Rounded caps */}
+              <div className="pt-2">
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.04] border border-white/10">
-                  <span className="text-xs font-medium text-white/90">Puntas redondeadas</span>
+                  <div>
+                    <span className="text-xs font-medium text-white/90 block">Puntas redondeadas</span>
+                    <span className="text-[10px] text-white/50">Forma de cápsula suave en la parte superior</span>
+                  </div>
                   <button
                     onClick={() => onUpdateSettings(prev => ({ ...prev, roundedCaps: !prev.roundedCaps }))}
                     className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
@@ -236,22 +239,6 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
                     <div
                       className={`w-4 h-4 rounded-full bg-white transition-transform absolute top-1 ${
                         settings.roundedCaps ? 'left-6' : 'left-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.04] border border-white/10">
-                  <span className="text-xs font-medium text-white/90">Picos flotantes (Peak Caps)</span>
-                  <button
-                    onClick={() => onUpdateSettings(prev => ({ ...prev, peakCaps: !prev.peakCaps }))}
-                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                      settings.peakCaps ? 'bg-purple-600' : 'bg-white/20'
-                    }`}
-                  >
-                    <div
-                      className={`w-4 h-4 rounded-full bg-white transition-transform absolute top-1 ${
-                        settings.peakCaps ? 'left-6' : 'left-1'
                       }`}
                     />
                   </button>
