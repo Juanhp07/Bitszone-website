@@ -158,56 +158,79 @@ export const CatalogView = ({
       className={`${expandedSection ? 'w-full' : 'w-[48vw] max-w-[210px] sm:w-56 md:w-64 md:max-w-none'} shrink-0 snap-start flex flex-col gap-2 md:gap-3 group cursor-pointer`}
       onClick={() => onSelectAlbum(album)}
     >
-      <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-64 md:h-64'} rounded-2xl overflow-hidden relative shadow-xl transition-all duration-500`}>
-        <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+      <div className={`relative ${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-64 md:h-64'}`}>
+        <div className="w-full h-full rounded-2xl overflow-hidden relative shadow-xl transition-all duration-500">
+          <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
 
-        {/* Borde animado que carga por todo el contorno mientras se descarga el álbum */}
+          {/* Botón de reproducción blanco Liquid Glass y blur con borde fino de 1px sutil y opaco */}
+          <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+            <button 
+              className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur-xl md:backdrop-blur-2xl border border-white/20 hover:border-white/35 shadow-[0_8px_32px_rgba(0,0,0,0.35)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (album.tracks && album.tracks.length > 0) {
+                  if (showTrackTitle) onPlayTrack(album.tracks[0], album); else playback.playAlbum(album);
+                }
+              }}
+              title={`Reproducir ${album.title}`}
+              aria-label={`Reproducir álbum ${album.title}`}
+            >
+              <Play className="w-7 h-7 md:w-9 md:h-9 ml-1 md:ml-1.5 text-white/90 fill-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
+        {/* Borde animado efecto serpiente exactamente por el contorno exterior */}
         {isDownloading && (
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-20 rounded-2xl overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <svg className="absolute -inset-[1px] w-[calc(100%+2px)] h-[calc(100%+2px)] pointer-events-none z-20 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
-              <linearGradient id={`dl-grad-${album.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#a855f7" />
-                <stop offset="45%" stopColor="#c084fc" />
-                <stop offset="85%" stopColor="#ffffff" />
-                <stop offset="100%" stopColor="#a855f7" />
+              <linearGradient id={`snake-grad-${album.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                <stop offset="25%" stopColor="#e879f9" stopOpacity="0.95" />
+                <stop offset="60%" stopColor="#a855f7" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
               </linearGradient>
-              <filter id={`dl-glow-${album.id}`} x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="1.5" result="blur" />
+              <filter id={`snake-glow-${album.id}`} x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="1" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
             </defs>
+            {/* Pista muy sutil y delgada del contorno */}
             <rect
-              x="1.5"
-              y="1.5"
-              width="97"
-              height="97"
-              rx="6"
+              x="0.75"
+              y="0.75"
+              width="98.5"
+              height="98.5"
+              rx="6.5"
               fill="none"
-              stroke="rgba(168, 85, 247, 0.3)"
-              strokeWidth="2"
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth="1"
+              vectorEffect="non-scaling-stroke"
             />
+            {/* Serpiente delgada que recorre exactamente el contorno exterior */}
             <motion.rect
-              x="1.5"
-              y="1.5"
-              width="97"
-              height="97"
-              rx="6"
+              x="0.75"
+              y="0.75"
+              width="98.5"
+              height="98.5"
+              rx="6.5"
               fill="none"
-              stroke={`url(#dl-grad-${album.id})`}
-              strokeWidth="3.5"
+              stroke={`url(#snake-grad-${album.id})`}
+              strokeWidth="1.75"
               strokeLinecap="round"
-              strokeDasharray="95 280"
-              animate={{ strokeDashoffset: [0, -375] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "linear" }}
-              filter={`url(#dl-glow-${album.id})`}
+              vectorEffect="non-scaling-stroke"
+              strokeDasharray="80 300"
+              animate={{ strokeDashoffset: [0, -380] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+              filter={`url(#snake-glow-${album.id})`}
             />
           </svg>
         )}
 
-        {/* Iluminación destellante al terminar la descarga que luego se desvanece */}
+        {/* Destello de iluminación al terminar la descarga: fino y elegante por el contorno */}
         <AnimatePresence>
           {isJustCompleted && (
             <motion.div
@@ -216,34 +239,17 @@ export const CatalogView = ({
                 opacity: [0, 1, 1, 0],
                 boxShadow: [
                   "0 0 0px rgba(192,132,252,0)",
-                  "0 0 35px rgba(192,132,252,0.9), inset 0 0 20px rgba(255,255,255,0.8)",
-                  "0 0 35px rgba(192,132,252,0.9), inset 0 0 20px rgba(255,255,255,0.8)",
+                  "0 0 16px rgba(192,132,252,0.8), 0 0 4px rgba(255,255,255,0.9)",
+                  "0 0 16px rgba(192,132,252,0.8), 0 0 4px rgba(255,255,255,0.9)",
                   "0 0 0px rgba(192,132,252,0)"
                 ]
               }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1.9, times: [0, 0.15, 0.65, 1], ease: "easeOut" }}
-              className="absolute inset-0 rounded-2xl pointer-events-none z-30 border-2 border-white"
+              transition={{ duration: 1.8, times: [0, 0.15, 0.65, 1], ease: "easeOut" }}
+              className="absolute -inset-[1px] rounded-[17px] pointer-events-none z-30 border border-white"
             />
           )}
         </AnimatePresence>
-
-        {/* Botón de reproducción blanco Liquid Glass y blur más grande al hacer hover */}
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-[1.5px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-          <button 
-            className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl md:backdrop-blur-2xl border border-white/60 hover:border-white/90 shadow-[0_12px_40px_rgba(0,0,0,0.45),inset_0_1.5px_2px_rgba(255,255,255,0.7),inset_0_-1px_2px_rgba(255,255,255,0.2)] transition-all duration-300 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (album.tracks && album.tracks.length > 0) {
-                if (showTrackTitle) onPlayTrack(album.tracks[0], album); else playback.playAlbum(album);
-              }
-            }}
-            title={`Reproducir ${album.title}`}
-            aria-label={`Reproducir álbum ${album.title}`}
-          >
-            <Play className="w-7 h-7 md:w-9 md:h-9 ml-1 md:ml-1.5 text-white fill-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]" aria-hidden="true" />
-          </button>
-        </div>
       </div>
       <div className="flex flex-col mt-1">
         <div className="flex items-start justify-between gap-2">
