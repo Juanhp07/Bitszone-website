@@ -280,7 +280,9 @@ export const ImmersivePlayer = ({
   const currentIndex = album?.tracks?.findIndex(t => t.id === track.id) ?? -1;
   const playback = usePlayback();
   const { createPlaylist } = usePlaylists();
-  const coverSource = album?.coverUrl || track?.albumCover || '';
+  const isSongRadio = Boolean((album as any)?.isSongRadio);
+  const currentTrackAlbum = playback.nowPlayingOrigin;
+  const coverSource = track?.albumCover || currentTrackAlbum?.coverUrl || album?.coverUrl || '';
   const dominantColor = useAverageColor(coverSource);
 
   // Apple-style rubber band bounce for right scrollable area
@@ -546,7 +548,7 @@ export const ImmersivePlayer = ({
 
         {/* Album ambience: same blurred cover as the album page, a touch darker */}
         <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-           <div className={`absolute inset-0 bg-cover bg-center blur-[120px] saturate-150 opacity-90 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'scale-125' : 'scale-150'}`} style={{ backgroundImage: `url(${track.albumCover || album.coverUrl})` }} />
+           <div className={`absolute inset-0 bg-cover bg-center blur-[120px] saturate-150 opacity-90 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'scale-125' : 'scale-150'}`} style={{ backgroundImage: `url(${coverSource})` }} />
            <div className="absolute inset-0 bg-black/55" />
         </div>
 
@@ -756,7 +758,7 @@ export const ImmersivePlayer = ({
                     className="hover:text-white hover:underline underline-offset-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded"
                     title="Ir al álbum"
                   >
-                    {playback.nowPlayingOrigin?.title || track.albumTitle || album.title}
+                    {track.albumTitle || playback.nowPlayingOrigin?.title || album.title}
                   </button>
                 </div>
               </div>

@@ -100,7 +100,16 @@ export const AlbumView = ({
   const [openTrackMenu, setOpenTrackMenu] = useState<number | null>(null);
   const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0, isUpward: false });
   const { isLicensed, downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
-  const dominantColor = useAverageColor(album?.coverUrl || '');
+  const isSongRadio = Boolean((album as any)?.isSongRadio);
+  const activeTrack = isSongRadio
+    ? (album?.tracks?.find(t => t.id === nowPlayingTrackId) || album?.tracks?.[0])
+    : null;
+  const currentCover = (isSongRadio && activeTrack?.albumCover) ? activeTrack.albumCover : (album?.coverUrl || '');
+  const dominantColor = useAverageColor(currentCover);
+  const currentTitle = (isSongRadio && activeTrack) ? activeTrack.title : (album?.title || '');
+  const currentArtist = (isSongRadio && activeTrack) ? activeTrack.artist : (album?.artist || '');
+  const currentAlbumTitle = (isSongRadio && activeTrack?.albumTitle) ? activeTrack.albumTitle : null;
+  const currentYear = (isSongRadio && activeTrack?.albumYear) ? activeTrack.albumYear : (album?.year || '');
   const { containerRef: listRef, springValue: listSpringY, scrollProps: listScrollProps, triggerBounce: listBounce } = useRubberBand({ axis: 'y' });
   const [listMaxHeight, setListMaxHeight] = useState<number | undefined>(undefined);
   const [listEdges, setListEdges] = useState({ top: false, bottom: false });
@@ -248,7 +257,7 @@ useEffect(() => {
                   {/* Light catching the grooves */}
                   <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_30deg,transparent_0deg,rgba(255,255,255,0.10)_40deg,transparent_80deg,transparent_180deg,rgba(255,255,255,0.07)_220deg,transparent_260deg)]" />
                   {/* Center label with the cover art */}
-                  <img src={album.coverUrl} alt="" className="absolute inset-[34%] w-[32%] h-[32%] rounded-full object-cover ring-2 ring-black/60" />
+                  <img src={currentCover} alt="" className="absolute inset-[34%] w-[32%] h-[32%] rounded-full object-cover ring-2 ring-black/60" />
                   <div className="absolute left-1/2 top-1/2 w-[3%] h-[3%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0a0a0a]" />
                 </div>
               </div>
@@ -263,7 +272,7 @@ useEffect(() => {
                       <ListMusic className="w-16 h-16 text-white/25" aria-hidden="true" />
                     </div>
                   ) : (
-                    <img src={album.coverUrl} alt={album.title} data-cover-source="album" className="absolute inset-0 w-full h-full object-cover" />
+                    <img src={currentCover} alt={currentTitle} data-cover-source="album" className="absolute inset-0 w-full h-full object-cover transition-all duration-500" />
                   )}
                   {/* Glass sheen + thickness */}
                   <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0.08)_22%,transparent_40%,transparent_70%,rgba(255,255,255,0.10)_100%)] pointer-events-none" />
@@ -274,7 +283,7 @@ useEffect(() => {
 
               {/* Actions — bottom-right of the sleeve */}
               <div className="relative lg:absolute lg:-bottom-4 lg:-right-2 mt-5 lg:mt-0 flex items-center justify-center gap-1 p-1.5 rounded-full overflow-hidden isolate [&>*:not(:first-child)]:relative [&>*:not(:first-child)]:z-10 backdrop-blur-[40px] backdrop-saturate-[1.8] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_20px_44px_rgba(0,0,0,0.5)] w-max mx-auto lg:mx-0 z-20">
-                <SmokedGlass src={album.coverUrl} />
+                <SmokedGlass src={currentCover} />
                 <button
                   className="w-12 h-12 bg-[#a855f7] hover:bg-[#b066f8] hover:scale-105 active:scale-95 rounded-full flex items-center justify-center text-white transition-all shadow-[0_6px_14px_rgba(168,85,247,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
                   onClick={() => {
@@ -409,13 +418,23 @@ useEffect(() => {
                   title={isPlaylist ? 'Doble clic para cambiar el nombre' : undefined}
                   className="mt-2 font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight [overflow-wrap:anywhere] pb-1"
                 >
-                  {album.title}
+                  {currentTitle}
                 </h1>
               )}
               <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 mt-3 text-sm md:text-base xl:text-lg text-white/70 font-medium [&>span]:whitespace-nowrap">
-                <span className="text-white font-semibold uppercase tracking-wide">{album.artist}</span>
-                <span aria-hidden="true">•</span>
-                <span>{album.year}</span>
+                <span className="text-white font-semibold uppercase tracking-wide">{currentArtist}</span>
+                {currentAlbumTitle && (
+                  <>
+                    <span aria-hidden="true">•</span>
+                    <span className="text-white/80 font-medium">{currentAlbumTitle}</span>
+                  </>
+                )}
+                {currentYear && (
+                  <>
+                    <span aria-hidden="true">•</span>
+                    <span>{currentYear}</span>
+                  </>
+                )}
                 <span aria-hidden="true">•</span>
                 <span>{album.trackCount} {album.trackCount === 1 ? "canción" : (album as any)?.isSongRadio ? "canciones similares" : "canciones"}</span>
                 {album.totalDuration ? (

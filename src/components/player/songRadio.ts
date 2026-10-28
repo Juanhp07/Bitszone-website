@@ -44,6 +44,7 @@ export function buildSongRadio(track: Track, originAlbum: Album, allAlbums: Albu
           albumId: a.id as number,
           albumTitle: a.title,
           albumCover: a.coverUrl,
+          albumYear: a.year,
         },
         album: a,
         score,
@@ -61,6 +62,7 @@ export function buildSongRadio(track: Track, originAlbum: Album, allAlbums: Albu
       albumId: originAlbum.id as number,
       albumTitle: originAlbum.title,
       albumCover: originAlbum.coverUrl,
+      albumYear: originAlbum.year,
       trackNumber: 1,
     },
   ];

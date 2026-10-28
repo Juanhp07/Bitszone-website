@@ -7,9 +7,10 @@ export interface Track {
   duration: number; // in millis
   previewUrl: string;
   trackNumber: number;
-  albumId?: number;
+  albumId?: number | string;
   albumTitle?: string;
   albumCover?: string;
+  albumYear?: string;
   addedAt?: string;
   sizeMb?: number;
 }

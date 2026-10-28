@@ -678,8 +678,17 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const nowPlayingOrigin: Album | null = (() => {
     if (!nowPlayingAlbum || !nowPlayingTrack) return null;
     if (!isPlaylistAlbum(nowPlayingAlbum) && !isSongRadioAlbum(nowPlayingAlbum)) return nowPlayingAlbum;
-    return albums.find(a => a.id === nowPlayingTrack.albumId)
-      ?? { id: nowPlayingTrack.albumId as number, title: nowPlayingTrack.albumTitle || '', artist: nowPlayingTrack.artist, coverUrl: nowPlayingTrack.albumCover || '', year: '', genre: '', trackCount: 0 };
+    const found = albums.find(a => String(a.id) === String(nowPlayingTrack.albumId) || a.title === nowPlayingTrack.albumTitle);
+    if (found) return found;
+    return {
+      id: (nowPlayingTrack.albumId ?? nowPlayingTrack.albumTitle ?? 'unknown') as any,
+      title: nowPlayingTrack.albumTitle || nowPlayingTrack.title || '',
+      artist: nowPlayingTrack.artist,
+      coverUrl: nowPlayingTrack.albumCover || '',
+      year: nowPlayingTrack.albumYear || '',
+      genre: '',
+      trackCount: 0
+    };
   })();
 
   const playback = {

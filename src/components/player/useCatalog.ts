@@ -79,7 +79,11 @@ export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
             duration: (t.duration && t.duration < 10000) ? t.duration * 1000 : (t.duration || 0),
             previewUrl: t.audio_url,
             trackNumber: t.track_number,
-                        sizeMb: t.size_mb || t.size || (t.duration / 1000 * 0.023)
+            sizeMb: t.size_mb || t.size || (t.duration / 1000 * 0.023),
+            albumId: albumKey,
+            albumTitle: t.album,
+            albumCover: t.image_url,
+            albumYear: ALBUM_YEARS[albumKey] || '2023',
           });
           album.trackCount = album.tracks!.length;
           album.totalDuration = (album.totalDuration || 0) + ((t.duration && t.duration < 10000) ? t.duration * 1000 : (t.duration || 0));
