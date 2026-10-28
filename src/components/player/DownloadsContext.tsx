@@ -33,8 +33,8 @@ interface DownloadsContextType {
 
 const DownloadsContext = createContext<DownloadsContextType | undefined>(undefined);
 
-// Songs saved from a playlist keep the album they really belong to
-const sourceAlbum = (album?: Album) => (album && String(album.id).startsWith('playlist:') ? undefined : album);
+// Songs saved from a playlist or song radio keep the album they really belong to
+const sourceAlbum = (album?: Album) => (album && (String(album.id).startsWith('playlist:') || String(album.id).startsWith('radio:')) ? undefined : album);
 
 export const DownloadsProvider = ({ children }: { children: React.ReactNode }) => {
   const [downloadedTracks, setDownloadedTracks] = useState<Track[]>([]);

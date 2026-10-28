@@ -15,7 +15,7 @@ export interface Track {
 }
 
 export interface Album {
-  id: number;
+  id: number | string;
   title: string;
   artist: string;
   coverUrl: string;
@@ -25,6 +25,7 @@ export interface Album {
   trackCount: number;
   totalDuration?: number;
   tracks?: Track[];
+  isSongRadio?: boolean;
 }
 
 export interface AppState {

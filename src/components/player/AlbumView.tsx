@@ -284,8 +284,8 @@ useEffect(() => {
                       playback.playAlbum(album);
                     }
                   }}
-                  title={isAlbumPlaying ? "Pausar álbum" : "Reproducir álbum"}
-                  aria-label={isAlbumPlaying ? "Pausar álbum" : "Reproducir álbum"}
+                  title={isAlbumPlaying ? "Pausar" : (album as any)?.isSongRadio ? "Reproducir canción y similares" : "Reproducir álbum"}
+                  aria-label={isAlbumPlaying ? "Pausar" : (album as any)?.isSongRadio ? "Reproducir canción y similares" : "Reproducir álbum"}
                 >
                   {isAlbumPlaying ? (
                     <Pause className="w-5 h-5" fill="currentColor" aria-hidden="true" />
@@ -294,12 +294,30 @@ useEffect(() => {
                   )}
                 </button>
                 <button
-                  onClick={() => toggleFavoriteAlbum(album)}
-                  className={`${isPlaylist ? 'hidden' : ''} group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/60 hover:text-white'}`}
-                  title={isEntireAlbumFavorited ? "Quitar de favoritos" : "Añadir a favoritos"}
-                  aria-label={isEntireAlbumFavorited ? "Quitar álbum de favoritos" : "Añadir álbum a favoritos"}
+                  onClick={() => {
+                    if ((album as any)?.isSongRadio && album.tracks?.[0]) {
+                      toggleFavorite(album.tracks[0], album);
+                    } else {
+                      toggleFavoriteAlbum(album);
+                    }
+                  }}
+                  className={`${isPlaylist ? 'hidden' : ''} group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
+                    ((album as any)?.isSongRadio && album.tracks?.[0] ? isFavorite(album.tracks[0].id) : isEntireAlbumFavorited)
+                      ? 'text-[#a855f7] hover:text-[#b066f8]'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                  title={
+                    ((album as any)?.isSongRadio && album.tracks?.[0] ? isFavorite(album.tracks[0].id) : isEntireAlbumFavorited)
+                      ? "Quitar de favoritos"
+                      : "Añadir a favoritos"
+                  }
+                  aria-label={
+                    ((album as any)?.isSongRadio && album.tracks?.[0] ? isFavorite(album.tracks[0].id) : isEntireAlbumFavorited)
+                      ? "Quitar de favoritos"
+                      : "Añadir a favoritos"
+                  }
                 >
-                  {isEntireAlbumFavorited ? (
+                  {((album as any)?.isSongRadio && album.tracks?.[0] ? isFavorite(album.tracks[0].id) : isEntireAlbumFavorited) ? (
                     <>
                       <Heart className="w-5 h-5 block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
                       <HeartOff className="w-5 h-5 hidden group-hover/favbtn:block" aria-hidden="true" />
@@ -371,7 +389,7 @@ useEffect(() => {
 
             {/* Title + meta */}
             <div className="flex flex-col items-center text-center mt-5 lg:mt-6 w-full lg:w-[min(31vw,580px)] min-w-0">
-              <span className="text-white/60 text-xs font-semibold tracking-[0.25em] uppercase">{isPlaylist ? 'Lista de reproducción' : 'Álbum'}</span>
+              <span className="text-white/60 text-xs font-semibold tracking-[0.25em] uppercase">{isPlaylist ? 'Lista de reproducción' : (album as any)?.isSongRadio ? 'Canción y similares' : 'Álbum'}</span>
               {isPlaylist && isRenaming ? (
                 <input
                   autoFocus
@@ -399,7 +417,7 @@ useEffect(() => {
                 <span aria-hidden="true">•</span>
                 <span>{album.year}</span>
                 <span aria-hidden="true">•</span>
-                <span>{album.trackCount} {album.trackCount === 1 ? "canción" : "canciones"}</span>
+                <span>{album.trackCount} {album.trackCount === 1 ? "canción" : (album as any)?.isSongRadio ? "canciones similares" : "canciones"}</span>
                 {album.totalDuration ? (
                   <>
                     <span aria-hidden="true">•</span>
@@ -482,7 +500,7 @@ useEffect(() => {
                   key={track.id}
                   onMouseEnter={() => setHoveredTrack(track.id)}
                   onMouseLeave={() => setHoveredTrack(null)}
-                  onClick={() => (isPlaylist ? playback.playAlbum(album, track) : onPlayTrack(track, album))}
+                  onClick={() => playback.playAlbum(album, track)}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     setTrackMenuPos({ top: e.clientY, left: e.clientX, isUpward: false });

@@ -14,19 +14,23 @@ export const CatalogView = ({
   onSelectAlbum,
   onPlayTrack,
   onSelectArtist,
+  onSelectSong,
+  onPlaySongRadio,
   personalized = false
 }: { 
   albums: Album[],
   loading: boolean,
   isInitialEntrance?: boolean,
   onSelectAlbum: (album: Album) => void,
+  onSelectSong?: (t: Track, a: Album) => void,
   onPlayTrack: (t: Track, a: Album) => void,
+  onPlaySongRadio?: (t: Track, a: Album) => void,
   onSelectArtist?: (artist: {name: string, img: string, type?: string}) => void,
   /** albums arrive ordered by the user's tastes */
   personalized?: boolean
 }) => {
   const [hoveredAlbum, setHoveredAlbum] = useState<string | number | null>(null);
-  const { downloadTrack, isDownloaded, isFavorite, toggleFavoriteAlbum, cancelAlbumDownload, downloadingAlbums, downloadAlbum } = useDownloads();
+  const { downloadTrack, isDownloaded, isFavorite, toggleFavorite, toggleFavoriteAlbum, cancelAlbumDownload, downloadingAlbums, downloadAlbum } = useDownloads();
   const playback = usePlayback();
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
@@ -162,7 +166,14 @@ export const CatalogView = ({
     <div 
       key={album.id}
       className={`${expandedSection ? 'w-full' : 'w-[48vw] max-w-[210px] sm:w-56 md:w-64 md:max-w-none'} shrink-0 snap-start flex flex-col gap-2 md:gap-3 group cursor-pointer`}
-      onClick={() => onSelectAlbum(album)}
+      onClick={() => {
+        if (showTrackTitle && album.tracks && album.tracks.length > 0) {
+          if (onSelectSong) onSelectSong(album.tracks[0], album);
+          else onSelectAlbum(album);
+        } else {
+          onSelectAlbum(album);
+        }
+      }}
     >
       <div className={`relative ${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-64 md:h-64'}`}>
         <div className="w-full h-full rounded-2xl overflow-hidden relative shadow-xl transition-all duration-500">
@@ -175,11 +186,16 @@ export const CatalogView = ({
               onClick={(e) => {
                 e.stopPropagation();
                 if (album.tracks && album.tracks.length > 0) {
-                  if (showTrackTitle) onPlayTrack(album.tracks[0], album); else playback.playAlbum(album);
+                  if (showTrackTitle) {
+                    if (onPlaySongRadio) onPlaySongRadio(album.tracks[0], album);
+                    else onPlayTrack(album.tracks[0], album);
+                  } else {
+                    playback.playAlbum(album);
+                  }
                 }
               }}
-              title={`Reproducir ${album.title}`}
-              aria-label={`Reproducir álbum ${album.title}`}
+              title={showTrackTitle && album.tracks?.[0] ? `Reproducir ${album.tracks[0].title}` : `Reproducir ${album.title}`}
+              aria-label={showTrackTitle && album.tracks?.[0] ? `Reproducir canción ${album.tracks[0].title}` : `Reproducir álbum ${album.title}`}
             >
               <Play className="w-7 h-7 md:w-9 md:h-9 ml-1 md:ml-1.5 text-white/90 fill-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
             </button>
@@ -280,50 +296,74 @@ export const CatalogView = ({
             <span className="text-white/50 text-xs md:text-[13px] mt-0.5 truncate">{album.artist}</span>
           </div>
           <div className="flex items-center gap-0.5 md:gap-1 shrink-0 -mr-1 -mt-0.5">
-            {album.tracks && album.tracks.length > 0 && (
-              isDownloading ? (
+            {album.tracks && album.tracks.length > 0 && (() => {
+              const mainTrack = album.tracks[0];
+              const isTrackDownloading = showTrackTitle ? downloadingIds.includes(mainTrack.id) : isDownloading;
+              const isTrackComplete = showTrackTitle ? isDownloaded(mainTrack.id) : isComplete;
+              return isTrackDownloading ? (
                 <button 
                   onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(album); }}
                   className="group/cancel p-1.5 md:p-1 rounded-full transition-all hover:scale-110 text-[#a855f7] hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-                  title={`Descargando canciones (${downloadedCount}/${totalCount}) - Clic para cancelar`}
-                  aria-label={`Descargando canciones (${downloadedCount} de ${totalCount}). Clic para cancelar`}
+                  title={showTrackTitle ? "Descargando canción - Clic para cancelar" : `Descargando canciones (${downloadedCount}/${totalCount}) - Clic para cancelar`}
+                  aria-label={showTrackTitle ? "Descargando canción. Clic para cancelar" : `Descargando canciones (${downloadedCount} de ${totalCount}). Clic para cancelar`}
                 >
                   <Loader2 className="w-4 h-4 animate-spin group-hover/cancel:hidden" aria-hidden="true" />
                   <X className="w-4 h-4 hidden group-hover/cancel:block text-red-400" aria-hidden="true" />
                 </button>
-              ) : isComplete ? (
+              ) : isTrackComplete ? (
                 <button
                   onClick={(e) => { e.stopPropagation(); }}
                   className="p-1.5 md:p-1 text-[#a855f7] flex items-center justify-center cursor-default focus-visible:outline-none"
-                  title="Álbum descargado"
-                  aria-label="Álbum descargado"
+                  title={showTrackTitle ? "Canción descargada" : "Álbum descargado"}
+                  aria-label={showTrackTitle ? "Canción descargada" : "Álbum descargado"}
                 >
                   <CheckCircle className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
                 </button>
               ) : (
                 <button 
-                  onClick={(e) => handleDownloadAlbumClick(e, album)}
+                  onClick={(e) => {
+                    if (showTrackTitle && mainTrack) {
+                      e.stopPropagation();
+                      if (isDownloaded(mainTrack.id)) return;
+                      setDownloadingIds(prev => [...prev, mainTrack.id]);
+                      downloadTrack(mainTrack, album).finally(() => {
+                        setDownloadingIds(prev => prev.filter(id => id !== mainTrack.id));
+                      });
+                    } else {
+                      handleDownloadAlbumClick(e, album);
+                    }
+                  }}
                   className={`p-1.5 md:p-1 rounded-full transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
-                    isPartial ? 'text-[#a855f7]/80 hover:text-[#a855f7]' : 'text-white/30 hover:text-white'
+                    (!showTrackTitle && isPartial) ? 'text-[#a855f7]/80 hover:text-[#a855f7]' : 'text-white/30 hover:text-white'
                   }`}
-                  title={isPartial ? `Descarga parcial (${downloadedCount}/${totalCount}) - Continuar descarga` : (showTrackTitle ? "Descargar álbum" : `Descargar ${album.title}`)}
-                  aria-label={isPartial ? `Descarga parcial (${downloadedCount} de ${totalCount})` : `Descargar ${album.title}`}
+                  title={showTrackTitle ? `Descargar ${mainTrack.title}` : (isPartial ? `Descarga parcial (${downloadedCount}/${totalCount}) - Continuar descarga` : `Descargar ${album.title}`)}
+                  aria-label={showTrackTitle ? `Descargar ${mainTrack.title}` : (isPartial ? `Descarga parcial (${downloadedCount} de ${totalCount})` : `Descargar ${album.title}`)}
                 >
                   <Download className="w-4 h-4" aria-hidden="true" />
                 </button>
-              )
-            )}
+              );
+            })()}
 
             {(() => {
-              const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
+              const mainTrack = album.tracks?.[0];
+              const isItemFavorited = showTrackTitle && mainTrack
+                ? isFavorite(mainTrack.id)
+                : (album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false);
               return (
                 <button 
-                   onClick={(e) => { e.stopPropagation(); toggleFavoriteAlbum(album); }}
-                   className={`group/favbtn p-1.5 md:p-1 rounded-full transition-colors hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isEntireAlbumFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/30 hover:text-white'}`}
-                   title={isEntireAlbumFavorited ? "Quitar álbum de favoritos" : "Añadir álbum a favoritos"}
-                   aria-label={isEntireAlbumFavorited ? `Quitar ${album.title} de favoritos` : `Añadir ${album.title} a favoritos`}
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     if (showTrackTitle && mainTrack) {
+                       toggleFavorite(mainTrack, album);
+                     } else {
+                       toggleFavoriteAlbum(album);
+                     }
+                   }}
+                   className={`group/favbtn p-1.5 md:p-1 rounded-full transition-colors hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isItemFavorited ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/30 hover:text-white'}`}
+                   title={isItemFavorited ? (showTrackTitle ? "Quitar de favoritos" : "Quitar álbum de favoritos") : (showTrackTitle ? "Añadir a favoritos" : "Añadir álbum a favoritos")}
+                   aria-label={isItemFavorited ? (showTrackTitle ? `Quitar ${mainTrack?.title} de favoritos` : `Quitar ${album.title} de favoritos`) : (showTrackTitle ? `Añadir ${mainTrack?.title} a favoritos` : `Añadir ${album.title} a favoritos`)}
                 >
-                   {isEntireAlbumFavorited ? (
+                   {isItemFavorited ? (
                      <>
                        <Heart className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
                        <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" aria-hidden="true" />

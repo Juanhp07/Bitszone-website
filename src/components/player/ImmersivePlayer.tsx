@@ -905,7 +905,7 @@ export const ImmersivePlayer = ({
                   value={currentTab}
                   onChange={handleTabSelect}
                   tabs={[
-                    { id: 'pistas', label: 'Pistas', title: 'Mostrar pistas del álbum', icon: <ListMusic className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+                    { id: 'pistas', label: (album as any)?.isSongRadio ? 'Similares' : 'Pistas', title: (album as any)?.isSongRadio ? 'Mostrar canciones similares' : 'Mostrar pistas del álbum', icon: <ListMusic className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
                     { id: 'letra', label: 'Letra', title: 'Mostrar letra sincronizada', icon: <Mic2 className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
                     { id: 'cola', label: 'Cola', title: 'Mostrar cola de reproducción', icon: <ListOrdered className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
                   ]}
@@ -986,7 +986,7 @@ export const ImmersivePlayer = ({
                          <motion.div
                            key={t.id}
                            variants={cascadedItemVariants}
-                           onClick={() => onPlayTrack && onPlayTrack(t, album)}
+                           onClick={() => playback.playAlbum(album, t)}
                            onContextMenu={(e) => openRowMenu(e, t, album, false, true)}
                            className={`group py-1.5 md:py-2.5 text-lg md:text-3xl xl:text-4xl font-bold cursor-pointer transition-all duration-300 shrink-0 ${
                              isActive
@@ -1015,9 +1015,16 @@ export const ImmersivePlayer = ({
                                  {(t.trackNumber || i + 1).toString().padStart(2, '0')}
                                </span>
                              </div>
-                             <div className="flex items-center flex-1 min-w-0">
-                               {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
-                               <MarqueeTitle text={t.title} active={isActive} />
+                             <div className="flex flex-col flex-1 min-w-0">
+                               <div className="flex items-center min-w-0">
+                                 {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
+                                 <MarqueeTitle text={t.title} active={isActive} />
+                               </div>
+                               {((album as any)?.isSongRadio || (t.artist && t.artist !== album.artist)) && (
+                                 <span className={`text-xs md:text-sm font-medium tracking-wide truncate transition-colors ${isActive ? 'text-[#ebd5ff]/80' : 'text-white/40 group-hover:text-white/70'}`}>
+                                   {t.artist}
+                                 </span>
+                               )}
                              </div>
                              {isActive && (
                                <EqBars playing={isPlaying} className="h-5 md:h-6 ml-2 md:ml-4" barClassName="w-[3px] md:w-[4px] bg-[#e9d5ff]" />

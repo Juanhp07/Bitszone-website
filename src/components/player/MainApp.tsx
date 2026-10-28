@@ -18,6 +18,7 @@ import { genreScore } from '../../lib/genres';
 import type { Album, Track } from './types';
 import { DownloadsProvider } from './DownloadsContext';
 import { PlaylistsProvider, isPlaylistAlbum } from './PlaylistsContext';
+import { buildSongRadio, isSongRadioAlbum } from './songRadio';
 import { PlaybackContext, type QueueEntry } from './PlaybackContext';
 import { PlayerLoadingScreen } from './PlayerLoadingScreen';
 import { Heart } from 'lucide-react';
@@ -431,10 +432,22 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const handleSelectAlbum = async (album: Album) => {
     setSelectedAlbum(album);
     setCurrentView('album');
-    // Playlists are built locally; AlbumView reads their live contents
-    if (isPlaylistAlbum(album)) { setSelectedAlbumFull(album); return; }
+    // Playlists and song radios are built locally; AlbumView reads their live contents
+    if (isPlaylistAlbum(album) || isSongRadioAlbum(album)) { setSelectedAlbumFull(album); return; }
     const fullAlbum = await fetchAlbumDetails(album.id);
     setSelectedAlbumFull(fullAlbum);
+  };
+
+  const handleSelectSongRadio = (track: Track, originAlbum: Album) => {
+    const radioAlbum = buildSongRadio(track, originAlbum, albums);
+    setSelectedAlbum(radioAlbum);
+    setSelectedAlbumFull(radioAlbum);
+    setCurrentView('album');
+  };
+
+  const handlePlaySongRadio = (track: Track, originAlbum: Album) => {
+    const radioAlbum = buildSongRadio(track, originAlbum, albums);
+    playAlbum(radioAlbum, radioAlbum.tracks?.[0] ?? track);
   };
 
   const findWorkingUrl = async (track: Track, album: Album): Promise<string | null> => {
@@ -664,7 +677,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const nowPlayingOrigin: Album | null = (() => {
     if (!nowPlayingAlbum || !nowPlayingTrack) return null;
-    if (!isPlaylistAlbum(nowPlayingAlbum)) return nowPlayingAlbum;
+    if (!isPlaylistAlbum(nowPlayingAlbum) && !isSongRadioAlbum(nowPlayingAlbum)) return nowPlayingAlbum;
     return albums.find(a => a.id === nowPlayingTrack.albumId)
       ?? { id: nowPlayingTrack.albumId as number, title: nowPlayingTrack.albumTitle || '', artist: nowPlayingTrack.artist, coverUrl: nowPlayingTrack.albumCover || '', year: '', genre: '', trackCount: 0 };
   })();
@@ -909,7 +922,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       loading={loading}
                       isInitialEntrance={!hasEntered}
                       onSelectAlbum={handleSelectAlbum}
+                      onSelectSong={handleSelectSongRadio}
                       onPlayTrack={handlePlayTrack}
+                      onPlaySongRadio={handlePlaySongRadio}
                       onSelectArtist={(artist) => {
                         setSelectedArtist(artist);
                         setCurrentView('artist');
