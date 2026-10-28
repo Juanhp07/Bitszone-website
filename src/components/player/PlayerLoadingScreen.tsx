@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { SpecularText } from '../ui/SpecularText';
 
 export const PlayerLoadingScreen: React.FC = () => {
   const [targetY, setTargetY] = useState(-360);
@@ -51,20 +50,14 @@ export const PlayerLoadingScreen: React.FC = () => {
           className="flex items-center justify-center"
         >
           <div className="border-none bg-transparent select-none cursor-default">
-            <SpecularText
-              text="Bitszone"
-              className="pe-2"
+            <span
+              className="font-inter font-bold text-4xl text-white tracking-tight"
               style={{
-                fontSize: "42px",
-                fontFamily: '"DM Serif Display", serif',
-                fontStyle: "italic",
                 filter: 'drop-shadow(0 0 35px rgba(168, 85, 247, 0.6))',
               }}
-              specularColor="#5A1B5E"
-              baseStrokeColor="transparent"
-              strokeWidth={1.5}
-              glowSize={50}
-            />
+            >
+              Bitszone
+            </span>
           </div>
         </motion.div>
       </div>

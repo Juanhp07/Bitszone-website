@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React from 'react';
 import { User } from 'lucide-react';
-import { SpecularText } from '../ui/SpecularText';
 
 export const TopNav = ({ 
   currentView, 
@@ -16,30 +14,21 @@ export const TopNav = ({
   isSidebarOpen: boolean,
   loading?: boolean
 }) => {
-    return (
-    <header className="h-16 md:h-20 w-full bg-transparent flex items-center px-3 md:px-8 relative z-20 shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      <style>{`
-        @keyframes gradientMove {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `}</style>
-
-      {/* Left: Menu */}
-      {/* Left: Menu */}
+  return (
+    <header className="h-14 w-full bg-transparent flex items-center justify-between px-3 md:px-8 relative z-20 shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      {/* Left: Menu & Brand Logo */}
       <div 
-        className="flex-1 flex items-center transition-opacity duration-700 ease-out"
+        className="flex items-center gap-3 transition-opacity duration-700 ease-out"
         style={{ opacity: loading ? 0 : 1 }}
       >
         <button 
           onClick={onToggleSidebar} 
-          className="w-11 h-11 -ml-1 md:ml-0 md:w-auto md:h-auto flex items-center justify-center text-white/70 hover:text-white transition-colors max-md:[--burger-shift:0px] max-md:[--burger-opacity:1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg p-1.5 cursor-pointer"
+          className="w-10 h-10 flex items-center justify-center text-white/70 hover:text-white transition-colors max-md:[--burger-shift:0px] max-md:[--burger-opacity:1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg p-1.5 cursor-pointer"
           title={isSidebarOpen ? "Ocultar menú lateral" : "Mostrar menú lateral"}
           aria-label={isSidebarOpen ? "Ocultar menú lateral" : "Mostrar menú lateral"}
           aria-expanded={isSidebarOpen}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible" aria-hidden="true">
             <line x1="4" y1="6" x2="20" y2="6" className="transition-transform duration-300" />
             <line x1="4" y1="12" x2="20" y2="12" className="transition-transform duration-300" />
             <line x1="4" y1="18" x2="20" y2="18" 
@@ -51,50 +40,37 @@ export const TopNav = ({
             />
           </svg>
         </button>
-      </div>
 
-      {/* Center: Logo */}
-      <div className="flex-1 flex items-center justify-center">
-        
         <button 
-          onClick={() => window.location.reload()}
-          className="cursor-pointer hover:opacity-80 hover:scale-105 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-xl p-1"
-          style={{ 
-            opacity: loading ? 0 : 1, 
-            transition: 'opacity 0.2s ease 0.75s' 
+          onClick={() => {
+            if (currentView !== 'catalog') {
+              onViewChange('catalog');
+            } else {
+              window.location.reload();
+            }
           }}
-          title="Bitszone - Recargar aplicación"
-          aria-label="Bitszone - Recargar página"
+          className="cursor-pointer hover:opacity-85 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg py-1 px-1 flex items-center transition-transform"
+          title="Bitszone - Inicio"
+          aria-label="Bitszone - Ir al catálogo"
         >
-          <SpecularText
-            text="Bitszone"
-            className="pe-2"
-            style={{
-              fontSize: "clamp(30px, 8vw, 42px)",
-              fontFamily: '"DM Serif Display", serif',
-              fontStyle: "italic",
-            }}
-            specularColor="#5A1B5E"
-            baseStrokeColor="transparent"
-            strokeWidth={1.5}
-            glowSize={50}
-          />
+          <span className="font-inter font-bold text-xl md:text-2xl text-white tracking-tight select-none">
+            Bitszone
+          </span>
         </button>
-
       </div>
 
       {/* Right: Acceder */}
       <div 
-        className="flex-1 flex items-center justify-end transition-opacity duration-700 ease-out"
+        className="flex items-center justify-end transition-opacity duration-700 ease-out"
         style={{ opacity: loading ? 0 : 1 }}
       >
         <a 
           href="/login" 
           aria-label="Acceder a tu cuenta"
           title="Acceder a tu cuenta"
-          className="w-11 h-11 md:w-auto md:h-auto justify-center md:px-5 md:py-2 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+          className="h-9 px-3.5 md:px-4 rounded-full border border-white/20 text-xs md:text-sm font-medium hover:bg-white/10 transition-colors flex items-center gap-2 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
         >
-          <User className="w-[18px] h-[18px] md:w-4 md:h-4" aria-hidden="true" />
+          <User className="w-4 h-4" aria-hidden="true" />
           <span className="hidden md:inline">Acceder</span>
         </a>
       </div>

@@ -875,7 +875,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               >
                 <motion.div
                   style={{ y: springMainY }}
-                  className="pt-16 md:pt-20 pb-6 md:pb-0 min-h-full flex flex-col"
+                  className="pt-14 pb-6 md:pb-0 min-h-full flex flex-col"
                 >
                   {currentView === 'catalog' && (
                     <CatalogView
@@ -922,7 +922,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               </div>
 
               {/* Right Lyrics Sidebar */}
-              <div className={`hidden md:block h-full pt-20 shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
+              <div className={`hidden md:block h-full pt-14 shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
                 <div className="w-80 h-full">
                   <LyricsSidebar track={nowPlayingTrack} album={nowPlayingAlbum} progress={progress} />
                 </div>

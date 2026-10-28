@@ -30,7 +30,7 @@ export const Sidebar = ({
   const usedPercent = (totalUsedGB / 5.0) * 100;
 
   return (
-    <aside className={`w-full h-full flex flex-col bg-transparent ${isMobile ? 'pt-[max(1.25rem,env(safe-area-inset-top))]' : 'pt-20'}`}>
+    <aside className={`w-full h-full flex flex-col bg-transparent ${isMobile ? 'pt-[max(1.25rem,env(safe-area-inset-top))]' : 'pt-14'}`}>
       {isMobile && (
         <div className="px-8 pb-2 text-white/40 text-[11px] font-bold uppercase tracking-[0.2em]">Menú</div>
       )}
