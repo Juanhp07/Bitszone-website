@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User } from "lucide-react";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useDownloads } from "./DownloadsContext";
 
 export const Sidebar = ({
@@ -62,14 +62,14 @@ export const Sidebar = ({
             className={`flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
               isCollapsed ? 'w-11 h-11 rounded-xl' : 'w-10 h-10 rounded-lg p-1.5'
             }`}
-            title={isCollapsed ? "Expandir menú lateral" : "Ocultar menú lateral"}
-            aria-label={isCollapsed ? "Expandir menú lateral" : "Ocultar menú lateral"}
+            title={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
+            aria-label={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <line x1="4" y1="6" x2="20" y2="6" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-              <line x1="4" y1="18" x2="20" y2="18" />
-            </svg>
+            {isCollapsed ? (
+              <PanelLeftOpen className="w-5 h-5 shrink-0" aria-hidden="true" />
+            ) : (
+              <PanelLeftClose className="w-5 h-5 shrink-0" aria-hidden="true" />
+            )}
           </button>
         )}
       </div>
