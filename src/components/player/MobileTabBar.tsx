@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Home, Library, DownloadCloud } from 'lucide-react';
+import { Home, Library, DownloadCloud, Menu } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 
 /**
@@ -9,16 +9,19 @@ import { useDownloads } from './DownloadsContext';
  * press and slide a finger across the bar — the bubble follows and the tab under the finger
  * opens on release. Each target stays at least 44px tall.
  */
-export const MobileTabBar = ({ currentView, onViewChange }: { currentView: string; onViewChange: (view: string) => void }) => {
+export const MobileTabBar = ({ currentView, onViewChange, onOpenMenu, menuOpen = false }: { currentView: string; onViewChange: (view: string) => void; onOpenMenu: () => void; menuOpen?: boolean }) => {
   const { newDownloadsCount } = useDownloads();
   const barRef = useRef<HTMLDivElement>(null);
   const [pressIndex, setPressIndex] = useState<number | null>(null);
 
   const tabs = [
-    { id: 'catalog', label: 'Inicio', icon: Home, active: ['catalog', 'album', 'artist'].includes(currentView) },
-    { id: 'library', label: 'Biblioteca', icon: Library, active: currentView.startsWith('library') },
-    { id: 'downloads', label: 'Descargas', icon: DownloadCloud, active: currentView === 'downloads', badge: newDownloadsCount },
+    { id: 'catalog', label: 'Inicio', icon: Home, active: !menuOpen && ['catalog', 'album', 'artist'].includes(currentView) },
+    { id: 'library', label: 'Biblioteca', icon: Library, active: !menuOpen && currentView.startsWith('library') },
+    { id: 'downloads', label: 'Descargas', icon: DownloadCloud, active: !menuOpen && currentView === 'downloads', badge: newDownloadsCount },
+    { id: 'menu', label: 'Menú', icon: Menu, active: menuOpen },
   ];
+  // the last tab is not a page: it opens the drawer (settings, shortcuts, account)
+  const go = (id: string) => (id === 'menu' ? onOpenMenu() : onViewChange(id));
   const activeIndex = Math.max(0, tabs.findIndex((t) => t.active));
   const bubbleIndex = pressIndex ?? activeIndex;
 
@@ -44,7 +47,7 @@ export const MobileTabBar = ({ currentView, onViewChange }: { currentView: strin
           if (pressIndex === null) return;
           const target = indexAt(e.clientX);
           setPressIndex(null);
-          onViewChange(tabs[target].id);
+          go(tabs[target].id);
         }}
         onPointerCancel={() => setPressIndex(null)}
       >
@@ -68,7 +71,7 @@ export const MobileTabBar = ({ currentView, onViewChange }: { currentView: strin
               key={id}
               type="button"
               // Navigation happens on pointer-up of the bar; keyboard still works through onClick
-              onClick={(e) => { if (e.detail === 0) onViewChange(id); }}
+              onClick={(e) => { if (e.detail === 0) go(id); }}
               aria-current={active ? 'page' : undefined}
               aria-label={label}
               className="relative z-10 flex-1 min-h-[52px] flex flex-col items-center justify-center gap-0.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"

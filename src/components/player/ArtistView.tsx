@@ -113,7 +113,7 @@ export const ArtistView = ({
     >
       {/* Botón Atrás estilo circular Liquid Glass con expansión suave a texto en hover */}
       <div
-        className="absolute top-6 left-6 md:top-8 md:left-8 z-40 transition-opacity duration-300"
+        className="absolute top-6 left-6 md:top-[18px] md:left-[72px] lg:top-8 lg:left-8 z-40 transition-opacity duration-300"
         style={{
           opacity: scrollY > 150 ? 0 : 1,
           pointerEvents: scrollY > 150 ? 'none' : 'auto'

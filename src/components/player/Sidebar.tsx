@@ -13,6 +13,7 @@ export const Sidebar = ({
   isShortcutsOpen,
   isMobile = false,
   isCollapsed = false,
+  drawerOnRight = false,
   account = null,
   onSignOut
 }: {
@@ -24,6 +25,8 @@ export const Sidebar = ({
   isShortcutsOpen: boolean;
   isMobile?: boolean;
   isCollapsed?: boolean;
+  /** phone drawer opens from the right, so its close chevron points right */
+  drawerOnRight?: boolean;
   account?: { name: string; avatarUrl?: string | null } | null;
   onSignOut?: () => void;
 }) => {
@@ -78,7 +81,7 @@ export const Sidebar = ({
           >
             <ChevronLeft
               className={`w-5 h-5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                isCollapsed ? "rotate-180" : "rotate-0"
+                isCollapsed || drawerOnRight ? "rotate-180" : "rotate-0"
               }`}
               strokeWidth={2.2}
               aria-hidden="true"
