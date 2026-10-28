@@ -26,6 +26,7 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
 
   const heightsRef = useRef<Float32Array | null>(null);
   const smoothedFreqRef = useRef<Float32Array | null>(null);
+  const rawTargetsRef = useRef<Float32Array | null>(null);
   const playStateBlendRef = useRef(isPlaying ? 1.0 : 0.0);
   const smoothedEnergyRef = useRef(0.2);
   const smoothedBassRef = useRef(0.2);
@@ -65,10 +66,12 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
       }
       heightsRef.current = newHeights;
       smoothedFreqRef.current = new Float32Array(barCount);
+      rawTargetsRef.current = new Float32Array(barCount);
     }
 
     const heights = heightsRef.current;
     const smoothedFreq = smoothedFreqRef.current!;
+    const rawTargets = rawTargetsRef.current!;
 
     // Helper to extract RGB from dominantColor string
     const extractRgb = (str: string): [number, number, number] => {
@@ -162,7 +165,9 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
       const baselineY = height - 12;
 
       const distribution = settings.distribution || 'distributed';
+      const phi = 0.618033988749895; // Golden ratio fractional part for non-repeating low-discrepancy dispersion
 
+      // Pass 1: Calculate raw frequency targets per bar
       for (let i = 0; i < barCount; i++) {
         const x = i / Math.max(1, barCount - 1); // 0 (left) to 1 (right)
 
@@ -170,6 +175,7 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
         let targetBin = 0;
         let bandTilt = 1.0;
         let isBass = false;
+        const scatter = (i * phi) % 1;
 
         if (distribution === 'center') {
           // Symmetrical: Sub-bass in center, expanding outward to treble at edges
@@ -195,47 +201,20 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
           bandTilt = 1.0 + Math.pow(x, 0.72) * 1.75;
           isBass = x < 0.18;
         } else {
-          // 'distributed' (Default: Repartido Armónico 5-bandas)
-          // Distributes sub-bass, punch bass, low-mids, vocals, and treble across the entire screen
-          const band = i % 5;
-          const col = Math.floor(i / 5);
-          const totalCols = Math.max(1, Math.ceil(barCount / 5));
-          const colProg = totalCols > 1 ? col / (totalCols - 1) : 0;
-
-          if (band === 0) {
-            // Sub-bass fundamental kick (~30-75Hz)
-            targetBin = Math.floor(colProg * 4);
-            bandTilt = 0.95;
-            isBass = true;
-          } else if (band === 1) {
-            // Punch-bass & 808 harmonics (~80-160Hz)
-            targetBin = Math.floor(3 + colProg * 7);
-            bandTilt = 1.08;
-            isBass = true;
-          } else if (band === 2) {
-            // Low-mids (~200-500Hz)
-            targetBin = Math.floor(8 + colProg * 14);
-            bandTilt = 1.28;
-            isBass = false;
-          } else if (band === 3) {
-            // Vocals & leads (~600-2500Hz)
-            targetBin = Math.floor(18 + Math.pow(colProg, 1.2) * 40);
-            bandTilt = 1.62;
-            isBass = false;
-          } else {
-            // Treble & shimmer (~3000-12000Hz)
-            targetBin = Math.floor(55 + Math.pow(colProg, 1.2) * 83);
-            bandTilt = 2.05;
-            isBass = false;
-          }
+          // 'distributed' (Default: Dispersión Armónica Natural con Golden Ratio)
+          // Reparte los bajos, medios y agudos de forma orgánica y desordenada sin patrones repetitivos
+          targetBin = Math.floor(Math.pow(scatter, 1.35) * 138);
+          const normBin = Math.min(1, targetBin / 120);
+          bandTilt = 0.95 + Math.pow(normBin, 0.65) * 1.55;
+          isBass = targetBin < 12;
         }
 
-        // Ambient fluid wave harmonics (liquid breathing motion)
+        // Ambient fluid wave harmonics (liquid breathing motion with organic phase offset)
         const arch = Math.sin(x * Math.PI) * 0.14 + 0.08;
-        const wave1 = Math.sin(t * 1.8 + x * Math.PI * 2.2) * 0.08;
-        const wave2 = Math.cos(t * 2.6 - x * Math.PI * 3.4) * 0.06;
-        const wave3 = Math.sin(t * (2.1 + (i % 4) * 0.4) + (i * 0.55)) * 0.04;
-        let waveProfile = arch + wave1 + wave2 + wave3;
+        const wave1 = Math.sin(t * 1.8 + x * Math.PI * 2.2) * 0.07;
+        const wave2 = Math.cos(t * 2.6 - x * Math.PI * 3.4) * 0.05;
+        const waveOrganic = Math.sin(t * 2.2 + scatter * Math.PI * 2) * 0.04;
+        let waveProfile = arch + wave1 + wave2 + waveOrganic;
 
         if (freqData && freqData.length > 0) {
           const safeBin = Math.min(freqData.length - 1, targetBin);
@@ -260,15 +239,28 @@ export const CavaVisualizer: React.FC<CavaVisualizerProps> = ({
         // Active target modulated by music presence (collapses down during silence!)
         const activeTarget = waveProfile * (0.38 + smoothedEnergy * 0.78) * musicPresence * settings.sensitivity;
 
+        // Soft-knee dynamic compression: allows energetic bars to punch up dynamically (~0.88-0.91),
+        // but smoothly saturates so NO bars ever form a flat ceiling against the top!
+        rawTargets[i] = 0.90 * Math.tanh(activeTarget / 0.82);
+      }
+
+      // Pass 2: Neighbor coupling pass for organic fluid wave feel (turns individual spikes into rolling natural waves)
+      for (let i = 0; i < barCount; i++) {
+        const x = i / Math.max(1, barCount - 1);
+        const prev = i > 0 ? rawTargets[i - 1] : rawTargets[i];
+        const next = i < barCount - 1 ? rawTargets[i + 1] : rawTargets[i];
+
+        // In distributed mode, neighbor blending creates gorgeous rolling crests;
+        // in center or linear modes, mild blending maintains continuous silhouette.
+        const coupled = distribution === 'distributed'
+          ? 0.76 * rawTargets[i] + 0.12 * (prev + next)
+          : 0.86 * rawTargets[i] + 0.07 * (prev + next);
+
         // Resting stubs (when paused or silent)
         const restTarget = 0.025 + Math.sin(x * Math.PI) * 0.015;
 
-        // Soft-knee dynamic compression: allows energetic bars to punch up dynamically (~0.88-0.91),
-        // but smoothly saturates so NO bars ever form a flat ceiling against the top!
-        const compressedTarget = 0.90 * Math.tanh(activeTarget / 0.82);
-
         // Blend with smooth play/pause state
-        const target = restTarget + (Math.max(restTarget, compressedTarget) - restTarget) * playStateBlend;
+        const target = restTarget + (Math.max(restTarget, coupled) - restTarget) * playStateBlend;
 
         // Damped fluid interpolation: silky smooth 60-144fps movement
         const interpRate = settings.gravity === 'fast' ? 0.019 : settings.gravity === 'slow' ? 0.010 : 0.014;

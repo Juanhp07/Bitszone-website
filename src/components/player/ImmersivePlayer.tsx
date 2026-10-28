@@ -652,14 +652,14 @@ export const ImmersivePlayer = ({
           {currentTab === 'inmersion' && (
             <button
               onClick={() => setIsCavaSettingsOpen(true)}
-              className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[154px] md:hover:w-[164px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur-2xl border border-white/20 hover:border-white/35 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none"
+              className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[184px] md:hover:w-[196px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur-2xl border border-white/20 hover:border-white/35 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none"
               title="Ajustes de inmersión"
               aria-label="Ajustes de inmersión"
             >
               <div className="w-10 md:w-11 h-10 md:h-11 flex items-center justify-center shrink-0">
                 <Sliders className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:rotate-90 text-purple-300" strokeWidth={2.2} />
               </div>
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-xs md:text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-xs md:text-sm font-medium tracking-wide pr-4 whitespace-nowrap shrink-0">
                 Ajustes inmersión
               </span>
             </button>
