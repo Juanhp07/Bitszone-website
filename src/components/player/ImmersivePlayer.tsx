@@ -98,6 +98,152 @@ const MarqueeTitle = ({ text, active = false }: { text: string; active?: boolean
   );
 };
 
+/**
+ * Título de canción animado con entrada escalonada letra por letra desde abajo (estilo biblioteca)
+ * y destello brillante en degradado lila/morado que recorre todo el texto de izquierda a derecha.
+ */
+const AnimatedSongTitle = ({
+  title,
+  trackId,
+  className = ""
+}: {
+  title: string;
+  trackId: string | number;
+  className?: string;
+}) => {
+  let charCounter = 0;
+  const words = title.split(' ');
+
+  return (
+    <div
+      key={trackId}
+      className={`relative inline-flex items-center justify-center max-w-full overflow-visible group/title select-none ${className}`}
+    >
+      <style>{`
+        @keyframes titleCharRollUp {
+          0% {
+            transform: translateY(115%);
+            opacity: 0;
+          }
+          60% {
+            opacity: 0.9;
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        @keyframes purpleShimmerSweep {
+          0% {
+            background-position: 220% 0;
+            opacity: 0;
+          }
+          15% {
+            opacity: 1;
+          }
+          85% {
+            opacity: 1;
+          }
+          100% {
+            background-position: -120% 0;
+            opacity: 0;
+          }
+        }
+        @keyframes purpleGlowSweep {
+          0% {
+            transform: translateX(-140%) skewX(-18deg);
+            opacity: 0;
+          }
+          20% {
+            opacity: 0.75;
+          }
+          80% {
+            opacity: 0.75;
+          }
+          100% {
+            transform: translateX(240%) skewX(-18deg);
+            opacity: 0;
+          }
+        }
+        .animate-title-char-roll {
+          animation: titleCharRollUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .animate-purple-shimmer {
+          animation: purpleShimmerSweep 1.35s cubic-bezier(0.25, 1, 0.5, 1) 0.12s both;
+        }
+        .animate-purple-glow {
+          animation: purpleGlowSweep 1.35s cubic-bezier(0.25, 1, 0.5, 1) 0.12s both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-title-char-roll {
+            animation: none !important;
+            transform: none !important;
+            opacity: 1 !important;
+          }
+          .animate-purple-shimmer {
+            display: none !important;
+          }
+          .animate-purple-glow {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      {/* 1. Base Rolling Text: Letter by Letter staggered entrance from below */}
+      <div className="flex flex-wrap items-center justify-center gap-x-[0.26em] gap-y-1 relative z-10 leading-tight">
+        {words.map((word, wIdx) => (
+          <div key={wIdx} className="inline-flex items-center">
+            {word.split('').map((char) => {
+              const delay = Math.min(0.38, (charCounter++) * 0.022);
+              return (
+                <div key={`${wIdx}-${charCounter}`} className="relative h-[1.32em] -my-[0.16em] py-[0.08em] overflow-hidden flex items-center">
+                  <span
+                    className="inline-block leading-none text-white animate-title-char-roll whitespace-pre"
+                    style={{ animationDelay: `${delay}s` }}
+                  >
+                    {char}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* 2. Shimmer Text Overlay: Purple / Lilac sweep running across the typography */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-20 pointer-events-none flex flex-wrap items-center justify-center gap-x-[0.26em] gap-y-1 leading-tight animate-purple-shimmer"
+        style={{
+          background: 'linear-gradient(110deg, transparent 20%, rgba(216,180,254,0.4) 36%, rgba(192,132,252,0.95) 47%, #ffffff 51%, rgba(168,85,247,0.95) 56%, rgba(216,180,254,0.4) 66%, transparent 82%)',
+          backgroundSize: '240% 100%',
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+          WebkitTextFillColor: 'transparent',
+        }}
+      >
+        {words.map((word, wIdx) => (
+          <div key={wIdx} className="inline-flex items-center">
+            {word.split('').map((char, cIdx) => (
+              <div key={cIdx} className="relative h-[1.32em] -my-[0.16em] py-[0.08em] overflow-hidden flex items-center">
+                <span className="inline-block leading-none whitespace-pre opacity-90 drop-shadow-[0_0_12px_rgba(168,85,247,0.85)]">
+                  {char}
+                </span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* 3. Volumetric Ambient Optical Glow: beam passing over the entire title area */}
+      <div aria-hidden="true" className="absolute inset-x-0 -inset-y-3 pointer-events-none overflow-hidden rounded-full z-15">
+        <div className="absolute top-0 bottom-0 w-32 md:w-48 bg-gradient-to-r from-transparent via-[#c084fc]/35 via-white/20 to-transparent blur-md mix-blend-screen animate-purple-glow" />
+      </div>
+    </div>
+  );
+};
+
 
 const somewhereIBelongLyrics = [
   {time: 40.51,text:"When it began"},{time: 41.95,text:"I had nothing to say"},{time: 43.62,text:"And I get lost in the nothingness inside of me"},{time: 46.50,text:"(I was confused)"},{time: 47.39,text:"And I let it all out to find"},{time: 49.40,text:"That I'm not the only person with these things in mind"},{time: 52.33,text:"(Inside of me)"},{time: 53.25,text:"But all that they can see the words revealed"},{time: 55.48,text:"Is the only real thing that I've got left to feel"},{time: 58.25,text:"(Nothing to lose)"},{time: 59.16,text:"Just stuck, hollow and alone"},{time: 61.24,text:"And the fault is my own, and the fault is my own"},{time: 64.33,text:"I wanna heal, I wanna feel, what I thought was never real"},{time: 70.14,text:"I wanna let go of the pain I've felt so long"},{time: 74.10,text:"(Erase all the pain till it's gone)"},{time: 76.09,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time: 82.00,text:"I wanna find something I've wanted all along"},{time: 86.89,text:"Somewhere I belong"},{time: 89.29,text:"And I've got nothing to say"},{time: 90.87,text:"I can't believe I didn't fall right down on my face"},{time: 93.86,text:"(I was confused)"},{time: 94.80,text:"Looking everywhere only to find"},{time: 96.88,text:"That it's not the way I have imagined it all in my mind"},{time: 99.73,text:"(So what am I)"},{time: 100.73,text:"What do I have but negativity"},{time: 102.65,text:"'Cause I can't justify the way everyone is looking at me"},{time: 105.60,text:"(Nothing to lose)"},{time: 106.61,text:"Nothing to gain, hollow and alone"},{time: 108.60,text:"And the fault is my own, and the fault is my own"},{time: 111.60,text:"I wanna heal, I wanna feel, what I thought was never real"},{time: 117.46,text:"I wanna let go of the pain I've felt so long"},{time: 121.38,text:"(Erase all the pain till it's gone)"},{time: 123.42,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time: 129.42,text:"I wanna find something I've wanted all along"},{time: 134.29,text:"Somewhere I belong"},{time: 136.63,text:"I will never know myself until I do this on my own"},{time: 142.48,text:"And I will never feel anything else until my wounds are healed"},{time: 148.38,text:"I will never be anything till I break away from me"},{time: 154.26,text:"I will break away, I'll find myself today"},{time: 163.95,text:"I wanna heal, I wanna feel, what I thought was never real"},{time: 170.79,text:"I wanna let go of the pain I've felt so long"},{time: 174.91,text:"(Erase all the pain till it's gone)"},{time: 176.75,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time: 182.66,text:"I wanna find something I've wanted all along"},{time: 187.62,text:"Somewhere I belong"},{time: 190.02,text:"(I wanna heal, I wanna feel like I'm somewhere I belong)"},{time: 195.73,text:"(I wanna heal, I wanna feel like I'm somewhere I belong)"},{time: 205.46,text:"Somewhere I belong"}
@@ -549,8 +695,8 @@ export const ImmersivePlayer = ({
            {/* Floating Content: Album Title -> Square -> Artist -> Player Controls */}
            <div className="relative z-30 flex flex-col items-center justify-center w-full max-w-2xl">
               {/* Phones: song title sits above the cover */}
-              <h2 className="md:hidden w-full text-center font-inter font-bold text-white text-[26px] leading-normal tracking-tight truncate mb-4 px-2 py-1">
-                {track.title}
+              <h2 className="md:hidden w-full flex justify-center text-center font-inter font-bold text-white text-[26px] leading-normal tracking-tight mb-4 px-2 py-1">
+                <AnimatedSongTitle title={track.title} trackId={track.id} />
               </h2>
               {/* Cover + vinyl + reactions dock: the album page's left column, carried into the player */}
               <div className="relative md:mr-[min(11vw,190px)]">
@@ -625,8 +771,8 @@ export const ImmersivePlayer = ({
 
               {/* Title + meta, laid out like the album page */}
               <div className="flex flex-col items-center text-center mt-6 md:mt-[clamp(24px,5.5dvh,76px)] mb-3 md:mb-[clamp(8px,2dvh,32px)] w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
-                <h2 className="hidden md:block font-inter font-bold text-white text-2xl md:text-4xl xl:text-5xl leading-normal tracking-tight truncate max-w-full py-1.5 px-2">
-                  {track.title}
+                <h2 className="hidden md:flex justify-center font-inter font-bold text-white text-2xl md:text-4xl xl:text-5xl leading-normal tracking-tight max-w-full py-1.5 px-2">
+                  <AnimatedSongTitle title={track.title} trackId={track.id} />
                 </h2>
                 <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 mt-0 md:mt-2 text-[15px] md:text-base xl:text-lg text-white/70 font-medium [&>span]:whitespace-nowrap">
                   <button
