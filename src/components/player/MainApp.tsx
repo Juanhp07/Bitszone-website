@@ -846,12 +846,12 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                 id="main-scroll-container"
                 ref={mainScrollRef}
                 {...mainScrollProps}
-                className="flex-1 overflow-y-auto overscroll-y-contain relative z-10 scrollbar-hide"
+                className="flex-1 overflow-y-auto overscroll-y-contain relative z-10 scrollbar-hide flex flex-col"
                 style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
               >
                 <motion.div
                   style={{ y: springMainY }}
-                  className="pt-3 md:pt-4 pb-6 md:pb-0 min-h-full flex flex-col"
+                  className={`min-h-full flex flex-col flex-1 ${currentView === 'album' ? 'p-0' : 'pt-3 md:pt-4 pb-6 md:pb-0'}`}
                 >
                   {currentView === 'catalog' && (
                     <CatalogView

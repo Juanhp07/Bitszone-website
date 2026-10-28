@@ -195,15 +195,15 @@ useEffect(() => {
 
   return (
     <div
-      className="h-full flex flex-col relative"
+      className="flex-1 w-full min-h-full flex flex-col justify-center relative"
       // Desktop album page fits one screen: keep the page-level bounce for mobile only
       onWheel={(e) => { if (window.innerWidth >= 1024) e.stopPropagation(); }}
     >
 
 
-      {/* Static Volver Button (Unscrolled State) */}
+      {/* Botón Atrás estilo circular Liquid Glass con expansión a texto en hover */}
       <div
-        className="absolute top-4 left-4 md:top-8 md:left-8 z-40 transition-opacity duration-300"
+        className="absolute top-6 left-6 md:top-8 md:left-8 z-40 transition-opacity duration-300"
         style={{
           opacity: scrollY > 150 ? 0 : 1,
           pointerEvents: scrollY > 150 ? 'none' : 'auto'
@@ -211,24 +211,26 @@ useEffect(() => {
       >
         <button
           onClick={() => onViewChange('catalog')}
-          className="flex items-center justify-center w-11 h-11 -ml-2 rounded-full opacity-80 hover:opacity-100 hover:-translate-x-0.5 transition-[opacity,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-          style={{ color: `color-mix(in srgb, ${dominantColor} 30%, #e9e6ee)` }}
-          title="Volver"
-          aria-label="Volver"
+          className="group flex items-center justify-center h-10 w-10 md:h-11 md:w-11 hover:w-auto hover:px-3.5 md:hover:px-4 rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-2xl border border-white/20 hover:border-white/30 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/80 hover:text-white transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden"
+          title="Atrás"
+          aria-label="Volver al catálogo"
         >
-          <ArrowLeft className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+          <ArrowLeft className="w-5 h-5 shrink-0 transition-transform duration-300 group-hover:-translate-x-0.5" strokeWidth={2.2} aria-hidden="true" />
+          <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap group-hover:max-w-[70px] group-hover:opacity-100 group-hover:ml-2 text-sm font-medium tracking-wide transition-all duration-300 ease-out select-none">
+            Atrás
+          </span>
         </button>
       </div>
 
       {/* Album layout: glass sleeve (left, sticky on desktop) + tracklist (right) */}
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row lg:items-center lg:justify-center w-full max-w-[1680px] mx-auto lg:min-h-[calc(100dvh-170px)] gap-8 lg:gap-10 2xl:gap-20 px-4 md:px-8 lg:px-10 2xl:px-20 pt-6 pb-10">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row lg:items-center lg:justify-center w-full max-w-[1680px] mx-auto gap-8 lg:gap-10 2xl:gap-20 px-4 md:px-8 lg:px-10 2xl:px-20 py-6 lg:py-0 my-auto">
 
         {/* Left column */}
         <div className="lg:w-auto shrink-0 flex justify-center">
-          <div className="lg:sticky lg:top-8 flex flex-col items-center w-full">
+          <div className="flex flex-col items-center justify-center w-full">
 
             {/* Glass vinyl sleeve */}
-            <div className={`relative w-[min(64vw,260px)] md:w-[300px] lg:w-[clamp(160px,min(27vw,calc(100dvh-450px)),500px)] mt-6 lg:mt-[clamp(4px,2dvh,40px)] transition-[margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAlbumActive ? 'lg:mr-[min(12vw,220px)]' : ''}`}>
+            <div className={`relative w-[min(64vw,260px)] md:w-[300px] lg:w-[clamp(160px,min(27vw,calc(100dvh-450px)),500px)] mt-4 lg:mt-0 transition-[margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAlbumActive ? 'lg:mr-[min(12vw,220px)]' : ''}`}>
               {/* Vinyl: slides out from behind the sleeve while a track of this album is loaded, spins only while playing */}
               <div
                 aria-hidden="true"
@@ -366,7 +368,7 @@ useEffect(() => {
             </div>
 
             {/* Title + meta */}
-            <div className="flex flex-col items-center text-center mt-6 lg:mt-[clamp(16px,4dvh,56px)] w-full lg:w-[min(31vw,580px)] min-w-0">
+            <div className="flex flex-col items-center text-center mt-5 lg:mt-6 w-full lg:w-[min(31vw,580px)] min-w-0">
               <span className="text-white/60 text-xs font-semibold tracking-[0.25em] uppercase">{isPlaylist ? 'Lista de reproducción' : 'Álbum'}</span>
               {isPlaylist && isRenaming ? (
                 <input
