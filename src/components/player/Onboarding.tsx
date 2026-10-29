@@ -18,6 +18,12 @@ const STEPS = [
   { title: 'Tus gustos', text: 'Para mostrarte lo tuyo primero.' },
   { title: 'A escuchar', text: 'Tu inicio ya hecho a tu medida.' },
 ];
+
+const ADMIN_STEPS = [
+  { title: 'Tu perfil', text: 'Tu foto y tu nombre de administrador.' },
+  { title: 'Listo', text: 'Acceso a la plataforma y dashboard.' },
+];
+
 const stepIndex: Record<Step, number> = { profile: 0, tastes: 1, done: 2 };
 
 // square-crop and shrink the photo so it fits in the profiles.avatar_url text column
@@ -52,6 +58,7 @@ export const Onboarding = ({
   userId,
   userMeta,
   preview = false,
+  isAdmin = false,
   onDone,
 }: {
   userId: string;
@@ -59,12 +66,16 @@ export const Onboarding = ({
   userMeta?: Record<string, any>;
   /** dev preview: walks through the steps without saving anything */
   preview?: boolean;
+  isAdmin?: boolean;
   onDone: (result: OnboardingResult) => void;
 }) => {
   const [step, setStep] = useState<Step>('profile');
   const [status, setStatus] = useState<Status>('idle');
-  const [username, setUsername] = useState(() =>
-    String(userMeta?.name ?? userMeta?.full_name ?? '').toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').slice(0, 20));
+  const [username, setUsername] = useState(() => {
+    const metaName = String(userMeta?.name ?? userMeta?.full_name ?? '').toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').slice(0, 20);
+    if (!metaName && isAdmin) return 'admin';
+    return metaName;
+  });
   const [avatar, setAvatar] = useState<string | null>(userMeta?.avatar_url ?? null);
   const [genres, setGenres] = useState<string[]>([]);
   const [error, setError] = useState('');
@@ -98,7 +109,11 @@ export const Onboarding = ({
         return;
       }
     }
-    advance('tastes');
+    if (isAdmin) {
+      advance('done');
+    } else {
+      advance('tastes');
+    }
   };
 
   const saveTastes = async () => {
@@ -113,7 +128,8 @@ export const Onboarding = ({
   };
 
   const toggle = (id: string) => setGenres((g) => (g.includes(id) ? g.filter((x) => x !== id) : [...g, id]));
-  const active = stepIndex[step];
+  const currentSteps = isAdmin ? ADMIN_STEPS : STEPS;
+  const active = isAdmin ? (step === 'profile' ? 0 : 1) : stepIndex[step];
 
   return createPortal(
     <motion.div
@@ -140,7 +156,10 @@ export const Onboarding = ({
             <AnimatePresence mode="wait" initial={false}>
               {step === 'profile' && (
                 <motion.div key="profile" {...slide}>
-                  <Heading title="Tu perfil" subtitle="Así te verán en Bitszone." />
+                  <Heading
+                    title={isAdmin ? "Perfil de Administrador" : "Tu perfil"}
+                    subtitle={isAdmin ? "Así te verás en el panel y en Bitszone." : "Así te verán en Bitszone."}
+                  />
                   <div className="flex flex-col items-center mb-6">
                     <button
                       type="button"
@@ -165,7 +184,7 @@ export const Onboarding = ({
                       </div>
                       <input
                         type="text"
-                        placeholder="Nombre de usuario"
+                        placeholder={isAdmin ? "Nombre de administrador" : "Nombre de usuario"}
                         value={username}
                         onChange={(e) => { setUsername(e.target.value); setError(''); }}
                         onKeyDown={(e) => e.key === 'Enter' && saveProfile()}
@@ -216,9 +235,16 @@ export const Onboarding = ({
               {step === 'done' && (
                 <motion.div key="done" {...slide} className="text-center">
                   <div className="flex justify-center mb-6"><Avatar src={avatar} size={96} /></div>
-                  <Heading title="¡Todo listo!" subtitle={<>Bienvenido, <span className="font-semibold text-white">{username.trim()}</span></>} />
+                  <Heading
+                    title={isAdmin ? "¡Perfil configurado!" : "¡Todo listo!"}
+                    subtitle={
+                      isAdmin
+                        ? <>Bienvenido, Administrador <span className="font-semibold text-white">{username.trim()}</span></>
+                        : <>Bienvenido, <span className="font-semibold text-white">{username.trim()}</span></>
+                    }
+                  />
                   <LiquidButton onClick={() => onDone({ username: username.trim().toLowerCase(), avatarUrl: avatar, genres })} className="w-full h-14">
-                    Empezar a escuchar
+                    {isAdmin ? 'Entrar a Bitszone' : 'Empezar a escuchar'}
                   </LiquidButton>
                 </motion.div>
               )}
@@ -229,13 +255,15 @@ export const Onboarding = ({
         {/* Right: where you are */}
         <div className="hidden md:flex w-1/2 p-10 flex-col justify-center items-center text-center relative overflow-hidden bg-black/30 bg-[linear-gradient(135deg,rgba(168,85,247,0.12),rgba(88,28,135,0.05))] backdrop-blur-sm">
           <h2 className="mb-4 flex flex-col items-center text-5xl font-bold" style={titleStyle}>
-            <span className="mb-1">Personaliza</span>
-            <span>tu Bitszone</span>
+            <span className="mb-1">{isAdmin ? "Perfil de" : "Personaliza"}</span>
+            <span>{isAdmin ? "Administrador" : "tu Bitszone"}</span>
           </h2>
-          <p className="text-white/90 mb-10 max-w-[85%] text-lg">Unos pasos y tu inicio se llena de lo que te gusta.</p>
+          <p className="text-white/90 mb-10 max-w-[85%] text-lg">
+            {isAdmin ? "Configura tu nombre y foto para administrar Bitszone." : "Unos pasos y tu inicio se llena de lo que te gusta."}
+          </p>
           <ol className="w-full max-w-[22rem] space-y-3 text-left">
-            {STEPS.map((s, i) => {
-              const done = i < active || (step === 'done' && i === 2);
+            {currentSteps.map((s, i) => {
+              const done = i < active || (step === 'done' && i === currentSteps.length - 1);
               const current = i === active && !done;
               return (
                 <li key={s.title} className={`flex items-center gap-4 rounded-2xl px-4 py-3 border transition-all duration-500 ${current ? 'bg-white/12 border-white/35' : 'border-transparent'} ${!current && !done ? 'opacity-55' : ''}`}>

@@ -1050,6 +1050,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             userId={user?.id ?? 'preview'}
             userMeta={user?.user_metadata}
             preview={!user}
+            isAdmin={isAdmin}
             onDone={(r) => { setPickedGenres(r.genres); setOnboarding(false); reloadProfile(); }}
           />
         )}

@@ -236,22 +236,40 @@ export const AuthContainer = () => {
 
       {MemoizedBackgrounds}
 
-      {/* Admin Button */}
+      {/* Floating Mode Toggle: Administrador <-> Usuario Normal */}
       <button
         type="button"
         onClick={() => {
-          setEmail('bitszone.app@gmail.com');
-          setPassword('');
-          setEmailError('');
-          setPasswordError('');
-          setMethod('admin');
-          setStep('password');
+          if (step === 'password') {
+            setEmail('');
+            setPassword('');
+            setEmailError('');
+            setPasswordError('');
+            setMethod('email');
+            setStep('choose');
+          } else {
+            setEmail('bitszone.app@gmail.com');
+            setPassword('');
+            setEmailError('');
+            setPasswordError('');
+            setMethod('admin');
+            setStep('password');
+          }
         }}
-        className="fixed bottom-6 left-6 z-50 flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/85 hover:text-white px-4 py-2 rounded-full transition-all duration-300 backdrop-blur-md shadow-lg cursor-pointer"
-        title="Acceso para Administradores"
+        className="fixed bottom-6 left-6 z-50 flex items-center space-x-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-4 py-2.5 rounded-full transition-all duration-300 backdrop-blur-md shadow-xl cursor-pointer hover:scale-105 active:scale-95"
+        title={step === 'password' ? 'Volver al acceso de usuarios' : 'Acceso para Administradores'}
       >
-        <UserCog className="w-5 h-5 text-purple-400" />
-        <span className="font-medium text-sm">Administrador</span>
+        {step === 'password' ? (
+          <>
+            <ArrowLeft className="w-4 h-4 text-purple-300" />
+            <span className="font-semibold text-sm text-purple-100">Volver a Usuario Normal</span>
+          </>
+        ) : (
+          <>
+            <UserCog className="w-5 h-5 text-purple-400" />
+            <span className="font-medium text-sm">Administrador</span>
+          </>
+        )}
       </button>
 
       <div
@@ -443,14 +461,17 @@ export const AuthContainer = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        setStep('choose');
-                        setMethod('email');
+                        setEmail('');
                         setPassword('');
+                        setEmailError('');
                         setPasswordError('');
+                        setMethod('email');
+                        setStep('choose');
                       }}
-                      className="flex items-center gap-1.5 text-white/85 hover:text-white transition-colors cursor-pointer"
+                      className="flex items-center gap-2 text-white/80 hover:text-white transition-colors cursor-pointer py-1 text-sm font-medium"
                     >
-                      <ArrowLeft className="w-4 h-4" /> Volver a opciones
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Volver al login de usuario normal</span>
                     </button>
                   </div>
                 </motion.div>
