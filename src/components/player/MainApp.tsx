@@ -868,9 +868,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     if (!currentViewingAlbum) return '';
     const isSongRadio = isSongRadioAlbum(currentViewingAlbum);
     if (isSongRadio) {
-      const activeTrack = currentViewingAlbum.tracks?.find(t => t.id === nowPlayingTrack?.id)
+      // same rule as AlbumView: follow the playing song only while this radio is what's playing
+      const radioIsPlaying = queueList[queueIndex]?.album?.id === currentViewingAlbum.id;
+      const activeTrack = (radioIsPlaying && currentViewingAlbum.tracks?.find(t => t.id === nowPlayingTrack?.id))
         || currentViewingAlbum.tracks?.[0];
-      return activeTrack?.albumCover || nowPlayingOrigin?.coverUrl || currentViewingAlbum.coverUrl || '';
+      return activeTrack?.albumCover || currentViewingAlbum.coverUrl || '';
     }
     return currentViewingAlbum.coverUrl || '';
   })();
