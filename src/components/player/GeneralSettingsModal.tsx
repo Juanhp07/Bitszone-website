@@ -871,18 +871,18 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <button
               type="button"
               onClick={onResetAll}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-sm font-semibold text-white/50 hover:text-white bg-transparent hover:bg-white/10 border border-transparent hover:border-white/15 transition-all duration-200 cursor-pointer group active:scale-95"
             >
-              <RotateCcw className="w-4 h-4" />
-              <span>Restablecer todo</span>
+              <RotateCcw className="w-4 h-4 transition-transform duration-500 ease-out group-hover:-rotate-180" />
+              <span>Restablecer configuración</span>
             </button>
 
             <button
               type="button"
               onClick={onClose}
-              className="px-9 py-2.5 rounded-full bg-[#8a3aed] hover:bg-[#9c55f7] text-white text-base font-semibold shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+              className="px-8 py-2.5 rounded-full bg-[#8a3aed] hover:bg-[#9c55f7] text-white text-base font-semibold shadow-lg shadow-purple-600/30 hover:shadow-purple-600/50 transition-all cursor-pointer active:scale-95"
             >
-              Listo
+              Guardar cambios
             </button>
           </div>
         </motion.div>
