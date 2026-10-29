@@ -1205,7 +1205,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               {/* Right Lyrics Sidebar */}
               <div className={`hidden md:block h-full shrink-0 relative z-20 transition-all duration-300 overflow-hidden ${isLyricsOpen ? 'w-80' : 'w-0'}`}>
                 <div className="w-80 h-full">
-                  <LyricsSidebar track={nowPlayingTrack} album={nowPlayingAlbum} progress={progress} />
+                  <LyricsSidebar track={nowPlayingTrack} album={nowPlayingAlbum} progress={progress} onSeek={handleSeek} />
                 </div>
               </div>
             </div>

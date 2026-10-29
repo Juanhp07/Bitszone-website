@@ -1,33 +1,65 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRubberBand } from '../ui/useRubberBand';
 import type { Track, Album } from './types';
-
-const somewhereIBelongLyrics = [
-  {time: 40.51,text:"When it began"},{time: 41.95,text:"I had nothing to say"},{time: 43.62,text:"And I get lost in the nothingness inside of me"},{time: 46.50,text:"(I was confused)"},{time: 47.39,text:"And I let it all out to find"},{time: 49.40,text:"That I'm not the only person with these things in mind"},{time: 52.33,text:"(Inside of me)"},{time: 53.25,text:"But all that they can see the words revealed"},{time: 55.48,text:"Is the only real thing that I've got left to feel"},{time: 58.25,text:"(Nothing to lose)"},{time: 59.16,text:"Just stuck, hollow and alone"},{time: 61.24,text:"And the fault is my own, and the fault is my own"},{time: 64.33,text:"I wanna heal, I wanna feel, what I thought was never real"},{time: 70.14,text:"I wanna let go of the pain I've felt so long"},{time: 74.10,text:"(Erase all the pain till it's gone)"},{time: 76.09,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time: 82.00,text:"I wanna find something I've wanted all along"},{time: 86.89,text:"Somewhere I belong"},{time: 89.29,text:"And I've got nothing to say"},{time: 90.87,text:"I can't believe I didn't fall right down on my face"},{time: 93.86,text:"(I was confused)"},{time: 94.80,text:"Looking everywhere only to find"},{time: 96.88,text:"That it's not the way I have imagined it all in my mind"},{time: 99.73,text:"(So what am I)"},{time: 100.73,text:"What do I have but negativity"},{time: 102.65,text:"'Cause I can't justify the way everyone is looking at me"},{time: 105.60,text:"(Nothing to lose)"},{time: 106.61,text:"Nothing to gain, hollow and alone"},{time: 108.60,text:"And the fault is my own, and the fault is my own"},{time: 111.60,text:"I wanna heal, I wanna feel, what I thought was never real"},{time: 117.46,text:"I wanna let go of the pain I've felt so long"},{time: 121.38,text:"(Erase all the pain till it's gone)"},{time: 123.42,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time: 129.42,text:"I wanna find something I've wanted all along"},{time: 134.29,text:"Somewhere I belong"},{time: 136.63,text:"I will never know myself until I do this on my own"},{time: 142.48,text:"And I will never feel anything else until my wounds are healed"},{time: 148.38,text:"I will never be anything till I break away from me"},{time: 154.26,text:"I will break away, I'll find myself today"},{time: 163.95,text:"I wanna heal, I wanna feel, what I thought was never real"},{time: 170.79,text:"I wanna let go of the pain I've felt so long"},{time: 174.91,text:"(Erase all the pain till it's gone)"},{time: 176.75,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time: 182.66,text:"I wanna find something I've wanted all along"},{time: 187.62,text:"Somewhere I belong"},{time: 190.02,text:"(I wanna heal, I wanna feel like I'm somewhere I belong)"},{time: 195.73,text:"(I wanna heal, I wanna feel like I'm somewhere I belong)"},{time: 205.46,text:"Somewhere I belong"}
-];
+import { fetchTrackLyrics, type LyricsResult, somewhereIBelongLyrics } from '../../services/lyricsService';
+import { Mic2 } from 'lucide-react';
 
 export const LyricsSidebar = ({ 
   track, 
   album,
-  progress = 0
+  progress = 0,
+  onSeek
 }: { 
   track: Track | null;
   album: Album | null;
   progress?: number;
+  onSeek?: (progress: number) => void;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const activeLineRef = useRef<HTMLParagraphElement>(null);
+  const activeLineRef = useRef<HTMLDivElement>(null);
   const { springValue: lyricsSpringY, scrollProps: lyricsScrollProps } = useRubberBand({ axis: 'y', customRef: containerRef });
 
-  const isSomewhereIBelong = track?.title === "Somewhere I Belong";
-  const activeLyrics = isSomewhereIBelong ? somewhereIBelongLyrics : null;
+  const [lyricsResult, setLyricsResult] = useState<LyricsResult | null>(null);
+  const [loadingLyrics, setLoadingLyrics] = useState(false);
+
+  useEffect(() => {
+    let isCancelled = false;
+    if (!track) {
+      setLyricsResult(null);
+      return;
+    }
+
+    setLoadingLyrics(true);
+    const durationSec = Math.floor((track.duration || 0) / 1000);
+    const artistName = track.artist || album?.artist || '';
+
+    fetchTrackLyrics(track.title, artistName, album?.title, durationSec)
+      .then((res) => {
+        if (!isCancelled) {
+          setLyricsResult(res);
+          setLoadingLyrics(false);
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setLyricsResult(null);
+          setLoadingLyrics(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [track?.id, track?.title, track?.artist, album?.title]);
+
+  const activeLyrics = lyricsResult?.lines || (track?.title === "Somewhere I Belong" ? somewhereIBelongLyrics : null);
 
   const durationSecs = Math.floor((track?.duration || 0) / 1000);
   const currentSecs = progress * durationSecs;
 
   let activeIndex = -1;
-  if (activeLyrics) {
+  if (activeLyrics && activeLyrics.length > 0) {
     for (let i = 0; i < activeLyrics.length; i++) {
       if (currentSecs >= activeLyrics[i].time) {
         activeIndex = i;
@@ -53,7 +85,7 @@ export const LyricsSidebar = ({
         const elementHeight = element.clientHeight;
         
         container.scrollTo({
-          top: elementOffset - (containerHeight / 2) + (elementHeight / 2),
+          top: elementOffset - (containerHeight * 0.36) + (elementHeight / 2),
           behavior: 'smooth'
         });
       }
@@ -66,50 +98,60 @@ export const LyricsSidebar = ({
         <>
           {/* Header (Fixed at top) */}
           <div className="p-6 pb-2 shrink-0">
-            <h2 className="text-xl font-bold text-white mb-1 drop-shadow-md">{track.title}</h2>
-            <p className="text-sm font-medium text-white/70 drop-shadow-md">{album?.artist}</p>
+            <h2 className="text-xl font-bold text-white mb-1 drop-shadow-md truncate">{track.title}</h2>
+            <p className="text-sm font-medium text-white/70 drop-shadow-md truncate">{album?.artist || track.artist}</p>
           </div>
           
           {/* Lyrics Content (Scrollable with Mask & Rubber Band Bounce) */}
           <div 
             ref={containerRef}
             {...lyricsScrollProps}
-            className="relative flex-1 overflow-y-auto scrollbar-hide px-6 pb-8 text-lg tracking-wide"
+            className="relative flex-1 overflow-y-auto scrollbar-hide px-6 pb-16 text-lg tracking-wide"
             style={{ 
               scrollbarWidth: 'none',
-              maskImage: 'linear-gradient(to bottom, transparent 0px, black 32px, black calc(100% - 32px), transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 32px, black calc(100% - 32px), transparent 100%)'
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 80%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 80%, transparent 100%)'
             }}
           >
             <motion.div style={{ y: lyricsSpringY }}>
-              {activeLyrics ? (
-                <div className="space-y-6 pt-4">
+              {loadingLyrics && (!activeLyrics || activeLyrics.length === 0) ? (
+                <div className="space-y-6 pt-6 animate-pulse">
+                  <div className="h-6 bg-white/10 rounded-xl w-3/4 blur-sm" />
+                  <div className="h-7 bg-white/20 rounded-xl w-1/2 blur-none" />
+                  <div className="h-6 bg-white/10 rounded-xl w-5/6 blur-sm" />
+                  <div className="h-6 bg-white/10 rounded-xl w-2/3 blur-sm" />
+                </div>
+              ) : activeLyrics && activeLyrics.length > 0 ? (
+                <div className="space-y-6 pt-6 pb-[30vh]">
                   {activeLyrics.map((line, i) => {
                     const isActive = i === activeIndex;
-                    const isPast = i < activeIndex;
                     return (
-                      <p 
-                        key={i}
+                      <div 
+                        key={`${line.time}-${i}`}
                         ref={isActive ? activeLineRef : null}
-                        className={`transition-all duration-500 font-bold ${
+                        onClick={() => {
+                          if (onSeek && durationSecs > 0) {
+                            onSeek(Math.min(1, Math.max(0, line.time / durationSecs)));
+                          }
+                        }}
+                        className={`transition-all duration-500 font-bold select-none cursor-pointer transform origin-left ${
                           isActive 
-                            ? 'text-white scale-[1.02] transform origin-left drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' 
-                            : isPast 
-                              ? 'text-white/40' 
-                              : 'text-white/30'
+                            ? 'text-white text-xl sm:text-2xl leading-snug scale-[1.03] opacity-100 blur-none drop-shadow-[0_2px_12px_rgba(255,255,255,0.45)]' 
+                            : 'text-white/35 text-xl sm:text-2xl leading-snug scale-[0.98] blur-[1px] hover:text-white/70 hover:blur-none hover:scale-[1.0]'
                         }`}
                       >
                         {line.text}
-                      </p>
+                      </div>
                     );
                   })}
                 </div>
               ) : (
-                <div className="space-y-6 pt-4 text-white/50 font-medium">
-                  <p>♪</p>
-                  <p>Letra no disponible aún...</p>
-                  <p className="text-sm text-white/30 font-normal">(Esta es una vista previa del panel de letras. Aquí se integraría la API de letras en el futuro).</p>
-                  <p>♪</p>
+                <div className="flex flex-col items-center justify-center py-20 text-center px-2">
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 mb-3">
+                    <Mic2 className="w-6 h-6" />
+                  </div>
+                  <p className="text-white/80 font-bold text-base">Letra no disponible</p>
+                  <p className="text-white/40 text-xs mt-1">No encontramos la letra para esta canción.</p>
                 </div>
               )}
             </motion.div>

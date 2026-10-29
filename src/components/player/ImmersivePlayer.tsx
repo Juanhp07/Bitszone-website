@@ -17,6 +17,7 @@ import { useIsMobile } from './useIsMobile';
 import { CavaVisualizer } from './CavaVisualizer';
 import { CavaSettingsModal } from './CavaSettingsModal';
 import { loadCavaSettings, saveCavaSettings, DEFAULT_CAVA_SETTINGS, type CavaSettings } from './cavaTypes';
+import { fetchTrackLyrics, type LyricsResult, type LyricLine, somewhereIBelongLyrics } from '../../services/lyricsService';
 
 const useAverageColor = (src: string) => {
   const [color, setColor] = useState('rgba(45, 10, 70, 0.8)');
@@ -216,10 +217,6 @@ const AnimatedSongTitle = ({
 };
 
 
-const somewhereIBelongLyrics = [
-  {time: 40.51,text:"When it began"},{time: 41.95,text:"I had nothing to say"},{time: 43.62,text:"And I get lost in the nothingness inside of me"},{time: 46.50,text:"(I was confused)"},{time: 47.39,text:"And I let it all out to find"},{time: 49.40,text:"That I'm not the only person with these things in mind"},{time: 52.33,text:"(Inside of me)"},{time: 53.25,text:"But all that they can see the words revealed"},{time: 55.48,text:"Is the only real thing that I've got left to feel"},{time: 58.25,text:"(Nothing to lose)"},{time: 59.16,text:"Just stuck, hollow and alone"},{time: 61.24,text:"And the fault is my own, and the fault is my own"},{time: 64.33,text:"I wanna heal, I wanna feel, what I thought was never real"},{time: 70.14,text:"I wanna let go of the pain I've felt so long"},{time: 74.10,text:"(Erase all the pain till it's gone)"},{time: 76.09,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time: 82.00,text:"I wanna find something I've wanted all along"},{time: 86.89,text:"Somewhere I belong"},{time: 89.29,text:"And I've got nothing to say"},{time: 90.87,text:"I can't believe I didn't fall right down on my face"},{time: 93.86,text:"(I was confused)"},{time: 94.80,text:"Looking everywhere only to find"},{time: 96.88,text:"That it's not the way I have imagined it all in my mind"},{time: 99.73,text:"(So what am I)"},{time: 100.73,text:"What do I have but negativity"},{time: 102.65,text:"'Cause I can't justify the way everyone is looking at me"},{time: 105.60,text:"(Nothing to lose)"},{time: 106.61,text:"Nothing to gain, hollow and alone"},{time: 108.60,text:"And the fault is my own, and the fault is my own"},{time: 111.60,text:"I wanna heal, I wanna feel, what I thought was never real"},{time: 117.46,text:"I wanna let go of the pain I've felt so long"},{time: 121.38,text:"(Erase all the pain till it's gone)"},{time: 123.42,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time: 129.42,text:"I wanna find something I've wanted all along"},{time: 134.29,text:"Somewhere I belong"},{time: 136.63,text:"I will never know myself until I do this on my own"},{time: 142.48,text:"And I will never feel anything else until my wounds are healed"},{time: 148.38,text:"I will never be anything till I break away from me"},{time: 154.26,text:"I will break away, I'll find myself today"},{time: 163.95,text:"I wanna heal, I wanna feel, what I thought was never real"},{time: 170.79,text:"I wanna let go of the pain I've felt so long"},{time: 174.91,text:"(Erase all the pain till it's gone)"},{time: 176.75,text:"I wanna heal, I wanna feel, like I'm close to something real"},{time: 182.66,text:"I wanna find something I've wanted all along"},{time: 187.62,text:"Somewhere I belong"},{time: 190.02,text:"(I wanna heal, I wanna feel like I'm somewhere I belong)"},{time: 195.73,text:"(I wanna heal, I wanna feel like I'm somewhere I belong)"},{time: 205.46,text:"Somewhere I belong"}
-];
-
 export const ImmersivePlayer = ({
   isExpanded,
   onClose,
@@ -396,14 +393,46 @@ export const ImmersivePlayer = ({
     setVolume(newVol);
   };
 
-  const isSomewhereIBelong = track.title === "Somewhere I Belong";
-  const activeLyrics = isSomewhereIBelong ? somewhereIBelongLyrics : null;
+  const [lyricsResult, setLyricsResult] = useState<LyricsResult | null>(null);
+  const [loadingLyrics, setLoadingLyrics] = useState(false);
+
+  useEffect(() => {
+    let isCancelled = false;
+    if (!track) {
+      setLyricsResult(null);
+      return;
+    }
+
+    setLoadingLyrics(true);
+    const durationSec = Math.floor((track.duration || 0) / 1000);
+    const artistName = track.artist || album?.artist || '';
+
+    fetchTrackLyrics(track.title, artistName, album?.title, durationSec)
+      .then((res) => {
+        if (!isCancelled) {
+          setLyricsResult(res);
+          setLoadingLyrics(false);
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setLyricsResult(null);
+          setLoadingLyrics(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [track?.id, track?.title, track?.artist, album?.title]);
+
+  const activeLyrics = lyricsResult?.lines || (track.title === "Somewhere I Belong" ? somewhereIBelongLyrics : null);
 
   const durationSecs = Math.floor((track?.duration || 0) / 1000);
   const currentSecs = progress * durationSecs;
 
   let activeIndex = -1;
-  if (activeLyrics) {
+  if (activeLyrics && activeLyrics.length > 0) {
     for (let i = 0; i < activeLyrics.length; i++) {
       if (currentSecs >= activeLyrics[i].time) {
         activeIndex = i;
@@ -417,15 +446,17 @@ export const ImmersivePlayer = ({
     // The tab's scroller is rightScrollRef (the lyrics wrapper itself doesn't scroll)
     const scroller = rightScrollRef.current;
     if (currentTab !== 'letra' || !scroller) return;
-    const active = scroller.querySelector<HTMLElement>('[data-active-lyric]');
+    const active = scroller.querySelector<HTMLElement>('[data-active-lyric="true"]');
     if (activeIndex === -1 || !active) {
       scroller.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     const sc = scroller.getBoundingClientRect();
     const el = active.getBoundingClientRect();
+    // Center active line at ~36% from top like Apple Music
+    const targetTop = scroller.scrollTop + (el.top - sc.top) - (sc.height * 0.36) + (el.height / 2);
     scroller.scrollTo({
-      top: scroller.scrollTop + (el.top - sc.top) - sc.height / 2 + el.height / 2,
+      top: Math.max(0, targetTop),
       behavior: 'smooth'
     });
   }, [activeIndex, currentTab]);
@@ -1015,8 +1046,12 @@ export const ImmersivePlayer = ({
              className="relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start px-5 md:pl-6 md:pr-12 xl:pl-4 xl:pr-[8rem] pb-20 pt-1 scrollbar-hide"
              style={{
                scrollbarWidth: 'none',
-               maskImage: 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)',
-               WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)'
+               maskImage: currentTab === 'letra'
+                 ? 'linear-gradient(to bottom, transparent 0%, black 14%, black 78%, transparent 100%)'
+                 : 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)',
+               WebkitMaskImage: currentTab === 'letra'
+                 ? 'linear-gradient(to bottom, transparent 0%, black 14%, black 78%, transparent 100%)'
+                 : 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)'
              }}
            >
              <motion.div style={{ y: rightSpringY }} className="w-full">
@@ -1030,35 +1065,49 @@ export const ImmersivePlayer = ({
                      exit="exit"
                      className="w-full flex flex-col justify-start"
                    >
-                     {isSomewhereIBelong ? (
+                     {loadingLyrics && (!activeLyrics || activeLyrics.length === 0) ? (
+                       <div className="flex flex-col gap-10 pt-16 md:pt-24 animate-pulse px-2">
+                         <div className="h-10 sm:h-12 bg-white/10 rounded-2xl w-3/4 blur-sm" />
+                         <div className="h-12 sm:h-14 bg-white/20 rounded-2xl w-1/2 blur-none" />
+                         <div className="h-10 sm:h-12 bg-white/10 rounded-2xl w-5/6 blur-sm" />
+                         <div className="h-10 sm:h-12 bg-white/10 rounded-2xl w-2/3 blur-sm" />
+                       </div>
+                     ) : activeLyrics && activeLyrics.length > 0 ? (
                        <div
                          ref={lyricsContainerRef}
-                         className="relative w-full h-full pt-6 pb-[40dvh] flex flex-col gap-6"
+                         className="relative w-full h-full pt-16 md:pt-24 pb-[45dvh] flex flex-col gap-8 md:gap-11 lg:gap-14"
                        >
-                         {activeLyrics?.map((line, i) => {
+                         {activeLyrics.map((line, i) => {
                            const isActive = i === activeIndex;
                            const isPast = i < activeIndex;
                            return (
-                             <motion.p
-                               key={i}
+                             <motion.div
+                               key={`${line.time}-${i}`}
                                variants={cascadedItemVariants}
-                               data-active-lyric={isActive ? '' : undefined}
-                               className={`text-left text-xl md:text-2xl xl:text-3xl transition-all duration-500 font-bold leading-relaxed ${
+                               data-active-lyric={isActive ? 'true' : undefined}
+                               onClick={() => {
+                                 if (onSeek && durationSecs > 0) {
+                                   onSeek(Math.min(1, Math.max(0, line.time / durationSecs)));
+                                 }
+                               }}
+                               className={`text-left transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] select-none cursor-pointer transform origin-left ${
                                  isActive
-                                   ? 'text-white scale-[1.03] origin-left drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]'
-                                   : isPast
-                                     ? 'text-white/40'
-                                     : 'text-white/20'
+                                   ? 'text-white font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem] leading-[1.25] tracking-tight scale-[1.03] opacity-100 blur-none drop-shadow-[0_4px_24px_rgba(255,255,255,0.45)]'
+                                   : 'text-white/35 font-bold text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem] leading-[1.25] tracking-tight scale-[0.98] blur-[1.2px] md:blur-[1.6px] hover:text-white/75 hover:blur-none hover:scale-[1.0]'
                                }`}
                              >
                                {line.text}
-                             </motion.p>
+                             </motion.div>
                            );
                          })}
                        </div>
                      ) : (
-                       <motion.div variants={cascadedItemVariants} className="flex items-center justify-center py-24">
-                         <p className="text-white/40 text-sm md:text-base font-medium tracking-[0.2em] uppercase blur-[0.5px]">No hay letras disponibles</p>
+                       <motion.div variants={cascadedItemVariants} className="flex flex-col items-center justify-center py-28 text-center px-4">
+                         <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 mb-4 shadow-xl">
+                           <Mic2 className="w-8 h-8" />
+                         </div>
+                         <p className="text-white/80 text-xl font-bold tracking-tight">Letra no disponible</p>
+                         <p className="text-white/40 text-sm mt-1.5 max-w-sm">No encontramos la letra sincronizada para esta canción.</p>
                        </motion.div>
                      )}
                    </motion.div>
