@@ -73,6 +73,7 @@ export const AuthContainer = () => {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isAdminHovered, setIsAdminHovered] = useState(false);
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [codeError, setCodeError] = useState('');
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
@@ -245,61 +246,84 @@ export const AuthContainer = () => {
         {/* Left: the flow */}
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
           
-          {/* Botón dinámico Admin / Usuario en la parte superior central del lado izquierdo */}
+          {/* Botón dinámico Admin / Usuario en la parte superior central del panel izquierdo */}
           {(step === 'choose' || step === 'password') && (
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                if (step === 'password') {
-                  setEmail('');
-                  setPassword('');
-                  setEmailError('');
-                  setPasswordError('');
-                  setMethod('email');
-                  setStep('choose');
-                } else {
-                  setEmail(email.trim() || 'bitszone.app@gmail.com');
-                  setPassword('');
-                  setEmailError('');
-                  setPasswordError('');
-                  setMethod('admin');
-                  setStep('password');
-                }
-              }}
-              className="absolute top-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg backdrop-blur-md transition-all cursor-pointer group"
-              title={step === 'password' ? 'Volver a inicio de sesión normal' : 'Acceso para Administrador (con contraseña)'}
-              aria-label={step === 'password' ? 'Modo Usuario' : 'Modo Administrador'}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                {step === 'password' ? (
-                  <motion.div
-                    key="user-toggle"
-                    initial={{ opacity: 0, scale: 0.75, rotate: -25 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    exit={{ opacity: 0, scale: 0.75, rotate: 25 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-purple-200"
-                  >
-                    <User className="w-3.5 h-3.5 text-purple-300 group-hover:text-purple-100" />
-                    <span>Usuario</span>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="admin-toggle"
-                    initial={{ opacity: 0, scale: 0.75, rotate: 25 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    exit={{ opacity: 0, scale: 0.75, rotate: -25 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-white/80 group-hover:text-white"
-                  >
-                    <UserCog className="w-3.5 h-3.5 text-purple-400 group-hover:text-purple-300" />
-                    <span>Admin</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.button>
+            <div className="absolute top-5 inset-x-0 flex justify-center z-20 pointer-events-none">
+              <motion.button
+                layout
+                type="button"
+                onMouseEnter={() => setIsAdminHovered(true)}
+                onMouseLeave={() => setIsAdminHovered(false)}
+                onClick={() => {
+                  if (step === 'password') {
+                    setEmail('');
+                    setPassword('');
+                    setEmailError('');
+                    setPasswordError('');
+                    setMethod('email');
+                    setStep('choose');
+                  } else {
+                    setEmail(email.trim() || 'bitszone.app@gmail.com');
+                    setPassword('');
+                    setEmailError('');
+                    setPasswordError('');
+                    setMethod('admin');
+                    setStep('password');
+                  }
+                }}
+                transition={{
+                  layout: { type: 'spring', stiffness: 500, damping: 32 }
+                }}
+                className="pointer-events-auto h-9 min-w-9 px-2.5 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg backdrop-blur-md transition-colors cursor-pointer group"
+                title={step === 'password' ? 'Volver a inicio de sesión normal' : 'Acceso para Administrador (con contraseña)'}
+                aria-label={step === 'password' ? 'Modo Usuario' : 'Modo Administrador'}
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {step === 'password' ? (
+                    <motion.div
+                      key="user-icon"
+                      initial={{ opacity: 0, scale: 0.7, rotate: -25 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      exit={{ opacity: 0, scale: 0.7, rotate: 25 }}
+                      transition={{ duration: 0.18 }}
+                      className="flex items-center justify-center shrink-0"
+                    >
+                      <User className="w-4 h-4 text-purple-300 group-hover:text-purple-100" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="admin-icon"
+                      initial={{ opacity: 0, scale: 0.7, rotate: 25 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      exit={{ opacity: 0, scale: 0.7, rotate: -25 }}
+                      transition={{ duration: 0.18 }}
+                      className="flex items-center justify-center shrink-0"
+                    >
+                      <UserCog className="w-4 h-4 text-purple-400 group-hover:text-purple-300" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <AnimatePresence initial={false}>
+                  {isAdminHovered && (
+                    <motion.span
+                      key={step === 'password' ? 'label-user' : 'label-admin'}
+                      initial={{ opacity: 0, width: 0, marginLeft: 0 }}
+                      animate={{ opacity: 1, width: 'auto', marginLeft: 6 }}
+                      exit={{ opacity: 0, width: 0, marginLeft: 0 }}
+                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      className="text-xs font-semibold whitespace-nowrap overflow-hidden pr-1"
+                    >
+                      {step === 'password' ? (
+                        <span className="text-purple-200">Usuario</span>
+                      ) : (
+                        <span className="text-white/90">Admin</span>
+                      )}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            </div>
           )}
 
           <div className="w-full max-w-[26rem]">
