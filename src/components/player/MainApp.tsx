@@ -27,7 +27,7 @@ import { PlaylistsProvider, isPlaylistAlbum } from './PlaylistsContext';
 import { buildSongRadio, isSongRadioAlbum } from './songRadio';
 import { PlaybackContext, type QueueEntry } from './PlaybackContext';
 import { PlayerLoadingScreen } from './PlayerLoadingScreen';
-import { Heart } from 'lucide-react';
+import { Heart, Pencil } from 'lucide-react';
 import { MobileTabBar } from './MobileTabBar';
 import { useIsMobile, useIsCompact } from './useIsMobile';
 import { useRubberBand } from '../ui/useRubberBand';
@@ -1359,10 +1359,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     setSettingsInitialTab('shortcuts');
                     setIsConfigOpen(true);
                   }}
-                  className="px-3 py-1 rounded-full text-xs font-semibold text-purple-300 hover:text-white bg-white/5 hover:bg-white/10 border border-purple-400/30 transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 shrink-0"
                   title="Personalizar atajos en Configuración"
+                  aria-label="Personalizar atajos en Configuración"
                 >
-                  Editar
+                  <Pencil className="w-3.5 h-3.5" />
                 </button>
               </div>
 
@@ -1406,18 +1407,6 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                   <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleFavorite)}</kbd>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsShortcutsOpen(false);
-                  setSettingsInitialTab('shortcuts');
-                  setIsConfigOpen(true);
-                }}
-                className="w-full mt-4 pt-3.5 border-t border-white/10 flex items-center justify-center gap-1.5 text-xs text-purple-300 hover:text-white font-semibold transition-colors cursor-pointer"
-              >
-                <span>Personalizar en Configuración →</span>
-              </button>
             </motion.div>
           </motion.div>
         )}
