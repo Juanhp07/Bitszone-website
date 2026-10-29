@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, LogOut, ChevronLeft, LayoutDashboard } from "lucide-react";
-import { PopoverMenu } from "../ui/PopoverMenu";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, ChevronLeft, LayoutDashboard } from "lucide-react";
 import { useDownloads } from "./DownloadsContext";
 import { useAdminEdit } from "../admin/AdminEditContext";
 import { AdminPencil } from "../admin/AdminEditWidgets";
@@ -17,7 +16,7 @@ export const Sidebar = ({
   isCollapsed = false,
   drawerOnRight = false,
   account = null,
-  onSignOut,
+  onOpenProfile,
   isAdmin = false,
 }: {
   currentView: string;
@@ -31,12 +30,11 @@ export const Sidebar = ({
   /** phone drawer opens from the right, so its close chevron points right */
   drawerOnRight?: boolean;
   account?: { name: string; avatarUrl?: string | null } | null;
-  onSignOut?: () => void;
+  onOpenProfile?: () => void;
   isAdmin?: boolean;
 }) => {
   const { totalBytes, newDownloadsCount } = useDownloads();
   const { getButtonText, isEditMode } = useAdminEdit();
-  const [accountMenu, setAccountMenu] = useState<{ x: number; y: number } | null>(null);
 
   // Start precisely at 5.00 GB available
   const baseAvailableGB = 5.0;
@@ -277,8 +275,8 @@ export const Sidebar = ({
           {account ? (
             <>
               <button
-                onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setAccountMenu({ x: r.right + 8, y: r.top }); }}
-                aria-haspopup="menu"
+                onClick={() => onOpenProfile?.()}
+                aria-haspopup="dialog"
                 aria-label={`Cuenta de ${account.name}`}
                 title={account.name}
                 className="flex items-center w-full h-11 rounded-xl font-medium transition-colors text-white/60 hover:text-white hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden"
@@ -299,13 +297,6 @@ export const Sidebar = ({
                   <span className="truncate">{account.name}</span>
                 </div>
               </button>
-              <PopoverMenu
-                open={!!accountMenu}
-                anchor={accountMenu}
-                width={200}
-                onClose={() => setAccountMenu(null)}
-                items={[{ label: 'Cerrar sesión', icon: <LogOut className="w-4 h-4" />, danger: true, onSelect: () => onSignOut?.() }]}
-              />
             </>
           ) : (
            <a 

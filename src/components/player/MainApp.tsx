@@ -17,6 +17,8 @@ import { AdminEditProvider } from '../admin/AdminEditContext';
 import { AdminEditModal } from '../admin/AdminEditModal';
 import { AdminEditFloatingBar } from '../admin/AdminEditWidgets';
 import { useProfile } from '../../lib/useProfile';
+import { recordListen } from '../../lib/listenHistory';
+import { ProfileDialog } from './ProfileDialog';
 import { signOutUser } from '../../lib/userStorage';
 import { genreScore } from '../../lib/genres';
 import type { Album, Track } from './types';
@@ -107,6 +109,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     ? { name: profile?.username ?? user.email?.split('@')[0] ?? 'Tú', avatarUrl: profile?.avatar_url ?? user.user_metadata?.avatar_url ?? null }
     : null;
   const [hasEntered, setHasEntered] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !hasEntered) {
@@ -723,6 +726,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     setIsAudioLoading(true);
     setNowPlayingTrack(track);
     setNowPlayingAlbum(album);
+    if (user) recordListen(track, album);
 
     if (audioRef.current) {
       if (isPlaying) {
@@ -1089,6 +1093,18 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
             className="w-full h-full overflow-hidden"
           >
+            {user && account && (
+              <ProfileDialog
+                open={profileOpen}
+                onClose={() => setProfileOpen(false)}
+                userId={user.id}
+                email={user.email ?? ''}
+                username={account.name}
+                avatarUrl={account.avatarUrl}
+                onSaved={reloadProfile}
+                onSignOut={signOutUser}
+              />
+            )}
             <Sidebar
               currentView={navSection}
               onViewChange={navigate}
@@ -1104,7 +1120,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               isCollapsed={!isCompact && !isSidebarOpen}
               drawerOnRight={isCompact}
               account={account}
-              onSignOut={signOutUser}
+              onOpenProfile={() => { setProfileOpen(true); if (isCompact) setIsSidebarOpen(false); }}
               isAdmin={isAdmin}
             />
           </motion.div>
