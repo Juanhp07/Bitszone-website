@@ -580,7 +580,7 @@ export const ImmersivePlayer = ({
       <div
         onClick={onClose}
         className={`fixed inset-0 z-[100] ${
-          isExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          isExpanded ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'
         }`}
       />
 
@@ -606,8 +606,8 @@ export const ImmersivePlayer = ({
           if (sw && sw.dy > 120) onClose();
           swipeRef.current = null;
         }}
-        className={`fixed z-[100] inset-0 w-full h-full overflow-hidden overscroll-contain bg-[#050505] flex flex-col md:flex-row transition-opacity ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          isExpanded ? 'opacity-100 pointer-events-auto duration-500' : 'opacity-0 pointer-events-none duration-300'
+        className={`fixed z-[100] inset-0 w-full h-full overflow-hidden overscroll-contain bg-[#050505] flex flex-col md:flex-row transition-[opacity,visibility] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          isExpanded ? 'opacity-100 pointer-events-auto visible duration-500' : 'opacity-0 pointer-events-none invisible duration-300'
         }`}
       >
 
@@ -1243,9 +1243,9 @@ export const ImmersivePlayer = ({
 
         {/* 3. FULL IMMERSION CAVA STAGE */}
         {currentTab === 'inmersion' && (
-          <div className="absolute inset-0 z-40 flex flex-col justify-between overflow-hidden pt-5 md:pt-8 pb-0 select-none">
+          <div className={`absolute inset-0 z-40 flex flex-col justify-between overflow-hidden pt-5 md:pt-8 pb-0 select-none ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
             {/* Top Area: Clean Song Title with Prev/Next buttons on Left and Right, and Artist */}
-            <div className="flex flex-col items-center justify-center text-center mt-1 md:mt-2 z-20 max-w-5xl mx-auto pointer-events-auto w-full px-4 md:px-8">
+            <div className={`flex flex-col items-center justify-center text-center mt-1 md:mt-2 z-20 max-w-5xl mx-auto w-full px-4 md:px-8 ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
               {/* Title row flanked by Prev and Next buttons */}
               <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-8 w-full max-w-4xl">
                 <button
@@ -1284,10 +1284,10 @@ export const ImmersivePlayer = ({
 
             {/* Center Area: Full Screen CAVA Bars Visualizer - click anywhere to play/pause */}
             <div
-              className="w-full flex-1 flex items-end justify-center relative min-h-[220px] md:min-h-[380px] pb-3 md:pb-4 cursor-pointer select-none group/stage"
-              onClick={togglePlay}
-              title={isPlaying ? "Clic para pausar" : "Clic para reproducir"}
-              aria-label={isPlaying ? "Pausar música" : "Reproducir música"}
+              className={`w-full flex-1 flex items-end justify-center relative min-h-[220px] md:min-h-[380px] pb-3 md:pb-4 select-none group/stage ${isExpanded ? 'cursor-pointer pointer-events-auto' : 'pointer-events-none'}`}
+              onClick={isExpanded ? togglePlay : undefined}
+              title={isExpanded ? (isPlaying ? "Clic para pausar" : "Clic para reproducir") : undefined}
+              aria-label={isExpanded ? (isPlaying ? "Pausar música" : "Reproducir música") : undefined}
             >
               <CavaVisualizer
                 audioElement={audioElement ?? null}
@@ -1298,7 +1298,7 @@ export const ImmersivePlayer = ({
             </div>
 
             {/* Bottom: Thick Full-Width Timeline stuck to the very bottom */}
-            <div className="w-full relative z-30 select-none pointer-events-auto group/timeline">
+            <div className={`w-full relative z-30 select-none group/timeline ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
               {/* Time Indicators above timeline */}
               <div className="flex justify-between items-center px-4 md:px-8 pb-1.5 text-xs font-mono font-medium text-white/60 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                 <span className="tracking-wider">{formatTime((scrubProgress !== null ? scrubProgress : progress) * track.duration)}</span>

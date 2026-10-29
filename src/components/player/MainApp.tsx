@@ -490,7 +490,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
           break;
         case 'KeyF':
           e.preventDefault();
-          setIsPlayerExpanded(prev => !prev);
+          setIsPlayerExpanded(prev => {
+            if (!prev) setImmersiveTab("pistas");
+            return !prev;
+          });
           break;
         case 'KeyR':
         case 'Keyr':
@@ -1147,7 +1150,10 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     togglePlay={togglePlay}
                     progress={progress}
                     volume={volume}
-                    onExpand={() => setIsPlayerExpanded(true)}
+                    onExpand={() => {
+                      setImmersiveTab("pistas");
+                      setIsPlayerExpanded(true);
+                    }}
                     isLyricsOpen={isLyricsOpen}
                     onToggleLyrics={() => {
                       if (isMobile) {
