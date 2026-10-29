@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from './Sidebar';
 import { MiniPlayer } from './MiniPlayer';
-import { CatalogView } from './CatalogView';
+import { CatalogView, resetCatalogSection } from './CatalogView';
 import { AlbumView } from './AlbumView';
 import { DownloadsView } from './DownloadsView';
 import { LibraryView } from './LibraryView';
@@ -964,6 +964,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const headerH = 56;
 
   const navigate = (view: string) => {
+    if (view === 'catalog') resetCatalogSection();
     setCurrentView(view);
     if (isCompact) setIsSidebarOpen(false);
   };

@@ -7,7 +7,13 @@ import { useDownloads } from './DownloadsContext';
 import { usePlayback } from './PlaybackContext';
 import { ScrollableList } from '../ui/ScrollableList';
 import { useAdminEdit } from '../admin/AdminEditContext';
+import { BackButton } from '../ui/BackButton';
 import { AdminPencil } from '../admin/AdminEditWidgets';
+
+type CatalogSection = 'canciones' | 'artistas' | 'destacados' | null;
+let lastExpanded: CatalogSection = null;
+/** going Home from the sidebar shows the main catalog again */
+export const resetCatalogSection = () => { lastExpanded = null; };
 
 export const CatalogView = ({ 
   albums,
@@ -70,7 +76,9 @@ export const CatalogView = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showDownloadConfirm]);
-    const [expandedSection, setExpandedSection] = useState<'canciones' | 'artistas' | 'destacados' | null>(null);
+    const [expandedSection, setExpandedSection] = useState<CatalogSection>(() => lastExpanded);
+    // remembered so the album page's back arrow returns to this "Mostrar todo"
+    useEffect(() => { lastExpanded = expandedSection; }, [expandedSection]);
 
   const handleDownloadAlbumClick = (e: React.MouseEvent, album: Album) => {
     e.stopPropagation();
@@ -437,14 +445,7 @@ export const CatalogView = ({
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
-              <button 
-                onClick={() => setExpandedSection(null)} 
-                className="p-2 -ml-2 md:ml-0 hover:bg-white/10 rounded-full transition-colors text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-                title="Volver a la vista principal"
-                aria-label="Volver a la vista principal"
-              >
-                <ChevronLeft className="w-6 h-6" aria-hidden="true" />
-              </button>
+                            <BackButton onClick={() => setExpandedSection(null)} label="Volver a la vista principal" />
             )}
             <div className="flex items-center min-w-0 gap-1">
               <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
@@ -506,14 +507,7 @@ export const CatalogView = ({
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
-              <button 
-                onClick={() => setExpandedSection(null)} 
-                className="p-2 -ml-2 md:ml-0 hover:bg-white/10 rounded-full transition-colors text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-                title="Volver a la vista principal"
-                aria-label="Volver a la vista principal"
-              >
-                <ChevronLeft className="w-6 h-6" aria-hidden="true" />
-              </button>
+                            <BackButton onClick={() => setExpandedSection(null)} label="Volver a la vista principal" />
             )}
             <div className="flex items-center min-w-0 gap-1">
               <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
@@ -605,14 +599,7 @@ export const CatalogView = ({
         <div className="flex items-center justify-between gap-3 mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
-              <button 
-                onClick={() => setExpandedSection(null)} 
-                className="p-2 -ml-2 md:ml-0 hover:bg-white/10 rounded-full transition-colors text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-                title="Volver a la vista principal"
-                aria-label="Volver a la vista principal"
-              >
-                <ChevronLeft className="w-6 h-6" aria-hidden="true" />
-              </button>
+                            <BackButton onClick={() => setExpandedSection(null)} label="Volver a la vista principal" />
             )}
             <div className="flex items-center min-w-0 gap-1">
               <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
