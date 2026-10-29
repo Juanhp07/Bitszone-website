@@ -53,8 +53,8 @@ export const TopNav = ({
           title="Bitszone - Inicio"
           aria-label="Bitszone - Ir al catálogo"
         >
-          <span className="font-inter font-bold text-xl md:text-2xl text-white tracking-tight select-none">
-            Bitszone
+          <span className="font-inter text-xl md:text-2xl leading-none tracking-[-0.03em] select-none">
+            <span className="font-black text-white">Bits</span><span className="font-bold text-white/60">zone</span>
           </span>
         </button>
       </div>

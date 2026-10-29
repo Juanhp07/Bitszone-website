@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, ChevronsLeft, LayoutDashboard } from "lucide-react";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, PanelLeftClose, PanelLeftOpen, PanelRightClose, LayoutDashboard } from "lucide-react";
 import { useDownloads } from "./DownloadsContext";
 import { useAdminEdit } from "../admin/AdminEditContext";
 import { AdminPencil } from "../admin/AdminEditWidgets";
@@ -70,10 +70,10 @@ export const Sidebar = ({
               title="Bitszone - Inicio"
               aria-label="Bitszone - Ir al catálogo"
             >
-              {/* wordmark with a lighter "zone" */}
+              {/* wordmark with a lighter "zone" and thicker typography */}
               <span className="flex items-center select-none">
-                <span className="font-inter text-[22px] leading-none tracking-[-0.03em] text-white">
-                  <span className="font-extrabold">Bits</span><span className="font-medium text-white/60">zone</span>
+                <span className="font-inter text-[22px] leading-none tracking-[-0.03em]">
+                  <span className="font-black text-white">Bits</span><span className="font-bold text-white/60">zone</span>
                 </span>
               </span>
             </button>
@@ -92,12 +92,25 @@ export const Sidebar = ({
             title={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
             aria-label={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
           >
-            {/* double chevron: points where the menu goes («  closes, » opens); flipped for the right-side drawer */}
-            <ChevronsLeft
-              className={`w-5 h-5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-x-0.5 ${isCollapsed || drawerOnRight ? 'rotate-180' : ''}`}
-              strokeWidth={2}
-              aria-hidden="true"
-            />
+            {drawerOnRight ? (
+              <PanelRightClose
+                className="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105"
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+            ) : isCollapsed ? (
+              <PanelLeftOpen
+                className="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105"
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+            ) : (
+              <PanelLeftClose
+                className="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105"
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+            )}
           </button>
         )}
       </div>

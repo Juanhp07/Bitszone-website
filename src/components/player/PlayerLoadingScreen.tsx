@@ -23,12 +23,12 @@ export const PlayerLoadingScreen: React.FC = () => {
       {/* Centered logo that remains centered and fades out cleanly */}
       <div className="relative z-[101] flex flex-col items-center justify-center">
         <span
-          className="font-inter font-bold text-4xl sm:text-5xl text-white tracking-tight"
+          className="font-inter text-4xl sm:text-5xl tracking-[-0.03em] select-none"
           style={{
             filter: 'drop-shadow(0 0 35px rgba(168, 85, 247, 0.6))',
           }}
         >
-          Bitszone
+          <span className="font-black text-white">Bits</span><span className="font-bold text-white/60">zone</span>
         </span>
       </div>
     </motion.div>

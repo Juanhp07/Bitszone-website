@@ -299,10 +299,9 @@ useEffect(() => {
               </div>
 
               {/* Actions — bottom-right of the sleeve */}
-              <div className="relative lg:absolute lg:-bottom-4 lg:-right-2 mt-5 lg:mt-0 flex items-center justify-center gap-1 p-1.5 rounded-full overflow-hidden isolate [&>*:not(:first-child)]:relative [&>*:not(:first-child)]:z-10 backdrop-blur-[40px] backdrop-saturate-[1.8] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_20px_44px_rgba(0,0,0,0.5)] w-max mx-auto lg:mx-0 z-20">
-                <SmokedGlass src={currentCover} />
+              <div className="relative lg:absolute lg:-bottom-4 lg:-right-2 mt-5 lg:mt-0 flex items-center justify-center gap-1.5 p-1.5 rounded-full bg-white/[0.18] hover:bg-white/[0.22] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_16px_40px_rgba(0,0,0,0.35)] w-max mx-auto lg:mx-0 z-20 transition-all">
                 <button
-                  className="w-12 h-12 bg-[#a855f7] hover:bg-[#b066f8] hover:scale-105 active:scale-95 rounded-full flex items-center justify-center text-white transition-all shadow-[0_6px_14px_rgba(168,85,247,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+                  className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl border border-white/30 hover:border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer text-white"
                   onClick={() => {
                     if (nowPlayingTrackId && album.tracks?.find(t => t.id === nowPlayingTrackId)) {
                       togglePlay();
@@ -314,9 +313,9 @@ useEffect(() => {
                   aria-label={isAlbumPlaying ? "Pausar" : (album as any)?.isSongRadio ? "Reproducir canción y similares" : "Reproducir álbum"}
                 >
                   {isAlbumPlaying ? (
-                    <Pause className="w-5 h-5" fill="currentColor" aria-hidden="true" />
+                    <Pause className="w-5 h-5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
                   ) : (
-                    <Play className="w-5 h-5 ml-0.5" fill="currentColor" aria-hidden="true" />
+                    <Play className="w-5 h-5 ml-0.5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
                   )}
                 </button>
                 <button
@@ -327,10 +326,10 @@ useEffect(() => {
                       toggleFavoriteAlbum(album);
                     }
                   }}
-                  className={`${isPlaylist ? 'hidden' : ''} group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
+                  className={`${isPlaylist ? 'hidden' : ''} group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
                     ((album as any)?.isSongRadio && album.tracks?.[0] ? isFavorite(album.tracks[0].id) : isEntireAlbumFavorited)
-                      ? 'text-[#a855f7] hover:text-[#b066f8]'
-                      : 'text-white/60 hover:text-white'
+                      ? 'text-[#c084fc] hover:text-[#d8b4fe]'
+                      : 'text-white/75 hover:text-white'
                   }`}
                   title={
                     ((album as any)?.isSongRadio && album.tracks?.[0] ? isFavorite(album.tracks[0].id) : isEntireAlbumFavorited)
@@ -353,7 +352,7 @@ useEffect(() => {
                   )}
                 </button>
                 <button
-                  className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors disabled:hover:bg-transparent disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 text-white/75 hover:text-white transition-colors disabled:hover:bg-transparent disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                   onClick={() => {
                     if (isDownloadingAlbum) {
                       setShowCancelConfirm(true);
@@ -366,9 +365,9 @@ useEffect(() => {
                   aria-label={isDownloadingAlbum ? "Descargando álbum..." : isEntireAlbumDownloaded ? "Álbum ya descargado" : "Descargar álbum"}
                 >
                   {isDownloadingAlbum ? (
-                    <Loader2 className="w-5 h-5 animate-spin text-[#a855f7]" aria-hidden="true" />
+                    <Loader2 className="w-5 h-5 animate-spin text-[#c084fc]" aria-hidden="true" />
                   ) : isEntireAlbumDownloaded ? (
-                    <CheckCircle className="w-5 h-5 text-[#a855f7]" strokeWidth={2.5} aria-hidden="true" />
+                    <CheckCircle className="w-5 h-5 text-[#c084fc]" strokeWidth={2.5} aria-hidden="true" />
                   ) : (
                     <Download className="w-5 h-5" aria-hidden="true" />
                   )}
@@ -381,7 +380,7 @@ useEffect(() => {
                       setMoreMenuPos({ top: rect.bottom + 8, left: rect.right - 220 });
                       setShowMoreMenu(!showMoreMenu);
                     }}
-                    className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 text-white/75 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                     title="Más opciones del álbum"
                     aria-label="Más opciones del álbum"
                     aria-expanded={showMoreMenu}
