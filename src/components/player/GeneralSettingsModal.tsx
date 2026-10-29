@@ -289,7 +289,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           {/* Modal Content - Dual Column on desktop */}
           <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
             {/* Navigation Tabs (Sidebar on desktop / horizontal bar on mobile) */}
-            <div className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-white/10 bg-white/[0.01] p-3 md:p-5 overflow-x-auto md:overflow-y-auto min-h-0 scrollbar-hide flex md:flex-col gap-1.5 md:gap-2">
+            <div className="w-full md:w-76 shrink-0 border-b md:border-b-0 md:border-r border-white/10 bg-white/[0.01] p-3 md:p-5 overflow-x-auto md:overflow-y-auto min-h-0 scrollbar-hide flex md:flex-col gap-1.5 md:gap-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -297,7 +297,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-3.5 px-4.5 py-3.5 md:py-4 rounded-2xl text-left transition-all cursor-pointer whitespace-nowrap shrink-0 group ${
+                    className={`w-full flex items-center gap-3.5 px-4 md:px-5 py-3 md:py-3.5 rounded-2xl text-left transition-all cursor-pointer whitespace-nowrap shrink-0 group ${
                       isActive
                         ? 'bg-purple-600/25 border border-purple-500/40 text-white shadow-[0_0_20px_rgba(168,85,247,0.25)]'
                         : 'hover:bg-white/[0.05] border border-transparent text-white/70 hover:text-white'
