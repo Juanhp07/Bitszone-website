@@ -502,8 +502,8 @@ useEffect(() => {
                 const isPartial = downloadedCount > 0 && downloadedCount < totalCount;
                 if (isComplete || isPartial) {
                   return (
-                    <div className="mt-3 w-max px-3 py-1.5 rounded-full bg-[#a855f7]/15 backdrop-blur-md border border-[#a855f7]/20 flex items-center justify-center shadow-sm">
-                      <span className="text-[#c084fc] text-xs font-bold tracking-wider uppercase">
+                    <div className="mt-3 w-max px-3.5 py-1.5 rounded-full bg-white/[0.16] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_20px_rgba(0,0,0,0.25)] flex items-center justify-center">
+                      <span className="text-white text-xs font-bold tracking-wider uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
                         {isComplete ? 'Descarga Completa' : 'Descarga Parcial'}
                       </span>
                     </div>
