@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cardStyle, titleStyle } from '../auth/authUi';
 import { 
   X, 
   Check, 
@@ -208,17 +210,27 @@ export const AdminEditModal: React.FC = () => {
   // Current preview image to show
   const activePreviewImage = localPreviewUrl || coverUrl;
 
-  return (
+  if (!activeEditTarget || typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-6 bg-black/85 backdrop-blur-md">
-        
+      <motion.div
+        initial={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+        animate={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(20px)' }}
+        exit={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)', transition: { duration: 0.3 } }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 select-none"
+        role="dialog"
+        aria-modal="true"
+        onClick={closeEditModal}
+      >
         {/* Subtle toast */}
         {toastMessage && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-8 left-1/2 -translate-x-1/2 z-[130] px-6 py-3 rounded-2xl bg-[#1e1035] border border-purple-400/40 text-white text-xs font-semibold shadow-2xl flex items-center gap-2.5 backdrop-blur-xl"
+            className="fixed top-8 left-1/2 -translate-x-1/2 z-[310] px-6 py-3 rounded-2xl bg-[#1e1035] border border-purple-400/40 text-white text-xs font-semibold shadow-2xl flex items-center gap-2.5 backdrop-blur-xl"
           >
             <CheckCircle2 className="w-4 h-4 text-purple-300" />
             <span>{toastMessage}</span>
@@ -226,31 +238,32 @@ export const AdminEditModal: React.FC = () => {
         )}
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.94, y: 12 }}
+          initial={{ opacity: 0, scale: 0.92, y: 32 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.94, y: 12 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="relative w-full max-w-lg rounded-3xl bg-[#0f0b1a] border border-white/15 p-6 md:p-8 shadow-[0_24px_70px_rgba(0,0,0,0.85)] text-white overflow-hidden max-h-[92vh] overflow-y-auto scrollbar-hide"
+          exit={{ opacity: 0, scale: 0.96, y: 12, transition: { duration: 0.2 } }}
+          transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
+          className="relative w-full max-w-lg rounded-3xl p-6 md:p-8 shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden max-h-[92vh] overflow-y-auto scrollbar-hide"
+          style={cardStyle}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-start justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-[#8a3aed] flex items-center justify-center text-white shadow-lg shadow-purple-600/30 shrink-0">
+              <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-purple-300 shadow-lg shrink-0">
                 <Pencil className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-xl font-bold font-sora tracking-tight text-white flex items-center gap-2">
+                <h3 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2" style={titleStyle}>
                   {activeEditTarget.type === 'album' && 'Editar Álbum & Portada'}
                   {activeEditTarget.type === 'cover' && 'Editar Portada'}
                   {activeEditTarget.type === 'artist' && 'Editar Artista'}
                   {activeEditTarget.type === 'track' && 'Editar Canción'}
                   {activeEditTarget.type === 'button' && 'Editar Texto del Botón'}
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70 border border-white/10 not-italic font-sans">
                     Admin
                   </span>
                 </h3>
-                <p className="text-xs text-white/50 mt-0.5">
+                <p className="text-xs text-white/60 mt-0.5">
                   Cambio global permanente en Supabase con transmisión en vivo.
                 </p>
               </div>
@@ -259,8 +272,9 @@ export const AdminEditModal: React.FC = () => {
             <button
               type="button"
               onClick={closeEditModal}
-              className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
               title="Cerrar (Esc)"
+              aria-label="Cerrar"
             >
               <X className="w-5 h-5" />
             </button>
@@ -658,7 +672,8 @@ export const AdminEditModal: React.FC = () => {
             </div>
           </form>
         </motion.div>
-      </div>
-    </AnimatePresence>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
   );
 };

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cardStyle, titleStyle } from '../auth/authUi';
 import {
   X,
   Type,
@@ -238,55 +240,57 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     { id: 'system', label: 'Almacenamiento', icon: HardDrive, desc: 'Caché y restablecimiento' },
   ];
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-8 select-none">
+      <motion.div
+        initial={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+        animate={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(20px)' }}
+        exit={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)', transition: { duration: 0.3 } }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-5 md:p-8 select-none"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="general-settings-title"
+        onClick={onClose}
+      >
         {/* Invisible SVG filter definitions */}
         <ColorBlindnessSvgFilters />
 
-        {/* Backdrop with dark blur */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-black/75 backdrop-blur-md"
-        />
-
         {/* Modal Card */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 18 }}
+          initial={{ opacity: 0, scale: 0.92, y: 32 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          exit={{ opacity: 0, scale: 0.96, y: 12, transition: { duration: 0.2 } }}
+          transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-5xl h-[88dvh] md:h-[84vh] bg-[#0c0914]/[0.96] backdrop-blur-3xl border border-white/15 rounded-[24px] md:rounded-[32px] shadow-[0_24px_80px_rgba(0,0,0,0.85)] text-white flex flex-col overflow-hidden"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="general-settings-title"
+          className="relative w-full max-w-5xl h-[88dvh] md:h-[84vh] rounded-3xl overflow-hidden shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col"
+          style={cardStyle}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 md:px-8 py-4 md:py-5 border-b border-white/10 shrink-0 bg-white/[0.02]">
+          <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b border-white/10 shrink-0 bg-black/20">
             <div className="flex items-center gap-3 md:gap-4">
-              <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-purple-600/25 border border-purple-500/40 flex items-center justify-center text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.3)] shrink-0">
+              <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-purple-300 shadow-lg shrink-0">
                 <Sliders className="w-5 h-5 md:w-5.5 md:h-5.5" />
               </div>
               <div>
-                <h2 id="general-settings-title" className="text-lg md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                <h2 id="general-settings-title" className="text-2xl md:text-3xl text-white flex items-center gap-2.5" style={titleStyle}>
                   Configuración
-                  <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-white/10 text-white/70 border border-white/10">
+                  <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-white/10 text-white/70 border border-white/10 not-italic font-sans">
                     Sistema
                   </span>
                 </h2>
-                <p className="text-xs text-white/50 hidden sm:block">
+                <p className="text-xs text-white/60 hidden sm:block mt-0.5">
                   Personaliza el tamaño de texto, accesibilidad, efectos y atajos de teclado
                 </p>
               </div>
             </div>
 
             <button
+              type="button"
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/15 active:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
               title="Cerrar configuración (Esc)"
               aria-label="Cerrar configuración"
             >
@@ -938,24 +942,27 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-5 md:px-8 py-3.5 md:py-4 border-t border-white/10 shrink-0 bg-white/[0.02]">
+          <div className="flex items-center justify-between px-6 md:px-8 py-4 border-t border-white/10 shrink-0 bg-black/30">
             <button
+              type="button"
               onClick={onResetAll}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Restablecer todo</span>
             </button>
 
             <button
+              type="button"
               onClick={onClose}
-              className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white text-xs font-bold shadow-[0_4px_16px_rgba(168,85,247,0.4)] transition-all cursor-pointer"
+              className="px-6 py-2 rounded-full bg-[#8a3aed] hover:bg-[#9c55f7] text-white text-xs font-semibold shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
             >
               Listo
             </button>
           </div>
         </motion.div>
-      </div>
-    </AnimatePresence>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
   );
 };

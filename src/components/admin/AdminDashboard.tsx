@@ -29,9 +29,11 @@ import {
   Trash2,
   Check
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { useProfile } from '../../lib/useProfile';
 import { supabase } from '../../lib/supabase';
 import { userStorage } from '../../lib/userStorage';
+import { cardStyle, titleStyle } from '../auth/authUi';
 
 type DataSource = 'real' | 'demo';
 type DashboardTab = 'overview' | 'users' | 'music' | 'tools';
@@ -1103,237 +1105,277 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
       )}
 
       {/* MODAL: AGREGAR ADMINISTRADOR */}
-      <AnimatePresence>
-        {activeModal === 'add_admin' && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 16 }}
-              className="relative w-full max-w-md rounded-3xl p-8 text-left text-white shadow-2xl bg-[#140e24] border border-purple-400/30"
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {activeModal === 'add_admin' && (
+            <motion.div 
+              initial={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+              animate={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(20px)' }}
+              exit={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+              className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+              onClick={() => setActiveModal(null)}
             >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-[#8a3aed]/25 text-purple-300 border border-purple-400/30">
-                    <UserPlus className="w-6 h-6" />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                className="relative w-full max-w-md rounded-3xl p-7 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
+                style={cardStyle}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
+                      <UserPlus className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>Agregar Administrador</h3>
+                      <p className="text-xs text-white/60">Otorga permisos de acceso al Dashboard</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-sora font-semibold">Agregar Administrador</h3>
-                    <p className="text-xs text-white/50">Otorga permisos de acceso al Dashboard</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setActiveModal(null)}
-                  className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleAddAdminSubmit} className="space-y-4 text-sm">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-white/50 mb-2">
-                    Correo o Nombre de Usuario
-                  </label>
-                  <input 
-                    type="text"
-                    required
-                    autoFocus
-                    placeholder="ej. nuevo.admin@gmail.com o usuario_1"
-                    value={adminInput}
-                    onChange={(e) => setAdminInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-400 transition-colors"
-                  />
-                  <p className="text-[11px] text-white/40 mt-1.5 leading-relaxed">
-                    Si el usuario ya está registrado en Supabase, se actualizará su rol en la tabla <code>profiles</code> inmediatamente.
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
-                  <button
+                  <button 
                     type="button"
                     onClick={() => setActiveModal(null)}
-                    className="px-4 py-2.5 rounded-xl text-white/60 hover:text-white transition-colors text-sm cursor-pointer"
+                    aria-label="Cerrar modal"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                   >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmittingAdmin}
-                    className="px-5 py-2.5 rounded-xl bg-[#8a3aed] hover:bg-[#7b2fdf] active:scale-[0.98] text-white font-semibold text-sm transition-all shadow-md cursor-pointer disabled:opacity-50"
-                  >
-                    {isSubmittingAdmin ? 'Asignando...' : 'Asignar como Admin'}
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-              </form>
+
+                <form onSubmit={handleAddAdminSubmit} className="space-y-4 text-sm">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">
+                      Correo o Nombre de Usuario
+                    </label>
+                    <input 
+                      type="text"
+                      required
+                      autoFocus
+                      placeholder="ej. nuevo.admin@gmail.com o usuario_1"
+                      value={adminInput}
+                      onChange={(e) => setAdminInput(e.target.value)}
+                      className="w-full px-4 py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
+                    />
+                    <p className="text-[11px] text-white/50 mt-1.5 leading-relaxed">
+                      Si el usuario ya está registrado en Supabase, se actualizará su rol en la tabla <code>profiles</code> inmediatamente.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setActiveModal(null)}
+                      className="px-5 py-2.5 rounded-full text-xs font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmittingAdmin}
+                      className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                    >
+                      {isSubmittingAdmin ? 'Asignando...' : 'Asignar como Admin'}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* MODAL: Gestionar Catálogo */}
-      <AnimatePresence>
-        {activeModal === 'catalog' && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 16 }}
-              className="relative w-full max-w-lg rounded-3xl p-8 text-left text-white shadow-2xl bg-[#140e24] border border-purple-400/30"
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {activeModal === 'catalog' && (
+            <motion.div 
+              initial={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+              animate={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(20px)' }}
+              exit={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+              className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+              onClick={() => setActiveModal(null)}
             >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-[#8a3aed]/25 text-purple-300 border border-purple-400/30">
-                    <Disc3 className="w-6 h-6 animate-spin" style={{ animationDuration: '6s' }} />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                className="relative w-full max-w-lg rounded-3xl p-7 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
+                style={cardStyle}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
+                      <Disc3 className="w-5 h-5 animate-spin" style={{ animationDuration: '6s' }} />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>Estado del Catálogo</h3>
+                      <p className="text-xs text-white/60">Base de datos Supabase & Pistas Offline</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-sora font-semibold">Estado del Catálogo</h3>
-                    <p className="text-xs text-white/50">Base de datos Supabase & Pistas Offline</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setActiveModal(null)}
-                  className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-3 mb-6 text-sm">
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
-                  <span className="text-white/60">Conexión Supabase</span>
-                  <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    En Línea ({realLatency}ms)
-                  </span>
-                </div>
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
-                  <span className="text-white/60">Álbumes Registrados</span>
-                  <span className="text-white font-semibold font-mono">{realAlbumsCount || 12} Álbumes</span>
-                </div>
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
-                  <span className="text-white/60">Canciones en Catálogo</span>
-                  <span className="text-white font-semibold font-mono">{realTracksCount || 152} Pistas</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
-                <button
-                  onClick={() => {
-                    setActiveModal(null);
-                    fetchRealData();
-                    setNotification("¡Catálogo sincronizado exitosamente con Supabase!");
-                    setTimeout(() => setNotification(null), 4000);
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-[#8a3aed] hover:bg-[#7b2fdf] active:scale-[0.98] text-white font-semibold text-sm transition-all shadow-md cursor-pointer"
-                >
-                  Forzar Sincronización
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* MODAL: Nuevo Lanzamiento */}
-      <AnimatePresence>
-        {activeModal === 'release' && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 16 }}
-              className="relative w-full max-w-lg rounded-3xl p-8 text-left text-white shadow-2xl bg-[#140e24] border border-purple-400/30"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-[#8a3aed]/25 text-purple-300 border border-purple-400/30">
-                    <Sparkles className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-sora font-semibold">Registrar Lanzamiento</h3>
-                    <p className="text-xs text-white/50">Subir nuevo álbum o sencillo a BitsZone</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setActiveModal(null)}
-                  className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSimulateSubmit} className="space-y-4 text-sm">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-white/50 mb-1.5">
-                    Título de la pista o álbum
-                  </label>
-                  <input 
-                    type="text"
-                    required
-                    placeholder="Ej. Liquid Beats Vol. 1"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-400 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-white/50 mb-1.5">
-                    Artista o Grupo
-                  </label>
-                  <input 
-                    type="text"
-                    required
-                    placeholder="Ej. J3T & JuanHP"
-                    value={newArtist}
-                    onChange={(e) => setNewArtist(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-400 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-white/50 mb-1.5">
-                    Género Principal
-                  </label>
-                  <select 
-                    value={newGenre}
-                    onChange={(e) => setNewGenre(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#1b1230] border border-white/10 text-white focus:outline-none focus:border-purple-400 transition-colors cursor-pointer"
-                  >
-                    <option value="Pop / Alternativo">Pop / Alternativo</option>
-                    <option value="Rock / Metal">Rock / Metal</option>
-                    <option value="Salsa / Tropical">Salsa / Tropical</option>
-                    <option value="Electrónica / Synth">Electrónica / Synth</option>
-                  </select>
-                </div>
-
-                <div className="p-5 rounded-2xl border border-dashed border-white/20 bg-white/[0.02] flex flex-col items-center justify-center text-center cursor-pointer hover:border-purple-400/50 transition-colors">
-                  <UploadCloud className="w-8 h-8 text-purple-300 mb-2" />
-                  <p className="text-xs text-white/80">Arrastra la carátula o audio aquí</p>
-                  <span className="text-[10px] text-white/40 mt-0.5">Soporta MP3, FLAC, JPG, PNG hasta 100MB</span>
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
-                  <button
+                  <button 
                     type="button"
                     onClick={() => setActiveModal(null)}
-                    className="px-4 py-2 rounded-xl text-white/50 hover:text-white transition-colors text-sm cursor-pointer"
+                    aria-label="Cerrar modal"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                   >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-[#8a3aed] hover:bg-[#7b2fdf] active:scale-[0.98] text-white font-semibold text-sm transition-all shadow-md cursor-pointer"
-                  >
-                    Registrar Pista
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-              </form>
+
+                <div className="space-y-3 mb-6 text-sm">
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.05] border border-white/10">
+                    <span className="text-white/70">Conexión Supabase</span>
+                    <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      En Línea ({realLatency}ms)
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.05] border border-white/10">
+                    <span className="text-white/70">Álbumes Registrados</span>
+                    <span className="text-white font-semibold font-mono">{realAlbumsCount || 12} Álbumes</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.05] border border-white/10">
+                    <span className="text-white/70">Canciones en Catálogo</span>
+                    <span className="text-white font-semibold font-mono">{realTracksCount || 152} Pistas</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveModal(null);
+                      fetchRealData();
+                      setNotification("¡Catálogo sincronizado exitosamente con Supabase!");
+                      setTimeout(() => setNotification(null), 4000);
+                    }}
+                    className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+                  >
+                    Forzar Sincronización
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* MODAL: Nuevo Lanzamiento */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {activeModal === 'release' && (
+            <motion.div 
+              initial={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+              animate={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(20px)' }}
+              exit={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+              className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+              onClick={() => setActiveModal(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                className="relative w-full max-w-lg rounded-3xl p-7 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
+                style={cardStyle}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>Registrar Lanzamiento</h3>
+                      <p className="text-xs text-white/60">Subir nuevo álbum o sencillo a BitsZone</p>
+                    </div>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setActiveModal(null)}
+                    aria-label="Cerrar modal"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSimulateSubmit} className="space-y-4 text-sm">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                      Título de la pista o álbum
+                    </label>
+                    <input 
+                      type="text"
+                      required
+                      placeholder="Ej. Liquid Beats Vol. 1"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                      Artista o Grupo
+                    </label>
+                    <input 
+                      type="text"
+                      required
+                      placeholder="Ej. J3T & JuanHP"
+                      value={newArtist}
+                      onChange={(e) => setNewArtist(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                      Género Principal
+                    </label>
+                    <select 
+                      value={newGenre}
+                      onChange={(e) => setNewGenre(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-2xl bg-[#1b1230] border border-white/10 text-white focus:outline-none focus:border-purple-400/60 transition-all cursor-pointer"
+                    >
+                      <option value="Pop / Alternativo">Pop / Alternativo</option>
+                      <option value="Rock / Metal">Rock / Metal</option>
+                      <option value="Salsa / Tropical">Salsa / Tropical</option>
+                      <option value="Electrónica / Synth">Electrónica / Synth</option>
+                    </select>
+                  </div>
+
+                  <div className="p-5 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] flex flex-col items-center justify-center text-center cursor-pointer hover:border-purple-400/50 hover:bg-white/[0.06] transition-all">
+                    <UploadCloud className="w-8 h-8 text-purple-300 mb-2" />
+                    <p className="text-xs text-white/80">Arrastra la carátula o audio aquí</p>
+                    <span className="text-[10px] text-white/40 mt-0.5">Soporta MP3, FLAC, JPG, PNG hasta 100MB</span>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setActiveModal(null)}
+                      className="px-5 py-2.5 rounded-full text-xs font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+                    >
+                      Registrar Pista
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
     </div>
   );
