@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Mail, ArrowLeft, Check, Link2 } from 'lucide-react';
+import { Mail, ArrowLeft, Check, Link2, User, UserCog, KeyRound, Eye, EyeOff } from 'lucide-react';
 import GradientASCII from '../ui/GradientASCII';
 import { LiquidButton } from '../ui/LiquidButton';
 import { supabase } from '../../lib/supabase';
@@ -9,7 +9,8 @@ import { Heading, cardStyle, inputClass, slide, titleStyle } from './authUi';
 // One flow for everyone: no separate "register" and "login". First time = account is created.
 // Email: one-time code (or the link in the same email). Google: OAuth. Both come back through /login.
 // The profile (photo, username, tastes) is completed inside the player, in <Onboarding />.
-type Step = 'choose' | 'google' | 'code' | 'done';
+// Admin users can optionally sign in with email + password via the top toggle.
+type Step = 'choose' | 'google' | 'code' | 'password' | 'done';
 type Status = 'idle' | 'loading' | 'success';
 
 // must match Supabase > Authentication > Providers > Email > Email OTP Length
@@ -31,7 +32,7 @@ const GoogleIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-type Method = 'email' | 'google';
+type Method = 'email' | 'google' | 'admin';
 
 const STEPS: Record<Method, { title: string; text: string }[]> = {
   email: [
@@ -44,16 +45,23 @@ const STEPS: Record<Method, { title: string; text: string }[]> = {
     { title: 'Autoriza con Google', text: 'Eliges tu cuenta y compartimos solo tu nombre, correo y foto.' },
     { title: 'Listo, a escuchar', text: 'Entras directo con tu perfil de Google.' },
   ],
+  admin: [
+    { title: 'Acceso Administrador', text: 'Credenciales del sistema.' },
+    { title: 'Verificación segura', text: 'Autenticación con contraseña.' },
+    { title: 'Panel de Control', text: 'Acceso completo al Dashboard.' },
+  ],
 };
 
 const SUBTITLE: Record<Method, string> = {
   email: 'Tu música, sin contraseñas que recordar.',
   google: 'Entra con tu cuenta de Google, sin crear nada nuevo.',
+  admin: 'Acceso administrativo seguro para gestionar Bitszone.',
 };
 
 const stepIndex: Record<Method, Record<Step, number>> = {
-  email: { choose: 0, google: 0, code: 1, done: 2 },
-  google: { choose: 0, google: 1, code: 1, done: 2 },
+  email: { choose: 0, google: 0, code: 1, password: 1, done: 2 },
+  google: { choose: 0, google: 1, code: 1, password: 1, done: 2 },
+  admin: { choose: 0, google: 0, code: 1, password: 1, done: 2 },
 };
 
 export const AuthContainer = () => {
@@ -62,6 +70,9 @@ export const AuthContainer = () => {
   const [status, setStatus] = useState<Status>('idle');
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [codeError, setCodeError] = useState('');
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
@@ -159,6 +170,30 @@ export const AuthContainer = () => {
     if (error) { setStep('choose'); setEmailError(friendly(error)); }
   };
 
+  const signInWithPassword = async () => {
+    if (status !== 'idle') return;
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) { setEmailError('Escribe un correo válido'); return; }
+    if (!password) { setPasswordError('Escribe tu contraseña'); return; }
+    setEmailError('');
+    setPasswordError('');
+    setMethod('admin');
+    setStatus('loading');
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password,
+    });
+    if (error || !data.session) {
+      setStatus('idle');
+      setPasswordError(
+        error?.message?.toLowerCase().includes('invalid') || error?.message?.toLowerCase().includes('credentials')
+          ? 'Correo o contraseña incorrectos'
+          : friendly(error || {})
+      );
+      return;
+    }
+    afterSignIn(data.session);
+  };
+
 
   const setDigit = (i: number, value: string) => {
     const clean = value.replace(/\D/g, '');
@@ -209,6 +244,64 @@ export const AuthContainer = () => {
       >
         {/* Left: the flow */}
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
+          
+          {/* Botón dinámico Admin / Usuario en la parte superior central del lado izquierdo */}
+          {(step === 'choose' || step === 'password') && (
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (step === 'password') {
+                  setEmail('');
+                  setPassword('');
+                  setEmailError('');
+                  setPasswordError('');
+                  setMethod('email');
+                  setStep('choose');
+                } else {
+                  setEmail(email.trim() || 'bitszone.app@gmail.com');
+                  setPassword('');
+                  setEmailError('');
+                  setPasswordError('');
+                  setMethod('admin');
+                  setStep('password');
+                }
+              }}
+              className="absolute top-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg backdrop-blur-md transition-all cursor-pointer group"
+              title={step === 'password' ? 'Volver a inicio de sesión normal' : 'Acceso para Administrador (con contraseña)'}
+              aria-label={step === 'password' ? 'Modo Usuario' : 'Modo Administrador'}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {step === 'password' ? (
+                  <motion.div
+                    key="user-toggle"
+                    initial={{ opacity: 0, scale: 0.75, rotate: -25 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0.75, rotate: 25 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-purple-200"
+                  >
+                    <User className="w-3.5 h-3.5 text-purple-300 group-hover:text-purple-100" />
+                    <span>Usuario</span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="admin-toggle"
+                    initial={{ opacity: 0, scale: 0.75, rotate: 25 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0.75, rotate: -25 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-white/80 group-hover:text-white"
+                  >
+                    <UserCog className="w-3.5 h-3.5 text-purple-400 group-hover:text-purple-300" />
+                    <span>Admin</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          )}
+
           <div className="w-full max-w-[26rem]">
             <AnimatePresence mode="wait" initial={false}>
               {step === 'choose' && (
@@ -322,6 +415,76 @@ export const AuthContainer = () => {
                 </motion.div>
               )}
 
+              {step === 'password' && (
+                <motion.div key="password" {...slide}>
+                  <Heading
+                    title="Acceso Administrador"
+                    subtitle="Inicia sesión con correo y contraseña autorizados."
+                  />
+
+                  <div className="space-y-4">
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Mail className="h-5 w-5 text-white/85" />
+                      </div>
+                      <input
+                        type="email"
+                        placeholder="Correo de Administrador"
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+                        className={inputClass}
+                      />
+                    </div>
+                    {emailError && <p className="text-sm text-pink-200 text-center -mt-2">{emailError}</p>}
+
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <KeyRound className="h-5 w-5 text-white/85" />
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Contraseña"
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); setPasswordError(''); }}
+                        onKeyDown={(e) => e.key === 'Enter' && signInWithPassword()}
+                        className={`${inputClass} pr-12`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-white/60 hover:text-white cursor-pointer"
+                        title={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                        aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    {passwordError && <p className="text-sm text-pink-200 text-center -mt-2">{passwordError}</p>}
+
+                    <LiquidButton onClick={signInWithPassword} status={status} className="w-full h-14">
+                      Entrar al Dashboard
+                    </LiquidButton>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between text-[15px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmail('');
+                        setPassword('');
+                        setEmailError('');
+                        setPasswordError('');
+                        setMethod('email');
+                        setStep('choose');
+                      }}
+                      className="flex items-center gap-2 text-white/80 hover:text-white transition-colors cursor-pointer py-1 text-sm font-medium"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Volver al login de usuario normal</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
 
               {step === 'done' && (
                 <motion.div key="done" {...slide} className="text-center py-6">
