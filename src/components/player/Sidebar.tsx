@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, LogOut, ChevronLeft } from "lucide-react";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, LogOut, ChevronLeft, LayoutDashboard } from "lucide-react";
 import { PopoverMenu } from "../ui/PopoverMenu";
 import { useDownloads } from "./DownloadsContext";
 
@@ -15,7 +15,8 @@ export const Sidebar = ({
   isCollapsed = false,
   drawerOnRight = false,
   account = null,
-  onSignOut
+  onSignOut,
+  isAdmin = false,
 }: {
   currentView: string;
   onViewChange: (view: any) => void;
@@ -29,6 +30,7 @@ export const Sidebar = ({
   drawerOnRight?: boolean;
   account?: { name: string; avatarUrl?: string | null } | null;
   onSignOut?: () => void;
+  isAdmin?: boolean;
 }) => {
   const { totalBytes, newDownloadsCount } = useDownloads();
   const [accountMenu, setAccountMenu] = useState<{ x: number; y: number } | null>(null);
@@ -178,6 +180,37 @@ export const Sidebar = ({
             )}
           </div>
         </button>
+
+        {/* Botón Dashboard para Administradores */}
+        {isAdmin && (
+          <button
+            onClick={() => onViewChange("dashboard")}
+            className={`flex items-center w-full h-11 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden ${
+              currentView === "dashboard"
+                ? "text-white bg-purple-600/30 border border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                : "text-purple-300 hover:text-white hover:bg-purple-500/10"
+            }`}
+            title="Dashboard de Administrador"
+            aria-label="Dashboard de Administrador"
+          >
+            <div className="w-11 h-11 flex items-center justify-center shrink-0">
+              <LayoutDashboard className="w-5 h-5 shrink-0 text-purple-400" aria-hidden="true" />
+            </div>
+            <div
+              className="flex-1 min-w-0 pr-3 flex items-center justify-between overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              style={{
+                opacity: isCollapsed ? 0 : 1,
+                transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)',
+                maxWidth: isCollapsed ? '0px' : '180px'
+              }}
+            >
+              <span className="truncate font-semibold text-white">Dashboard</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-purple-500/25 text-purple-200 border border-purple-400/30">
+                Admin
+              </span>
+            </div>
+          </button>
+        )}
       </div>
 
       {/* Bottom Section */}

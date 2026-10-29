@@ -10,10 +10,14 @@ import {
   X, 
   UploadCloud, 
   CheckCircle2, 
-  Radio
+  Radio,
+  ShieldAlert,
+  Loader2
 } from 'lucide-react';
+import { useProfile } from '../../lib/useProfile';
 
-export const AdminDashboard = () => {
+export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
+  const { user, isAdmin, ready } = useProfile();
   const [activeModal, setActiveModal] = useState<'catalog' | 'release' | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
 
@@ -30,6 +34,50 @@ export const AdminDashboard = () => {
     setArtist('');
     setTimeout(() => setNotification(null), 4000);
   };
+
+  if (!ready) {
+    return (
+      <div className="relative z-10 p-12 text-center text-purple-300 font-sora flex items-center justify-center gap-3">
+        <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+        <span>Verificando permisos de administrador...</span>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative z-10 max-w-md w-full text-center p-8 rounded-3xl bg-black/60 border border-white/10 backdrop-blur-xl shadow-2xl"
+      >
+        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/30 shadow-lg shadow-red-500/10">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2 font-sora">Acceso Restringido</h2>
+        <p className="text-white/60 text-sm mb-6 leading-relaxed">
+          Esta sección está reservada exclusivamente para administradores autorizados de BitsZone.
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-medium transition-colors cursor-pointer"
+            >
+              Volver al reproductor
+            </button>
+          )}
+          <a
+            href="/login"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold transition-all shadow-md shadow-purple-600/30"
+          >
+            Iniciar sesión
+          </a>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <div className="relative z-10 max-w-2xl w-full">
@@ -130,22 +178,31 @@ export const AdminDashboard = () => {
 
         {/* SECONDARY NAVIGATION BUTTONS */}
         <div className="w-full pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-medium">
-          <a 
-            href="/login" 
-            className="flex items-center gap-2 text-[#cec2d3] hover:text-white transition-colors duration-200 py-2 px-3 rounded-lg hover:bg-white/5"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Volver al Login</span>
-          </a>
+          {onBack ? (
+            <button 
+              type="button"
+              onClick={onBack}
+              className="flex items-center gap-2 text-[#cec2d3] hover:text-white transition-colors duration-200 py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Volver a la Música</span>
+            </button>
+          ) : (
+            <a 
+              href="/player" 
+              className="flex items-center gap-2 text-[#cec2d3] hover:text-white transition-colors duration-200 py-2 px-3 rounded-lg hover:bg-white/5"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Volver al Reproductor</span>
+            </a>
+          )}
 
           <a 
-            href="/player" 
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/login" 
             className="flex items-center gap-2 text-[#deb7ff] hover:text-white transition-colors duration-200 py-2 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"
           >
             <Radio className="w-4 h-4 text-[#deb7ff]" />
-            <span>Abrir Web Player</span>
+            <span>Cambiar cuenta / Login</span>
             <ExternalLink className="w-3.5 h-3.5 opacity-60" />
           </a>
         </div>

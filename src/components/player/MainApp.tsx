@@ -12,6 +12,7 @@ import { LyricsSidebar } from './LyricsSidebar';
 import { ToastContainer } from './ToastContainer';
 import { useCatalog } from './useCatalog';
 import { Onboarding } from './Onboarding';
+import { AdminDashboard } from '../admin/AdminDashboard';
 import { useProfile } from '../../lib/useProfile';
 import { signOutUser } from '../../lib/userStorage';
 import { genreScore } from '../../lib/genres';
@@ -80,7 +81,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const { albums, loading, fetchAlbumDetails } = useCatalog(supabaseUrl, supabaseAnonKey);
 
   // account: the profile card opens right after the first sign-in, and the tastes it collects reorder the home
-  const { user, profile, ready: profileReady, reload: reloadProfile } = useProfile();
+  const { user, profile, isAdmin, ready: profileReady, reload: reloadProfile } = useProfile();
   const [onboarding, setOnboarding] = useState(false);
   const [pickedGenres, setPickedGenres] = useState<string[] | null>(null);
   const likedGenres: string[] = pickedGenres ?? (user?.user_metadata?.genres as string[] | undefined) ?? [];
@@ -1097,6 +1098,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               drawerOnRight={isCompact}
               account={account}
               onSignOut={signOutUser}
+              isAdmin={isAdmin}
             />
           </motion.div>
         </div>
@@ -1157,14 +1159,19 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       onSelectAlbum={handleSelectAlbum}
                     />
                   )}
+                  {currentView === 'dashboard' && (
+                    <div className="flex-1 flex flex-col items-center justify-center py-6 px-4">
+                      <AdminDashboard onBack={() => setCurrentView('catalog')} />
+                    </div>
+                  )}
                 </motion.div>
               </main>
 
               {/* Fade-out gradients applied to the scrollable area bounds */}
               {/* Bottom gradient */}
-              <div className={`absolute bottom-0 left-0 right-0 h-8 md:h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20 ${(currentView === 'album' || currentView === 'artist') ? 'hidden' : ''}`}></div>
+              <div className={`absolute bottom-0 left-0 right-0 h-8 md:h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none z-20 ${(currentView === 'album' || currentView === 'artist' || currentView === 'dashboard') ? 'hidden' : ''}`}></div>
               {/* Right side gradient */}
-              <div className={`hidden absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20 ${currentView === 'album' ? '' : 'md:block'}`}></div>
+              <div className={`hidden absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent pointer-events-none z-20 ${(currentView === 'album' || currentView === 'dashboard') ? '' : 'md:block'}`}></div>
               </div>
 
               {/* Right Lyrics Sidebar */}

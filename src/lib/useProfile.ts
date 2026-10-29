@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 
-export type Profile = { username: string | null; avatar_url: string | null };
+export type Profile = { username: string | null; avatar_url: string | null; role?: string | null };
 
 // Current session + its profile row. `profile` stays null if the lookup fails, so a DB hiccup never blocks the app.
 export const useProfile = () => {
@@ -13,9 +13,9 @@ export const useProfile = () => {
   const load = useCallback(async (u: User | null) => {
     setUser(u);
     if (!u) { setProfile(null); setReady(true); return; }
-    const { data, error } = await supabase.from('profiles').select('username, avatar_url').eq('id', u.id).maybeSingle();
+    const { data, error } = await supabase.from('profiles').select('username, avatar_url, role').eq('id', u.id).maybeSingle();
     if (error) console.error('profiles lookup failed', error);
-    setProfile(error ? null : (data ?? { username: null, avatar_url: null }));
+    setProfile(error ? null : (data ?? { username: null, avatar_url: null, role: 'user' }));
     setReady(true);
   }, []);
 
@@ -31,5 +31,15 @@ export const useProfile = () => {
 
   const reload = useCallback(() => load(user), [load, user]);
 
-  return { user, profile, ready, reload };
+  const isAdmin = Boolean(
+    user && (
+      user.email === 'bitszone.app@gmail.com' ||
+      profile?.role === 'admin' ||
+      (user.app_metadata && (user.app_metadata as Record<string, any>).role === 'admin') ||
+      (user.user_metadata && (user.user_metadata as Record<string, any>).role === 'admin')
+    )
+  );
+
+  return { user, profile, isAdmin, ready, reload };
 };
+
