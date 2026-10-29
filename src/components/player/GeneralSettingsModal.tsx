@@ -13,7 +13,6 @@ import {
   RotateCcw,
   Check,
   Sparkles,
-  Sliders,
   AlertTriangle,
   Trash2,
   ShieldAlert,
@@ -25,7 +24,6 @@ import {
 import type {
   GeneralSettings,
   FontFamilyType,
-  InterfaceDensity,
   ColorBlindnessType,
   CrossfadeDuration,
   StreamingQuality,
@@ -272,23 +270,10 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           style={cardStyle}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-7 md:px-10 py-6 border-b border-white/10 shrink-0 bg-black/20">
-            <div className="flex items-center gap-3.5 md:gap-5">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-purple-300 shadow-lg shrink-0">
-                <Sliders className="w-6 h-6 md:w-7 md:h-7" />
-              </div>
-              <div>
-                <h2 id="general-settings-title" className="text-3xl md:text-4xl text-white flex items-center gap-3" style={titleStyle}>
-                  Configuración
-                  <span className="hidden sm:inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-white/10 text-white/80 border border-white/10 not-italic font-sans">
-                    Sistema
-                  </span>
-                </h2>
-                <p className="text-sm md:text-base text-white/65 hidden sm:block mt-1">
-                  Personaliza el tamaño de texto, accesibilidad, efectos y atajos de teclado
-                </p>
-              </div>
-            </div>
+          <div className="flex items-center justify-between px-7 md:px-10 py-5 md:py-6 border-b border-white/10 shrink-0 bg-black/20">
+            <h2 id="general-settings-title" className="text-2xl md:text-3xl text-white font-bold tracking-tight" style={titleStyle}>
+              Configuración
+            </h2>
 
             <button
               type="button"
@@ -369,18 +354,16 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                     <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
                       Ajustes rápidos
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                    <div className="grid grid-cols-3 gap-3">
                       {[
                         { label: 'Pequeño', scale: 85 },
-                        { label: 'Compacto', scale: 92 },
                         { label: 'Normal', scale: 100 },
-                        { label: 'Grande', scale: 115 },
-                        { label: 'Extra Grande', scale: 130 },
+                        { label: 'Grande', scale: 120 },
                       ].map((p) => (
                         <button
                           key={p.scale}
                           onClick={() => onUpdateSettings(prev => ({ ...prev, textScale: p.scale }))}
-                          className={`py-3 px-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                          className={`py-3.5 px-4 rounded-2xl border text-center transition-all cursor-pointer ${
                             settings.textScale === p.scale
                               ? 'bg-purple-600/30 border-purple-400 text-white font-bold shadow-[0_0_16px_rgba(168,85,247,0.3)]'
                               : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/70'
@@ -390,33 +373,6 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                           <div className="text-xs text-white/50 font-mono mt-0.5">{p.scale}%</div>
                         </button>
                       ))}
-                    </div>
-                  </div>
-
-                  {/* Range Slider for Fine-Tuning */}
-                  <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/5 space-y-3.5">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm sm:text-base font-semibold text-white/90">Ajuste manual preciso</span>
-                      <span className="font-mono text-sm text-purple-300 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30 font-bold">
-                        {settings.textScale}%
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={80}
-                      max={135}
-                      step={1}
-                      value={settings.textScale}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        onUpdateSettings(prev => ({ ...prev, textScale: val }));
-                      }}
-                      className="w-full accent-purple-500 cursor-pointer h-2 bg-white/10 rounded-lg"
-                    />
-                    <div className="flex justify-between text-xs text-white/50 font-mono">
-                      <span>80% Mínimo</span>
-                      <span>100% Estándar</span>
-                      <span>135% Máximo</span>
                     </div>
                   </div>
 
@@ -445,35 +401,6 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                             {settings.fontFamily === font.id && <Check className="w-4 h-4 text-purple-300" />}
                           </div>
                           <p className="text-xs sm:text-sm text-white/60 mt-1">{font.desc}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Interface Density */}
-                  <div className="space-y-3 pt-1">
-                    <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                      Densidad de la Interfaz
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {[
-                        { id: 'comfortable' as InterfaceDensity, label: 'Cómoda', desc: 'Espaciado amplio y relajado' },
-                        { id: 'compact' as InterfaceDensity, label: 'Compacta', desc: 'Mayor cantidad de canciones visibles' },
-                      ].map((den) => (
-                        <button
-                          key={den.id}
-                          onClick={() => onUpdateSettings(prev => ({ ...prev, interfaceDensity: den.id }))}
-                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                            settings.interfaceDensity === den.id
-                              ? 'bg-purple-600/25 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.25)]'
-                              : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/70'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm sm:text-base font-bold text-white">{den.label}</span>
-                            {settings.interfaceDensity === den.id && <Check className="w-4 h-4 text-purple-300" />}
-                          </div>
-                          <p className="text-xs sm:text-sm text-white/60 mt-1">{den.desc}</p>
                         </button>
                       ))}
                     </div>
