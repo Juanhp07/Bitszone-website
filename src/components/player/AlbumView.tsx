@@ -105,8 +105,10 @@ export const AlbumView = ({
   const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0, isUpward: false });
   const { isLicensed, downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isSongRadio = Boolean((album as any)?.isSongRadio);
+  // follow the playing song only while this radio is what's playing; another radio that merely contains it keeps its own song
+  const radioIsPlaying = isSongRadio && playback.queueList[playback.queueIndex]?.album?.id === album?.id;
   const activeTrack = isSongRadio
-    ? (album?.tracks?.find(t => t.id === nowPlayingTrackId) || album?.tracks?.[0])
+    ? ((radioIsPlaying && album?.tracks?.find(t => t.id === nowPlayingTrackId)) || album?.tracks?.[0])
     : null;
   const currentCover = (isSongRadio && activeTrack?.albumCover) ? activeTrack.albumCover : (album?.coverUrl || '');
   const dominantColor = useAverageColor(currentCover);
@@ -203,7 +205,8 @@ useEffect(() => {
   const isEntireAlbumDownloaded = !!album.tracks?.length && album.tracks.every(t => isDownloaded(t.id));
   const isEmpty = !album.tracks?.length;
   const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
-  const isAlbumActive = !!nowPlayingTrackId && !!album.tracks?.some(t => t.id === nowPlayingTrackId);
+  // a radio only counts as active when it's the one playing, not when it merely contains the playing song
+  const isAlbumActive = !!nowPlayingTrackId && !!album.tracks?.some(t => t.id === nowPlayingTrackId) && (!isSongRadio || radioIsPlaying);
   const isAlbumPlaying = isPlaying && isAlbumActive;
 
   return (

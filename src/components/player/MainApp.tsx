@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from './Sidebar';
 import { MiniPlayer } from './MiniPlayer';
-import { CatalogView } from './CatalogView';
+import { CatalogView, resetCatalogSection } from './CatalogView';
 import { AlbumView } from './AlbumView';
 import { DownloadsView } from './DownloadsView';
 import { LibraryView } from './LibraryView';
@@ -17,6 +17,8 @@ import { AdminEditProvider } from '../admin/AdminEditContext';
 import { AdminEditModal } from '../admin/AdminEditModal';
 import { AdminEditFloatingBar } from '../admin/AdminEditWidgets';
 import { useProfile } from '../../lib/useProfile';
+import { recordListen } from '../../lib/listenHistory';
+import { ProfileDialog } from './ProfileDialog';
 import { signOutUser } from '../../lib/userStorage';
 import { genreScore } from '../../lib/genres';
 import type { Album, Track } from './types';
@@ -107,6 +109,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     ? { name: profile?.username ?? user.email?.split('@')[0] ?? 'Tú', avatarUrl: profile?.avatar_url ?? user.user_metadata?.avatar_url ?? null }
     : null;
   const [hasEntered, setHasEntered] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !hasEntered) {
@@ -723,6 +726,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     setIsAudioLoading(true);
     setNowPlayingTrack(track);
     setNowPlayingAlbum(album);
+    if (user) recordListen(track, album);
 
     if (audioRef.current) {
       if (isPlaying) {
@@ -864,9 +868,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     if (!currentViewingAlbum) return '';
     const isSongRadio = isSongRadioAlbum(currentViewingAlbum);
     if (isSongRadio) {
-      const activeTrack = currentViewingAlbum.tracks?.find(t => t.id === nowPlayingTrack?.id)
+      // same rule as AlbumView: follow the playing song only while this radio is what's playing
+      const radioIsPlaying = queueList[queueIndex]?.album?.id === currentViewingAlbum.id;
+      const activeTrack = (radioIsPlaying && currentViewingAlbum.tracks?.find(t => t.id === nowPlayingTrack?.id))
         || currentViewingAlbum.tracks?.[0];
-      return activeTrack?.albumCover || nowPlayingOrigin?.coverUrl || currentViewingAlbum.coverUrl || '';
+      return activeTrack?.albumCover || currentViewingAlbum.coverUrl || '';
     }
     return currentViewingAlbum.coverUrl || '';
   })();
@@ -958,6 +964,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const headerH = 56;
 
   const navigate = (view: string) => {
+    if (view === 'catalog') resetCatalogSection();
     setCurrentView(view);
     if (isCompact) setIsSidebarOpen(false);
   };
@@ -1089,6 +1096,18 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
             transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
             className="w-full h-full overflow-hidden"
           >
+            {user && account && (
+              <ProfileDialog
+                open={profileOpen}
+                onClose={() => setProfileOpen(false)}
+                userId={user.id}
+                email={user.email ?? ''}
+                username={account.name}
+                avatarUrl={account.avatarUrl}
+                onSaved={reloadProfile}
+                onSignOut={signOutUser}
+              />
+            )}
             <Sidebar
               currentView={navSection}
               onViewChange={navigate}
@@ -1104,7 +1123,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               isCollapsed={!isCompact && !isSidebarOpen}
               drawerOnRight={isCompact}
               account={account}
-              onSignOut={signOutUser}
+              onOpenProfile={() => { setProfileOpen(true); if (isCompact) setIsSidebarOpen(false); }}
               isAdmin={isAdmin}
             />
           </motion.div>
