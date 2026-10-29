@@ -1344,7 +1344,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                 ...cardStyle,
                 left: isCompact ? '16px' : isSidebarOpen ? '280px' : '96px',
               }}
-              className="absolute bottom-[105px] w-[24.5rem] sm:w-[27rem] rounded-3xl p-6 sm:p-7 text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className="absolute bottom-[105px] w-[20.5rem] sm:w-[22rem] max-w-[calc(100vw-2rem)] rounded-3xl p-6 text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
             >
               <div className="flex justify-between items-center mb-5 pb-3 border-b border-white/10">
                 <div className="flex items-center gap-2.5">
