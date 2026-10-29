@@ -4,12 +4,12 @@ import { AdminDashboard } from '../components/admin/AdminDashboard';
 ---
 
 <Layout title="Administración | BitsZone">
-  <main class="min-h-screen bg-[#0d0d12] text-white flex flex-col items-center justify-center p-6 md:p-8 relative overflow-hidden">
+  <main class="min-h-screen bg-[#090610] text-white flex flex-col items-center justify-start p-4 md:p-8 relative overflow-y-auto">
     
     {/* Background Subtle Elements */}
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-      <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[140px]"></div>
-      <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[140px]"></div>
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+      <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[140px]"></div>
+      <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-[140px]"></div>
     </div>
 
     <AdminDashboard client:load />
