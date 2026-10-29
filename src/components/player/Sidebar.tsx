@@ -51,27 +51,34 @@ export const Sidebar = ({
         <div
           className="flex items-center overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
           style={{
-            maxWidth: isCollapsed ? '0px' : '160px',
+            maxWidth: isCollapsed ? '0px' : '220px',
             opacity: isCollapsed ? 0 : 1,
             transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)'
           }}
         >
-          <button
-            onClick={() => {
-              if (currentView !== 'catalog') {
-                onViewChange('catalog');
-              } else {
-                window.location.reload();
-              }
-            }}
-            className="cursor-pointer hover:opacity-85 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg py-1 px-1 flex items-center transition-transform"
-            title="Bitszone - Inicio"
-            aria-label="Bitszone - Ir al catálogo"
-          >
-            <span className="font-inter font-bold text-2xl text-white tracking-tight select-none">
-              Bitszone
-            </span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (currentView !== 'catalog') {
+                  onViewChange('catalog');
+                } else {
+                  window.location.reload();
+                }
+              }}
+              className="cursor-pointer hover:opacity-85 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg py-1 px-1 flex items-center transition-transform"
+              title="Bitszone - Inicio"
+              aria-label="Bitszone - Ir al catálogo"
+            >
+              <span className="font-inter font-bold text-2xl text-white tracking-tight select-none">
+                Bitszone
+              </span>
+            </button>
+            {isAdmin && (
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-500/25 text-purple-200 border border-purple-400/35 shadow-[0_0_12px_rgba(168,85,247,0.25)] select-none">
+                ADMIN
+              </span>
+            )}
+          </div>
         </div>
 
         {onToggleSidebar && (
@@ -185,29 +192,26 @@ export const Sidebar = ({
         {isAdmin && (
           <button
             onClick={() => onViewChange("dashboard")}
-            className={`flex items-center w-full h-11 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden ${
+            className={`flex items-center w-full h-11 rounded-xl font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden ${
               currentView === "dashboard"
-                ? "text-white bg-purple-600/30 border border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                : "text-purple-300 hover:text-white hover:bg-purple-500/10"
+                ? "text-white bg-gradient-to-r from-purple-600/40 via-purple-600/30 to-indigo-600/25 border border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.35)]"
+                : "text-purple-200 bg-purple-500/[0.08] hover:bg-purple-500/[0.18] border border-purple-500/25 hover:border-purple-400/40 hover:text-white shadow-sm"
             }`}
-            title="Dashboard de Administrador"
-            aria-label="Dashboard de Administrador"
+            title="Dashboard"
+            aria-label="Dashboard"
           >
             <div className="w-11 h-11 flex items-center justify-center shrink-0">
-              <LayoutDashboard className="w-5 h-5 shrink-0 text-purple-400" aria-hidden="true" />
+              <LayoutDashboard className={`w-5 h-5 shrink-0 transition-colors ${currentView === "dashboard" ? "text-purple-300" : "text-purple-400"}`} aria-hidden="true" />
             </div>
             <div
-              className="flex-1 min-w-0 pr-3 flex items-center justify-between overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className="flex-1 min-w-0 pr-3 flex items-center overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
               style={{
                 opacity: isCollapsed ? 0 : 1,
                 transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)',
                 maxWidth: isCollapsed ? '0px' : '180px'
               }}
             >
-              <span className="truncate font-semibold text-white">Dashboard</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-purple-500/25 text-purple-200 border border-purple-400/30">
-                Admin
-              </span>
+              <span className="truncate font-semibold tracking-wide">Dashboard</span>
             </div>
           </button>
         )}
