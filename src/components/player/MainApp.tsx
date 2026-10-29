@@ -160,11 +160,13 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       const handleGlobalWheel = (e: WheelEvent) => {
         const modalCard = document.getElementById('config-modal-card');
         if (!modalCard || !modalCard.contains(e.target as Node)) {
-          // Outside modal: completely prevent wheel scroll
+          // Outside modal: completely prevent wheel scroll on background
           e.preventDefault();
         } else {
-          // Inside modal: prevent any horizontal trackpad swipe or Shift-wheel
-          if (Math.abs(e.deltaX) > 0 || e.shiftKey) {
+          // Inside modal: only prevent pure horizontal trackpad swipe / Shift-wheel outside horizontal scroll containers
+          const target = e.target as HTMLElement | null;
+          const isHorizScroller = target?.closest('.overflow-x-auto, .overflow-x-scroll');
+          if (!isHorizScroller && (e.shiftKey || (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 10))) {
             e.preventDefault();
           }
         }

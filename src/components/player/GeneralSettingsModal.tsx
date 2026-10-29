@@ -260,11 +260,14 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
 
         {/* Modal Card */}
         <motion.div
+          id="config-modal-card"
           initial={{ opacity: 0, scale: 0.92, y: 32 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 12, transition: { duration: 0.2 } }}
           transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
           onClick={(e) => e.stopPropagation()}
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
           className="relative w-full max-w-6xl h-[90dvh] md:h-[88vh] rounded-3xl overflow-hidden shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col"
           style={cardStyle}
         >
@@ -299,9 +302,9 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           </div>
 
           {/* Modal Content - Dual Column on desktop */}
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
             {/* Navigation Tabs (Sidebar on desktop / horizontal bar on mobile) */}
-            <div className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-white/10 bg-white/[0.01] p-3 md:p-5 overflow-x-auto md:overflow-y-auto scrollbar-hide flex md:flex-col gap-1.5 md:gap-2">
+            <div className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-white/10 bg-white/[0.01] p-3 md:p-5 overflow-x-auto md:overflow-y-auto min-h-0 scrollbar-hide flex md:flex-col gap-1.5 md:gap-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -334,7 +337,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             </div>
 
             {/* Content Panel */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-9 space-y-8 scrollbar-thin scrollbar-thumb-white/15">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 md:p-9 space-y-8 scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
               {/* ========================================================= */}
               {/* 1. APARIENCIA Y TEXTO */}
               {/* ========================================================= */}
