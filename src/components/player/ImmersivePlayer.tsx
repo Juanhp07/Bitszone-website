@@ -574,6 +574,27 @@ export const ImmersivePlayer = ({
 
 
 
+  // Inmersión toggle: in the tabs row (desktop, track list showing) or in the top-right corner (phones, immersion mode).
+  // `compact` = icon only below xl, so it fits next to the tabs on medium screens.
+  const immersionToggle = (compact: boolean) => (
+    <button
+      onClick={() => handleTabSelect(currentTab === 'inmersion' ? 'pistas' : 'inmersion')}
+      className={`group flex items-center h-10 md:h-11 rounded-full ${compact ? 'w-11 justify-center xl:w-auto xl:px-4' : 'px-3.5 md:px-4'} backdrop-blur-2xl border shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer select-none gap-2 ${
+        currentTab === 'inmersion'
+          ? 'bg-purple-600/35 border-purple-400/80 text-white shadow-[0_0_24px_rgba(168,85,247,0.4)]'
+          : 'bg-white/10 hover:bg-white/15 active:bg-white/20 border-white/20 hover:border-white/30 text-white/90 hover:text-white'
+      }`}
+      title={currentTab === 'inmersion' ? "Salir de modo inmersión" : "Modo inmersión visual"}
+      aria-label="Modo inmersión"
+      aria-pressed={currentTab === 'inmersion'}
+    >
+      <Sparkles className={`w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-110 shrink-0 ${currentTab === 'inmersion' ? 'text-purple-300' : 'text-white/90'}`} strokeWidth={2.2} aria-hidden="true" />
+      <span className={`text-xs md:text-sm font-medium tracking-wide whitespace-nowrap ${compact ? 'hidden xl:inline' : ''}`}>
+        Inmersión
+      </span>
+    </button>
+  );
+
   return createPortal(
     <>
       {/* Backdrop (though the modal is fullscreen, keeping this for transition) */}
@@ -665,22 +686,7 @@ export const ImmersivePlayer = ({
             </button>
           )}
 
-          <button
-            onClick={() => handleTabSelect(currentTab === 'inmersion' ? 'pistas' : 'inmersion')}
-            className={`group flex items-center h-10 md:h-11 px-3.5 md:px-4 rounded-full backdrop-blur-2xl border shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer select-none gap-2 ${
-              currentTab === 'inmersion'
-                ? 'bg-purple-600/35 border-purple-400/80 text-white shadow-[0_0_24px_rgba(168,85,247,0.4)]'
-                : 'bg-white/10 hover:bg-white/15 active:bg-white/20 border-white/20 hover:border-white/30 text-white/90 hover:text-white'
-            }`}
-            title={currentTab === 'inmersion' ? "Salir de modo inmersión" : "Modo inmersión visual"}
-            aria-label="Modo inmersión"
-            aria-pressed={currentTab === 'inmersion'}
-          >
-            <Sparkles className={`w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-110 shrink-0 ${currentTab === 'inmersion' ? 'text-purple-300' : 'text-white/90'}`} strokeWidth={2.2} aria-hidden="true" />
-            <span className="text-xs md:text-sm font-medium tracking-wide whitespace-nowrap">
-              Inmersión
-            </span>
-          </button>
+          {(isMobile || currentTab === 'inmersion') && immersionToggle(false)}
         </div>
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
@@ -984,8 +990,9 @@ export const ImmersivePlayer = ({
              trailingItems={rowMenu?.inQueue ? [{ label: 'Eliminar de la cola', icon: <ListX className="w-4 h-4" />, onSelect: () => playback.removeFromQueue(rowMenu.track.id), danger: true }] : []}
            />
            {/* Top Tabs (PISTAS / LETRA / COLA) - Left-aligned Liquid Glass Pill */}
-           <div className="md:absolute md:top-8 xl:top-10 md:left-6 xl:left-4 w-full md:w-auto mb-6 md:mb-0 shrink-0 z-40 flex items-center justify-start px-5 md:px-0">
-              <div className="rounded-full p-1.5 w-[290px] sm:w-[330px] md:w-[360px] xl:w-[385px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
+           {/* a fixed 4.5rem above the list (which starts at 19vh), so the gap is the same on any screen height */}
+           <div className="md:absolute md:top-[calc(19vh-4.5rem)] md:left-6 md:right-12 xl:left-4 xl:right-[8rem] w-full md:w-auto mb-6 md:mb-0 shrink-0 z-40 flex items-center justify-between gap-3 px-5 md:px-0">
+              <div className="rounded-full p-1.5 w-[290px] sm:w-[330px] md:w-auto md:flex-1 md:min-w-0 md:max-w-[385px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
                 <LiquidTabs
                   value={currentTab}
                   onChange={handleTabSelect}
@@ -996,6 +1003,7 @@ export const ImmersivePlayer = ({
                   ]}
                 />
               </div>
+              {!isMobile && currentTab !== 'inmersion' && immersionToggle(true)}
            </div>
 
            {/* Tab Content: PISTAS, LETRA or COLA with Apple Rubber Band & Smooth Top-to-Bottom Cascade */}
