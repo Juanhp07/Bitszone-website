@@ -96,7 +96,16 @@ export const useCatalog = (supabaseUrl?: string, supabaseAnonKey?: string) => {
         setLoading(false);
       }
     };
+
+    const handleRealtimeUpdate = () => {
+      fetchCatalog();
+    };
+    window.addEventListener('bz-catalog-realtime-update', handleRealtimeUpdate);
     fetchCatalog();
+
+    return () => {
+      window.removeEventListener('bz-catalog-realtime-update', handleRealtimeUpdate);
+    };
   }, [supabaseUrl, supabaseAnonKey]); // re-run if credentials change
 
   const fetchAlbumDetails = async (albumId: string | number): Promise<Album | null> => {
