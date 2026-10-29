@@ -7,6 +7,8 @@ import { useDownloads } from './DownloadsContext';
 import { usePlayback } from './PlaybackContext';
 import type { Album } from './types';
 import { cardStyle, titleStyle } from '../auth/authUi';
+import { useAdminEdit } from '../admin/AdminEditContext';
+import { AdminPencil } from '../admin/AdminEditWidgets';
 
 const useAverageColor = (src: string) => {
   const [color, setColor] = useState('rgba(45, 10, 70, 0.8)');
@@ -32,8 +34,8 @@ const useAverageColor = (src: string) => {
 };
 
 export const ArtistView = ({ 
-  artist, 
-  albums, 
+  artist: rawArtist, 
+  albums: rawAlbums, 
   onBack,
   onSelectAlbum 
 }: { 
@@ -42,6 +44,9 @@ export const ArtistView = ({
   onBack: () => void,
   onSelectAlbum: (album: Album) => void 
 }) => {
+  const { applyArtistOverrides, applyAlbumOverrides } = useAdminEdit();
+  const artist = applyArtistOverrides(rawArtist);
+  const albums = rawAlbums.map(applyAlbumOverrides);
   const { isDownloaded, isFavorite, toggleFavoriteAlbum, cancelAlbumDownload, downloadingAlbums, downloadAlbum } = useDownloads();
   const playback = usePlayback();
   const [scrollY, setScrollY] = useState(0);
@@ -150,12 +155,16 @@ export const ArtistView = ({
               />
 
               {/* Foto circular del artista */}
-              <div className="relative z-10 aspect-square rounded-full overflow-hidden border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)]">
+              <div className="relative z-10 aspect-square rounded-full overflow-hidden border border-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)] group">
                 <img src={artist.img} alt={artist.name} className="w-full h-full object-cover" />
                 {/* Reflejos sutiles estilo cristal líquido */}
                 <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.30)_0%,rgba(255,255,255,0.08)_25%,transparent_45%,transparent_70%,rgba(255,255,255,0.10)_100%)] pointer-events-none" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
                 <div className="absolute inset-0 rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_0_0_1px_rgba(255,255,255,0.06)] pointer-events-none" />
+                <AdminPencil
+                  target={{ type: 'artist', artist }}
+                  className="bottom-3 right-3 shadow-2xl"
+                />
               </div>
             </div>
 
@@ -222,6 +231,10 @@ export const ArtistView = ({
                             src={album.coverUrl} 
                             alt={album.title} 
                             className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105" 
+                          />
+                          <AdminPencil
+                            target={{ type: 'album', album }}
+                            className="top-2 right-2"
                           />
 
                           {/* Botón de reproducción blanco Liquid Glass y blur */}
