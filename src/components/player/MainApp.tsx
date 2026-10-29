@@ -1344,7 +1344,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                 ...cardStyle,
                 left: isCompact ? '16px' : isSidebarOpen ? '280px' : '96px',
               }}
-              className="absolute bottom-[105px] w-84 sm:w-92 rounded-3xl p-6 sm:p-7 text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className="absolute bottom-[105px] w-[24.5rem] sm:w-[27rem] rounded-3xl p-6 sm:p-7 text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
             >
               <div className="flex justify-between items-center mb-5 pb-3 border-b border-white/10">
                 <div className="flex items-center gap-2.5">
@@ -1368,43 +1368,43 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               </div>
 
               <div className="flex flex-col gap-3 text-sm text-white/75">
-                <div className="flex justify-between items-center py-0.5">
+                <div className="flex justify-between items-center gap-4 py-0.5">
                   <span className="font-medium text-white/90">Reproducir / Pausar</span>
-                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.togglePlay)}</kbd>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm shrink-0">{formatKeyName(generalSettings.shortcuts.togglePlay)}</kbd>
                 </div>
-                <div className="flex justify-between items-center py-0.5">
+                <div className="flex justify-between items-center gap-4 py-0.5">
                   <span className="font-medium text-white/90">Anterior / Siguiente</span>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 shrink-0">
                     <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.prevTrack)}</kbd>
                     <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.nextTrack)}</kbd>
                   </div>
                 </div>
-                <div className="flex justify-between items-center py-0.5">
+                <div className="flex justify-between items-center gap-4 py-0.5">
                   <span className="font-medium text-white/90">Subir / Bajar volumen</span>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 shrink-0">
                     <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.volumeUp)}</kbd>
                     <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.volumeDown)}</kbd>
                   </div>
                 </div>
-                <div className="flex justify-between items-center py-0.5">
+                <div className="flex justify-between items-center gap-4 py-0.5">
                   <span className="font-medium text-white/90">Expandir reproductor</span>
-                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleExpand)}</kbd>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm shrink-0">{formatKeyName(generalSettings.shortcuts.toggleExpand)}</kbd>
                 </div>
-                <div className="flex justify-between items-center py-0.5">
+                <div className="flex justify-between items-center gap-4 py-0.5">
                   <span className="font-medium text-white/90">Mostrar letra</span>
-                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleLyrics)}</kbd>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm shrink-0">{formatKeyName(generalSettings.shortcuts.toggleLyrics)}</kbd>
                 </div>
-                <div className="flex justify-between items-center py-0.5">
+                <div className="flex justify-between items-center gap-4 py-0.5">
                   <span className="font-medium text-white/90">Modo repetir</span>
-                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleRepeat)}</kbd>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm shrink-0">{formatKeyName(generalSettings.shortcuts.toggleRepeat)}</kbd>
                 </div>
-                <div className="flex justify-between items-center py-0.5">
+                <div className="flex justify-between items-center gap-4 py-0.5">
                   <span className="font-medium text-white/90">Modo aleatorio</span>
-                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleShuffle)}</kbd>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm shrink-0">{formatKeyName(generalSettings.shortcuts.toggleShuffle)}</kbd>
                 </div>
-                <div className="flex justify-between items-center py-0.5">
+                <div className="flex justify-between items-center gap-4 py-0.5">
                   <span className="font-medium text-white/90">Agregar a favoritos</span>
-                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleFavorite)}</kbd>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm shrink-0">{formatKeyName(generalSettings.shortcuts.toggleFavorite)}</kbd>
                 </div>
               </div>
             </motion.div>
