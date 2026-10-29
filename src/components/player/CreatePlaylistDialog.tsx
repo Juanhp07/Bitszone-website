@@ -64,40 +64,40 @@ export const CreatePlaylistDialog = ({
             exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: 12, transition: { duration: 0.2 } }}
             transition={{ type: 'spring', stiffness: 170, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[26rem] rounded-3xl overflow-hidden shadow-2xl text-white p-8 backdrop-blur-xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
+            className="relative w-full max-w-[32rem] rounded-3xl overflow-hidden shadow-2xl text-white p-9 sm:p-11 backdrop-blur-xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
             style={cardStyle}
           >
             <button
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+              className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
             >
               <X className="w-5 h-5" aria-hidden="true" />
             </button>
-            <Heading title="Nueva lista" subtitle="Elige una portada y ponle nombre." />
+            <Heading title="Nueva lista" subtitle="Elige una portada y ponle nombre a tu colección." />
 
-            <div className="flex flex-col items-center mb-6">
+            <div className="flex flex-col items-center mb-7 mt-2">
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="relative group w-32 h-32 rounded-2xl overflow-hidden bg-black/30 border border-white/25 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                className="relative group w-36 h-36 rounded-2xl overflow-hidden bg-black/30 border border-white/25 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer shadow-lg"
                 aria-label="Elegir foto de portada"
               >
-                {cover ? <img src={cover} alt="" className="w-full h-full object-cover" /> : <ListMusic className="w-12 h-12 text-white/60" aria-hidden="true" />}
+                {cover ? <img src={cover} alt="" className="w-full h-full object-cover" /> : <ListMusic className="w-14 h-14 text-white/60" aria-hidden="true" />}
                 <span className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Camera className="w-7 h-7" aria-hidden="true" />
+                  <Camera className="w-8 h-8" aria-hidden="true" />
                 </span>
               </button>
-              <div className="mt-3 flex items-center gap-2 text-sm">
-                <button type="button" onClick={() => fileRef.current?.click()} className={`px-3.5 py-1.5 rounded-full border transition-colors cursor-pointer ${cover ? 'bg-white text-[#3b1a66] border-white [text-shadow:none]' : 'border-white/25 text-white/85 hover:bg-white/10'}`}>
+              <div className="mt-3.5 flex items-center gap-2.5 text-sm">
+                <button type="button" onClick={() => fileRef.current?.click()} className={`px-4 py-2 rounded-full border transition-colors cursor-pointer text-sm font-medium ${cover ? 'bg-white text-[#3b1a66] border-white [text-shadow:none]' : 'border-white/25 text-white/85 hover:bg-white/10'}`}>
                   {cover ? 'Cambiar foto' : 'Subir foto'}
                 </button>
-                <button type="button" onClick={() => setCover(null)} aria-pressed={!cover} className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-colors cursor-pointer ${!cover ? 'bg-white text-[#3b1a66] border-white [text-shadow:none]' : 'border-white/25 text-white/85 hover:bg-white/10'}`}>
-                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" /> Automática
+                <button type="button" onClick={() => setCover(null)} aria-pressed={!cover} className={`flex items-center gap-1.5 px-4 py-2 rounded-full border transition-colors cursor-pointer text-sm font-medium ${!cover ? 'bg-white text-[#3b1a66] border-white [text-shadow:none]' : 'border-white/25 text-white/85 hover:bg-white/10'}`}>
+                  <Sparkles className="w-4 h-4" aria-hidden="true" /> Automática
                 </button>
               </div>
-              <p className="mt-2 text-xs text-white/60 text-center">{cover ? 'Usaremos tu foto.' : 'Se arma sola con las portadas de tus canciones.'}</p>
+              <p className="mt-2.5 text-sm text-white/65 text-center">{cover ? 'Usaremos tu foto.' : 'Se arma sola con las portadas de tus canciones.'}</p>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { pickPhoto(e.target.files?.[0]); e.target.value = ''; }} />
             </div>
 
@@ -110,11 +110,11 @@ export const CreatePlaylistDialog = ({
                 value={name}
                 onChange={(e) => { setName(e.target.value); setError(''); }}
                 onKeyDown={(e) => e.key === 'Enter' && create()}
-                className={`${inputClass} !pl-4`}
+                className={`${inputClass} !pl-5 !py-3.5 !text-base`}
                 autoFocus
               />
               {error && <p className="text-sm text-pink-200 text-center -mt-2">{error}</p>}
-              <LiquidButton onClick={create} className="w-full h-14">Crear lista</LiquidButton>
+              <LiquidButton onClick={create} className="w-full h-14 text-base font-semibold">Crear lista</LiquidButton>
             </div>
           </motion.div>
         </motion.div>

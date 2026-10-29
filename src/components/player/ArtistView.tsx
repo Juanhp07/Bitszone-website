@@ -408,23 +408,24 @@ export const ArtistView = ({
       </div>
       
       {/* Modal de confirmación para descargar álbum - Estilo Liquid Glass */}
+      {/* Modal de confirmación para descargar álbum - Estilo Liquid Glass */}
       {showDownloadConfirm && createPortal(
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-xl px-4" onClick={() => setShowDownloadConfirm(null)}>
-          <div className="relative rounded-3xl p-7 max-w-sm w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3.5 mb-3 relative z-10">
-              <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
-                <Download className="w-5 h-5 text-purple-300" />
+          <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-4 mb-4 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
+                <Download className="w-6 h-6 text-purple-300" />
               </div>
-              <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>¿Descargar Álbum?</h3>
+              <h3 className="text-2xl sm:text-3xl text-white tracking-tight" style={titleStyle}>¿Descargar Álbum?</h3>
             </div>
-            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+            <p className="text-white/80 mb-7 text-base leading-relaxed relative z-10">
               ¿Descargar todas las canciones de <span className="text-white font-medium">{showDownloadConfirm.title}</span>?
             </p>
-            <div className="flex gap-2.5 justify-end relative z-10">
+            <div className="flex gap-3 justify-end relative z-10">
               <button 
                 type="button"
                 onClick={() => setShowDownloadConfirm(null)} 
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
                 title="Cancelar y cerrar diálogo"
                 aria-label="Cancelar descarga"
               >
@@ -433,7 +434,7 @@ export const ArtistView = ({
               <button 
                 type="button"
                 onClick={executeDownloadAlbum} 
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
                 title="Confirmar descarga del álbum"
                 aria-label="Confirmar descarga del álbum"
               >
@@ -448,21 +449,21 @@ export const ArtistView = ({
       {/* Modal de confirmación para cancelar descarga */}
       {showCancelConfirm && createPortal(
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-xl px-4" onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(null); }}>
-          <div className="relative rounded-3xl p-7 max-w-sm w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3.5 mb-3 relative z-10">
-              <div className="w-11 h-11 rounded-2xl bg-red-500/15 border border-red-500/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
-                <AlertCircle className="w-5 h-5 text-red-300" />
+          <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-4 mb-4 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
+                <AlertCircle className="w-6 h-6 text-red-300" />
               </div>
-              <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>¿Cancelar descarga?</h3>
+              <h3 className="text-2xl sm:text-3xl text-white tracking-tight" style={titleStyle}>¿Cancelar descarga?</h3>
             </div>
-            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+            <p className="text-white/80 mb-7 text-base leading-relaxed relative z-10">
               Se detendrá la descarga de <span className="text-white font-medium">{showCancelConfirm.title}</span>. Se mantendrán las canciones ya descargadas.
             </p>
-            <div className="flex justify-end gap-2.5 relative z-10">
+            <div className="flex justify-end gap-3 relative z-10">
               <button 
                 type="button"
                 onClick={() => setShowCancelConfirm(null)} 
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
                 title="Continuar con la descarga en curso"
                 aria-label="Continuar descarga"
               >
@@ -474,7 +475,7 @@ export const ArtistView = ({
                   cancelAlbumDownload(String(showCancelConfirm.id));
                   setShowCancelConfirm(null);
                 }} 
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-red-600 hover:bg-red-500 shadow-lg shadow-red-600/30 transition-all cursor-pointer active:scale-95"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white bg-red-600 hover:bg-red-500 shadow-lg shadow-red-600/30 transition-all cursor-pointer active:scale-95"
                 title="Confirmar cancelación de descarga"
                 aria-label="Confirmar cancelación de descarga"
               >

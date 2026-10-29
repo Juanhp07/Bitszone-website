@@ -43,6 +43,7 @@ import {
   getAvailableStorageGB,
   type GeneralSettings,
 } from './generalSettingsTypes';
+import { cardStyle, titleStyle } from '../auth/authUi';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   const { containerRef: mainScrollRef, springValue: springMainY, scrollProps: mainScrollProps } = useRubberBand({ axis: 'y' });
@@ -1335,79 +1336,86 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
         {isShortcutsOpen && (
           <motion.div className="fixed inset-0 z-[9999]">
-            <div className="absolute inset-0" onClick={() => setIsShortcutsOpen(false)} />
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsShortcutsOpen(false)} />
             <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
               style={{
-                left: isCompact ? '16px' : isSidebarOpen ? '270px' : '86px'
+                ...cardStyle,
+                left: isCompact ? '16px' : isSidebarOpen ? '280px' : '96px',
               }}
-              className="absolute bottom-[105px] w-68 bg-[#0c0914]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-5 shadow-[0_16px_50px_rgba(0,0,0,0.85)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className="absolute bottom-[105px] w-84 sm:w-92 rounded-3xl p-6 sm:p-7 text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
             >
-              <div className="flex justify-between items-center mb-3.5">
-                <h3 className="text-white text-[11px] font-bold uppercase tracking-[0.15em]">Atajos de teclado</h3>
+              <div className="flex justify-between items-center mb-5 pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white" style={titleStyle}>
+                    Atajos de teclado
+                  </h3>
+                </div>
                 <button
+                  type="button"
                   onClick={() => {
                     setIsShortcutsOpen(false);
                     setSettingsInitialTab('shortcuts');
                     setIsConfigOpen(true);
                   }}
-                  className="text-[10px] text-purple-300 hover:text-white font-semibold transition-colors cursor-pointer"
+                  className="px-3 py-1 rounded-full text-xs font-semibold text-purple-300 hover:text-white bg-white/5 hover:bg-white/10 border border-purple-400/30 transition-all cursor-pointer"
                   title="Personalizar atajos en Configuración"
                 >
                   Editar
                 </button>
               </div>
 
-              <div className="flex flex-col gap-2.5 text-xs text-white/60">
-                <div className="flex justify-between items-center">
-                  <span>Reproducir / Pausar</span>
-                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.togglePlay)}</kbd>
+              <div className="flex flex-col gap-3 text-sm text-white/75">
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="font-medium text-white/90">Reproducir / Pausar</span>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.togglePlay)}</kbd>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Anterior / Siguiente</span>
-                  <div className="flex gap-1">
-                    <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.prevTrack)}</kbd>
-                    <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.nextTrack)}</kbd>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="font-medium text-white/90">Anterior / Siguiente</span>
+                  <div className="flex gap-1.5">
+                    <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.prevTrack)}</kbd>
+                    <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.nextTrack)}</kbd>
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Subir / Bajar volumen</span>
-                  <div className="flex gap-1">
-                    <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.volumeUp)}</kbd>
-                    <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.volumeDown)}</kbd>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="font-medium text-white/90">Subir / Bajar volumen</span>
+                  <div className="flex gap-1.5">
+                    <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.volumeUp)}</kbd>
+                    <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.volumeDown)}</kbd>
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Expandir reproductor</span>
-                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleExpand)}</kbd>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="font-medium text-white/90">Expandir reproductor</span>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleExpand)}</kbd>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Mostrar letra</span>
-                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleLyrics)}</kbd>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="font-medium text-white/90">Mostrar letra</span>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleLyrics)}</kbd>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Modo repetir</span>
-                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleRepeat)}</kbd>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="font-medium text-white/90">Modo repetir</span>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleRepeat)}</kbd>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Modo aleatorio</span>
-                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleShuffle)}</kbd>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="font-medium text-white/90">Modo aleatorio</span>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleShuffle)}</kbd>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Agregar a favoritos</span>
-                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleFavorite)}</kbd>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="font-medium text-white/90">Agregar a favoritos</span>
+                  <kbd className="bg-white/10 text-white/95 px-2.5 py-1 rounded-lg font-mono text-xs border border-white/15 shadow-sm">{formatKeyName(generalSettings.shortcuts.toggleFavorite)}</kbd>
                 </div>
               </div>
 
               <button
+                type="button"
                 onClick={() => {
                   setIsShortcutsOpen(false);
                   setSettingsInitialTab('shortcuts');
                   setIsConfigOpen(true);
                 }}
-                className="w-full mt-3 pt-2.5 border-t border-white/10 flex items-center justify-center gap-1.5 text-[11px] text-purple-300 hover:text-white font-semibold transition-colors cursor-pointer"
+                className="w-full mt-4 pt-3.5 border-t border-white/10 flex items-center justify-center gap-1.5 text-xs text-purple-300 hover:text-white font-semibold transition-colors cursor-pointer"
               >
                 <span>Personalizar en Configuración →</span>
               </button>

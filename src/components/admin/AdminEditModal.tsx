@@ -242,28 +242,28 @@ export const AdminEditModal: React.FC = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 12, transition: { duration: 0.2 } }}
           transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
-          className="relative w-full max-w-lg rounded-3xl p-6 md:p-8 shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden max-h-[92vh] overflow-y-auto scrollbar-hide"
+          className="relative w-full max-w-2xl rounded-3xl p-8 md:p-10 shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden max-h-[92vh] overflow-y-auto scrollbar-hide"
           style={cardStyle}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-start justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-purple-300 shadow-lg shrink-0">
-                <Pencil className="w-5 h-5" />
+          <div className="flex items-start justify-between gap-4 mb-7">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-purple-300 shadow-lg shrink-0">
+                <Pencil className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2" style={titleStyle}>
+                <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5" style={titleStyle}>
                   {activeEditTarget.type === 'album' && 'Editar Álbum & Portada'}
                   {activeEditTarget.type === 'cover' && 'Editar Portada'}
                   {activeEditTarget.type === 'artist' && 'Editar Artista'}
                   {activeEditTarget.type === 'track' && 'Editar Canción'}
                   {activeEditTarget.type === 'button' && 'Editar Texto del Botón'}
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70 border border-white/10 not-italic font-sans">
+                  <span className="text-xs uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/10 not-italic font-sans">
                     Admin
                   </span>
                 </h3>
-                <p className="text-xs text-white/60 mt-0.5">
+                <p className="text-sm text-white/65 mt-1">
                   Cambio global permanente en Supabase con transmisión en vivo.
                 </p>
               </div>
@@ -272,15 +272,15 @@ export const AdminEditModal: React.FC = () => {
             <button
               type="button"
               onClick={closeEditModal}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
               title="Cerrar (Esc)"
               aria-label="Cerrar"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
-          <form onSubmit={handleSave} className="flex flex-col gap-5">
+          <form onSubmit={handleSave} className="flex flex-col gap-6">
             {/* BUTTON EDIT FORM */}
             {activeEditTarget.type === 'button' && (
               <div className="flex flex-col gap-4">
@@ -642,12 +642,12 @@ export const AdminEditModal: React.FC = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-white/10">
+            <div className="flex items-center justify-end gap-3 mt-5 pt-5 border-t border-white/10">
               <button
                 type="button"
                 onClick={closeEditModal}
                 disabled={isSaving}
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
+                className="px-5 py-3 rounded-full bg-white/10 hover:bg-white/15 text-white text-sm font-semibold transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -655,7 +655,7 @@ export const AdminEditModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-6 py-2.5 rounded-xl bg-[#8a3aed] hover:bg-[#7b2fdf] active:scale-[0.98] text-white text-xs font-semibold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                className="px-7 py-3 rounded-full bg-[#8a3aed] hover:bg-[#9c55f7] active:scale-[0.98] text-white text-sm font-semibold transition-all shadow-lg shadow-purple-600/30 flex items-center gap-2 cursor-pointer disabled:opacity-60"
               >
                 {isSaving ? (
                   <>

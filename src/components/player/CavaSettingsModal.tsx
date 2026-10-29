@@ -42,44 +42,44 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
           exit={{ opacity: 0, scale: 0.96, y: 12, transition: { duration: 0.2 } }}
           transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col rounded-3xl shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
+          className="relative w-full max-w-3xl max-h-[88vh] overflow-hidden flex flex-col rounded-3xl shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
           style={cardStyle}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 shrink-0 bg-black/20">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-purple-300 shadow-lg shrink-0">
-                <Sliders className="w-5 h-5" />
+          <div className="flex items-center justify-between px-8 py-6 border-b border-white/10 shrink-0 bg-black/20">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-purple-300 shadow-lg shrink-0">
+                <Sliders className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl md:text-3xl text-white" style={titleStyle}>
+                <h2 className="text-3xl md:text-4xl text-white" style={titleStyle}>
                   Ajustes de Inmersión
                 </h2>
-                <p className="text-xs text-white/60 mt-0.5">Personaliza la física, grosor y colores del visualizador</p>
+                <p className="text-sm text-white/65 mt-1">Personaliza la física, grosor y colores del visualizador</p>
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
               title="Cerrar ajustes"
               aria-label="Cerrar ajustes"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
           {/* Body Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7 bg-black/20 scrollbar-thin scrollbar-thumb-white/15">
+          <div className="flex-1 overflow-y-auto px-8 py-7 space-y-8 bg-black/20 scrollbar-thin scrollbar-thumb-white/15">
             {/* 1. SECCIÓN: COLOR Y ESTILO */}
-            <section className="space-y-3.5">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-300">
-                <Palette className="w-4 h-4" />
+            <section className="space-y-4">
+              <div className="flex items-center gap-2.5 text-sm font-bold uppercase tracking-wider text-purple-300">
+                <Palette className="w-4.5 h-4.5" />
                 <span>Paleta de Color y Relleno</span>
               </div>
 
               {/* Color Themes Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
                   { id: 'dynamic' as CavaColorTheme, label: 'Dinámico del Álbum', desc: 'Sincronizado con la portada', preview: 'from-purple-500 via-pink-400 to-white' },
                   { id: 'bitszone' as CavaColorTheme, label: 'Lila Bitszone', desc: 'Neón morado característico', preview: 'from-purple-600 via-fuchsia-500 to-white' },
@@ -93,18 +93,18 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
                     <button
                       key={th.id}
                       onClick={() => onUpdateSettings(prev => ({ ...prev, colorTheme: th.id }))}
-                      className={`relative flex flex-col items-start p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer ${
+                      className={`relative flex flex-col items-start p-3.5 rounded-2xl border text-left transition-all duration-200 cursor-pointer ${
                         active
                           ? 'bg-purple-600/20 border-purple-400/80 shadow-[0_0_20px_rgba(168,85,247,0.25)]'
                           : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10'
                       }`}
                     >
-                      <div className={`w-full h-3 rounded-full bg-gradient-to-r ${th.preview} mb-2 shadow-sm`} />
+                      <div className={`w-full h-3.5 rounded-full bg-gradient-to-r ${th.preview} mb-2.5 shadow-sm`} />
                       <div className="flex items-center justify-between w-full">
-                        <span className="text-xs font-semibold text-white tracking-tight">{th.label}</span>
-                        {active && <Check className="w-3.5 h-3.5 text-purple-300 shrink-0" />}
+                        <span className="text-sm font-semibold text-white tracking-tight">{th.label}</span>
+                        {active && <Check className="w-4 h-4 text-purple-300 shrink-0" />}
                       </div>
-                      <span className="text-[10px] text-white/50 line-clamp-1 mt-0.5">{th.desc}</span>
+                      <span className="text-xs text-white/55 line-clamp-1 mt-1">{th.desc}</span>
                     </button>
                   );
                 })}
@@ -112,7 +112,7 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
 
               {/* Fill type: Gradient vs Solid */}
               <div className="flex items-center justify-between pt-2">
-                <span className="text-xs font-medium text-white/80">Tipo de acabado</span>
+                <span className="text-sm font-medium text-white/85">Tipo de acabado</span>
                 <div className="flex p-1 rounded-xl bg-white/[0.06] border border-white/10 gap-1">
                   {(['gradient', 'solid'] as CavaFillType[]).map((f) => (
                     <button
@@ -379,19 +379,19 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-white/10 shrink-0 bg-black/30">
+          <div className="flex items-center justify-between px-8 py-5 border-t border-white/10 shrink-0 bg-black/30">
             <button
               type="button"
               onClick={onReset}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-4 h-4" />
               <span>Restablecer</span>
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 rounded-full bg-[#8a3aed] hover:bg-[#9c55f7] text-white text-xs font-semibold shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+              className="px-8 py-2.5 rounded-full bg-[#8a3aed] hover:bg-[#9c55f7] text-white text-sm font-semibold shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
             >
               Listo
             </button>

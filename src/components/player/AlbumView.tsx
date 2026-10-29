@@ -686,23 +686,23 @@ useEffect(() => {
       {/* Download Confirmation Modal */}
       {showDownloadConfirm && createPortal(
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-xl px-4" onClick={() => setShowDownloadConfirm(false)}>
-          <div className="relative rounded-3xl p-7 max-w-sm w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3.5 mb-3 relative z-10">
-              <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
-                <Download className="w-5 h-5 text-purple-300" />
+          <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-4 mb-4 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
+                <Download className="w-6 h-6 text-purple-300" />
               </div>
-              <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>¿Descargar Álbum?</h3>
+              <h3 className="text-2xl sm:text-3xl text-white tracking-tight" style={titleStyle}>¿Descargar Álbum?</h3>
             </div>
-            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+            <p className="text-white/80 mb-7 text-base leading-relaxed relative z-10">
               ¿Descargar todas las canciones de <span className="text-white font-medium">{album.title}</span>?
             </p>
-            <div className="flex gap-2.5 justify-end relative z-10">
+            <div className="flex gap-3 justify-end relative z-10">
               <button
                 type="button"
                 onClick={() => setShowDownloadConfirm(false)}
                 title="Cancelar descarga del álbum"
                 aria-label="Cancelar descarga del álbum"
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
               >
                 Cancelar
               </button>
@@ -711,7 +711,7 @@ useEffect(() => {
                 onClick={handleDownloadAlbum}
                 title="Descargar todas las canciones de este álbum"
                 aria-label="Descargar todas las canciones de este álbum"
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
               >
                 Descargar Todo
               </button>
@@ -750,23 +750,23 @@ useEffect(() => {
 
       {showCancelConfirm && createPortal(
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-xl px-4" onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(false); }}>
-          <div className="relative rounded-3xl p-7 max-w-sm w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3.5 mb-3 relative z-10">
-              <div className="w-11 h-11 rounded-2xl bg-red-500/15 border border-red-500/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
-                <AlertCircle className="w-5 h-5 text-red-300" />
+          <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-4 mb-4 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
+                <AlertCircle className="w-6 h-6 text-red-300" />
               </div>
-              <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>¿Cancelar descarga?</h3>
+              <h3 className="text-2xl sm:text-3xl text-white tracking-tight" style={titleStyle}>¿Cancelar descarga?</h3>
             </div>
-            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+            <p className="text-white/80 mb-7 text-base leading-relaxed relative z-10">
               Se detendrá la descarga de <span className="text-white font-medium">{album.title}</span>. Se mantendrán las canciones ya descargadas.
             </p>
-            <div className="flex justify-end gap-2.5 relative z-10">
+            <div className="flex justify-end gap-3 relative z-10">
               <button
                 type="button"
                 onClick={() => setShowCancelConfirm(false)}
                 title="Continuar con la descarga"
                 aria-label="Continuar con la descarga"
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
               >
                 Continuar
               </button>
@@ -778,7 +778,7 @@ useEffect(() => {
                 }}
                 title="Confirmar cancelación de descarga"
                 aria-label="Confirmar cancelación de descarga"
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-red-600 hover:bg-red-500 shadow-lg shadow-red-600/30 transition-all cursor-pointer active:scale-95"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white bg-red-600 hover:bg-red-500 shadow-lg shadow-red-600/30 transition-all cursor-pointer active:scale-95"
               >
                 Sí, cancelar
               </button>
@@ -791,23 +791,23 @@ useEffect(() => {
       {/* Delete Download Confirmation Modal */}
       {showDeleteConfirm && createPortal(
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-xl px-4" onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(false); }}>
-          <div className="relative rounded-3xl p-7 max-w-sm w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3.5 mb-3 relative z-10">
-              <div className="w-11 h-11 rounded-2xl bg-red-500/15 border border-red-500/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
-                <Trash2 className="w-5 h-5 text-red-300" />
+          <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-4 mb-4 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
+                <Trash2 className="w-6 h-6 text-red-300" />
               </div>
-              <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>¿Eliminar descargas?</h3>
+              <h3 className="text-2xl sm:text-3xl text-white tracking-tight" style={titleStyle}>¿Eliminar descargas?</h3>
             </div>
-            <p className="text-white/70 mb-6 text-sm leading-relaxed relative z-10">
+            <p className="text-white/80 mb-7 text-base leading-relaxed relative z-10">
               Se eliminarán las descargas de <span className="text-white font-medium">{album.title}</span> del dispositivo.
             </p>
-            <div className="flex justify-end gap-2.5 relative z-10">
+            <div className="flex justify-end gap-3 relative z-10">
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
                 title="Cancelar y mantener descargas"
                 aria-label="Cancelar y mantener descargas"
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
               >
                 Cancelar
               </button>
@@ -822,7 +822,7 @@ useEffect(() => {
                   }
                   setShowDeleteConfirm(false);
                 }}
-                className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-red-600 hover:bg-red-500 shadow-lg shadow-red-600/30 transition-all cursor-pointer active:scale-95"
+                className="px-6 py-3 rounded-full text-sm font-semibold text-white bg-red-600 hover:bg-red-500 shadow-lg shadow-red-600/30 transition-all cursor-pointer active:scale-95"
               >
                 Sí, eliminar
               </button>

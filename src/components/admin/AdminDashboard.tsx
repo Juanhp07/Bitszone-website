@@ -1119,33 +1119,33 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 initial={{ opacity: 0, scale: 0.94, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
-                className="relative w-full max-w-md rounded-3xl p-7 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
+                className="relative w-full max-w-xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
                 style={cardStyle}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
-                      <UserPlus className="w-5 h-5" />
+                <div className="flex items-center justify-between mb-7">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
+                      <UserPlus className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>Agregar Administrador</h3>
-                      <p className="text-xs text-white/60">Otorga permisos de acceso al Dashboard</p>
+                      <h3 className="text-2xl sm:text-3xl text-white tracking-tight" style={titleStyle}>Agregar Administrador</h3>
+                      <p className="text-sm text-white/65 mt-1">Otorga permisos de acceso al Dashboard</p>
                     </div>
                   </div>
                   <button 
                     type="button"
                     onClick={() => setActiveModal(null)}
                     aria-label="Cerrar modal"
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
 
-                <form onSubmit={handleAddAdminSubmit} className="space-y-4 text-sm">
+                <form onSubmit={handleAddAdminSubmit} className="space-y-5 text-sm">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">
+                    <label className="block text-sm font-semibold uppercase tracking-wider text-white/70 mb-2">
                       Correo o Nombre de Usuario
                     </label>
                     <input 
@@ -1155,25 +1155,25 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                       placeholder="ej. nuevo.admin@gmail.com o usuario_1"
                       value={adminInput}
                       onChange={(e) => setAdminInput(e.target.value)}
-                      className="w-full px-4 py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
+                      className="w-full px-4.5 py-3.5 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
                     />
-                    <p className="text-[11px] text-white/50 mt-1.5 leading-relaxed">
+                    <p className="text-xs text-white/55 mt-2 leading-relaxed">
                       Si el usuario ya está registrado en Supabase, se actualizará su rol en la tabla <code>profiles</code> inmediatamente.
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-end gap-3 pt-5 border-t border-white/10">
                     <button
                       type="button"
                       onClick={() => setActiveModal(null)}
-                      className="px-5 py-2.5 rounded-full text-xs font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
+                      className="px-6 py-3 rounded-full text-sm font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmittingAdmin}
-                      className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                      className="px-7 py-3 rounded-full text-sm font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
                     >
                       {isSubmittingAdmin ? 'Asignando...' : 'Asignar como Admin'}
                     </button>
@@ -1201,49 +1201,49 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 initial={{ opacity: 0, scale: 0.94, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
-                className="relative w-full max-w-lg rounded-3xl p-7 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
+                className="relative w-full max-w-2xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
                 style={cardStyle}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
-                      <Disc3 className="w-5 h-5 animate-spin" style={{ animationDuration: '6s' }} />
+                <div className="flex items-center justify-between mb-7">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
+                      <Disc3 className="w-6 h-6 animate-spin" style={{ animationDuration: '6s' }} />
                     </div>
                     <div>
-                      <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>Estado del Catálogo</h3>
-                      <p className="text-xs text-white/60">Base de datos Supabase & Pistas Offline</p>
+                      <h3 className="text-2xl sm:text-3xl text-white tracking-tight" style={titleStyle}>Estado del Catálogo</h3>
+                      <p className="text-sm text-white/65 mt-1">Base de datos Supabase & Pistas Offline</p>
                     </div>
                   </div>
                   <button 
                     type="button"
                     onClick={() => setActiveModal(null)}
                     aria-label="Cerrar modal"
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
 
-                <div className="space-y-3 mb-6 text-sm">
-                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.05] border border-white/10">
-                    <span className="text-white/70">Conexión Supabase</span>
-                    <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="space-y-3.5 mb-7 text-base">
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.05] border border-white/10">
+                    <span className="text-white/75">Conexión Supabase</span>
+                    <span className="text-emerald-400 font-semibold flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                       En Línea ({realLatency}ms)
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.05] border border-white/10">
-                    <span className="text-white/70">Álbumes Registrados</span>
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.05] border border-white/10">
+                    <span className="text-white/75">Álbumes Registrados</span>
                     <span className="text-white font-semibold font-mono">{realAlbumsCount || 12} Álbumes</span>
                   </div>
-                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.05] border border-white/10">
-                    <span className="text-white/70">Canciones en Catálogo</span>
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.05] border border-white/10">
+                    <span className="text-white/75">Canciones en Catálogo</span>
                     <span className="text-white font-semibold font-mono">{realTracksCount || 152} Pistas</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
                   <button
                     type="button"
                     onClick={() => {
@@ -1252,7 +1252,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                       setNotification("¡Catálogo sincronizado exitosamente con Supabase!");
                       setTimeout(() => setNotification(null), 4000);
                     }}
-                    className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+                    className="px-7 py-3 rounded-full text-sm font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
                   >
                     Forzar Sincronización
                   </button>
@@ -1279,33 +1279,33 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 initial={{ opacity: 0, scale: 0.94, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
-                className="relative w-full max-w-lg rounded-3xl p-7 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
+                className="relative w-full max-w-2xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
                 style={cardStyle}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
-                      <Sparkles className="w-5 h-5" />
+                <div className="flex items-center justify-between mb-7">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
+                      <Sparkles className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-2xl text-white tracking-tight" style={titleStyle}>Registrar Lanzamiento</h3>
-                      <p className="text-xs text-white/60">Subir nuevo álbum o sencillo a BitsZone</p>
+                      <h3 className="text-2xl sm:text-3xl text-white tracking-tight" style={titleStyle}>Registrar Lanzamiento</h3>
+                      <p className="text-sm text-white/65 mt-1">Subir nuevo álbum o sencillo a BitsZone</p>
                     </div>
                   </div>
                   <button 
                     type="button"
                     onClick={() => setActiveModal(null)}
                     aria-label="Cerrar modal"
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
 
-                <form onSubmit={handleSimulateSubmit} className="space-y-4 text-sm">
+                <form onSubmit={handleSimulateSubmit} className="space-y-5 text-sm">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                    <label className="block text-sm font-semibold uppercase tracking-wider text-white/70 mb-2">
                       Título de la pista o álbum
                     </label>
                     <input 
@@ -1314,12 +1314,12 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                       placeholder="Ej. Liquid Beats Vol. 1"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
+                      className="w-full px-4.5 py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                    <label className="block text-sm font-semibold uppercase tracking-wider text-white/70 mb-2">
                       Artista o Grupo
                     </label>
                     <input 
@@ -1328,18 +1328,18 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                       placeholder="Ej. J3T & JuanHP"
                       value={newArtist}
                       onChange={(e) => setNewArtist(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
+                      className="w-full px-4.5 py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                    <label className="block text-sm font-semibold uppercase tracking-wider text-white/70 mb-2">
                       Género Principal
                     </label>
                     <select 
                       value={newGenre}
                       onChange={(e) => setNewGenre(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-2xl bg-[#1b1230] border border-white/10 text-white focus:outline-none focus:border-purple-400/60 transition-all cursor-pointer"
+                      className="w-full px-4.5 py-3 rounded-2xl bg-[#1b1230] border border-white/10 text-white text-base focus:outline-none focus:border-purple-400/60 transition-all cursor-pointer"
                     >
                       <option value="Pop / Alternativo">Pop / Alternativo</option>
                       <option value="Rock / Metal">Rock / Metal</option>
@@ -1348,23 +1348,23 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                     </select>
                   </div>
 
-                  <div className="p-5 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] flex flex-col items-center justify-center text-center cursor-pointer hover:border-purple-400/50 hover:bg-white/[0.06] transition-all">
-                    <UploadCloud className="w-8 h-8 text-purple-300 mb-2" />
-                    <p className="text-xs text-white/80">Arrastra la carátula o audio aquí</p>
-                    <span className="text-[10px] text-white/40 mt-0.5">Soporta MP3, FLAC, JPG, PNG hasta 100MB</span>
+                  <div className="p-6 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] flex flex-col items-center justify-center text-center cursor-pointer hover:border-purple-400/50 hover:bg-white/[0.06] transition-all">
+                    <UploadCloud className="w-9 h-9 text-purple-300 mb-2.5" />
+                    <p className="text-sm text-white/85">Arrastra la carátula o audio aquí</p>
+                    <span className="text-xs text-white/45 mt-1">Soporta MP3, FLAC, JPG, PNG hasta 100MB</span>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
                     <button
                       type="button"
                       onClick={() => setActiveModal(null)}
-                      className="px-5 py-2.5 rounded-full text-xs font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
+                      className="px-6 py-3 rounded-full text-sm font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all cursor-pointer"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+                      className="px-7 py-3 rounded-full text-sm font-semibold text-white bg-[#8a3aed] hover:bg-[#9c55f7] shadow-lg shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
                     >
                       Registrar Pista
                     </button>
