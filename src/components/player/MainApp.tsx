@@ -26,6 +26,17 @@ import { MobileTabBar } from './MobileTabBar';
 import { useIsMobile, useIsCompact } from './useIsMobile';
 import { useRubberBand } from '../ui/useRubberBand';
 import { audioVisualizer } from './audioVisualizer';
+import { GeneralSettingsModal, type SettingsTabId } from './GeneralSettingsModal';
+import {
+  loadGeneralSettings,
+  saveGeneralSettings,
+  applyGeneralSettingsToDOM,
+  DEFAULT_GENERAL_SETTINGS,
+  DEFAULT_SHORTCUTS,
+  formatKeyName,
+  getAvailableStorageGB,
+  type GeneralSettings,
+} from './generalSettingsTypes';
 
 export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
   const { containerRef: mainScrollRef, springValue: springMainY, scrollProps: mainScrollProps } = useRubberBand({ axis: 'y' });
@@ -52,6 +63,17 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const consecutivePlaysRef = useRef<{ trackId: number | string | null, count: number }>({ trackId: null, count: 0 });
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTabId>('appearance');
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(loadGeneralSettings);
+  const generalSettingsRef = useRef(generalSettings);
+  useEffect(() => {
+    generalSettingsRef.current = generalSettings;
+  }, [generalSettings]);
+
+  useEffect(() => {
+    applyGeneralSettingsToDOM(generalSettings);
+  }, []);
+
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
 
@@ -458,58 +480,78 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         return;
       }
 
-      switch(e.code) {
-        case 'Space':
-          e.preventDefault();
-          togglePlayRef.current?.();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          handlePrevRef.current?.();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          handleNextRef.current?.();
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          setVolume(v => Math.min(100, v + 5));
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          setVolume(v => Math.max(0, v - 5));
-          break;
-        case 'KeyL':
-          e.preventDefault();
-          setIsLyricsOpen(prev => !prev);
-          break;
-        case 'Escape':
-          e.preventDefault();
-          setIsShortcutsOpen(false);
-          setIsConfigOpen(false);
-          break;
-        case 'KeyF':
-          e.preventDefault();
-          setIsPlayerExpanded(prev => {
-            if (!prev) setImmersiveTab("pistas");
-            return !prev;
-          });
-          break;
-        case 'KeyR':
-        case 'Keyr':
-          e.preventDefault();
-          setRepeatMode(m => m === 'off' ? 'all' : m === 'all' ? 'one' : 'off');
-          break;
-        case 'KeyA':
-        case 'Keya':
-          e.preventDefault();
-          setIsShuffle(prev => !prev);
-          break;
-        case 'KeyS':
-        case 'Keys':
-          e.preventDefault();
-          window.dispatchEvent(new CustomEvent('toggle-favorite-current'));
-          break;
+      const sc = generalSettingsRef.current.shortcuts;
+
+      if (e.code === 'Escape') {
+        e.preventDefault();
+        setIsShortcutsOpen(false);
+        setIsConfigOpen(false);
+        return;
+      }
+
+      if (e.code === sc.togglePlay) {
+        e.preventDefault();
+        togglePlayRef.current?.();
+        return;
+      }
+      if (e.code === sc.prevTrack) {
+        e.preventDefault();
+        handlePrevRef.current?.();
+        return;
+      }
+      if (e.code === sc.nextTrack) {
+        e.preventDefault();
+        handleNextRef.current?.();
+        return;
+      }
+      if (e.code === sc.volumeUp) {
+        e.preventDefault();
+        setVolume(v => Math.min(100, v + 5));
+        return;
+      }
+      if (e.code === sc.volumeDown) {
+        e.preventDefault();
+        setVolume(v => Math.max(0, v - 5));
+        return;
+      }
+      if (e.code === sc.toggleLyrics) {
+        e.preventDefault();
+        setIsLyricsOpen(prev => !prev);
+        return;
+      }
+      if (e.code === sc.toggleExpand) {
+        e.preventDefault();
+        setIsPlayerExpanded(prev => {
+          if (!prev) setImmersiveTab("pistas");
+          return !prev;
+        });
+        return;
+      }
+      if (e.code === sc.toggleRepeat) {
+        e.preventDefault();
+        setRepeatMode(m => m === 'off' ? 'all' : m === 'all' ? 'one' : 'off');
+        return;
+      }
+      if (e.code === sc.toggleShuffle) {
+        e.preventDefault();
+        setIsShuffle(prev => !prev);
+        return;
+      }
+      if (e.code === sc.toggleFavorite) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('toggle-favorite-current'));
+        return;
+      }
+      if (e.code === sc.toggleMute) {
+        e.preventDefault();
+        toggleMute();
+        return;
+      }
+      if (e.code === sc.openConfig) {
+        e.preventDefault();
+        setSettingsInitialTab('shortcuts');
+        setIsConfigOpen(prev => !prev);
+        return;
       }
     };
 
@@ -1043,7 +1085,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               currentView={navSection}
               onViewChange={navigate}
               onToggleShortcuts={() => setIsShortcutsOpen(!isShortcutsOpen)}
-              onToggleConfig={() => { setIsConfigOpen(!isConfigOpen); if (isCompact) setIsSidebarOpen(false); }}
+              onToggleConfig={() => {
+                setSettingsInitialTab('appearance');
+                setIsConfigOpen(!isConfigOpen);
+                if (isCompact) setIsSidebarOpen(false);
+              }}
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
               isShortcutsOpen={isShortcutsOpen}
               isMobile={isCompact}
@@ -1218,60 +1264,41 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
       {/* Modals */}
       <AnimatePresence>
-        {isConfigOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1, transition: { duration: 0.25 } }}
-            exit={{ opacity: 0, transition: { duration: 0.1 } }}
-            onWheel={(e) => e.stopPropagation()}
-            onTouchMove={(e) => e.stopPropagation()}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 md:p-8 overscroll-contain select-none"
-            role="presentation"
-          >
-            <div
-              className="absolute inset-0 cursor-pointer"
-              onClick={() => setIsConfigOpen(false)}
-              title="Cerrar modal de configuración"
-              aria-label="Cerrar modal de configuración"
-            />
-
-            <motion.div
-              id="config-modal-card"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="config-modal-title"
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 450, damping: 30 } }}
-              exit={{ opacity: 0, scale: 0.95, y: 15, transition: { duration: 0.1, ease: "easeOut" } }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-5xl h-[80dvh] md:h-[85vh] bg-[#050505] border border-white/10 rounded-[1.5rem] md:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative z-10 flex flex-col overflow-hidden"
-            >
-              {/* Config Header */}
-              <div className="p-5 md:p-8 pb-4 md:pb-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.02]">
-                <h2 id="config-modal-title" className="text-2xl md:text-3xl font-bold text-white tracking-wide">Configuración</h2>
-                <button
-                  onClick={() => setIsConfigOpen(false)}
-                  className="w-11 h-11 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-                  title="Cerrar configuración (Esc)"
-                  aria-label="Cerrar ventana de configuración"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-              </div>
-
-              {/* Config Body */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-12 flex items-center justify-center">
-                <div className="text-center flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white/20 mb-2">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                  </div>
-                  <p className="text-white/40 text-lg font-medium tracking-wide">La configuración está actualmente vacía.</p>
-                  <p className="text-white/20 text-sm">Las opciones del sistema aparecerán aquí.</p>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
+        <GeneralSettingsModal
+          isOpen={isConfigOpen}
+          onClose={() => setIsConfigOpen(false)}
+          initialTab={settingsInitialTab}
+          settings={generalSettings}
+          onUpdateSettings={(updater) => {
+            setGeneralSettings(prev => {
+              const next = updater(prev);
+              saveGeneralSettings(next);
+              applyGeneralSettingsToDOM(next);
+              return next;
+            });
+          }}
+          onResetAll={() => {
+            setGeneralSettings(DEFAULT_GENERAL_SETTINGS);
+            saveGeneralSettings(DEFAULT_GENERAL_SETTINGS);
+            applyGeneralSettingsToDOM(DEFAULT_GENERAL_SETTINGS);
+          }}
+          onResetShortcuts={() => {
+            setGeneralSettings(prev => {
+              const next = { ...prev, shortcuts: DEFAULT_SHORTCUTS };
+              saveGeneralSettings(next);
+              return next;
+            });
+          }}
+          availableGB={getAvailableStorageGB()}
+          onClearCache={() => {
+            try {
+              sessionStorage.clear();
+              if ('caches' in window) {
+                caches.keys().then(names => names.forEach(n => caches.delete(n)));
+              }
+            } catch (_) {}
+          }}
+        />
 
         {isShortcutsOpen && (
           <motion.div className="fixed inset-0 z-[9999]">
@@ -1283,50 +1310,75 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               style={{
                 left: isCompact ? '16px' : isSidebarOpen ? '270px' : '86px'
               }}
-              className="absolute bottom-[105px] w-64 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className="absolute bottom-[105px] w-68 bg-[#0c0914]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-5 shadow-[0_16px_50px_rgba(0,0,0,0.85)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
             >
-            <h3 className="text-white text-[11px] font-bold mb-4 uppercase tracking-[0.15em]">Atajos de teclado</h3>
-            <div className="flex flex-col gap-3 text-xs text-white/60">
-               <div className="flex justify-between items-center">
-                 <span>Reproducir / Pausar</span>
-                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">Espacio</kbd>
-               </div>
-               <div className="flex justify-between items-center">
-                 <span>Anterior / Siguiente</span>
-                 <div className="flex gap-1">
-                   <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">←</kbd>
-                   <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">→</kbd>
-                 </div>
-               </div>
-               <div className="flex justify-between items-center">
-                 <span>Subir / Bajar volumen</span>
-                 <div className="flex gap-1">
-                   <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">↑</kbd>
-                   <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">↓</kbd>
-                 </div>
-               </div>
-               <div className="flex justify-between items-center">
-                 <span>Expandir reproductor</span>
-                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">F</kbd>
-               </div>
-               <div className="flex justify-between items-center">
-                 <span>Mostrar letra</span>
-                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">L</kbd>
-               </div>
-               <div className="flex justify-between items-center">
-                 <span>Modo repetir</span>
-                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">R</kbd>
-               </div>
-               <div className="flex justify-between items-center">
-                 <span>Modo aleatorio</span>
-                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">A</kbd>
-               </div>
-               <div className="flex justify-between items-center">
-                 <span>Agregar a favoritos</span>
-                 <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">S</kbd>
-               </div>
-            </div>
-          </motion.div>
+              <div className="flex justify-between items-center mb-3.5">
+                <h3 className="text-white text-[11px] font-bold uppercase tracking-[0.15em]">Atajos de teclado</h3>
+                <button
+                  onClick={() => {
+                    setIsShortcutsOpen(false);
+                    setSettingsInitialTab('shortcuts');
+                    setIsConfigOpen(true);
+                  }}
+                  className="text-[10px] text-purple-300 hover:text-white font-semibold transition-colors cursor-pointer"
+                  title="Personalizar atajos en Configuración"
+                >
+                  Editar
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-2.5 text-xs text-white/60">
+                <div className="flex justify-between items-center">
+                  <span>Reproducir / Pausar</span>
+                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.togglePlay)}</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Anterior / Siguiente</span>
+                  <div className="flex gap-1">
+                    <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.prevTrack)}</kbd>
+                    <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.nextTrack)}</kbd>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Subir / Bajar volumen</span>
+                  <div className="flex gap-1">
+                    <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.volumeUp)}</kbd>
+                    <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.volumeDown)}</kbd>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Expandir reproductor</span>
+                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleExpand)}</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Mostrar letra</span>
+                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleLyrics)}</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Modo repetir</span>
+                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleRepeat)}</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Modo aleatorio</span>
+                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleShuffle)}</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Agregar a favoritos</span>
+                  <kbd className="bg-white/10 text-white/90 px-1.5 py-0.5 rounded font-mono text-[10px]">{formatKeyName(generalSettings.shortcuts.toggleFavorite)}</kbd>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setIsShortcutsOpen(false);
+                  setSettingsInitialTab('shortcuts');
+                  setIsConfigOpen(true);
+                }}
+                className="w-full mt-3 pt-2.5 border-t border-white/10 flex items-center justify-center gap-1.5 text-[11px] text-purple-300 hover:text-white font-semibold transition-colors cursor-pointer"
+              >
+                <span>Personalizar en Configuración →</span>
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

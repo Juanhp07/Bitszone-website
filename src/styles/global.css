@@ -357,3 +357,138 @@ html {
     height: 100dvh;
   }
 }
+
+/* ==========================================================================
+   SISTEMA DE CONFIGURACIÓN GLOBAL & ACCESIBILIDAD
+   ========================================================================== */
+
+/* 1. Filtros de Daltonismo */
+html[data-colorblind="protanopia"] {
+  filter: url('#bitszone-filter-protanopia');
+}
+html[data-colorblind="deuteranopia"] {
+  filter: url('#bitszone-filter-deuteranopia');
+}
+html[data-colorblind="tritanopia"] {
+  filter: url('#bitszone-filter-tritanopia');
+}
+html[data-colorblind="achromatopsia"] {
+  filter: grayscale(100%) contrast(105%);
+}
+
+/* 2. Modo de Alto Contraste */
+html.theme-high-contrast body,
+html.theme-high-contrast #player-app-root {
+  background-color: #000000 !important;
+}
+html.theme-high-contrast .border-white\/10,
+html.theme-high-contrast .border-white\/5,
+html.theme-high-contrast .border-white\/20,
+html.theme-high-contrast .border-white\/\[0\.08\] {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+}
+html.theme-high-contrast .text-white\/60,
+html.theme-high-contrast .text-white\/50,
+html.theme-high-contrast .text-white\/40,
+html.theme-high-contrast .text-white\/65 {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+html.theme-high-contrast button,
+html.theme-high-contrast [role="button"] {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* 3. Tipografía para Dislexia y Monospace */
+html.font-dyslexic body,
+html.font-dyslexic #player-app-root,
+html.font-dyslexic h1,
+html.font-dyslexic h2,
+html.font-dyslexic h3,
+html.font-dyslexic h4,
+html.font-dyslexic h5,
+html.font-dyslexic h6,
+html.font-dyslexic p,
+html.font-dyslexic span,
+html.font-dyslexic button,
+html.font-dyslexic input {
+  font-family: 'Comic Sans MS', 'Trebuchet MS', system-ui, -apple-system, sans-serif !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1.6 !important;
+}
+
+html.font-mono-ui body,
+html.font-mono-ui #player-app-root,
+html.font-mono-ui button,
+html.font-mono-ui p,
+html.font-mono-ui span {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+/* 4. Subrayar enlaces y elementos interactivos */
+html.underline-links a,
+html.underline-links .hover\:underline:hover,
+html.underline-links [role="button"] span,
+html.underline-links button span {
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+
+/* 5. Reducción de transparencias para mayor legibilidad */
+html.reduce-transparency .backdrop-blur-3xl,
+html.reduce-transparency .backdrop-blur-2xl,
+html.reduce-transparency .backdrop-blur-xl,
+html.reduce-transparency .backdrop-blur-md,
+html.reduce-transparency .bg-black\/40,
+html.reduce-transparency .bg-black\/60,
+html.reduce-transparency .bg-white\/\[0\.04\],
+html.reduce-transparency .bg-white\/\[0\.02\] {
+  background-color: #0c0a14 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 6. Foco visible mejorado para teclado */
+html.enhanced-focus *:focus-visible {
+  outline: 3px solid #c084fc !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 16px rgba(192, 132, 252, 0.9) !important;
+}
+
+/* 7. Rendimiento: Reducción de movimiento y animaciones */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* 8. Rendimiento: Desactivación de desenfoque GPU */
+html.disable-blur * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html.disable-blur .backdrop-blur-3xl,
+html.disable-blur .backdrop-blur-2xl,
+html.disable-blur .backdrop-blur-xl,
+html.disable-blur .backdrop-blur-md,
+html.disable-blur .backdrop-blur-sm,
+html.disable-blur .backdrop-blur {
+  background-color: #0c0914 !important;
+}
+
+/* 9. Rendimiento: Desactivación de sombras y resplandores neón */
+html.disable-glows * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* 10. Densidad compacta */
+html.density-compact .py-3 {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+html.density-compact .h-16 {
+  height: 3.5rem !important;
+}
+
