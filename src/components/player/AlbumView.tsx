@@ -414,7 +414,7 @@ useEffect(() => {
             </div>
 
             {/* Title + meta */}
-            <div className="flex flex-col items-center text-center mt-5 lg:mt-6 w-full lg:w-[min(31vw,580px)] min-w-0">
+            <div className="flex flex-col items-center text-center mt-6 lg:mt-9 w-full lg:w-[min(31vw,580px)] min-w-0">
               <span className="text-white/60 text-xs font-semibold tracking-[0.25em] uppercase">{isPlaylist ? 'Lista de reproducción' : (album as any)?.isSongRadio ? 'Canción y similares' : 'Álbum'}</span>
               {isPlaylist && isRenaming ? (
                 <input
