@@ -3,6 +3,7 @@ import { ListMusic, Play, MoreHorizontal, Plus, Pencil, Trash2 } from 'lucide-re
 import { motion } from 'framer-motion';
 import { PopoverMenu } from '../ui/PopoverMenu';
 import { usePlaylists, type Playlist } from './PlaylistsContext';
+import { CreatePlaylistDialog } from './CreatePlaylistDialog';
 import { usePlayback } from './PlaybackContext';
 import type { Album, Track } from './types';
 
@@ -20,6 +21,7 @@ export const PlaylistsGrid = ({
   const playback = usePlayback();
   const [menu, setMenu] = useState<{ playlist: Playlist; anchor: { x: number; y: number } } | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const totalTracks = playlists.reduce((n, p) => n + p.tracks.length, 0);
 
@@ -42,7 +44,7 @@ export const PlaylistsGrid = ({
           </div>
         </div>
         <button
-          onClick={() => createPlaylist([])}
+          onClick={() => setCreating(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold text-white bg-black/30 hover:bg-black/40 backdrop-blur-2xl border border-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
@@ -71,7 +73,7 @@ export const PlaylistsGrid = ({
                 className="group flex flex-col gap-3 p-3 rounded-2xl cursor-pointer hover:bg-white/[0.06] transition-colors"
               >
                 <div className="relative aspect-square rounded-xl overflow-hidden border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.4)] bg-white/5">
-                  {p.tracks.length ? (
+                  {p.tracks.length || p.cover ? (
                     <img src={album.coverUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center"><ListMusic className="w-10 h-10 text-white/25" aria-hidden="true" /></div>
@@ -124,6 +126,8 @@ export const PlaylistsGrid = ({
           })}
         </div>
       )}
+
+      <CreatePlaylistDialog open={creating} onClose={() => setCreating(false)} onCreate={(name, cover) => createPlaylist([], name, cover)} />
 
       <PopoverMenu
         open={!!menu}

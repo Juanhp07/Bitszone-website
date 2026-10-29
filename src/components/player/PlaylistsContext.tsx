@@ -7,13 +7,15 @@ export interface Playlist {
   name: string;
   tracks: Track[];
   createdAt: string;
+  /** photo the user picked; without it the cover is built from the songs */
+  cover?: string;
 }
 
 interface PlaylistsContextType {
   playlists: Playlist[];
   /** Mosaic cover (data URL) per playlist id, built from its first four album covers */
   covers: Record<string, string>;
-  createPlaylist: (tracks?: Track[], name?: string) => Playlist;
+  createPlaylist: (tracks?: Track[], name?: string, cover?: string) => Playlist;
   addToPlaylist: (playlistId: string, tracks: Track[]) => void;
   removeFromPlaylist: (playlistId: string, trackId: number) => void;
   renamePlaylist: (playlistId: string, name: string) => void;
@@ -93,12 +95,13 @@ export const PlaylistsProvider = ({ children }: { children: React.ReactNode }) =
     return () => { cancelled = true; };
   }, [coverKeys]);
 
-  const createPlaylist = (tracks: Track[] = [], name?: string) => {
+  const createPlaylist = (tracks: Track[] = [], name?: string, cover?: string) => {
     const playlist: Playlist = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       name: name || `Mi lista nº ${playlists.length + 1}`,
       tracks: tracks.filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i),
       createdAt: new Date().toISOString(),
+      ...(cover ? { cover } : {}),
     };
     persist([...playlists, playlist]);
     show(`Lista '${playlist.name}' creada`);
@@ -133,7 +136,7 @@ export const PlaylistsProvider = ({ children }: { children: React.ReactNode }) =
     id: (PLAYLIST_ID_PREFIX + p.id) as unknown as number,
     title: p.name,
     artist: 'Tu lista',
-    coverUrl: covers[p.id] || p.tracks[0]?.albumCover || FALLBACK_COVER,
+    coverUrl: p.cover || covers[p.id] || p.tracks[0]?.albumCover || FALLBACK_COVER,
     year: String(new Date(p.createdAt).getFullYear()),
     genre: 'Playlist',
     trackCount: p.tracks.length,

@@ -70,9 +70,10 @@ export const PopoverMenu = ({
           <motion.div
             ref={menuRef}
             role="menu"
-            initial={{ opacity: 0, scale: 0.86, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, scale: 0.92, filter: 'blur(2px)', transition: { duration: 0.14, ease: [0.4, 0, 1, 1] } }}
+            // no `filter` here: on the same element it switches off the backdrop blur
+            initial={{ opacity: 0, scale: 0.86 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.14, ease: [0.4, 0, 1, 1] } }}
             transition={{ type: 'spring', stiffness: 520, damping: 34, mass: 0.7 }}
             style={{
               left: pos?.left ?? anchor.x,
@@ -80,9 +81,10 @@ export const PopoverMenu = ({
               width,
               transformOrigin: `${pos?.originX ?? 'left'} ${pos?.originY ?? 'top'}`,
               visibility: pos ? 'visible' : 'hidden',
+              // same dark glass as the notifications
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%), rgba(12,12,16,0.58)',
             }}
-            className="fixed z-[9999] p-1.5 flex flex-col gap-0.5 rounded-2xl border border-white/10 bg-[#140d1f]/80 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] font-sans"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed z-[9999] p-1.5 flex flex-col gap-0.5 rounded-2xl backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_0_0_1px_rgba(255,255,255,0.14)] font-sans"            onClick={(e) => e.stopPropagation()}
           >
             {items.map((item, i) => (
               <motion.button

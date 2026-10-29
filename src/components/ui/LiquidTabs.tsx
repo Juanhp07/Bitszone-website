@@ -1,11 +1,12 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
+import GlassSurface from './GlassSurface';
 
 export type LiquidTab<T extends string> = { id: T; label: string; icon?: React.ReactNode; title?: string };
 
 /**
- * Segmented control estilo Liquid Glass con indicador deslizante suave y texto 100% nítido.
- * El indicador corre por detrás del texto para que las letras nunca se distorsionen ni se vean borrosas.
+ * Segmented control estilo Liquid Glass con indicador deslizante suave.
+ * El indicador es un lente de cristal que pasa por encima del texto y lo refracta, como las notificaciones.
  */
 export function LiquidTabs<T extends string>({
   tabs,
@@ -28,6 +29,7 @@ export function LiquidTabs<T extends string>({
   const index = activeIndex >= 0 ? activeIndex : 0;
   const x = useMotionValue(0);
   const springX = useSpring(x, { stiffness: 420, damping: 32, mass: 0.7 });
+
 
   useLayoutEffect(() => {
     const el = trackRef.current;
@@ -74,18 +76,34 @@ export function LiquidTabs<T extends string>({
       }}
       onPointerCancel={() => { drag.current = null; setPressed(false); x.set(index * segment); }}
     >
-      {/* Indicador activo estilo Liquid Glass (detrás del texto para nitidez absoluta sin distorsión) */}
+      {/* Liquid glass lens over the labels, same glass as the notifications: it bends the letters under it,
+          tinted dark so the album colour shows through. Little blur here: the label sits behind the glass. */}
       <motion.div
         aria-hidden="true"
-        className="absolute top-0 bottom-0 left-0 z-0 rounded-full pointer-events-none border border-white/25 bg-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_4px_16px_rgba(0,0,0,0.3)] backdrop-blur-md transition-opacity duration-200"
+        className="absolute top-0 bottom-0 left-0 z-20 rounded-full overflow-hidden pointer-events-none transition-opacity duration-200"
         style={{
           width: segment || `${100 / tabs.length}%`,
           x: springX,
           opacity: hasActive ? 1 : 0,
         }}
-        animate={{ scaleX: pressed ? 1.05 : 1, scaleY: pressed ? 1.08 : 1 }}
-        transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-      />
+      >
+        {/* gentler than the notifications: the lens is short and the label sits right under it, so strong bending or colour split would make it unreadable */}
+        {/* short reach (-22) + 7px of cropped ring: at the first/last tab the lens touches the bar's curved end,
+            and a longer reach pulled that curve and the dark outside into the lens as a notch */}
+        <div className="absolute -inset-[7px]">
+          <GlassSurface width="100%" height="100%" borderRadius={999} displace={0.6} blur={5} backgroundOpacity={0} saturation={1.5} distortionScale={-22} greenOffset={0} blueOffset={0} />
+        </div>
+        <span
+          className="pointer-events-none absolute inset-0 rounded-full"
+          // light frosted fill over the album colour; pressing brightens it (scaling the lens on press
+          // made Chrome lose the rounded crop and show the glass's dark outer ring)
+          style={{
+            background: `rgba(255,255,255,${pressed ? 0.24 : 0.16})`,
+            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.3), inset 0 1px 0 rgba(255,255,255,0.18)',
+            transition: 'background 200ms ease-out',
+          }}
+        />
+      </motion.div>
 
       {tabs.map((t) => {
         const active = t.id === value;
