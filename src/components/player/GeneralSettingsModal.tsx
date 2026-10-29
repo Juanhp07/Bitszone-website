@@ -26,7 +26,6 @@ import type {
   FontFamilyType,
   ColorBlindnessType,
   CrossfadeDuration,
-  StreamingQuality,
   CustomShortcuts,
 } from './generalSettingsTypes';
 import {
@@ -171,6 +170,20 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   const [shortcutConflict, setShortcutConflict] = useState<string | null>(null);
   const [cacheClearedToast, setCacheClearedToast] = useState(false);
   const [shortcutsSearch, setShortcutsSearch] = useState('');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  // Close reset confirmation dialog on Escape
+  useEffect(() => {
+    if (!showResetConfirm) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setShowResetConfirm(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [showResetConfirm]);
 
   // Keep active tab in sync if initialTab changes on open
   useEffect(() => {
@@ -508,13 +521,6 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       checked={settings.reduceTransparency}
                       onChange={(v) => onUpdateSettings(prev => ({ ...prev, reduceTransparency: v }))}
                     />
-
-                    <ToggleSwitch
-                      label="Indicadores de Foco Aumentados"
-                      description="Resalta claramente el elemento activo al navegar con el teclado"
-                      checked={settings.enhancedFocus}
-                      onChange={(v) => onUpdateSettings(prev => ({ ...prev, enhancedFocus: v }))}
-                    />
                   </div>
                 </div>
               )}
@@ -742,36 +748,6 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                     onChange={(v) => onUpdateSettings(prev => ({ ...prev, volumeNormalization: v }))}
                     badge="ReplayGain"
                   />
-
-                  {/* Streaming Quality */}
-                  <div className="space-y-3 pt-1">
-                    <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                      Calidad de Audio
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {[
-                        { id: 'normal' as StreamingQuality, label: 'Normal (160 kbps)', desc: 'Menor consumo de datos' },
-                        { id: 'high' as StreamingQuality, label: 'Alta (320 kbps)', desc: 'Excelente fidelidad sonora' },
-                        { id: 'lossless' as StreamingQuality, label: 'Sin Pérdidas (FLAC)', desc: 'Máxima calidad de estudio' },
-                      ].map((q) => (
-                        <button
-                          key={q.id}
-                          onClick={() => onUpdateSettings(prev => ({ ...prev, streamingQuality: q.id }))}
-                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                            settings.streamingQuality === q.id
-                              ? 'bg-purple-600/25 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.25)]'
-                              : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/70'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm sm:text-base font-bold text-white">{q.label}</span>
-                            {settings.streamingQuality === q.id && <Check className="w-4 h-4 text-purple-300" />}
-                          </div>
-                          <p className="text-xs sm:text-sm text-white/60 mt-1">{q.desc}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -839,28 +815,6 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       {cacheClearedToast ? '¡Caché limpiada!' : 'Limpiar caché'}
                     </button>
                   </div>
-
-                  {/* Reset All Settings */}
-                  <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center text-purple-300 shrink-0">
-                        <RotateCcw className="w-5 h-5 text-purple-400" />
-                      </div>
-                      <div>
-                        <div className="text-sm sm:text-base font-semibold text-white">Restablecer Todo de Fábrica</div>
-                        <div className="text-xs sm:text-sm text-white/60 mt-0.5">
-                          Restaura la configuración a sus valores originales
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={onResetAll}
-                      className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors cursor-pointer shrink-0"
-                    >
-                      Restablecer todo
-                    </button>
-                  </div>
                 </div>
               )}
             </div>
@@ -870,7 +824,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           <div className="flex items-center justify-between px-7 md:px-10 py-5 border-t border-white/10 shrink-0 bg-black/30">
             <button
               type="button"
-              onClick={onResetAll}
+              onClick={() => setShowResetConfirm(true)}
               className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-sm font-semibold text-white/50 hover:text-white bg-transparent hover:bg-white/10 border border-transparent hover:border-white/15 transition-all duration-200 cursor-pointer group active:scale-95"
             >
               <RotateCcw className="w-4 h-4 transition-transform duration-500 ease-out group-hover:-rotate-180" />
@@ -880,11 +834,68 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-8 py-2.5 rounded-full bg-[#8a3aed] hover:bg-[#9c55f7] text-white text-base font-semibold shadow-lg shadow-purple-600/30 hover:shadow-purple-600/50 transition-all cursor-pointer active:scale-95"
+              className="inline-flex items-center gap-2 px-7 py-2.5 rounded-full bg-[#8a3aed] hover:bg-[#9c55f7] text-white text-base font-semibold shadow-lg shadow-purple-600/30 hover:shadow-purple-600/50 transition-all cursor-pointer active:scale-95"
             >
-              Guardar cambios
+              <Check className="w-5 h-5 stroke-[2.5]" />
+              <span>Guardar cambios</span>
             </button>
           </div>
+
+          {/* Modal de confirmación para restablecer configuración */}
+          <AnimatePresence>
+            {showResetConfirm && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-md"
+                onClick={() => setShowResetConfirm(false)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full max-w-sm rounded-3xl p-6 bg-[#181622] border border-white/10 shadow-2xl text-center flex flex-col items-center"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 mb-3.5 shadow-sm">
+                    <RotateCcw className="w-6 h-6" />
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white tracking-tight">
+                    ¿Restablecer configuración?
+                  </h3>
+
+                  <p className="text-sm text-white/60 mt-1.5 mb-6">
+                    Se devolverán todos los ajustes a sus valores por defecto.
+                  </p>
+
+                  <div className="flex items-center gap-3 w-full">
+                    <button
+                      type="button"
+                      onClick={() => setShowResetConfirm(false)}
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white/80 hover:text-white text-sm font-semibold transition-colors cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onResetAll();
+                        setShowResetConfirm(false);
+                      }}
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold shadow-md shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+                    >
+                      Restablecer
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </motion.div>
     </AnimatePresence>,
