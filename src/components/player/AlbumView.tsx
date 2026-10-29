@@ -205,7 +205,8 @@ useEffect(() => {
   const isEntireAlbumDownloaded = !!album.tracks?.length && album.tracks.every(t => isDownloaded(t.id));
   const isEmpty = !album.tracks?.length;
   const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
-  const isAlbumActive = !!nowPlayingTrackId && !!album.tracks?.some(t => t.id === nowPlayingTrackId);
+  // a radio only counts as active when it's the one playing, not when it merely contains the playing song
+  const isAlbumActive = !!nowPlayingTrackId && !!album.tracks?.some(t => t.id === nowPlayingTrackId) && (!isSongRadio || radioIsPlaying);
   const isAlbumPlaying = isPlaying && isAlbumActive;
 
   return (
