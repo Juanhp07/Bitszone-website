@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Camera, Clock, Headphones, LogOut, Mail, Mic2, Music2, User as UserIcon, X } from 'lucide-react';
+import { Camera, Clock, Headphones, LogOut, Mail, Mic2, Music2, User as UserIcon, X, Pencil, RotateCcw } from 'lucide-react';
 import { LiquidButton } from '../ui/LiquidButton';
 import { cardStyle, inputClass, titleStyle } from '../auth/authUi';
 import { supabase } from '../../lib/supabase';
 import { getHistory, topBy } from '../../lib/listenHistory';
 import { toAvatar } from './Onboarding';
+import { useAdminEdit } from '../admin/AdminEditContext';
 
 const USERNAME_RE = /^[a-z0-9_.]{3,20}$/i;
 
@@ -53,6 +54,7 @@ export const ProfileDialog = ({
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const reduce = useReducedMotion();
+  const { isAdmin, isEditMode, toggleEditMode, totalOverridesCount, resetAllOverrides } = useAdminEdit();
 
   useEffect(() => {
     if (!open) return;
@@ -173,6 +175,64 @@ export const ProfileDialog = ({
                 {error && <p className="text-sm text-pink-200 text-center">{error}</p>}
                 <LiquidButton onClick={save} status={status} disabled={!dirty} className={`w-full h-12 transition-opacity ${dirty ? '' : 'opacity-50'}`}>Guardar cambios</LiquidButton>
               </div>
+
+              {/* Panel de Edición exclusivo para Administrador */}
+              {isAdmin && (
+                <div className="w-full mt-6 pt-5 border-t border-white/10 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold tracking-[0.18em] uppercase text-purple-300">
+                      <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                      Edición de Catálogo
+                    </span>
+                    {totalOverridesCount > 0 ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30">
+                        {totalOverridesCount} {totalOverridesCount === 1 ? 'cambio' : 'cambios'}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-white/40">Sin cambios</span>
+                    )}
+                  </div>
+
+                  {/* Interruptor modo de edición */}
+                  <button
+                    type="button"
+                    onClick={toggleEditMode}
+                    className={`w-full px-4 py-2.5 rounded-2xl flex items-center justify-between transition-all duration-200 cursor-pointer border ${
+                      isEditMode
+                        ? 'bg-purple-600/25 hover:bg-purple-600/35 border-purple-400/40 shadow-[0_4px_16px_rgba(168,85,247,0.25)] text-white'
+                        : 'bg-white/[0.06] hover:bg-white/[0.10] border-white/10 text-white/70 hover:text-white'
+                    }`}
+                    title={isEditMode ? 'Desactivar modo de edición' : 'Activar modo de edición con lápices'}
+                  >
+                    <span className="flex items-center gap-2.5 text-xs font-semibold">
+                      <Pencil className="w-4 h-4 text-purple-300" />
+                      <span>Modo de edición</span>
+                    </span>
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full transition-colors ${
+                      isEditMode ? 'bg-[#8a3aed] text-white shadow-sm' : 'bg-white/10 text-white/50'
+                    }`}>
+                      {isEditMode ? 'Activa' : 'Pausada'}
+                    </span>
+                  </button>
+
+                  {/* Botón para restablecer / rehacer cambios originales */}
+                  {totalOverridesCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm('¿Deseas restablecer todos los cambios y personalizaciones a sus valores originales?')) {
+                          resetAllOverrides();
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-2xl flex items-center justify-center gap-2 text-xs font-semibold text-red-200/90 hover:text-red-100 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 transition-all cursor-pointer shadow-sm active:scale-98"
+                      title="Restablecer todos los cambios del Admin a los valores originales"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Rehacer cambios originales</span>
+                    </button>
+                  )}
+                </div>
+              )}
 
               <button
                 type="button"

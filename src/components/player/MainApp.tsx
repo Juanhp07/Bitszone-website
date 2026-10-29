@@ -977,7 +977,6 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     <PlaybackContext.Provider value={playback}>
       <ToastContainer />
       <AdminEditModal />
-      <AdminEditFloatingBar />
       <AnimatePresence>
         {loading && <PlayerLoadingScreen />}
       </AnimatePresence>

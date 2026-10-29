@@ -282,6 +282,11 @@ useEffect(() => {
                   ) : (
                     <img src={currentCover} alt={currentTitle} data-cover-source="album" className="absolute inset-0 w-full h-full object-cover transition-all duration-500" />
                   )}
+                  {/* Glass sheen + thickness */}
+                  <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0.08)_22%,transparent_40%,transparent_70%,rgba(255,255,255,0.10)_100%)] pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 rounded-[22px] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),inset_0_0_0_1px_rgba(255,255,255,0.06)] pointer-events-none" />
+
                   {/* Admin pencil to edit cover & album */}
                   {isAdmin && isEditMode && album && !isPlaylist && (
                     <AdminPencil
@@ -291,10 +296,6 @@ useEffect(() => {
                       title={`Editar portada de "${currentTitle}"`}
                     />
                   )}
-                  {/* Glass sheen + thickness */}
-                  <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0.08)_22%,transparent_40%,transparent_70%,rgba(255,255,255,0.10)_100%)] pointer-events-none" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
-                  <div className="absolute inset-0 rounded-[22px] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),inset_0_0_0_1px_rgba(255,255,255,0.06)] pointer-events-none" />
                 </div>
               </div>
 
