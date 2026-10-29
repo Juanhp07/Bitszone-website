@@ -21,7 +21,7 @@ const STEPS = [
 const stepIndex: Record<Step, number> = { profile: 0, tastes: 1, done: 2 };
 
 // square-crop and shrink the photo so it fits in the profiles.avatar_url text column
-const toAvatar = (file: File) =>
+export const toAvatar = (file: File) =>
   new Promise<string>((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);

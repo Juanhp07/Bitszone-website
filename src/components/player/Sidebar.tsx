@@ -187,7 +187,7 @@ export const Sidebar = ({
           {account ? (
             <>
               <button
-                onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setAccountMenu({ x: r.left, y: r.top - 8 }); }}
+                onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setAccountMenu({ x: r.right + 8, y: r.top }); }}
                 aria-haspopup="menu"
                 aria-label={`Cuenta de ${account.name}`}
                 title={account.name}
