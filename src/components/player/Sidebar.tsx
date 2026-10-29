@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, LogOut, ChevronLeft, LayoutDashboard } from "lucide-react";
 import { PopoverMenu } from "../ui/PopoverMenu";
 import { useDownloads } from "./DownloadsContext";
+import { useAdminEdit } from "../admin/AdminEditContext";
+import { AdminPencil } from "../admin/AdminEditWidgets";
 
 export const Sidebar = ({
   currentView,
@@ -33,6 +35,7 @@ export const Sidebar = ({
   isAdmin?: boolean;
 }) => {
   const { totalBytes, newDownloadsCount } = useDownloads();
+  const { getButtonText, isEditMode } = useAdminEdit();
   const [accountMenu, setAccountMenu] = useState<{ x: number; y: number } | null>(null);
 
   // Start precisely at 5.00 GB available
@@ -115,14 +118,26 @@ export const Sidebar = ({
             <Home className="w-5 h-5 shrink-0" aria-hidden="true" />
           </div>
           <div
-            className="flex-1 min-w-0 pr-3 flex items-center overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            className="flex-1 min-w-0 pr-3 flex items-center justify-between overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
             style={{
               opacity: isCollapsed ? 0 : 1,
               transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)',
               maxWidth: isCollapsed ? '0px' : '180px'
             }}
           >
-            <span className="truncate">Inicio</span>
+            <span className="truncate">{getButtonText('sidebar.home', 'Inicio')}</span>
+            {isAdmin && isEditMode && (
+              <AdminPencil
+                target={{
+                  type: 'button',
+                  key: 'sidebar.home',
+                  label: getButtonText('sidebar.home', 'Inicio'),
+                  defaultLabel: 'Inicio',
+                }}
+                size="xs"
+                title="Editar texto del botón Inicio"
+              />
+            )}
           </div>
         </button>
 
@@ -140,14 +155,26 @@ export const Sidebar = ({
             <Library className="w-5 h-5 shrink-0" aria-hidden="true" />
           </div>
           <div
-            className="flex-1 min-w-0 pr-3 flex items-center overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            className="flex-1 min-w-0 pr-3 flex items-center justify-between overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
             style={{
               opacity: isCollapsed ? 0 : 1,
               transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)',
               maxWidth: isCollapsed ? '0px' : '180px'
             }}
           >
-            <span className="truncate">Biblioteca</span>
+            <span className="truncate">{getButtonText('sidebar.library', 'Biblioteca')}</span>
+            {isAdmin && isEditMode && (
+              <AdminPencil
+                target={{
+                  type: 'button',
+                  key: 'sidebar.library',
+                  label: getButtonText('sidebar.library', 'Biblioteca'),
+                  defaultLabel: 'Biblioteca',
+                }}
+                size="xs"
+                title="Editar texto del botón Biblioteca"
+              />
+            )}
           </div>
         </button>
 
@@ -176,14 +203,28 @@ export const Sidebar = ({
               maxWidth: isCollapsed ? '0px' : '180px'
             }}
           >
-            <span className="truncate">Mis descargas</span>
-            {newDownloadsCount > 0 && currentView !== "downloads" && (
-              <span
-                className="text-[#f0abfc] text-[13px] font-extrabold tracking-wider ml-2"
-                style={{ textShadow: '0 0 10px rgba(232, 121, 249, 1), 0 0 20px rgba(232, 121, 249, 0.8)' }}
-              >
-                {newDownloadsCount}
-              </span>
+            <div className="flex items-center min-w-0 gap-1">
+              <span className="truncate">{getButtonText('sidebar.downloads', 'Mis descargas')}</span>
+              {newDownloadsCount > 0 && currentView !== "downloads" && (
+                <span
+                  className="text-[#f0abfc] text-[13px] font-extrabold tracking-wider ml-1"
+                  style={{ textShadow: '0 0 10px rgba(232, 121, 249, 1), 0 0 20px rgba(232, 121, 249, 0.8)' }}
+                >
+                  {newDownloadsCount}
+                </span>
+              )}
+            </div>
+            {isAdmin && isEditMode && (
+              <AdminPencil
+                target={{
+                  type: 'button',
+                  key: 'sidebar.downloads',
+                  label: getButtonText('sidebar.downloads', 'Mis descargas'),
+                  defaultLabel: 'Mis descargas',
+                }}
+                size="xs"
+                title="Editar texto del botón Mis descargas"
+              />
             )}
           </div>
         </button>
@@ -204,14 +245,26 @@ export const Sidebar = ({
               <LayoutDashboard className={`w-5 h-5 shrink-0 transition-colors ${currentView === "dashboard" ? "text-purple-300" : "text-purple-400"}`} aria-hidden="true" />
             </div>
             <div
-              className="flex-1 min-w-0 pr-3 flex items-center overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className="flex-1 min-w-0 pr-3 flex items-center justify-between overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
               style={{
                 opacity: isCollapsed ? 0 : 1,
                 transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)',
                 maxWidth: isCollapsed ? '0px' : '180px'
               }}
             >
-              <span className="truncate font-semibold tracking-wide">Dashboard</span>
+              <span className="truncate font-semibold tracking-wide">{getButtonText('sidebar.dashboard', 'Dashboard')}</span>
+              {isAdmin && isEditMode && (
+                <AdminPencil
+                  target={{
+                    type: 'button',
+                    key: 'sidebar.dashboard',
+                    label: getButtonText('sidebar.dashboard', 'Dashboard'),
+                    defaultLabel: 'Dashboard',
+                  }}
+                  size="xs"
+                  title="Editar texto del botón Dashboard"
+                />
+              )}
             </div>
           </button>
         )}

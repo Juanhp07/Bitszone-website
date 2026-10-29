@@ -13,6 +13,8 @@ import { EqBars } from '../ui/EqBars';
 import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
 import { usePlaylists, isPlaylistAlbum, withAlbumInfo, PLAYLIST_ID_PREFIX } from './PlaylistsContext';
+import { useAdminEdit } from '../admin/AdminEditContext';
+import { AdminPencil } from '../admin/AdminEditWidgets';
 
 // Desktop tracklist shows this many rows; longer albums scroll inside the list
 const VISIBLE_TRACKS = 9;
@@ -60,10 +62,12 @@ export const AlbumView = ({
 }) => {
   const { playlists, playlistAsAlbum, createPlaylist, removeFromPlaylist, renamePlaylist, deletePlaylist } = usePlaylists();
   const playback = usePlayback();
+  const { isAdmin, isEditMode, applyAlbumOverrides } = useAdminEdit();
   const isPlaylist = isPlaylistAlbum(albumProp);
   const playlistId = isPlaylist ? String(albumProp!.id).slice(PLAYLIST_ID_PREFIX.length) : null;
   const livePlaylist = playlistId ? playlists.find(p => p.id === playlistId) : undefined;
-  const album = isPlaylist ? (livePlaylist ? playlistAsAlbum(livePlaylist) : null) : albumProp;
+  const rawAlbum = isPlaylist ? (livePlaylist ? playlistAsAlbum(livePlaylist) : null) : albumProp;
+  const album = rawAlbum ? applyAlbumOverrides(rawAlbum) : null;
   const [isRenaming, setIsRenaming] = useState(false);
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
@@ -274,6 +278,15 @@ useEffect(() => {
                   ) : (
                     <img src={currentCover} alt={currentTitle} data-cover-source="album" className="absolute inset-0 w-full h-full object-cover transition-all duration-500" />
                   )}
+                  {/* Admin pencil to edit cover & album */}
+                  {isAdmin && isEditMode && album && !isPlaylist && (
+                    <AdminPencil
+                      target={{ type: 'cover', album }}
+                      variant="floating"
+                      size="sm"
+                      title={`Editar portada de "${currentTitle}"`}
+                    />
+                  )}
                   {/* Glass sheen + thickness */}
                   <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0.08)_22%,transparent_40%,transparent_70%,rgba(255,255,255,0.10)_100%)] pointer-events-none" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
@@ -413,16 +426,36 @@ useEffect(() => {
                   className="mt-2 w-full text-center bg-white/5 border border-white/15 rounded-xl px-3 py-1 font-inter font-bold text-white text-4xl md:text-5xl xl:text-6xl leading-[1.1] tracking-tight outline-none focus:border-purple-400/60"
                 />
               ) : (
-                <h1
-                  onDoubleClick={() => isPlaylist && setIsRenaming(true)}
-                  title={isPlaylist ? 'Doble clic para cambiar el nombre' : undefined}
-                  className="mt-2 font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight [overflow-wrap:anywhere] pb-1"
-                >
-                  {currentTitle}
-                </h1>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <h1
+                    onDoubleClick={() => isPlaylist && setIsRenaming(true)}
+                    title={isPlaylist ? 'Doble clic para cambiar el nombre' : undefined}
+                    className="font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight [overflow-wrap:anywhere] pb-1"
+                  >
+                    {currentTitle}
+                  </h1>
+                  {isAdmin && isEditMode && album && !isPlaylist && (
+                    <AdminPencil
+                      target={{ type: 'album', album }}
+                      size="sm"
+                      variant="inline"
+                      title={`Editar título del álbum "${currentTitle}"`}
+                    />
+                  )}
+                </div>
               )}
               <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 mt-3 text-sm md:text-base xl:text-lg text-white/70 font-medium [&>span]:whitespace-nowrap">
-                <span className="text-white font-semibold uppercase tracking-wide">{currentArtist}</span>
+                <div className="inline-flex items-center gap-1">
+                  <span className="text-white font-semibold uppercase tracking-wide">{currentArtist}</span>
+                  {isAdmin && isEditMode && album && !isPlaylist && (
+                    <AdminPencil
+                      target={{ type: 'artist', artist: { name: currentArtist, img: currentCover } }}
+                      size="xs"
+                      variant="inline"
+                      title="Editar nombre del artista"
+                    />
+                  )}
+                </div>
                 {currentAlbumTitle && (
                   <>
                     <span aria-hidden="true">•</span>
@@ -556,6 +589,14 @@ useEffect(() => {
                     <span className={`text-[15px] lg:text-base xl:text-[17px] flex items-center gap-1.5 min-w-0 ${isPlayingTrack ? 'text-white font-bold' : 'text-white font-medium'}`}>
                       {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
                       <span className="truncate">{track.title}</span>
+                      {isAdmin && isEditMode && (
+                        <AdminPencil
+                          target={{ type: 'track', track, album: album || undefined }}
+                          size="xs"
+                          variant="inline"
+                          title={`Editar canción "${track.title}"`}
+                        />
+                      )}
                     </span>
                     <div className="flex items-center gap-2 mt-0.5 min-w-0">
                       {track.previewUrl.includes('explicit') && (

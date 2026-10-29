@@ -4,7 +4,6 @@ import {
   UserCog, 
   Disc3, 
   Plus, 
-  ArrowLeft, 
   ExternalLink, 
   Sparkles, 
   X, 
@@ -65,8 +64,8 @@ interface PopularTrack {
 export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
   const { user, isAdmin, ready } = useProfile();
 
-  // Mode and view states
-  const [dataSource, setDataSource] = useState<DataSource>('real');
+  // Mode and view states: Default to Demo as requested
+  const [dataSource, setDataSource] = useState<DataSource>('demo');
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const [searchUserQuery, setSearchUserQuery] = useState('');
@@ -569,27 +568,6 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-purple-300' : ''}`} />
           </button>
-
-          {/* Return to player */}
-          {onBack ? (
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Volver a la Música</span>
-            </button>
-          ) : (
-            <a
-              href="/player"
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Volver al Reproductor</span>
-            </a>
-          )}
-
         </div>
       </div>
 

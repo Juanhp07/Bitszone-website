@@ -6,6 +6,8 @@ import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 import { usePlayback } from './PlaybackContext';
 import { ScrollableList } from '../ui/ScrollableList';
+import { useAdminEdit } from '../admin/AdminEditContext';
+import { AdminPencil } from '../admin/AdminEditWidgets';
 
 export const CatalogView = ({ 
   albums,
@@ -32,6 +34,7 @@ export const CatalogView = ({
   const [hoveredAlbum, setHoveredAlbum] = useState<string | number | null>(null);
   const { downloadTrack, isDownloaded, isFavorite, toggleFavorite, toggleFavoriteAlbum, cancelAlbumDownload, downloadingAlbums, downloadAlbum } = useDownloads();
   const playback = usePlayback();
+  const { isAdmin, isEditMode, getButtonText, applyAlbumOverrides, applyArtistOverrides } = useAdminEdit();
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState<Album | null>(null);
@@ -91,13 +94,15 @@ export const CatalogView = ({
   };
 
   const artistsMap = new Map();
-  albums.forEach(album => {
+  albums.forEach(rawAlbum => {
+    const album = applyAlbumOverrides(rawAlbum);
     if (!artistsMap.has(album.artist)) {
-      artistsMap.set(album.artist, {
+      const baseArtist = {
         name: album.artist,
         img: knownArtistImages[album.artist] || album.coverUrl,
         type: album.artist.includes('Combo') || album.artist.includes('Orquesta') ? 'Grupo Musical' : 'Artista'
-      });
+      };
+      artistsMap.set(album.artist, applyArtistOverrides(baseArtist));
     }
   });
   const dynamicArtists = Array.from(artistsMap.values());
@@ -152,7 +157,8 @@ export const CatalogView = ({
     await downloadAlbum(album);
   };
 
-  const renderAlbumCard = (album: Album, showTrackTitle: boolean = false) => {
+  const renderAlbumCard = (rawAlbum: Album, showTrackTitle: boolean = false) => {
+    const album = applyAlbumOverrides(rawAlbum);
     const downloadedCount = album.tracks?.filter(t => isDownloaded(t.id)).length || 0;
     const totalCount = album.tracks?.length || 0;
     const isComplete = totalCount > 0 && downloadedCount === totalCount;
@@ -165,7 +171,7 @@ export const CatalogView = ({
     return (
     <div 
       key={album.id}
-      className={`${expandedSection ? 'w-full' : 'w-[48vw] max-w-[210px] sm:w-56 md:w-64 md:max-w-none'} shrink-0 snap-start flex flex-col gap-2 md:gap-3 group cursor-pointer`}
+      className={`${expandedSection ? 'w-full' : 'w-[48vw] max-w-[210px] sm:w-56 md:w-64 md:max-w-none'} shrink-0 snap-start flex flex-col gap-2 md:gap-3 group cursor-pointer relative`}
       onClick={() => {
         if (showTrackTitle && album.tracks && album.tracks.length > 0) {
           if (onSelectSong) onSelectSong(album.tracks[0], album);
@@ -178,6 +184,16 @@ export const CatalogView = ({
       <div className={`relative ${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-64 md:h-64'}`}>
         <div className="w-full h-full rounded-2xl overflow-hidden relative shadow-xl transition-all duration-500">
           <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+
+          {/* Admin pencil to edit cover & album */}
+          {isAdmin && isEditMode && (
+            <AdminPencil
+              target={{ type: 'album', album }}
+              variant="floating"
+              size="sm"
+              title={`Editar portada y datos de "${album.title}"`}
+            />
+          )}
 
           {/* Botón de reproducción blanco Liquid Glass y blur con borde fino de 1px sutil y opaco */}
           <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
@@ -291,9 +307,31 @@ export const CatalogView = ({
       </div>
       <div className="flex flex-col mt-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-col min-w-0">
-            <h3 className="text-white font-semibold text-sm md:text-[15px] line-clamp-1">{showTrackTitle && album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}</h3>
-            <span className="text-white/50 text-xs md:text-[13px] mt-0.5 truncate">{album.artist}</span>
+          <div className="flex flex-col min-w-0 flex-1">
+            <div className="flex items-center min-w-0 gap-1 group/title">
+              <h3 className="text-white font-semibold text-sm md:text-[15px] line-clamp-1">
+                {showTrackTitle && album.tracks && album.tracks.length > 0 ? album.tracks[0].title : album.title}
+              </h3>
+              {isAdmin && isEditMode && (
+                <AdminPencil
+                  target={showTrackTitle && album.tracks?.[0] ? { type: 'track', track: album.tracks[0], album } : { type: 'album', album }}
+                  size="xs"
+                  variant="inline"
+                  title="Editar título"
+                />
+              )}
+            </div>
+            <div className="flex items-center min-w-0 gap-1 group/artist">
+              <span className="text-white/50 text-xs md:text-[13px] mt-0.5 truncate">{album.artist}</span>
+              {isAdmin && isEditMode && (
+                <AdminPencil
+                  target={{ type: 'artist', artist: { name: album.artist, img: album.coverUrl } }}
+                  size="xs"
+                  variant="inline"
+                  title="Editar artista"
+                />
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-0.5 md:gap-1 shrink-0 -mr-1 -mt-0.5">
             {album.tracks && album.tracks.length > 0 && (() => {
@@ -408,17 +446,50 @@ export const CatalogView = ({
                 <ChevronLeft className="w-6 h-6" aria-hidden="true" />
               </button>
             )}
-            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">{personalized ? 'Para ti' : 'Canciones del momento'}</h2>
+            <div className="flex items-center min-w-0 gap-1">
+              <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
+                {personalized 
+                  ? getButtonText('catalog.songs_personalized', 'Para ti') 
+                  : getButtonText('catalog.songs_title', 'Canciones del momento')}
+              </h2>
+              {isAdmin && isEditMode && (
+                <AdminPencil
+                  target={{
+                    type: 'button',
+                    key: personalized ? 'catalog.songs_personalized' : 'catalog.songs_title',
+                    label: personalized ? getButtonText('catalog.songs_personalized', 'Para ti') : getButtonText('catalog.songs_title', 'Canciones del momento'),
+                    defaultLabel: personalized ? 'Para ti' : 'Canciones del momento',
+                  }}
+                  size="xs"
+                  title="Editar título de la sección"
+                />
+              )}
+            </div>
           </div>
           {!expandedSection && (
-            <button 
-              onClick={() => setExpandedSection('canciones')} 
-              className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 cursor-pointer"
-              title="Mostrar todas las canciones del momento"
-              aria-label="Mostrar todas las canciones del momento"
-            >
-              Mostrar todo
-            </button>
+            <div className="flex items-center">
+              <button 
+                onClick={() => setExpandedSection('canciones')} 
+                className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 cursor-pointer"
+                title="Mostrar todas las canciones del momento"
+                aria-label="Mostrar todas las canciones del momento"
+              >
+                {getButtonText('catalog.songs_show_all', 'Mostrar todo')}
+              </button>
+              {isAdmin && isEditMode && (
+                <AdminPencil
+                  target={{
+                    type: 'button',
+                    key: 'catalog.songs_show_all',
+                    label: getButtonText('catalog.songs_show_all', 'Mostrar todo'),
+                    defaultLabel: 'Mostrar todo',
+                  }}
+                  size="xs"
+                  variant="button-corner"
+                  title="Editar texto del botón"
+                />
+              )}
+            </div>
           )}
         </div>
         {loading ? renderSkeletonCards() : renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 128)}
@@ -444,31 +515,83 @@ export const CatalogView = ({
                 <ChevronLeft className="w-6 h-6" aria-hidden="true" />
               </button>
             )}
-            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">Artistas populares</h2>
+            <div className="flex items-center min-w-0 gap-1">
+              <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
+                {getButtonText('catalog.artists_title', 'Artistas populares')}
+              </h2>
+              {isAdmin && isEditMode && (
+                <AdminPencil
+                  target={{
+                    type: 'button',
+                    key: 'catalog.artists_title',
+                    label: getButtonText('catalog.artists_title', 'Artistas populares'),
+                    defaultLabel: 'Artistas populares',
+                  }}
+                  size="xs"
+                  title="Editar título de la sección"
+                />
+              )}
+            </div>
           </div>
           {!expandedSection && (
-            <button 
-              onClick={() => setExpandedSection('artistas')} 
-              className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 cursor-pointer"
-              title="Mostrar todos los artistas populares"
-              aria-label="Mostrar todos los artistas populares"
-            >
-              Mostrar todo
-            </button>
+            <div className="flex items-center">
+              <button 
+                onClick={() => setExpandedSection('artistas')} 
+                className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 cursor-pointer"
+                title="Mostrar todos los artistas populares"
+                aria-label="Mostrar todos los artistas populares"
+              >
+                {getButtonText('catalog.artists_show_all', 'Mostrar todo')}
+              </button>
+              {isAdmin && isEditMode && (
+                <AdminPencil
+                  target={{
+                    type: 'button',
+                    key: 'catalog.artists_show_all',
+                    label: getButtonText('catalog.artists_show_all', 'Mostrar todo'),
+                    defaultLabel: 'Mostrar todo',
+                  }}
+                  size="xs"
+                  variant="button-corner"
+                  title="Editar texto del botón"
+                />
+              )}
+            </div>
           )}
         </div>
-        {loading ? renderSkeletonArtists() : renderList(dynamicArtists, expandedSection === 'artistas', (artist, i) => (
-          <div key={i} className={`${expandedSection ? 'w-full' : 'w-[40vw] max-w-[180px] sm:w-48 md:w-56 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
-            <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-56 md:h-56'} rounded-full overflow-hidden shadow-xl relative`}>
-              <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none"></div>
+        {loading ? renderSkeletonArtists() : renderList(dynamicArtists, expandedSection === 'artistas', (rawArtist, i) => {
+          const artist = applyArtistOverrides(rawArtist);
+          return (
+            <div key={i} className={`${expandedSection ? 'w-full' : 'w-[40vw] max-w-[180px] sm:w-48 md:w-56 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer relative`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
+              <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-56 md:h-56'} rounded-full overflow-hidden shadow-xl relative`}>
+                <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none"></div>
+                {isAdmin && isEditMode && (
+                  <AdminPencil
+                    target={{ type: 'artist', artist }}
+                    variant="floating"
+                    size="xs"
+                    title={`Editar foto de "${artist.name}"`}
+                  />
+                )}
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="flex items-center gap-1">
+                  <h3 className="text-white font-semibold text-sm md:text-[15px] text-center line-clamp-1">{artist.name}</h3>
+                  {isAdmin && isEditMode && (
+                    <AdminPencil
+                      target={{ type: 'artist', artist }}
+                      size="xs"
+                      variant="inline"
+                      title="Editar nombre del artista"
+                    />
+                  )}
+                </div>
+                <span className="text-white/50 text-xs md:text-[13px] mt-1">{artist.type || 'Artista'}</span>
+              </div>
             </div>
-            <div className="flex flex-col items-center">
-              <h3 className="text-white font-semibold text-sm md:text-[15px] text-center line-clamp-1">{artist.name}</h3>
-              <span className="text-white/50 text-xs md:text-[13px] mt-1">{artist.type || 'Artista'}</span>
-            </div>
-          </div>
-        ), 112)}
+          );
+        }, 112)}
       </motion.section>
       )}
 
@@ -491,17 +614,48 @@ export const CatalogView = ({
                 <ChevronLeft className="w-6 h-6" aria-hidden="true" />
               </button>
             )}
-            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">Álbumes destacados</h2>
+            <div className="flex items-center min-w-0 gap-1">
+              <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
+                {getButtonText('catalog.albums_title', 'Álbumes destacados')}
+              </h2>
+              {isAdmin && isEditMode && (
+                <AdminPencil
+                  target={{
+                    type: 'button',
+                    key: 'catalog.albums_title',
+                    label: getButtonText('catalog.albums_title', 'Álbumes destacados'),
+                    defaultLabel: 'Álbumes destacados',
+                  }}
+                  size="xs"
+                  title="Editar título de la sección"
+                />
+              )}
+            </div>
           </div>
           {!expandedSection && (
-            <button 
-              onClick={() => setExpandedSection('destacados')} 
-              className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 cursor-pointer"
-              title="Mostrar todos los álbumes destacados"
-              aria-label="Mostrar todos los álbumes destacados"
-            >
-              Mostrar todo
-            </button>
+            <div className="flex items-center">
+              <button 
+                onClick={() => setExpandedSection('destacados')} 
+                className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 cursor-pointer"
+                title="Mostrar todos los álbumes destacados"
+                aria-label="Mostrar todos los álbumes destacados"
+              >
+                {getButtonText('catalog.albums_show_all', 'Mostrar todo')}
+              </button>
+              {isAdmin && isEditMode && (
+                <AdminPencil
+                  target={{
+                    type: 'button',
+                    key: 'catalog.albums_show_all',
+                    label: getButtonText('catalog.albums_show_all', 'Mostrar todo'),
+                    defaultLabel: 'Mostrar todo',
+                  }}
+                  size="xs"
+                  variant="button-corner"
+                  title="Editar texto del botón"
+                />
+              )}
+            </div>
           )}
         </div>
         {loading ? renderSkeletonCards() : renderList(personalized ? albums : [...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 128)}

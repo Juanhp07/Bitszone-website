@@ -13,6 +13,9 @@ import { ToastContainer } from './ToastContainer';
 import { useCatalog } from './useCatalog';
 import { Onboarding } from './Onboarding';
 import { AdminDashboard } from '../admin/AdminDashboard';
+import { AdminEditProvider } from '../admin/AdminEditContext';
+import { AdminEditModal } from '../admin/AdminEditModal';
+import { AdminEditFloatingBar } from '../admin/AdminEditWidgets';
 import { useProfile } from '../../lib/useProfile';
 import { signOutUser } from '../../lib/userStorage';
 import { genreScore } from '../../lib/genres';
@@ -960,10 +963,13 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   };
 
   return (
+    <AdminEditProvider isAdmin={isAdmin} supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey}>
     <DownloadsProvider>
     <PlaylistsProvider>
     <PlaybackContext.Provider value={playback}>
       <ToastContainer />
+      <AdminEditModal />
+      <AdminEditFloatingBar />
       <AnimatePresence>
         {loading && <PlayerLoadingScreen />}
       </AnimatePresence>
@@ -1394,5 +1400,6 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     </PlaybackContext.Provider>
     </PlaylistsProvider>
     </DownloadsProvider>
+    </AdminEditProvider>
   );
 };
