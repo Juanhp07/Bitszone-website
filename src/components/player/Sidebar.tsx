@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, ChevronLeft, LayoutDashboard } from "lucide-react";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, ChevronsLeft, LayoutDashboard } from "lucide-react";
 import { useDownloads } from "./DownloadsContext";
 import { useAdminEdit } from "../admin/AdminEditContext";
 import { AdminPencil } from "../admin/AdminEditWidgets";
@@ -70,8 +70,11 @@ export const Sidebar = ({
               title="Bitszone - Inicio"
               aria-label="Bitszone - Ir al catálogo"
             >
-              <span className="font-inter font-bold text-2xl text-white tracking-tight select-none">
-                Bitszone
+              {/* wordmark with a lighter "zone" */}
+              <span className="flex items-center select-none">
+                <span className="font-inter text-[22px] leading-none tracking-[-0.03em] text-white">
+                  <span className="font-extrabold">Bits</span><span className="font-medium text-white/60">zone</span>
+                </span>
               </span>
             </button>
             {isAdmin && (
@@ -85,15 +88,14 @@ export const Sidebar = ({
         {onToggleSidebar && (
           <button
             onClick={onToggleSidebar}
-            className="w-11 h-11 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-xl cursor-pointer shrink-0"
+            className="group w-9 h-9 flex items-center justify-center text-white/70 hover:text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 active:scale-95 transition-[color,background-color,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer shrink-0"
             title={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
             aria-label={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
           >
-            <ChevronLeft
-              className={`w-5 h-5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                isCollapsed || drawerOnRight ? "rotate-180" : "rotate-0"
-              }`}
-              strokeWidth={2.2}
+            {/* double chevron: points where the menu goes («  closes, » opens); flipped for the right-side drawer */}
+            <ChevronsLeft
+              className={`w-5 h-5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-x-0.5 ${isCollapsed || drawerOnRight ? 'rotate-180' : ''}`}
+              strokeWidth={2}
               aria-hidden="true"
             />
           </button>
