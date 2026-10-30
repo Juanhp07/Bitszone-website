@@ -69,7 +69,7 @@ const ToggleSwitch: React.FC<{
         onChange(!checked);
       }
     }}
-    className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 transition-colors cursor-pointer select-none group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+    className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] backdrop-blur-xl transition-colors cursor-pointer select-none group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
   >
     <div className="flex-1 pr-4 min-w-0">
       <div className="flex items-center gap-2.5">
@@ -91,13 +91,13 @@ const ToggleSwitch: React.FC<{
     <div
       aria-checked={checked}
       role="switch"
-      className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-        checked ? 'bg-purple-600' : 'bg-white/15'
+      className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out ${
+        checked ? 'bg-purple-500' : 'bg-white/15'
       }`}
     >
       <span
         aria-hidden="true"
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
           checked ? 'translate-x-5' : 'translate-x-0'
         }`}
       />
@@ -276,11 +276,11 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           onClick={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
-          className="relative w-full max-w-6xl h-[90dvh] md:h-[88vh] rounded-3xl overflow-hidden shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col"
-          style={cardStyle}
+          className="relative w-full max-w-6xl h-[90dvh] md:h-[88vh] rounded-3xl overflow-hidden text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col"
+          style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)', background: 'rgba(0, 0, 0, 0.3)' }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-7 md:px-10 py-5 md:py-6 border-b border-white/10 shrink-0 bg-black/20">
+          <div className="flex items-center justify-between px-7 md:px-10 py-5 md:py-6 border-b border-white/[0.07] shrink-0 bg-black/20">
             <h2 id="general-settings-title" className="text-2xl md:text-3xl text-white font-bold tracking-tight" style={titleStyle}>
               Configuración
             </h2>
@@ -288,7 +288,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.06] hover:bg-white/[0.14] backdrop-blur-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
               title="Cerrar configuración (Esc)"
               aria-label="Cerrar configuración"
             >
@@ -299,7 +299,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           {/* Modal Content - Dual Column on desktop */}
           <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
             {/* Navigation Tabs (Sidebar on desktop / horizontal bar on mobile) */}
-            <div className="w-full md:w-64 lg:w-72 shrink-0 border-b md:border-b-0 md:border-r border-white/10 bg-white/[0.01] p-3 md:p-4 lg:p-5 overflow-x-auto md:overflow-y-auto min-h-0 scrollbar-hide flex md:flex-col gap-1.5 md:gap-2">
+            <div className="w-full md:w-64 lg:w-72 shrink-0 border-b md:border-b-0 md:border-r border-white/[0.07] bg-white/[0.01] p-3 md:p-4 lg:p-5 overflow-x-auto md:overflow-y-auto min-h-0 scrollbar-hide flex md:flex-col gap-1.5 md:gap-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -307,15 +307,15 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-auto md:w-full flex items-center gap-3.5 px-4 md:px-5 py-3 md:py-3.5 rounded-2xl text-left transition-all cursor-pointer whitespace-nowrap shrink-0 group ${
+                    className={`w-auto md:w-full flex items-center gap-3.5 pl-2.5 pr-5 py-2 md:py-2.5 rounded-full text-left transition-[background-color,color,box-shadow] duration-300 cursor-pointer whitespace-nowrap shrink-0 group ${
                       isActive
-                        ? 'bg-purple-600/25 border border-purple-500/40 text-white shadow-[0_0_20px_rgba(168,85,247,0.25)]'
-                        : 'hover:bg-white/[0.05] border border-transparent text-white/70 hover:text-white'
+                        ? 'bg-white/[0.14] backdrop-blur-xl text-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]'
+                        : 'hover:bg-white/[0.06] text-white/65 hover:text-white'
                     }`}
                   >
                     <div
-                      className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                        isActive ? 'bg-purple-500/30 text-purple-200' : 'bg-white/5 text-white/60 group-hover:text-white'
+                      className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center shrink-0 transition-[background-color,color,transform] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                        isActive ? 'bg-white/20 text-white scale-105' : 'bg-white/[0.06] text-white/60 group-hover:text-white'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -327,7 +327,14 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             </div>
 
             {/* Content Panel */}
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 md:p-9 space-y-8 scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 md:p-9 scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                className="space-y-8"
+              >
               {/* ========================================================= */}
               {/* 1. APARIENCIA Y TEXTO */}
               {/* ========================================================= */}
@@ -344,7 +351,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   </div>
 
                   {/* Live preview box */}
-                  <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col gap-2">
+                  <div className="p-5 rounded-2xl bg-white/[0.04] backdrop-blur-xl flex flex-col gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wider text-purple-300">
                       Vista previa
                     </span>
@@ -373,10 +380,10 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                         <button
                           key={p.scale}
                           onClick={() => onUpdateSettings(prev => ({ ...prev, textScale: p.scale }))}
-                          className={`py-3.5 px-4 rounded-2xl border text-center transition-all cursor-pointer ${
+                          className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
                             settings.textScale === p.scale
-                              ? 'bg-purple-600/30 border-purple-400 text-white font-bold shadow-[0_0_16px_rgba(168,85,247,0.3)]'
-                              : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/70'
+                              ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                              : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
                           }`}
                         >
                           <div className="text-sm sm:text-base font-semibold">{p.label}</div>
@@ -400,10 +407,10 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                         <button
                           key={font.id}
                           onClick={() => onUpdateSettings(prev => ({ ...prev, fontFamily: font.id }))}
-                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                          className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
                             settings.fontFamily === font.id
-                              ? 'bg-purple-600/25 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.25)]'
-                              : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/70'
+                              ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                              : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
                           }`}
                         >
                           <div className="flex items-center justify-between">
@@ -449,10 +456,10 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                         <button
                           key={item.id}
                           onClick={() => onUpdateSettings(prev => ({ ...prev, colorBlindness: item.id }))}
-                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                          className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
                             settings.colorBlindness === item.id
-                              ? 'bg-purple-600/25 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.25)]'
-                              : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/70'
+                              ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                              : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
                           }`}
                         >
                           <div className="flex items-center justify-between">
@@ -466,7 +473,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   </div>
 
                   {/* Interactive Palette Check */}
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.04] backdrop-blur-xl space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-white/90">
                         Comprobación de colores
@@ -589,7 +596,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
 
                     <button
                       onClick={onResetShortcuts}
-                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer self-start sm:self-auto"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.13] backdrop-blur-xl text-white/80 hover:text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer self-start sm:self-auto"
                     >
                       <RotateCcw className="w-4 h-4" />
                       <span>Restablecer atajos</span>
@@ -699,7 +706,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   </div>
 
                   {/* Crossfade */}
-                  <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3.5">
+                  <div className="p-5 rounded-2xl bg-white/[0.04] backdrop-blur-xl space-y-3.5">
                     <div className="flex justify-between items-center">
                       <div>
                         <div className="text-base font-bold text-white">Crossfade entre canciones</div>
@@ -717,10 +724,10 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                         <button
                           key={dur}
                           onClick={() => onUpdateSettings(prev => ({ ...prev, crossfadeDuration: dur }))}
-                          className={`py-2.5 px-3 rounded-xl text-sm font-semibold text-center border transition-all cursor-pointer ${
+                          className={`py-2.5 px-3 rounded-full text-sm font-semibold text-center border transition-[background-color,border-color,color] duration-300 cursor-pointer ${
                             settings.crossfadeDuration === dur
-                              ? 'bg-purple-600/30 border-purple-400 text-white shadow-sm'
-                              : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/70'
+                              ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                              : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
                           }`}
                         >
                           {dur === 0 ? 'Sin crossfade' : `${dur}s`}
@@ -764,7 +771,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   </div>
 
                   {/* Storage Status Card */}
-                  <div className="p-6 rounded-3xl bg-white/[0.03] border border-white/10 space-y-4">
+                  <div className="p-6 rounded-3xl bg-white/[0.04] backdrop-blur-xl space-y-4">
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="text-base font-bold text-white">Almacenamiento Offline</div>
@@ -788,7 +795,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   </div>
 
                   {/* Clear Cache Card */}
-                  <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between gap-4">
+                  <div className="p-5 rounded-2xl bg-white/[0.04] backdrop-blur-xl flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5">
                       <div className="w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center text-white/70 shrink-0">
                         <Trash2 className="w-5 h-5 text-red-400" />
@@ -814,15 +821,16 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   </div>
                 </div>
               )}
+              </motion.div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-7 md:px-10 py-5 border-t border-white/10 shrink-0 bg-black/30">
+          <div className="flex items-center justify-between px-7 md:px-10 py-5 border-t border-white/[0.07] shrink-0 bg-black/30">
             <button
               type="button"
               onClick={() => setShowResetConfirm(true)}
-              className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-sm font-semibold text-white/50 hover:text-white bg-transparent hover:bg-white/10 border border-transparent hover:border-white/15 transition-all duration-200 cursor-pointer group active:scale-95"
+              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold text-white/60 hover:text-white bg-transparent hover:bg-white/[0.08] transition-colors duration-200 cursor-pointer group"
             >
               <RotateCcw className="w-4 h-4 transition-transform duration-500 ease-out group-hover:-rotate-180" />
               <span>Restablecer configuración</span>
@@ -831,7 +839,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex items-center gap-2 px-7 py-2.5 rounded-full bg-[#8a3aed] hover:bg-[#9c55f7] text-white text-base font-semibold shadow-lg shadow-purple-600/30 hover:shadow-purple-600/50 transition-all cursor-pointer active:scale-95"
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-white/[0.09] hover:bg-white/[0.17] border border-white/35 hover:border-white/55 backdrop-blur-2xl text-white text-base font-semibold shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-[background-color,border-color] duration-300 cursor-pointer"
             >
               <Check className="w-5 h-5 stroke-[2.5]" />
               <span>Guardar cambios</span>
@@ -846,7 +854,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-md"
+                className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-md"
                 onClick={() => setShowResetConfirm(false)}
               >
                 <motion.div
@@ -855,9 +863,9 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   exit={{ opacity: 0, scale: 0.95, y: 5 }}
                   transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full max-w-sm rounded-3xl p-6 bg-[#181622] border border-white/10 shadow-2xl text-center flex flex-col items-center"
+                  className="w-full max-w-sm rounded-3xl p-6 bg-black/40 backdrop-blur-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] text-center flex flex-col items-center"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 mb-3.5 shadow-sm">
+                  <div className="w-12 h-12 rounded-full bg-white/[0.08] flex items-center justify-center text-white/90 mb-3.5">
                     <RotateCcw className="w-6 h-6" />
                   </div>
 
@@ -873,7 +881,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowResetConfirm(false)}
-                      className="flex-1 py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white/80 hover:text-white text-sm font-semibold transition-colors cursor-pointer"
+                      className="flex-1 py-2.5 px-4 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-white/85 hover:text-white text-sm font-semibold transition-colors cursor-pointer"
                     >
                       Cancelar
                     </button>
@@ -884,7 +892,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                         onResetAll();
                         setShowResetConfirm(false);
                       }}
-                      className="flex-1 py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold shadow-md shadow-purple-600/30 transition-all cursor-pointer active:scale-95"
+                      className="flex-1 py-2.5 px-4 rounded-full bg-purple-500/90 hover:bg-purple-500 text-white text-sm font-semibold shadow-md shadow-purple-600/25 transition-colors cursor-pointer"
                     >
                       Restablecer
                     </button>
