@@ -74,7 +74,6 @@ export const AuthContainer = () => {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isAdminHovered, setIsAdminHovered] = useState(false);
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [codeError, setCodeError] = useState('');
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
@@ -250,6 +249,7 @@ export const AuthContainer = () => {
           {step === 'choose' && (
             <div className="absolute top-5 left-5 z-20">
               <BackButton
+                dark
                 onClick={() => {
                   if (window.history.length > 1 && document.referrer.startsWith(window.location.origin)) window.history.back();
                   else window.location.href = '/player';
@@ -261,11 +261,8 @@ export const AuthContainer = () => {
           {/* Botón dinámico Admin / Usuario en la parte superior central del panel izquierdo */}
           {(step === 'choose' || step === 'password') && (
             <div className="absolute top-5 inset-x-0 flex justify-center z-20 pointer-events-none">
-              <motion.button
-                layout
+              <button
                 type="button"
-                onMouseEnter={() => setIsAdminHovered(true)}
-                onMouseLeave={() => setIsAdminHovered(false)}
                 onClick={() => {
                   if (step === 'password') {
                     setEmail('');
@@ -282,9 +279,6 @@ export const AuthContainer = () => {
                     setMethod('admin');
                     setStep('password');
                   }
-                }}
-                transition={{
-                  layout: { type: 'spring', stiffness: 500, damping: 32 }
                 }}
                 className="pointer-events-auto h-10 md:h-11 min-w-10 md:min-w-11 px-2.5 flex items-center justify-center rounded-full bg-black/35 hover:bg-black/50 border border-white/40 hover:border-white/60 text-white shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition-colors cursor-pointer group"
                 title={step === 'password' ? 'Volver a inicio de sesión normal' : 'Acceso para Administrador (con contraseña)'}
@@ -316,25 +310,14 @@ export const AuthContainer = () => {
                   )}
                 </AnimatePresence>
 
-                <AnimatePresence initial={false}>
-                  {isAdminHovered && (
-                    <motion.span
-                      key={step === 'password' ? 'label-user' : 'label-admin'}
-                      initial={{ opacity: 0, width: 0, marginLeft: 0 }}
-                      animate={{ opacity: 1, width: 'auto', marginLeft: 6 }}
-                      exit={{ opacity: 0, width: 0, marginLeft: 0 }}
-                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                      className="text-xs font-semibold whitespace-nowrap overflow-hidden pr-1"
-                    >
-                      {step === 'password' ? (
-                        <span className="text-white">Usuario</span>
-                      ) : (
-                        <span className="text-white">Admin</span>
-                      )}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
+                <span className="grid grid-cols-[0fr] group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                  <span className="overflow-hidden min-w-0">
+                    <span className="block pl-1.5 pr-1 text-xs font-semibold whitespace-nowrap text-white opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200">
+                      {step === 'password' ? 'Usuario' : 'Admin'}
+                    </span>
+                  </span>
+                </span>
+              </button>
             </div>
           )}
 
