@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRubberBand } from '../ui/useRubberBand';
+import { ListScrollbar } from '../ui/ListScrollbar';
 import { createPortal } from 'react-dom';
 import { LiquidTabs } from '../ui/LiquidTabs';
 import { PopoverMenu } from '../ui/PopoverMenu';
@@ -18,16 +19,16 @@ import type { Track, Album } from './types';
 import { cardStyle, titleStyle } from '../auth/authUi';
 
 const FadeScroll = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => {
-  const ref = React.useRef<HTMLDivElement>(null);
+  const { containerRef, springValue, scrollProps, triggerBounce } = useRubberBand({ axis: 'y' });
   const [edges, setEdges] = useState({ top: false, bottom: false });
   const update = () => {
-    const el = ref.current;
+    const el = containerRef.current;
     if (!el) return;
     setEdges({ top: el.scrollTop > 4, bottom: el.scrollTop + el.clientHeight < el.scrollHeight - 4 });
   };
   useEffect(() => {
     update();
-    const el = ref.current;
+    const el = containerRef.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(update);
     ro.observe(el);
@@ -36,14 +37,23 @@ const FadeScroll = ({ children, className = '' }: { children: React.ReactNode; c
   }, []);
   const mask = `linear-gradient(to bottom, ${edges.top ? 'transparent 0, black 40px' : 'black 0'}, ${edges.bottom ? 'black calc(100% - 40px), transparent 100%' : 'black 100%'})`;
   return (
-    <div
-      ref={ref}
-      onScroll={update}
-      onWheel={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) e.stopPropagation(); }}
-      className={`overflow-y-auto overscroll-contain scrollbar-hide ${className}`}
-      style={{ scrollbarWidth: 'none', maskImage: mask, WebkitMaskImage: mask }}
-    >
-      <div>{children}</div>
+    <div className="relative">
+      <ListScrollbar containerRef={containerRef} onBounce={triggerBounce} springY={springValue} className="-right-5 top-2 bottom-2" />
+      <div
+        ref={containerRef}
+        {...scrollProps}
+        onScroll={() => { scrollProps.onScroll(); update(); }}
+        onWheel={(e) => {
+          scrollProps.onWheel(e);
+          // the page stays still while the list itself scrolls
+          const el = e.currentTarget;
+          if (el.scrollHeight > el.clientHeight + 1) e.stopPropagation();
+        }}
+        className={`overflow-y-auto overscroll-contain scrollbar-hide ${className}`}
+        style={{ scrollbarWidth: 'none', maskImage: mask, WebkitMaskImage: mask }}
+      >
+        <motion.div style={{ y: springValue }}>{children}</motion.div>
+      </div>
     </div>
   );
 };
@@ -284,7 +294,7 @@ export const DownloadsView = ({
     ...(type === 'licenses' ? [{ label: 'Quitar licencia', icon: <StarOff className="w-4 h-4" />, onSelect: () => setTrackToRemove(t), danger: true }] : []),
   ];
 
-  const renderTrack = (track: Track, index: number) => {
+  const renderTrack = (track: Track, index: number, large = false) => {
     const isHovered = hoveredTrack === track.id;
     const isCurrent = playback.nowPlayingTrackId === track.id;
     const layer = 'absolute inset-0 flex items-center justify-center transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)]';
@@ -295,7 +305,7 @@ export const DownloadsView = ({
         onMouseLeave={() => setHoveredTrack(null)}
         onClick={() => handlePlay(track)}
         onContextMenu={(e) => { e.preventDefault(); setRowMenu({ track, anchor: { x: e.clientX, y: e.clientY } }); }}
-        className={`grid grid-cols-[28px_minmax(0,1fr)_84px] ${type === 'downloads' ? 'lg:grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'lg:grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'lg:grid-cols-[50px_1fr_130px_80px_100px]'} gap-2 lg:gap-4 px-1 lg:px-4 py-2.5 items-center rounded-2xl cursor-pointer group transition-colors duration-300 ${isCurrent ? 'bg-white/[0.09] backdrop-blur-xl' : 'hover:bg-white/[0.06]'}`}
+        className={`grid grid-cols-[28px_minmax(0,1fr)_84px] ${type === 'downloads' ? 'lg:grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'lg:grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'lg:grid-cols-[50px_1fr_130px_80px_100px]'} gap-2 lg:gap-4 px-1 lg:px-4 ${large ? 'py-4' : 'py-2.5'} items-center rounded-2xl cursor-pointer group transition-colors duration-300 ${isCurrent ? 'bg-white/[0.09] backdrop-blur-xl' : 'hover:bg-white/[0.06]'}`}
       >
         <div className="relative h-9 flex items-center justify-center text-white/50 font-medium">
           {isCurrent ? (
@@ -311,12 +321,12 @@ export const DownloadsView = ({
         </div>
 
         <div className="flex flex-col min-w-0 pr-1 lg:pr-4">
-          <span className="font-medium line-clamp-1 text-white text-[15px] lg:text-sm flex items-center gap-1.5">
+          <span className={`font-medium line-clamp-1 text-white ${large ? 'text-base lg:text-[17px]' : 'text-[15px] lg:text-sm'} flex items-center gap-1.5`}>
             {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
             <span className="truncate">{track.title}</span>
           </span>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-white/50 text-[13px] lg:text-sm line-clamp-1 group-hover:text-white/80 transition-colors">{track.artist}</span>
+            <span className={`text-white/50 text-[13px] ${large ? 'lg:text-[15px]' : 'lg:text-sm'} line-clamp-1 group-hover:text-white/80 transition-colors`}>{track.artist}</span>
             {type === 'licenses' && <span className="lg:hidden shrink-0 text-yellow-500/80 text-[11px] font-bold tracking-wide">· {getDaysLeft(track.addedAt)}</span>}
           </div>
         </div>
@@ -709,14 +719,15 @@ export const DownloadsView = ({
                       <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight break-words">{g.title}</h2>
                       <p className="text-white/60 text-sm md:text-base">{g.tracks[0]?.artist || 'Artista'} • {g.tracks.length} {g.tracks.length === 1 ? 'canción' : 'canciones'}</p>
                     </div>
-                    <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-white/[0.12] hover:bg-white/[0.16] backdrop-blur-2xl w-max transition-colors">
+                    <div className="flex items-center gap-1.5 p-1.5 rounded-full w-max" style={{ background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(28px) saturate(1.15)', WebkitBackdropFilter: 'blur(28px) saturate(1.15)' }}>
                       <button
                         onClick={() => playback.playAlbum(g as any)}
-                        title={`Reproducir álbum ${g.title}`}
-                        aria-label={`Reproducir álbum ${g.title}`}
-                        className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 backdrop-blur-xl text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+                        title={`Reproducir todo ${g.title}`}
+                        aria-label={`Reproducir todo ${g.title}`}
+                        className="h-12 pl-4 pr-5 rounded-full flex items-center gap-2 bg-white/[0.14] hover:bg-white/[0.24] text-white text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
                       >
-                        <Play className="w-5 h-5 ml-0.5" fill="currentColor" aria-hidden="true" />
+                        <Play className="w-5 h-5" fill="currentColor" aria-hidden="true" />
+                        Reproducir todo
                       </button>
                       <button
                         onClick={() => toggleFavoriteAlbum && toggleFavoriteAlbum(g as any)}
@@ -755,9 +766,10 @@ export const DownloadsView = ({
                       <div className="text-center">TIEMPO</div>
                       <div className="text-center">{type === 'downloads' ? 'ELIMINAR' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
                     </div>
-                    <FadeScroll className="lg:max-h-[min(calc(100dvh-400px),36rem)] -mx-2 px-2">
+                    {/* about six big rows, then it scrolls inside */}
+                    <FadeScroll className="lg:max-h-[min(calc(100dvh-400px),30rem)] -mx-2 px-2">
                       <div className="flex flex-col gap-0.5">
-                        {g.tracks.map((track: any, index: number) => renderTrack(track, index))}
+                        {g.tracks.map((track: any, index: number) => renderTrack(track, index, true))}
                       </div>
                     </FadeScroll>
                   </div>

@@ -316,26 +316,24 @@ useEffect(() => {
 
               {/* Actions — bottom-right of the sleeve */}
               <div className="relative lg:absolute lg:-bottom-4 lg:-right-2 mt-5 lg:mt-0 flex items-center justify-center gap-1.5 p-1.5 rounded-full bg-white/[0.18] hover:bg-white/[0.22] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_16px_40px_rgba(0,0,0,0.35)] w-max mx-auto lg:mx-0 z-20 transition-all">
+                {/* always "play it all": pause/resume lives in the player and in the playing row, so this one never changes meaning */}
                 <button
-                  className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl border border-white/30 hover:border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer text-white"
+                  className="h-12 pl-4 pr-5 rounded-full flex items-center gap-2 bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl border border-white/30 hover:border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer text-white text-sm font-semibold whitespace-nowrap"
                   onClick={() => {
-                    if (isAlbumActive) {
-                      togglePlay();
-                    } else if (album.tracks && album.tracks.length > 0) {
+                    if (album.tracks && album.tracks.length > 0) {
                       playback.playAlbum(album, isSongRadio ? activeTrack ?? undefined : undefined);
                       onFollowPlaying?.();
                     }
                   }}
-                  title={isAlbumPlaying ? "Pausar" : (album as any)?.isSongRadio ? "Reproducir canción y similares" : "Reproducir álbum"}
-                  aria-label={isAlbumPlaying ? "Pausar" : (album as any)?.isSongRadio ? "Reproducir canción y similares" : "Reproducir álbum"}
+                  title={isSongRadio ? "Reproducir esta canción y las similares" : "Reproducir todo el álbum desde el inicio"}
+                  aria-label={isSongRadio ? "Reproducir canción y similares" : "Reproducir todo el álbum"}
                 >
                   {isLoading && isAlbumActive ? (
                     <Loader2 className="w-5 h-5 animate-spin text-white/95" aria-label="Cargando canción" />
-                  ) : isAlbumPlaying ? (
-                    <Pause className="w-5 h-5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
                   ) : (
-                    <Play className="w-5 h-5 ml-0.5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
+                    <Play className="w-5 h-5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
                   )}
+                  {isSongRadio ? 'Reproducir' : 'Reproducir todo'}
                 </button>
                 <button
                   onClick={() => {
