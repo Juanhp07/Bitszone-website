@@ -912,6 +912,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const playback = {
     nowPlayingTrackId: nowPlayingTrack?.id,
+    isPlaying,
+    isLoading: isAudioLoading,
+    togglePlay: () => { togglePlay(); },
     progress,
     nowPlayingOrigin,
     upNext,
