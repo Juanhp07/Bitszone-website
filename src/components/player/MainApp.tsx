@@ -1359,6 +1359,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               style={{
                 ...cardStyle,
                 // no outline or top highlight, like the menus: only the soft drop shadow
+                background: 'rgba(0, 0, 0, 0.25)',
                 border: 'none',
                 boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.55)',
                 left: isCompact ? '16px' : isSidebarOpen ? '280px' : '96px',
