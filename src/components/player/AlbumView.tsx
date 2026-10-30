@@ -113,11 +113,10 @@ export const AlbumView = ({
   const [trackMenuPos, setTrackMenuPos] = useState<{ top: number; left: number; right?: number; isUpward: boolean }>({ top: 0, left: 0, isUpward: false });
   const { isLicensed, downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isSongRadio = Boolean((album as any)?.isSongRadio);
-  // follow the playing song only while this radio is what's playing; another radio that merely contains it keeps its own song
+  // This page is always about the song you opened it from (the radio's first track), whatever is playing now:
+  // skipping to another song of the list, or coming back later, must not change the cover, title or colours.
   const radioIsPlaying = isSongRadio && playback.queueList[playback.queueIndex]?.album?.id === album?.id;
-  const activeTrack = isSongRadio
-    ? ((radioIsPlaying && album?.tracks?.find(t => t.id === nowPlayingTrackId)) || album?.tracks?.[0])
-    : null;
+  const activeTrack = isSongRadio ? album?.tracks?.[0] : null;
   const currentCover = (isSongRadio && activeTrack?.albumCover) ? activeTrack.albumCover : (album?.coverUrl || '');
   const dominantColor = useAverageColor(currentCover);
   const currentTitle = (isSongRadio && activeTrack) ? activeTrack.title : (album?.title || '');
