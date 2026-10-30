@@ -7,7 +7,8 @@ import { PopoverMenu } from '../ui/PopoverMenu';
 import { BackButton } from '../ui/BackButton';
 import { SectionHero, SectionEmpty } from '../ui/SectionHero';
 import { NowPlayingToggle } from '../ui/NowPlayingToggle';
-import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle, Music2, Disc3, HardDrive, ListMusic, ChevronDown } from 'lucide-react';
+import { TrackMenu } from './TrackMenu';
+import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle, Music2, Disc3, HardDrive, ListMusic, ChevronDown, MoreHorizontal } from 'lucide-react';
 import FuseButton from '../ui/FuseButton';
 import HoldButton from '../ui/HoldButton';
 import { useDownloads } from './DownloadsContext';
@@ -82,6 +83,7 @@ export const DownloadsView = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [sortBy, setSortBy] = useState<'default' | 'recent' | 'alpha' | 'size_desc' | 'size_asc'>('default');
   const [showSort, setShowSort] = useState(false);
+  const [rowMenu, setRowMenu] = useState<{ track: Track; anchor: { x: number; y: number; x2?: number } } | null>(null);
   const [sortPos, setSortPos] = useState({ top: 0, left: 0, right: 0 });
   const [searchPos, setSearchPos] = useState({ top: 0, left: 0, width: 0 });
   useEffect(() => { const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowSort(false); }; if (showSort) { document.addEventListener('keydown', handleKeyDown); } return () => document.removeEventListener('keydown', handleKeyDown); }, [showSort]);
@@ -237,6 +239,20 @@ export const DownloadsView = ({
     return acc;
   }, {} as Record<string, { id: string, title: string, coverUrl: string, tracks: Track[] }>);
 
+  // the album a song belongs to, for the song menu (queue, playlists, go to album / artist)
+  const albumFor = (t: Track): Album =>
+    albums?.find((a) => String(a.id) === String(t.albumId)) ??
+    ({ id: t.albumId ?? 0, title: t.albumTitle || '', artist: t.artist, coverUrl: t.albumCover || '', year: '', genre: '', trackCount: 0 } as Album);
+
+  const rowMenuItems = (t: Track) => [
+    { label: 'Reproducir', icon: <Play className="w-4 h-4" />, onSelect: () => handlePlay(t) },
+    type === 'favorites'
+      ? { label: 'Quitar de favoritos', icon: <HeartOff className="w-4 h-4" />, onSelect: () => toggleFavorite(t), danger: true }
+      : { label: isFavorite(t.id) ? 'Quitar de favoritos' : 'Agregar a favoritos', icon: <Heart className="w-4 h-4" />, onSelect: () => toggleFavorite(t) },
+    ...(type === 'downloads' ? [{ label: 'Eliminar descarga', icon: <Trash2 className="w-4 h-4" />, onSelect: () => removeDownload(t.id), danger: true }] : []),
+    ...(type === 'licenses' ? [{ label: 'Quitar licencia', icon: <StarOff className="w-4 h-4" />, onSelect: () => setTrackToRemove(t), danger: true }] : []),
+  ];
+
   const renderTrack = (track: Track, index: number) => {
     const isHovered = hoveredTrack === track.id;
     const isCurrent = playback.nowPlayingTrackId === track.id;
@@ -247,7 +263,8 @@ export const DownloadsView = ({
         onMouseEnter={() => setHoveredTrack(track.id)}
         onMouseLeave={() => setHoveredTrack(null)}
         onClick={() => handlePlay(track)}
-        className={`grid grid-cols-[28px_minmax(0,1fr)_44px] ${type === 'downloads' ? 'lg:grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'lg:grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'lg:grid-cols-[50px_1fr_130px_80px_100px]'} gap-2 lg:gap-4 px-1 lg:px-4 py-2.5 items-center rounded-2xl cursor-pointer group transition-colors duration-300 ${isCurrent ? 'bg-white/[0.09] backdrop-blur-xl' : 'hover:bg-white/[0.06]'}`}
+        onContextMenu={(e) => { e.preventDefault(); setRowMenu({ track, anchor: { x: e.clientX, y: e.clientY } }); }}
+        className={`grid grid-cols-[28px_minmax(0,1fr)_84px] ${type === 'downloads' ? 'lg:grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'lg:grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'lg:grid-cols-[50px_1fr_130px_80px_100px]'} gap-2 lg:gap-4 px-1 lg:px-4 py-2.5 items-center rounded-2xl cursor-pointer group transition-colors duration-300 ${isCurrent ? 'bg-white/[0.09] backdrop-blur-xl' : 'hover:bg-white/[0.06]'}`}
       >
         <div className="relative h-9 flex items-center justify-center text-white/50 font-medium">
           {isCurrent ? (
@@ -298,7 +315,19 @@ export const DownloadsView = ({
           {formatDuration(track.duration)}
         </div>
 
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-end lg:justify-center gap-0.5">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const r = e.currentTarget.getBoundingClientRect();
+              setRowMenu({ track, anchor: { x: r.left, y: r.bottom + 6, x2: r.right } });
+            }}
+            className="w-9 h-9 lg:w-8 lg:h-8 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+            title="Más opciones"
+            aria-label={`Más opciones para ${track.title}`}
+          >
+            <MoreHorizontal className="w-4 h-4" aria-hidden="true" />
+          </button>
           {type === 'downloads' ? (
             <FuseButton fuse="outline" commitOn="fuseEnd" radius={16} 
               
@@ -626,74 +655,85 @@ export const DownloadsView = ({
              No se encontraron resultados para <span className="text-white/85 font-medium">"{searchQuery}"</span>
            </div>
         ) : selectedAlbumId && groupedTracks[selectedAlbumId] ? (
-          <div className="px-1 md:px-8 max-w-[1200px] mx-auto w-full pb-12 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="mb-4 md:mb-6">
-              <BackButton onClick={() => setSelectedAlbumId(null)} label="Volver a la lista de álbumes" text="Álbumes" hoverWidth="hover:w-[112px] md:hover:w-[120px]" />
-            </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6 mb-6 md:mb-8">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 overflow-hidden shadow-[0_24px_60px_-14px_rgba(0,0,0,0.7)]">
-                {groupedTracks[selectedAlbumId].coverUrl ? (
-                  <img src={groupedTracks[selectedAlbumId].coverUrl} alt={groupedTracks[selectedAlbumId].title} className="w-full h-full object-cover" />
-                ) : (
-                  <Icon className="w-12 h-12 text-white/20" />
-                )}
-              </div>
-              <div className="flex flex-col gap-1.5 md:gap-2 min-w-0">
-                <span className="text-white/70 text-xs font-bold tracking-widest uppercase">Álbum</span>
-                <h2 className="text-2xl md:text-4xl font-bold text-white tracking-tight break-words">{groupedTracks[selectedAlbumId].title}</h2>
-                <p className="text-white/50 text-sm md:text-base">{groupedTracks[selectedAlbumId].tracks[0]?.artist || 'Artista'} • {groupedTracks[selectedAlbumId].tracks.length} {groupedTracks[selectedAlbumId].tracks.length === 1 ? 'canción' : 'canciones'}</p>
-                <div className="flex flex-wrap items-center gap-3 mt-2">
-                  <button 
-                    onClick={() => playback.playAlbum(groupedTracks[selectedAlbumId] as any)} 
-                    title={`Reproducir álbum ${groupedTracks[selectedAlbumId].title}`}
-                    aria-label={`Reproducir álbum ${groupedTracks[selectedAlbumId].title}`}
-                    className="h-11 md:h-auto px-6 md:py-2.5 rounded-full bg-white hover:bg-white/90 text-black font-bold flex items-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 cursor-pointer shadow-[0_12px_30px_-8px_rgba(255,255,255,0.35)]"
-                  >
-                    <Play className="w-4 h-4" fill="currentColor" />
-                    Reproducir
-                  </button>
-                  <FuseButton fuse="outline" commitOn="fuseEnd" radius={20} 
-              
-                      label="Eliminar"
-                      undoLabel="Deshacer"
-                      doneLabel="Eliminado"
-                      background="transparent"
-                      color="#ffffff"
-                      fuseColor="#ef4444"
-                      undoWindow={2000}
-                      className="!h-10 rounded-full border border-white/20 font-medium text-sm transition-all duration-300 hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
-                      onCommit={() => {
-                        const id = groupedTracks[selectedAlbumId].id;
-                        if (type === 'downloads') {
-                          removeAlbumFromDownloads(id);
-                        } else if (type === 'licenses') {
-                          removeAlbumFromLicenses(id);
-                        } else if (type === 'playlists') {
-                          window.dispatchEvent(new CustomEvent('show-toast', { detail: `Lista de reproducción '${groupedTracks[selectedAlbumId].title}' eliminada` }));
-                        } else {
-                          removeAlbumFromFavorites(id);
-                        }
-                      }}
-                    />
+          (() => {
+            const g = groupedTracks[selectedAlbumId];
+            const favAlbum = g.tracks.length ? g.tracks.every((t: any) => isFavorite(t.id)) : false;
+            const removeAll = () => {
+              if (type === 'downloads') removeAlbumFromDownloads(g.id);
+              else if (type === 'licenses') removeAlbumFromLicenses(g.id);
+              else if (type === 'playlists') window.dispatchEvent(new CustomEvent('show-toast', { detail: `Lista de reproducción '${g.title}' eliminada` }));
+              else removeAlbumFromFavorites(g.id);
+            };
+            return (
+              <div className="px-1 md:px-8 max-w-[1200px] mx-auto w-full pb-12 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="mb-5 md:mb-7">
+                  <BackButton onClick={() => setSelectedAlbumId(null)} label="Volver a la lista de álbumes" text="Álbumes" hoverWidth="hover:w-[112px] md:hover:w-[120px]" />
+                </div>
+                {/* like the album page: cover, title and actions on the left, the list on the right (without the vinyl) */}
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(250px,340px)_minmax(0,1fr)] gap-8 lg:gap-14 items-start">
+                  <div className="lg:sticky lg:top-24 flex flex-col items-center lg:items-start gap-5 min-w-0">
+                    <div className="relative w-[min(68vw,300px)] lg:w-full aspect-square rounded-3xl overflow-hidden bg-white/5 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.7)]">
+                      {g.coverUrl ? <img src={g.coverUrl} alt={g.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Icon className="w-16 h-16 text-white/20" /></div>}
+                    </div>
+                    <div className="flex flex-col gap-1.5 text-center lg:text-left min-w-0 w-full">
+                      <span className="text-white/60 text-xs font-semibold tracking-[0.25em] uppercase">Álbum</span>
+                      <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight break-words">{g.title}</h2>
+                      <p className="text-white/60 text-sm md:text-base">{g.tracks[0]?.artist || 'Artista'} • {g.tracks.length} {g.tracks.length === 1 ? 'canción' : 'canciones'}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-white/[0.12] hover:bg-white/[0.16] backdrop-blur-2xl w-max transition-colors">
+                      <button
+                        onClick={() => playback.playAlbum(g as any)}
+                        title={`Reproducir álbum ${g.title}`}
+                        aria-label={`Reproducir álbum ${g.title}`}
+                        className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 backdrop-blur-xl text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+                      >
+                        <Play className="w-5 h-5 ml-0.5" fill="currentColor" aria-hidden="true" />
+                      </button>
+                      <button
+                        onClick={() => toggleFavoriteAlbum && toggleFavoriteAlbum(g as any)}
+                        title={favAlbum ? 'Quitar álbum de favoritos' : 'Guardar álbum en favoritos'}
+                        aria-label={favAlbum ? 'Quitar álbum de favoritos' : 'Guardar álbum en favoritos'}
+                        aria-pressed={favAlbum}
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+                      >
+                        <span key={String(favAlbum)} className="pop-in inline-flex">
+                          <Heart className={`w-5 h-5 ${favAlbum ? 'text-[#a855f7]' : ''}`} fill={favAlbum ? 'currentColor' : 'none'} aria-hidden="true" />
+                        </span>
+                      </button>
+                      <FuseButton fuse="outline" commitOn="fuseEnd" radius={20}
+                        label=""
+                        undoLabel=""
+                        doneLabel=""
+                        background="transparent"
+                        color="rgba(255,255,255,0.8)"
+                        fuseColor="#ef4444"
+                        undoWindow={2000}
+                        className="!w-12 !h-12 !min-w-[48px] !px-0 rounded-full border border-transparent transition-colors duration-300 hover:!bg-red-500/10 hover:!text-red-300 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-300 group/fuse"
+                        icon={<Trash2 className="w-5 h-5" />}
+                        onCommit={removeAll}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className={`hidden lg:grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase mb-2`}>
+                      <div className="text-center">#</div>
+                      <div>TÍTULO</div>
+                      <div className="text-center">AÑADIDO</div>
+                      {type === 'downloads' && <div className="text-center">TAMAÑO</div>}
+                      {type === 'licenses' && <div className="text-center">EXPIRACIÓN</div>}
+                      {type === 'licenses' && <div className="text-center">HASTA</div>}
+                      <div className="text-center">TIEMPO</div>
+                      <div className="text-center">{type === 'downloads' ? 'ELIMINAR' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      {g.tracks.map((track: any, index: number) => renderTrack(track, index))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className={`hidden lg:grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase mb-2`}>
-              <div className="text-center">#</div>
-              <div>TÍTULO</div>
-              <div className="text-center">AÑADIDO</div>
-              {type === 'downloads' && <div className="text-center">TAMAÑO</div>}
-              {type === 'licenses' && <div className="text-center">EXPIRACIÓN</div>}
-              {type === 'licenses' && <div className="text-center">HASTA</div>}
-              <div className="text-center">TIEMPO</div>
-              <div className="text-center">{type === 'downloads' ? 'ELIMINAR' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
-            </div>
-
-            <div className="flex flex-col gap-0.5">
-              {groupedTracks[selectedAlbumId].tracks.map((track, index) => renderTrack(track, index))}
-            </div>
-          </div>
+            );
+          })()
         ) : viewMode === 'canciones' ? (
           <div className="flex flex-col gap-8 md:gap-10">
             {sortedGroups.map((group: any) => (
@@ -877,6 +917,14 @@ export const DownloadsView = ({
       
       
       
+    <TrackMenu
+      track={rowMenu?.track ?? null}
+      album={rowMenu ? albumFor(rowMenu.track) : ({ id: 0, title: '', artist: '', coverUrl: '', year: '', genre: '', trackCount: 0 } as Album)}
+      anchor={rowMenu?.anchor ?? null}
+      onClose={() => setRowMenu(null)}
+      leadingItems={rowMenu ? rowMenuItems(rowMenu.track) : []}
+    />
+
     {trackToRemove && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl" onClick={() => setTrackToRemove(null)}>
           <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)' }} onClick={(e) => e.stopPropagation()}>

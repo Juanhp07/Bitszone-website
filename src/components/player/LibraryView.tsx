@@ -25,7 +25,7 @@ const DropdownItem = ({ id, title, icon: Icon, hoverBg, activeTab, onSelect }: a
 const StaggeredRollingText = ({ text }: { text: string }) => {
   let i = 0;
   return (
-    <div className="flex flex-wrap items-center gap-x-[0.25em] gap-y-1">
+    <div key={text} className="flex flex-wrap items-center gap-x-[0.25em] gap-y-1">
       {text.split(' ').map((word, w) => (
         <div key={w} className="flex items-center">
           {word.split('').map((char) => {
@@ -74,19 +74,19 @@ const LibraryDropdown = ({ activeTab, setActiveTab }: { activeTab: string, setAc
   return (
     <div className="relative inline-flex items-center" ref={dropdownRef}>
       <style>{`
-        @keyframes rollTextUpStagger {
-          0%, 60% { transform: translateY(0); }
-          80%, 100% { transform: translateY(-50%); }
+        @keyframes charRollIn {
+          from { transform: translateY(50%); }
+          to { transform: translateY(0); }
         }
         .animate-char-roll {
-          animation: rollTextUpStagger 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+          animation: charRollIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
       `}</style>
       
       <button 
         onClick={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
-          setAnchor({ x: r.left, y: r.bottom + 8, x2: r.right });
+          setAnchor({ x: Math.max(r.left, Math.min(e.clientX - 28, r.right - 24)), y: r.bottom + 8, x2: r.right });
           setIsOpen(!isOpen);
         }}
         title={isOpen ? "Cerrar menú de biblioteca" : "Cambiar sección de biblioteca"}

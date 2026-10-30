@@ -45,6 +45,8 @@ export const installPressFx = () => {
     if (!el || skip(el)) return;
     release();
     const dip = dipFor(el);
+    // keep the pointer on this element while it shrinks: otherwise releasing near its edge lands outside it and the click is lost
+    try { el.setPointerCapture(e.pointerId); } catch { /* not capturable: the dip alone is harmless */ }
     held = { el, dip, anim: el.animate([{ scale: '1' }, { scale: String(dip) }], { duration: 90, easing: 'ease-out', fill: 'forwards' }) };
   }, true);
 
