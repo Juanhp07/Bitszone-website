@@ -54,7 +54,9 @@ export const AlbumView = ({
   isPlaying,
   isLoading = false,
   togglePlay,
-  onOpenPlayer
+  onOpenPlayer,
+  followPlaying = false,
+  onFollowPlaying
 }: {
   album: Album | null,
   loading: boolean,
@@ -65,7 +67,10 @@ export const AlbumView = ({
   isLoading?: boolean,
   togglePlay: () => void,
   /** open the full-screen player (click on the song that is playing) */
-  onOpenPlayer?: () => void
+  onOpenPlayer?: () => void,
+  /** the header of a song page follows the playing song (set once a song is picked from the page) */
+  followPlaying?: boolean,
+  onFollowPlaying?: () => void
 }) => {
   const { playlists, playlistAsAlbum, createPlaylist, removeFromPlaylist, renamePlaylist, deletePlaylist } = usePlaylists();
   const playback = usePlayback();
@@ -113,10 +118,12 @@ export const AlbumView = ({
   const [trackMenuPos, setTrackMenuPos] = useState<{ top: number; left: number; right?: number; isUpward: boolean }>({ top: 0, left: 0, isUpward: false });
   const { isLicensed, downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isSongRadio = Boolean((album as any)?.isSongRadio);
-  // This page is always about the song you opened it from (the radio's first track), whatever is playing now:
-  // skipping to another song of the list, or coming back later, must not change the cover, title or colours.
+  // A song page is about the song you opened it from (the radio's first track). Once you pick a song from this page its
+  // header follows what plays; opening the page again from the catalog starts on its own song, whatever is playing.
   const radioIsPlaying = isSongRadio && playback.queueList[playback.queueIndex]?.album?.id === album?.id;
-  const activeTrack = isSongRadio ? album?.tracks?.[0] : null;
+  const activeTrack = isSongRadio
+    ? ((followPlaying && radioIsPlaying && album?.tracks?.find(t => t.id === nowPlayingTrackId)) || album?.tracks?.[0])
+    : null;
   const currentCover = (isSongRadio && activeTrack?.albumCover) ? activeTrack.albumCover : (album?.coverUrl || '');
   const dominantColor = useAverageColor(currentCover);
   const currentTitle = (isSongRadio && activeTrack) ? activeTrack.title : (album?.title || '');
@@ -213,7 +220,9 @@ useEffect(() => {
   const isEmpty = !album.tracks?.length;
   const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
   // a radio only counts as active when it's the one playing, not when it merely contains the playing song
-  const isAlbumActive = !!nowPlayingTrackId && !!album.tracks?.some(t => t.id === nowPlayingTrackId) && (!isSongRadio || radioIsPlaying);
+  const isAlbumActive = !!nowPlayingTrackId && (isSongRadio
+    ? activeTrack?.id === nowPlayingTrackId
+    : !!album.tracks?.some(t => t.id === nowPlayingTrackId));
   const isAlbumPlaying = isPlaying && isAlbumActive;
 
   return (
@@ -310,10 +319,11 @@ useEffect(() => {
                 <button
                   className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl border border-white/30 hover:border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer text-white"
                   onClick={() => {
-                    if (nowPlayingTrackId && album.tracks?.find(t => t.id === nowPlayingTrackId)) {
+                    if (isAlbumActive) {
                       togglePlay();
                     } else if (album.tracks && album.tracks.length > 0) {
-                      playback.playAlbum(album);
+                      playback.playAlbum(album, isSongRadio ? activeTrack ?? undefined : undefined);
+                      onFollowPlaying?.();
                     }
                   }}
                   title={isAlbumPlaying ? "Pausar" : (album as any)?.isSongRadio ? "Reproducir canción y similares" : "Reproducir álbum"}
@@ -565,7 +575,11 @@ useEffect(() => {
                   key={track.id}
                   onMouseEnter={() => setHoveredTrack(track.id)}
                   onMouseLeave={() => setHoveredTrack(null)}
-                  onClick={() => (isPlayingTrack && onOpenPlayer ? onOpenPlayer() : playback.playAlbum(album, track))}
+                  onClick={() => {
+                    if (isPlayingTrack && onOpenPlayer) { onOpenPlayer(); return; }
+                    playback.playAlbum(album, track);
+                    onFollowPlaying?.();
+                  }}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     setTrackMenuPos({ top: e.clientY, left: e.clientX, isUpward: false });

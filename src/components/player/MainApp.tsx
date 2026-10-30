@@ -209,6 +209,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
+  // true once a song was picked from the open song page: its header then follows the playing song
+  const [radioFollow, setRadioFollow] = useState(false);
 
   const [nowPlayingTrack, setNowPlayingTrack] = useState<Track | null>(null);
   const [nowPlayingAlbum, setNowPlayingAlbum] = useState<Album | null>(null);
@@ -608,6 +610,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   }, [currentView]);
 
   const handleSelectAlbum = async (album: Album) => {
+    setRadioFollow(false);
     setSelectedAlbum(album);
     setCurrentView('album');
     // Playlists and song radios are built locally; AlbumView reads their live contents
@@ -618,6 +621,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const handleSelectSongRadio = (track: Track, originAlbum: Album) => {
     const radioAlbum = buildSongRadio(track, originAlbum, albums);
+    setRadioFollow(false);
     setSelectedAlbum(radioAlbum);
     setSelectedAlbumFull(radioAlbum);
     setCurrentView('album');
@@ -897,8 +901,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     if (!currentViewingAlbum) return '';
     const isSongRadio = isSongRadioAlbum(currentViewingAlbum);
     if (isSongRadio) {
-      // same rule as AlbumView: the page's colours come from the song it was opened from, not the one playing
-      return currentViewingAlbum.tracks?.[0]?.albumCover || currentViewingAlbum.coverUrl || '';
+      // same rule as AlbumView: the song it was opened from, unless a song was picked from this page (then the playing one)
+      const radioIsPlaying = queueList[queueIndex]?.album?.id === currentViewingAlbum.id;
+      const headerTrack = (radioFollow && radioIsPlaying && currentViewingAlbum.tracks?.find(t => t.id === nowPlayingTrack?.id))
+        || currentViewingAlbum.tracks?.[0];
+      return headerTrack?.albumCover || currentViewingAlbum.coverUrl || '';
     }
     return currentViewingAlbum.coverUrl || '';
   })();
@@ -1201,6 +1208,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       isPlaying={isPlaying}
                       isLoading={isAudioLoading}
                       togglePlay={togglePlay}
+                      followPlaying={radioFollow}
+                      onFollowPlaying={() => setRadioFollow(true)}
                       onOpenPlayer={() => { setImmersiveTab("pistas"); setIsPlayerExpanded(true); }}
                     />
                   )}
