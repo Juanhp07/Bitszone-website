@@ -10,6 +10,7 @@ import { ListScrollbar } from '../ui/ListScrollbar';
 import { PopoverMenu, type PopoverMenuItem } from '../ui/PopoverMenu';
 import { TrackMenu } from './TrackMenu';
 import { EqBars } from '../ui/EqBars';
+import { MarqueeTitle } from '../ui/MarqueeTitle';
 import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
 import { usePlaylists, isPlaylistAlbum, withAlbumInfo, PLAYLIST_ID_PREFIX } from './PlaylistsContext';
@@ -438,13 +439,14 @@ useEffect(() => {
                   className="mt-2 w-full text-center bg-white/5 border border-white/15 rounded-xl px-3 py-1 font-inter font-bold text-white text-4xl md:text-5xl xl:text-6xl leading-[1.1] tracking-tight outline-none focus:border-purple-400/60"
                 />
               ) : (
-                <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="flex items-center justify-center gap-2 mt-2 w-full min-w-0">
                   <h1
                     onDoubleClick={() => isPlaylist && setIsRenaming(true)}
-                    title={isPlaylist ? 'Doble clic para cambiar el nombre' : undefined}
-                    className="font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight [overflow-wrap:anywhere] pb-1"
+                    title={isPlaylist ? 'Doble clic para cambiar el nombre' : currentTitle}
+                    className="min-w-0 flex-1 font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight pb-1"
                   >
-                    {currentTitle}
+                    {/* one line, like the player: a long title scrolls instead of wrapping and breaking the layout */}
+                    <MarqueeTitle text={currentTitle} active center />
                   </h1>
                   {isAdmin && isEditMode && album && !isPlaylist && (
                     <AdminPencil

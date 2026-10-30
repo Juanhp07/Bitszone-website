@@ -4,6 +4,7 @@ import type { Album, Track } from "./types";
 import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical, Sparkles, Sliders } from 'lucide-react';
 import { TrackMenu } from './TrackMenu';
 import { EqBars } from '../ui/EqBars';
+import { MarqueeTitle } from '../ui/MarqueeTitle';
 import { LiquidTabs } from '../ui/LiquidTabs';
 import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
@@ -59,46 +60,6 @@ const QueueReorderItem = ({ value, constraintsRef, children }: { value: unknown;
     >
       {children(controls)}
     </Reorder.Item>
-  );
-};
-
-const MarqueeTitle = ({ text, active = false }: { text: string; active?: boolean }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const textRef = React.useRef<HTMLSpanElement>(null);
-  const [isOverflowing, setIsOverflowing] = React.useState(false);
-  const [overflowAmount, setOverflowAmount] = React.useState(0);
-
-  React.useEffect(() => {
-    const checkOverflow = () => {
-      if (containerRef.current && textRef.current) {
-        const cWidth = containerRef.current.clientWidth;
-        const tWidth = textRef.current.scrollWidth;
-        if (tWidth > cWidth) {
-          setIsOverflowing(true);
-          setOverflowAmount(tWidth - cWidth + 30); // 30px extra padding so it scrolls past the last letter
-        } else {
-          setIsOverflowing(false);
-          setOverflowAmount(0);
-        }
-      }
-    };
-    checkOverflow();
-    setTimeout(checkOverflow, 100);
-    window.addEventListener('resize', checkOverflow);
-    return () => window.removeEventListener('resize', checkOverflow);
-  }, [text]);
-
-  return (
-    <div ref={containerRef} className="overflow-hidden flex-1 relative px-4 -mx-4 py-4 -my-4" style={{ maskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)' }}>
-      <div
-        className={`whitespace-nowrap ${isOverflowing ? (active ? 'animate-marquee-pingpong' : 'marquee-on-hover') : ''}`}
-        style={isOverflowing ? { '--overflow-amount': `-${overflowAmount}px` } as React.CSSProperties : {}}
-      >
-        <span ref={textRef} className="inline-block truncate-none">
-          {text}
-        </span>
-      </div>
-    </div>
   );
 };
 
