@@ -441,6 +441,15 @@ html.font-mono-ui p,
 html.font-mono-ui span {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
 }
+/* a monospace letter is ~20% wider than Inter's: pull the big titles in so they still fit on one line */
+html.font-mono-ui h1,
+html.font-mono-ui h2 {
+  letter-spacing: -0.07em !important;
+}
+html.font-mono-ui h1 span,
+html.font-mono-ui h2 span {
+  letter-spacing: inherit !important;
+}
 
 /* 4. Subrayar enlaces y elementos interactivos */
 html.underline-links a,

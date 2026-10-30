@@ -988,7 +988,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   // On phones the sidebar is an overlay drawer, so the glass frame never reserves room for it.
   // On desktop, the sidebar is either expanded (256px) or compact (72px).
   const sidebarInFlow = !isCompact;
-  const sidebarW = isCompact ? 0 : (isSidebarOpen ? 256 : 72);
+  // rem, not px: the text-size setting scales the root font size, and the sidebar's content scales with it
+  const sidebarW = isCompact ? '0rem' : (isSidebarOpen ? '16rem' : '4.5rem');
   const cornerR = sidebarInFlow ? 24 : 0.01;
   const headerH = 56;
 
@@ -1080,7 +1081,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         {!isCompact && (
           <div
             className="absolute top-0 bottom-0 left-0 bg-black/30 backdrop-blur-xl border-r border-white/10 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
-            style={{ width: `${sidebarW}px` }}
+            style={{ width: sidebarW }}
           />
         )}
       </div>
@@ -1113,7 +1114,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         <div
           className={isCompact
             ? `fixed inset-y-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/[0.97] border-white/10 will-change-transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] right-0 border-l shadow-[-12px_0_32px_rgba(0,0,0,0.5)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`
-            : `h-full shrink-0 relative z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-[72px]'}`}
+            : `h-full shrink-0 relative z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-[4.5rem]'}`}
           aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
         >
           <motion.div
@@ -1379,7 +1380,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                 background: 'rgba(0, 0, 0, 0.25)',
                 border: 'none',
                 boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.55)',
-                left: isCompact ? '16px' : isSidebarOpen ? '280px' : '96px',
+                left: isCompact ? '16px' : isSidebarOpen ? '17.5rem' : '6rem',
               }}
               className="absolute bottom-[105px] w-[20.5rem] sm:w-[22rem] max-w-[calc(100vw-2rem)] rounded-3xl p-6 text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
             >
