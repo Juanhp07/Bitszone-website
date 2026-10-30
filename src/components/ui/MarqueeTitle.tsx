@@ -1,8 +1,11 @@
 import React from 'react';
+import type { ReactNode } from 'react';
 
 /** One-line title: if it does not fit it scrolls back and forth (always when `active`, otherwise while the parent `.group` is hovered). `center` centres it when it does fit. */
-export const MarqueeTitle = ({ text, active = false, center = false, slideOnHover = false }: {
-  text: string; active?: boolean; center?: boolean;
+export const MarqueeTitle = ({ text = '', children, measureKey, active = false, center = false, slideOnHover = false }: {
+  text?: string; active?: boolean; center?: boolean;
+  /** custom content instead of `text` (then pass `measureKey` so the width is re-measured when it changes) */
+  children?: ReactNode; measureKey?: string | number;
   /** hover slides the text to its end, and letting go eases it back (instead of looping and snapping back) */
   slideOnHover?: boolean;
 }) => {
@@ -29,7 +32,7 @@ export const MarqueeTitle = ({ text, active = false, center = false, slideOnHove
     setTimeout(checkOverflow, 100);
     window.addEventListener('resize', checkOverflow);
     return () => window.removeEventListener('resize', checkOverflow);
-  }, [text]);
+  }, [text, measureKey]);
 
   return (
     <div ref={containerRef} className="overflow-hidden flex-1 relative px-4 -mx-4 py-4 -my-4" style={{ maskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)' }}>
@@ -38,7 +41,7 @@ export const MarqueeTitle = ({ text, active = false, center = false, slideOnHove
         style={isOverflowing ? { '--overflow-amount': `-${overflowAmount}px`, '--slide-duration': `${Math.max(1.5, overflowAmount / 160)}s` } as React.CSSProperties : {}}
       >
         <span ref={textRef} className="inline-block truncate-none">
-          {text}
+          {children ?? text}
         </span>
       </div>
     </div>

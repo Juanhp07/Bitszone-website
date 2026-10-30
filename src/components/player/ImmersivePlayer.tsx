@@ -85,7 +85,7 @@ const AnimatedSongTitle = ({
   return (
     <div
       key={trackId}
-      className={`relative inline-flex items-center justify-center max-w-full overflow-visible group/title select-none ${className}`}
+      className={`relative flex w-full items-center justify-center max-w-full min-w-0 overflow-visible group group/title select-none ${className}`}
     >
       <style>{`
         @keyframes titleCharRollUpOnce {
@@ -146,7 +146,8 @@ const AnimatedSongTitle = ({
       `}</style>
 
       {/* Base Rolling Text with Letter-by-Letter recurring shimmer */}
-      <div className="flex flex-wrap items-center justify-center gap-x-[0.26em] gap-y-1 relative z-10 leading-tight">
+      <MarqueeTitle center slideOnHover measureKey={title}>
+      <div className="inline-flex flex-nowrap whitespace-nowrap items-center justify-center gap-x-[0.26em] relative z-10 leading-tight">
         {words.map((word, wIdx) => (
           <div key={wIdx} className="inline-flex items-center">
             {word.split('').map((char) => {
@@ -174,6 +175,7 @@ const AnimatedSongTitle = ({
           </div>
         ))}
       </div>
+      </MarqueeTitle>
     </div>
   );
 };
@@ -972,7 +974,7 @@ export const ImmersivePlayer = ({
           ref={sheetRef}
           data-sheet
           style={isMobile ? { transform: sheetTransform(sheetOpen) } : undefined}
-          className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} group/list max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:h-[88dvh] max-md:rounded-t-[28px] max-md:border-t max-md:border-white/10 max-md:bg-black/45 max-md:backdrop-blur-3xl max-md:backdrop-saturate-150 max-md:shadow-[0_-20px_60px_rgba(0,0,0,0.5)] max-md:transition-transform max-md:duration-500 w-full md:w-[48%] md:h-full shrink-0 relative overflow-hidden flex-col md:pt-[19vh] pb-0 md:pb-[8vh] md:transition-transform md:ease-[cubic-bezier(0.32,0.72,0,1)] ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'md:translate-y-0 md:duration-700 md:delay-75' : 'md:translate-y-10 md:duration-300'}`}
+          className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} group/list max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:h-[88dvh] max-md:rounded-t-[28px] max-md:border-t max-md:border-white/10 max-md:bg-black/45 max-md:backdrop-blur-3xl max-md:backdrop-saturate-150 max-md:shadow-[0_-20px_60px_rgba(0,0,0,0.5)] max-md:transition-transform max-md:duration-500 w-full md:w-[48%] md:h-full shrink-0 relative overflow-hidden flex-col md:pt-[19vh] pb-0 md:pb-[3vh] md:transition-transform md:ease-[cubic-bezier(0.32,0.72,0,1)] ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'md:translate-y-0 md:duration-700 md:delay-75' : 'md:translate-y-10 md:duration-300'}`}
         >
            {/* Phones: grab handle — tap or drag to open/close the sheet */}
            <div
@@ -986,7 +988,7 @@ export const ImmersivePlayer = ({
            >
              <span className="w-11 h-1.5 rounded-full bg-white/40" />
            </div>
-           <ListScrollbar containerRef={rightScrollRef} onBounce={rightBounce} springY={rightSpringY} className="hidden md:flex right-8 xl:right-12 top-[19vh] bottom-[8vh]" />
+           <ListScrollbar containerRef={rightScrollRef} onBounce={rightBounce} springY={rightSpringY} className="hidden md:flex right-8 xl:right-12 top-[19vh] bottom-[3vh]" />
            <TrackMenu
              track={rowMenu?.track ?? null}
              album={rowMenu?.album ?? album}
@@ -1017,15 +1019,15 @@ export const ImmersivePlayer = ({
              {...rightScrollProps}
              onWheel={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) rightScrollProps.onWheel(e); }}
              onTouchMove={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) rightScrollProps.onTouchMove(e); }}
-             className="relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start px-5 md:pl-6 md:pr-12 xl:pl-4 xl:pr-[8rem] pb-20 pt-1 scrollbar-hide"
+             className="relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start px-5 md:pl-6 md:pr-12 xl:pl-4 xl:pr-[8rem] pb-12 pt-1 scrollbar-hide"
              style={{
                scrollbarWidth: 'none',
                maskImage: currentTab === 'letra'
                  ? 'linear-gradient(to bottom, transparent 0%, black 14%, black 78%, transparent 100%)'
-                 : 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)',
+                 : 'linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 24px), transparent 100%)',
                WebkitMaskImage: currentTab === 'letra'
                  ? 'linear-gradient(to bottom, transparent 0%, black 14%, black 78%, transparent 100%)'
-                 : 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)'
+                 : 'linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 24px), transparent 100%)'
              }}
            >
              <motion.div style={{ y: rightSpringY }} className="w-full">
