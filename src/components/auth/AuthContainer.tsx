@@ -1,6 +1,6 @@
 import { BackButton } from '../ui/BackButton';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform } from 'framer-motion';
 import { Mail, ArrowLeft, Check, Link2, User, UserCog, KeyRound, Eye, EyeOff } from 'lucide-react';
 import GradientASCII from '../ui/GradientASCII';
 import { LiquidButton } from '../ui/LiquidButton';
@@ -66,7 +66,7 @@ const stepIndex: Record<Method, Record<Step, number>> = {
 };
 
 // the background reveals in this many seconds; the card and the corner buttons come in right as it reaches them
-const BG_INTRO_SECONDS = 1.2;
+const BG_INTRO_SECONDS = 1.4;
 
 export const AuthContainer = () => {
   const [step, setStep] = useState<Step>('choose');
@@ -82,6 +82,22 @@ export const AuthContainer = () => {
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
   const handled = useRef(false);
   const digitRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const reduceMotion = useReducedMotion();
+  const intro = useMotionValue(reduceMotion ? 1 : 0);
+  useEffect(() => {
+    if (reduceMotion) { intro.set(1); return; }
+    const c = animate(intro, 1, { duration: BG_INTRO_SECONDS, ease: 'linear' });
+    return () => c.stop();
+  }, [reduceMotion, intro]);
+  // the card is uncovered from its bottom edge upwards, as the wave passes over it
+  const cardReveal = useTransform(intro, [0.18, 0.72], [0, 1], { clamp: true });
+  const cardMask = useTransform(cardReveal, (v) => (v >= 1 ? 'none' : `linear-gradient(to top, #000 ${v * 150 - 50}%, transparent ${v * 150}%)`));
+  const cardY = useTransform(cardReveal, [0, 1], [22, 0]);
+  const cornerOpacity = useTransform(intro, [0.55, 0.9], [0, 1], { clamp: true });
+  // glow that lights the dark areas along the wavefront, then fades once the wave has crossed the page
+  const glowY = useTransform(intro, [0, 1], ['70vh', '-55vh']);
+  const glowOpacity = useTransform(intro, [0, 0.12, 0.7, 1], [0, 1, 1, 0]);
 
   const MemoizedBackgrounds = useMemo(() => (
     <div className="absolute inset-0 z-0">
@@ -259,11 +275,20 @@ export const AuthContainer = () => {
 
       {MemoizedBackgrounds}
 
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-[-20vw] top-0 z-[1] h-[70vh]"
+        style={{
+          y: glowY,
+          opacity: glowOpacity,
+          background: 'radial-gradient(ellipse 60% 46% at 50% 50%, rgba(156,85,247,0.34), rgba(138,58,237,0.12) 55%, transparent 75%)',
+          filter: 'blur(18px)',
+        }}
+      />
+
       {(step === 'choose' || step === 'password') && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: BG_INTRO_SECONDS * 0.85 }}
+          style={{ opacity: cornerOpacity }}
           className="absolute top-5 right-5 md:top-8 md:right-8 z-20"
         >
           <BackButton
@@ -282,9 +307,7 @@ export const AuthContainer = () => {
 
       {(step === 'choose' || step === 'password') && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: BG_INTRO_SECONDS * 0.85 }}
+          style={{ opacity: cornerOpacity }}
           className="absolute top-5 left-5 md:top-8 md:left-8 z-20"
         >
           <BackButton
@@ -298,11 +321,8 @@ export const AuthContainer = () => {
       )}
 
       <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.55, delay: BG_INTRO_SECONDS * 0.85, ease: [0.16, 1, 0.3, 1] }}
         className="relative z-10 w-full max-w-[960px] md:h-[min(600px,calc(100vh-2rem))] flex rounded-3xl overflow-hidden shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
-        style={cardStyle}
+        style={{ ...cardStyle, y: cardY, WebkitMaskImage: cardMask, maskImage: cardMask }}
       >
         {/* Left: the flow */}
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
