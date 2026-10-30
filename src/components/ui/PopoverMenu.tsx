@@ -86,6 +86,9 @@ export const PopoverMenu = ({
               // tint where that card gets its darkness from the dimmed page behind it
               ...cardStyle,
               background: 'rgba(10, 8, 16, 0.5)',
+              // no rim: the shortcuts card's outline and top highlight are left out, only the soft drop shadow stays
+              border: 'none',
+              boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.55)',
             }}
             className="fixed z-[9999] p-2 flex flex-col gap-0.5 rounded-3xl font-sans text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
             onClick={(e) => e.stopPropagation()}
