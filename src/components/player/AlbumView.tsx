@@ -4,7 +4,7 @@ import { Star, Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, D
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 import { DownloadProgressPill } from './DownloadProgressPill';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useRubberBand } from '../ui/useRubberBand';
 import { ListScrollbar } from '../ui/ListScrollbar';
 import { PopoverMenu, type PopoverMenuItem } from '../ui/PopoverMenu';
@@ -52,7 +52,8 @@ export const AlbumView = ({
   nowPlayingTrackId,
   isPlaying,
   isLoading = false,
-  togglePlay
+  togglePlay,
+  onOpenPlayer
 }: {
   album: Album | null,
   loading: boolean,
@@ -61,7 +62,9 @@ export const AlbumView = ({
   nowPlayingTrackId?: number,
   isPlaying: boolean,
   isLoading?: boolean,
-  togglePlay: () => void
+  togglePlay: () => void,
+  /** open the full-screen player (click on the song that is playing) */
+  onOpenPlayer?: () => void
 }) => {
   const { playlists, playlistAsAlbum, createPlaylist, removeFromPlaylist, renamePlaylist, deletePlaylist } = usePlaylists();
   const playback = usePlayback();
@@ -73,6 +76,7 @@ export const AlbumView = ({
   const album = rawAlbum ? applyAlbumOverrides(rawAlbum) : null;
   const [isRenaming, setIsRenaming] = useState(false);
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
+  const [eqZoneHover, setEqZoneHover] = useState(false);
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -560,7 +564,7 @@ useEffect(() => {
                   key={track.id}
                   onMouseEnter={() => setHoveredTrack(track.id)}
                   onMouseLeave={() => setHoveredTrack(null)}
-                  onClick={() => playback.playAlbum(album, track)}
+                  onClick={() => (isPlayingTrack && onOpenPlayer ? onOpenPlayer() : playback.playAlbum(album, track))}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     setTrackMenuPos({ top: e.clientY, left: e.clientX, isUpward: false });
@@ -583,23 +587,40 @@ useEffect(() => {
                       </span>
                     );
                   })()}
+                  {isPlayingTrack && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                      onMouseEnter={() => setEqZoneHover(true)}
+                      onMouseLeave={() => setEqZoneHover(false)}
+                      onFocus={() => setEqZoneHover(true)}
+                      onBlur={() => setEqZoneHover(false)}
+                      title={isPlaying ? 'Pausar' : 'Reanudar'}
+                      aria-label={isPlaying ? 'Pausar' : 'Reanudar'}
+                      className="absolute inset-y-0 left-0 z-10 w-14 lg:w-24 rounded-l-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60"
+                    />
+                  )}
                   <div className="relative text-white/50 font-medium flex items-center justify-center tabular-nums">
                     {isPlayingTrack ? (
-                      // the bars are the pause/resume button of the song that is playing; on hover they show what a click will do
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                        title={isPlaying ? 'Pausar' : 'Reanudar'}
-                        aria-label={isPlaying ? 'Pausar' : 'Reanudar'}
-                        className="group/eq relative w-7 h-7 -m-1.5 flex items-center justify-center rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-                      >
-                        <span className="transition-opacity duration-150 group-hover/eq:opacity-0 group-focus-visible/eq:opacity-0">
-                          <EqBars playing={isPlaying} className="h-4 w-4" barClassName="w-[3px] bg-white" />
-                        </span>
-                        <span className="absolute inset-0 flex items-center justify-center text-white opacity-0 transition-opacity duration-150 group-hover/eq:opacity-100 group-focus-visible/eq:opacity-100">
-                          {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" aria-hidden="true" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" aria-hidden="true" />}
-                        </span>
-                      </button>
+                      // icon of the playing song: bars, or what a click on the left zone will do (pop between them)
+                      <AnimatePresence mode="wait" initial={false}>
+                        <motion.span
+                          key={isLoading ? 'load' : eqZoneHover ? (isPlaying ? 'pause' : 'play') : 'eq'}
+                          initial={{ scale: 0.4, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0.4, opacity: 0 }}
+                          transition={{ type: 'spring', stiffness: 700, damping: 30, mass: 0.6 }}
+                          className="flex items-center justify-center"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-white" aria-label="Cargando canción" />
+                          ) : eqZoneHover ? (
+                            isPlaying ? <Pause className="w-4 h-4 text-white" fill="currentColor" aria-hidden="true" /> : <Play className="w-4 h-4 ml-0.5 text-white" fill="currentColor" aria-hidden="true" />
+                          ) : (
+                            <EqBars playing={isPlaying} className="h-4 w-4" barClassName="w-[3px] bg-white" />
+                          )}
+                        </motion.span>
+                      </AnimatePresence>
                     ) : isHovered ? (
                       <Play className="w-4 h-4 text-white" fill="currentColor" />
                     ) : (

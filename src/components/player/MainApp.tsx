@@ -1184,6 +1184,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       isPlaying={isPlaying}
                       isLoading={isAudioLoading}
                       togglePlay={togglePlay}
+                      onOpenPlayer={() => { setImmersiveTab("pistas"); setIsPlayerExpanded(true); }}
                     />
                   )}
                   {currentView === 'downloads' && <DownloadsView type="downloads" albums={albums} onPlayTrack={handlePlayTrack} onSelectAlbum={handleSelectAlbum} />}
