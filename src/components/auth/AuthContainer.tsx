@@ -95,7 +95,10 @@ export const AuthContainer = () => {
   const cardReveal = useTransform(intro, [0.18, 0.72], [0, 1], { clamp: true });
   const cardMask = useTransform(cardReveal, (v) => (v >= 1 ? 'none' : `linear-gradient(to top, #000 ${v * 150 - 50}%, transparent ${v * 150}%)`));
   const cardY = useTransform(cardReveal, [0, 1], [22, 0]);
-  const cornerOpacity = useTransform(intro, [0.55, 0.9], [0, 1], { clamp: true });
+  // corner buttons: scale in instead of fading. An ancestor with opacity < 1 turns it into the backdrop root and the
+  // buttons' blur renders wrong (washed out) until the next repaint, which is what showed until you hovered them.
+  const cornerScale = useTransform(intro, [0.55, 0.9], [0.5, 1], { clamp: true });
+  const cornerVisibility = useTransform(intro, (v) => (v < 0.55 ? 'hidden' : 'visible'));
 
   const MemoizedBackgrounds = useMemo(() => (
     <div className="absolute inset-0 z-0">
@@ -275,7 +278,7 @@ export const AuthContainer = () => {
 
       {(step === 'choose' || step === 'password') && (
         <motion.div
-          style={{ opacity: cornerOpacity }}
+          style={{ scale: cornerScale, visibility: cornerVisibility }}
           className="absolute top-5 right-5 md:top-8 md:right-8 z-20"
         >
           <BackButton
@@ -294,7 +297,7 @@ export const AuthContainer = () => {
 
       {(step === 'choose' || step === 'password') && (
         <motion.div
-          style={{ opacity: cornerOpacity }}
+          style={{ scale: cornerScale, visibility: cornerVisibility }}
           className="absolute top-5 left-5 md:top-8 md:left-8 z-20"
         >
           <BackButton
