@@ -272,7 +272,7 @@ export const AuthContainer = () => {
         </div>
       )}
 
-      {step === 'choose' && (
+      {(step === 'choose' || step === 'password') && (
         <div className="absolute top-5 left-5 md:top-8 md:left-8 z-20">
           <BackButton
             dark
@@ -327,7 +327,7 @@ export const AuthContainer = () => {
                       />
                     </div>
                     {emailError && <p className="text-sm text-pink-200 text-center -mt-2">{emailError}</p>}
-                    <LiquidButton onClick={sendCode} status={status} className="w-full h-14 !rounded-xl !bg-black/35 hover:!bg-black/50 !border-white/40 hover:!border-white/60 !shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+                    <LiquidButton onClick={sendCode} status={status} className="w-full h-14 !rounded-full !bg-white/10 hover:!bg-white/[0.16] !border-white/30 hover:!border-white/50 !backdrop-blur-2xl !shadow-[0_8px_30px_rgba(0,0,0,0.3)] active:scale-[0.99]">
                       Continuar con correo
                     </LiquidButton>
                   </div>
@@ -451,7 +451,7 @@ export const AuthContainer = () => {
                     </div>
                     {passwordError && <p className="text-sm text-pink-200 text-center -mt-2">{passwordError}</p>}
 
-                    <LiquidButton onClick={signInWithPassword} status={status} className="w-full h-14">
+                    <LiquidButton onClick={signInWithPassword} status={status} className="w-full h-14 !rounded-full !bg-white/10 hover:!bg-white/[0.16] !border-white/30 hover:!border-white/50 !backdrop-blur-2xl !shadow-[0_8px_30px_rgba(0,0,0,0.3)] active:scale-[0.99]">
                       Entrar al Dashboard
                     </LiquidButton>
                   </div>
