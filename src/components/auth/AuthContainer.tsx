@@ -233,11 +233,40 @@ export const AuthContainer = () => {
   const active = stepIndex[method][step];
   const steps = STEPS[method];
 
+  const toggleAdmin = () => {
+    if (step === 'password') {
+      setEmail('');
+      setPassword('');
+      setEmailError('');
+      setPasswordError('');
+      setMethod('email');
+      setStep('choose');
+    } else {
+      setEmail(email.trim() || 'bitszone.app@gmail.com');
+      setPassword('');
+      setEmailError('');
+      setPasswordError('');
+      setMethod('admin');
+      setStep('password');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#05050A] flex flex-col items-center justify-center p-4 font-sans text-white relative overflow-hidden">
 
       {MemoizedBackgrounds}
 
+      {step === 'choose' && (
+        <div className="absolute top-5 left-5 md:top-8 md:left-8 z-20">
+          <BackButton
+            dark
+            onClick={() => {
+              if (window.history.length > 1 && document.referrer.startsWith(window.location.origin)) window.history.back();
+              else window.location.href = '/player';
+            }}
+          />
+        </div>
+      )}
 
       <div
         className="relative z-10 w-full max-w-[960px] md:h-[min(600px,calc(100vh-2rem))] flex rounded-3xl overflow-hidden shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
@@ -245,80 +274,16 @@ export const AuthContainer = () => {
       >
         {/* Left: the flow */}
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
-          
+
           {step === 'choose' && (
-            <div className="absolute top-5 left-5 z-20">
-              <BackButton
-                dark
-                onClick={() => {
-                  if (window.history.length > 1 && document.referrer.startsWith(window.location.origin)) window.history.back();
-                  else window.location.href = '/player';
-                }}
-              />
-            </div>
-          )}
-
-          {/* Botón dinámico Admin / Usuario en la parte superior central del panel izquierdo */}
-          {(step === 'choose' || step === 'password') && (
-            <div className="absolute top-5 inset-x-0 flex justify-center z-20 pointer-events-none">
-              <button
-                type="button"
-                onClick={() => {
-                  if (step === 'password') {
-                    setEmail('');
-                    setPassword('');
-                    setEmailError('');
-                    setPasswordError('');
-                    setMethod('email');
-                    setStep('choose');
-                  } else {
-                    setEmail(email.trim() || 'bitszone.app@gmail.com');
-                    setPassword('');
-                    setEmailError('');
-                    setPasswordError('');
-                    setMethod('admin');
-                    setStep('password');
-                  }
-                }}
-                className="pointer-events-auto h-10 md:h-11 min-w-10 md:min-w-11 px-2.5 flex items-center justify-center rounded-full bg-black/35 hover:bg-black/50 border border-white/40 hover:border-white/60 text-white shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition-colors cursor-pointer group"
-                title={step === 'password' ? 'Volver a inicio de sesión normal' : 'Acceso para Administrador (con contraseña)'}
-                aria-label={step === 'password' ? 'Modo Usuario' : 'Modo Administrador'}
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {step === 'password' ? (
-                    <motion.div
-                      key="user-icon"
-                      initial={{ opacity: 0, scale: 0.7, rotate: -25 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.7, rotate: 25 }}
-                      transition={{ duration: 0.18 }}
-                      className="flex items-center justify-center shrink-0"
-                    >
-                      <User className="w-5 h-5 text-white" strokeWidth={2.2} />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="admin-icon"
-                      initial={{ opacity: 0, scale: 0.7, rotate: 25 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.7, rotate: -25 }}
-                      transition={{ duration: 0.18 }}
-                      className="flex items-center justify-center shrink-0"
-                    >
-                      <UserCog className="w-5 h-5 text-white" strokeWidth={2.2} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <span className="grid grid-cols-[0fr] group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
-                  <span className="overflow-hidden min-w-0">
-                    <span className="block pl-1.5 pr-1 text-xs font-semibold whitespace-nowrap text-white opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200">
-                      {step === 'password' ? 'Usuario' : 'Admin'}
-                    </span>
-                  </span>
-                </span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={toggleAdmin}
+              className="absolute bottom-5 inset-x-0 mx-auto w-fit flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+            >
+              <UserCog className="w-3.5 h-3.5" aria-hidden="true" />
+              Acceso administrador
+            </button>
           )}
 
           <div className="w-full max-w-[26rem]">
@@ -356,7 +321,7 @@ export const AuthContainer = () => {
                       />
                     </div>
                     {emailError && <p className="text-sm text-pink-200 text-center -mt-2">{emailError}</p>}
-                    <LiquidButton onClick={sendCode} status={status} className="w-full h-14">
+                    <LiquidButton onClick={sendCode} status={status} className="w-full h-14 !rounded-xl !bg-black/35 hover:!bg-black/50 !border-white/40 hover:!border-white/60 !shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
                       Continuar con correo
                     </LiquidButton>
                   </div>
@@ -541,7 +506,7 @@ export const AuthContainer = () => {
               const current = i === active && step !== 'done';
               return (
                 <li key={method + i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 border transition-all duration-500 ${current ? 'bg-white/12 border-white/35' : 'border-transparent'} ${!current && !done ? 'opacity-55' : ''}`}>
-                  <span className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold border transition-all duration-500 ${done ? 'bg-white text-purple-900 border-white' : current ? 'border-white text-white' : 'border-white/40 text-white/80'}`}>
+                  <span className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm leading-none tabular-nums font-semibold border transition-all duration-500 [text-shadow:none] ${done ? 'bg-white text-purple-900 border-white' : current ? 'border-white text-white' : 'border-white/40 text-white/80'}`}>
                     {done ? <Check className="w-4 h-4" strokeWidth={3} /> : i + 1}
                   </span>
                   <span className="leading-tight">
