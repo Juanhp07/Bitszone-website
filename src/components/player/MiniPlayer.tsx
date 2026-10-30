@@ -193,6 +193,7 @@ export const MiniPlayer = ({
 
   // Fluid scrubbing for MiniPlayer top bar
   const [scrubProgress, setScrubProgress] = React.useState<number | null>(null);
+  const [volHeld, setVolHeld] = React.useState(false);
   const isScrubbingRef = React.useRef(false);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -467,10 +468,34 @@ export const MiniPlayer = ({
           aria-label={volume === 0 ? "Activar sonido" : "Silenciar reproductor"}
           aria-pressed={volume === 0}
         >
-          {volume === 0 ? <VolumeX className="w-5 h-5" aria-hidden="true" /> : volume < 50 ? <Volume1 className="w-5 h-5" aria-hidden="true" /> : <Volume2 className="w-5 h-5" aria-hidden="true" />}
+          <PopSwap className="w-5 h-5" items={[
+            { id: 'mute', on: volume === 0, node: <VolumeX className="w-5 h-5" aria-hidden="true" /> },
+            { id: 'low', on: volume > 0 && volume < 50, node: <Volume1 className="w-5 h-5" aria-hidden="true" /> },
+            { id: 'high', on: volume >= 50, node: <Volume2 className="w-5 h-5" aria-hidden="true" /> },
+          ]} />
         </button>
-        <div className="w-28 h-2 bg-white/15 rounded-full relative group cursor-pointer flex items-center">
+        <div
+          data-no-pressfx
+          className={`w-28 bg-white/15 rounded-full relative group cursor-pointer flex items-center transition-[height] duration-200 ${volHeld ? 'h-3' : 'h-2'}`}
+          onPointerDown={() => setVolHeld(true)}
+          onPointerUp={() => setVolHeld(false)}
+          onPointerCancel={() => setVolHeld(false)}
+          onPointerLeave={() => setVolHeld(false)}
+        >
           <div className="absolute left-0 h-full bg-white group-hover:bg-[#a855f7] rounded-full transition-colors pointer-events-none" style={{ width: `${volume}%` }}></div>
+          {/* handle and value: pop in while the bar is held */}
+          <div
+            aria-hidden="true"
+            className={`absolute top-1/2 w-4 h-4 -ml-2 -mt-2 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] pointer-events-none transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${volHeld ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}
+            style={{ left: `${volume}%` }}
+          />
+          <div
+            aria-hidden="true"
+            className={`absolute -top-8 -ml-4 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-xl text-xs font-semibold text-white tabular-nums pointer-events-none transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${volHeld ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}
+            style={{ left: `${volume}%` }}
+          >
+            {Math.round(volume)}%
+          </div>
           <input
             type="range"
             min="0"

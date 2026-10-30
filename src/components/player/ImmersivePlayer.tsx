@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
-import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical, Sparkles, Sliders } from 'lucide-react';
+import { Star, Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical, Sparkles, Sliders } from 'lucide-react';
 import { TrackMenu } from './TrackMenu';
 import { EqBars } from '../ui/EqBars';
 import { MarqueeTitle } from '../ui/MarqueeTitle';
@@ -181,6 +181,30 @@ const AnimatedSongTitle = ({
 };
 
 
+/** Equalizer bars of the playing row. Hovering shows what a click does (pause / play) with a small pop. */
+const NowPlayingToggle = ({ isPlaying, isLoading, onToggle, className = '' }: { isPlaying: boolean; isLoading: boolean; onToggle: () => void; className?: string }) => {
+  const layer = 'absolute inset-0 flex items-center justify-center transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)]';
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onToggle(); }}
+      title={isPlaying ? 'Pausar' : 'Reanudar'}
+      aria-label={isPlaying ? 'Pausar' : 'Reanudar'}
+      className={`group/eq relative w-9 h-9 md:w-10 md:h-10 shrink-0 rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${className}`}
+    >
+      <span className={`${layer} ${isLoading ? 'opacity-0 scale-50' : 'opacity-100 scale-100 group-hover/eq:opacity-0 group-hover/eq:scale-50'}`}>
+        <EqBars playing={isPlaying} className="h-5 md:h-6 shrink-0" barClassName="w-[3px] md:w-[4px] bg-[#e9d5ff]" />
+      </span>
+      <span className={`${layer} text-[#e9d5ff] ${isLoading ? 'opacity-0 scale-50' : 'opacity-0 scale-50 group-hover/eq:opacity-100 group-hover/eq:scale-100'}`}>
+        {isPlaying ? <Pause className="w-5 h-5" fill="currentColor" aria-hidden="true" /> : <Play className="w-5 h-5 ml-0.5" fill="currentColor" aria-hidden="true" />}
+      </span>
+      <span className={`${layer} text-[#e9d5ff] ${isLoading ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
+        <Loader2 className="w-5 h-5 animate-spin" aria-label="Cargando canción" />
+      </span>
+    </button>
+  );
+};
+
 export const ImmersivePlayer = ({
   isExpanded,
   onClose,
@@ -351,14 +375,27 @@ export const ImmersivePlayer = ({
 
   const volumeRef = React.useRef<HTMLDivElement>(null);
   const isDraggingVol = React.useRef(false);
+  const [volDragging, setVolDragging] = useState(false);
+  const [volBubble, setVolBubble] = useState(false);   // the % bubble: while dragging and for a moment after any change
+  const [volPull, setVolPull] = useState(0);            // px the bars are stretched when you pull past the top / bottom
+  const volBubbleTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  const flashVolBubble = () => {
+    setVolBubble(true);
+    clearTimeout(volBubbleTimer.current);
+    volBubbleTimer.current = setTimeout(() => setVolBubble(false), 900);
+  };
   const handleVolumeDrag = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!setVolume || !volumeRef.current) return;
     const rect = volumeRef.current.getBoundingClientRect();
-    let p = 1 - ((e.clientY - rect.top) / rect.height);
-    p = Math.max(0, Math.min(1, p));
+    const raw = 1 - ((e.clientY - rect.top) / rect.height);
+    const p = Math.max(0, Math.min(1, raw));
+    // rubber band: past the ends the bars follow the finger with resistance
+    const over = raw > 1 ? raw - 1 : raw < 0 ? raw : 0;
+    setVolPull(Math.max(-14, Math.min(14, -over * rect.height * 0.35)));
     const newVol = Math.round(p * 20) * 5;
-    setVolume(newVol);
+    if (newVol !== volume) { setVolume(newVol); flashVolBubble(); }
   };
+  const VolIcon = (volume || 0) === 0 ? VolumeX : (volume || 0) < 50 ? Volume1 : Volume2;
 
   const [lyricsResult, setLyricsResult] = useState<LyricsResult | null>(null);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
@@ -409,6 +446,14 @@ export const ImmersivePlayer = ({
     }
   }
 
+  useEffect(() => {
+    if (currentTab === 'letra') return;
+    // the new tab's content mounts right after the old one leaves: reset now and once more when it is there
+    const reset = () => rightScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    reset();
+    const t = setTimeout(reset, 320);
+    return () => clearTimeout(t);
+  }, [currentTab]);
   const lyricsAlignedRef = useRef(false);
   useEffect(() => {
     if (currentTab !== 'letra') { lyricsAlignedRef.current = false; return; }
@@ -466,7 +511,7 @@ export const ImmersivePlayer = ({
     const downloading = downloadingIds.includes(t.id);
     const menuOpen = rowMenu?.track.id === t.id;
     return (
-      <div className={`flex items-center gap-1 md:gap-2 ml-3 shrink-0 transition-opacity duration-300 [@media(hover:none)]:opacity-100 ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'}`}>
+      <div className={`flex items-center gap-1 md:gap-2 ml-3 shrink-0 origin-right transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] [@media(hover:none)]:opacity-100 [@media(hover:none)]:scale-100 ${menuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 focus-within:opacity-100 focus-within:scale-100'}`}>
         <button
           onClick={(e) => { e.stopPropagation(); handleRowDownload(t, from); }}
           disabled={downloaded || downloading}
@@ -704,18 +749,25 @@ export const ImmersivePlayer = ({
            {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
            <div className="hidden md:flex absolute left-6 md:left-8 xl:left-10 top-1/2 -translate-y-1/2 z-50 w-11 md:w-12 flex-col items-center gap-2 opacity-100 transition-all duration-300">
              <button
-               onClick={() => setVolume && setVolume(100)}
-               className="mb-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+               onClick={() => { setVolume && setVolume(100); flashVolBubble(); }}
+               className="mb-2 p-2 hover:bg-white/10 rounded-full cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 pop-press"
                title="Volumen al máximo (100%)"
                aria-label="Subir volumen al máximo"
              >
-               <Volume2 className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" aria-hidden="true" />
+               <PopSwap className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white transition-colors" items={[
+                 { id: 'mute', on: (volume || 0) === 0, node: <VolumeX className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> },
+                 { id: 'low', on: (volume || 0) > 0 && (volume || 0) < 50, node: <Volume1 className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> },
+                 { id: 'high', on: (volume || 0) >= 50, node: <Volume2 className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> },
+               ]} />
              </button>
              <div
                ref={volumeRef}
-               className="flex flex-col gap-[3px] py-1 touch-none"
+               data-no-pressfx
+               className="relative flex flex-col gap-[3px] py-1 touch-none"
+               style={{ transform: `scaleY(${1 + Math.abs(volPull) / 160}) translateY(${volPull * 0.4}px)`, transformOrigin: volPull >= 0 ? 'bottom' : 'top', transition: volDragging ? 'transform 60ms linear' : 'transform 520ms cubic-bezier(0.34,1.56,0.64,1)' }}
                onPointerDown={(e) => {
                  isDraggingVol.current = true;
+                 setVolDragging(true);
                  handleVolumeDrag(e);
                  e.currentTarget.setPointerCapture(e.pointerId);
                }}
@@ -724,10 +776,15 @@ export const ImmersivePlayer = ({
                }}
                onPointerUp={(e) => {
                  isDraggingVol.current = false;
+                 setVolDragging(false);
+                 setVolPull(0);
                  e.currentTarget.releasePointerCapture(e.pointerId);
+                 flashVolBubble();
                }}
                onPointerCancel={(e) => {
                  isDraggingVol.current = false;
+                 setVolDragging(false);
+                 setVolPull(0);
                  e.currentTarget.releasePointerCapture(e.pointerId);
                }}
                onWheel={(e) => {
@@ -740,9 +797,18 @@ export const ImmersivePlayer = ({
                  if (delta < 0) newVol = Math.min(100, currentVol + 5);
                  if (newVol !== currentVol) {
                    setVolume(newVol);
+                   flashVolBubble();
                  }
                }}
              >
+               {/* value bubble: pops next to the level while you drag or change the volume */}
+               <div
+                 aria-hidden="true"
+                 className={`absolute left-full ml-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-xl text-xs font-semibold text-white tabular-nums pointer-events-none transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${volBubble || volDragging ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}
+                 style={{ top: `calc(${(1 - (volume || 0) / 100) * 100}% - 12px)`, transition: 'top 90ms linear, opacity 200ms, transform 200ms cubic-bezier(0.34,1.56,0.64,1)' }}
+               >
+                 {Math.round(volume || 0)}%
+               </div>
                {Array.from({ length: 20 }).map((_, i) => {
                  const level = (20 - i) * 5;
                  const isActive = (volume || 0) >= level;
@@ -754,18 +820,22 @@ export const ImmersivePlayer = ({
                      title={`Ajustar volumen al ${level}%`}
                      aria-label={`Volumen ${level}%`}
                    >
-                     <div className={`w-6 h-1 rounded-full transition-all duration-100 ${isActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20 group-hover/line:bg-white/60 group-hover/line:scale-y-150'}`} />
+                     {/* bars near the current level swell while you hold the control, like a wave under the finger */}
+                     <div
+                       className={`w-6 h-1 rounded-full transition-[background-color,box-shadow,transform] duration-150 ${isActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20 group-hover/line:bg-white/60 group-hover/line:scale-y-150'}`}
+                       style={volDragging ? { transform: `scale(${1 + 0.55 * Math.exp(-Math.abs(level - (volume || 0)) / 12)}, ${1 + 0.9 * Math.exp(-Math.abs(level - (volume || 0)) / 12)})` } : undefined}
+                     />
                    </button>
                  );
                })}
              </div>
              <button
-               onClick={() => setVolume && setVolume(0)}
-               className="mt-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+               onClick={() => { setVolume && setVolume(0); flashVolBubble(); }}
+               className="mt-2 p-2 hover:bg-white/10 rounded-full cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 pop-press"
                title="Silenciar reproductor"
                aria-label="Silenciar reproductor"
              >
-               <VolumeX className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" aria-hidden="true" />
+               <VolumeX className={`w-4 h-4 md:w-5 md:h-5 transition-colors ${(volume || 0) === 0 ? 'text-white' : 'text-white/50 group-hover/icon:text-white'}`} aria-hidden="true" />
              </button>
            </div>
 
@@ -1043,7 +1113,7 @@ export const ImmersivePlayer = ({
                  : 'linear-gradient(to bottom, transparent 0px, black 12px, black calc(100% - 24px), transparent 100%)'
              }}
            >
-             <motion.div style={{ y: rightSpringY }} className="w-full -mt-[10px]">
+             <motion.div style={{ y: rightSpringY }} className={`w-full ${currentTab === 'pistas' ? '-mt-[10px]' : 'pt-3'}`}>
                <AnimatePresence mode="wait">
                  {currentTab === 'letra' && (
                    <motion.div
@@ -1129,10 +1199,11 @@ export const ImmersivePlayer = ({
                              <div className="flex items-center relative min-w-[2.75rem] md:min-w-[3.5rem] shrink-0">
                                <button
                                  onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
-                                 className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                                 className={`group/favbtn absolute left-0 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100'}`}
                                  title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
                                  aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
                                >
+                                 <span key={String(isFavorite(t.id))} className="pop-in inline-flex">
                                  {isFavorite(t.id) ? (
                                    <>
                                      <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
@@ -1141,6 +1212,7 @@ export const ImmersivePlayer = ({
                                  ) : (
                                    <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
                                  )}
+                                 </span>
                                </button>
                                <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#e9d5ff]' : 'text-white/40'}`}>
                                  {(t.trackNumber || i + 1).toString().padStart(2, '0')}
@@ -1158,7 +1230,7 @@ export const ImmersivePlayer = ({
                                )}
                              </div>
                              {isActive && (
-                               <EqBars playing={isPlaying} className="h-5 md:h-6 ml-2 md:ml-4" barClassName="w-[3px] md:w-[4px] bg-[#e9d5ff]" />
+                               <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} className="ml-1 md:ml-2" />
                              )}
                              {renderRowActions(t, album, false)}
                            </div>
@@ -1230,7 +1302,7 @@ export const ImmersivePlayer = ({
                                <MarqueeTitle text={t.title} slideOnHover />
                              </div>
                              {isCurrent && (
-                               <EqBars playing={isPlaying} className="h-5 md:h-6" barClassName="w-[3px] md:w-[4px] bg-[#e9d5ff]" />
+                               <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} />
                              )}
                              {renderRowActions(t, from, true)}
                              <button
