@@ -20,6 +20,10 @@ interface PlaylistsContextType {
   removeFromPlaylist: (playlistId: string, trackId: number) => void;
   renamePlaylist: (playlistId: string, name: string) => void;
   deletePlaylist: (playlistId: string) => void;
+  /** deletes several at once (calling deletePlaylist in a loop would keep only the last deletion) */
+  deletePlaylists: (ids: string[]) => void;
+  /** new order of the lists (ids); lists not named keep their place at the end */
+  reorderPlaylists: (ids: string[]) => void;
   playlistAsAlbum: (playlist: Playlist) => Album;
 }
 
@@ -126,6 +130,19 @@ export const PlaylistsProvider = ({ children }: { children: React.ReactNode }) =
     persist(playlists.map((p) => (p.id === playlistId ? { ...p, name: clean } : p)));
   };
 
+  const deletePlaylists = (ids: string[]) => {
+    const gone = new Set(ids);
+    const removed = playlists.filter((p) => gone.has(p.id));
+    if (removed.length === 0) return;
+    persist(playlists.filter((p) => !gone.has(p.id)));
+    show(removed.length === 1 ? `Lista '${removed[0].name}' eliminada` : `${removed.length} listas eliminadas`);
+  };
+
+  const reorderPlaylists = (ids: string[]) => {
+    const rank = new Map(ids.map((id, i) => [id, i]));
+    persist([...playlists].sort((a, b) => (rank.get(a.id) ?? 1e9) - (rank.get(b.id) ?? 1e9)));
+  };
+
   const deletePlaylist = (playlistId: string) => {
     const target = playlists.find((p) => p.id === playlistId);
     persist(playlists.filter((p) => p.id !== playlistId));
@@ -145,7 +162,7 @@ export const PlaylistsProvider = ({ children }: { children: React.ReactNode }) =
   });
 
   return (
-    <PlaylistsContext.Provider value={{ playlists, covers, createPlaylist, addToPlaylist, removeFromPlaylist, renamePlaylist, deletePlaylist, playlistAsAlbum }}>
+    <PlaylistsContext.Provider value={{ playlists, covers, createPlaylist, addToPlaylist, removeFromPlaylist, renamePlaylist, deletePlaylist, deletePlaylists, reorderPlaylists, playlistAsAlbum }}>
       {children}
     </PlaylistsContext.Provider>
   );

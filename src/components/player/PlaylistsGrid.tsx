@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { ListMusic, Play, MoreHorizontal, Plus, Pencil, Trash2, Music2, Disc3 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ListMusic, Play, MoreHorizontal, Plus, Pencil, Trash2, Music2, Disc3, ListChecks, Check } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { PopoverMenu } from '../ui/PopoverMenu';
 import { usePlaylists, type Playlist } from './PlaylistsContext';
 import { CreatePlaylistDialog } from './CreatePlaylistDialog';
 import { SectionHero, SectionEmpty } from '../ui/SectionHero';
+import { SelectableCard } from '../ui/SelectableCard';
+import { SelectionBar } from '../ui/SelectionBar';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { usePlayback } from './PlaybackContext';
 import type { Album, Track } from './types';
 
@@ -18,11 +21,26 @@ export const PlaylistsGrid = ({
   onOpen: (album: Album) => void;
   onPlayTrack: (track: Track, album: Album) => void;
 }) => {
-  const { playlists, playlistAsAlbum, createPlaylist, renamePlaylist, deletePlaylist } = usePlaylists();
+  const { playlists, playlistAsAlbum, createPlaylist, renamePlaylist, deletePlaylist, deletePlaylists, reorderPlaylists } = usePlaylists();
   const playback = usePlayback();
   const [menu, setMenu] = useState<{ playlist: Playlist; anchor: { x: number; y: number; x2?: number } } | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  // edit mode (like the iOS home screen): select lists with checks, delete them, or drag them into your own order
+  const [editing, setEditing] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const exitEditing = () => { setEditing(false); setSelected(new Set()); setDragId(null); };
+  const toggleSelected = (id: string) => setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const movePlaylist = (fromId: string, toId: string) => {
+    const ids = playlists.map((p) => p.id);
+    const from = ids.indexOf(fromId), to = ids.indexOf(toId);
+    if (from < 0 || to < 0 || from === to) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    reorderPlaylists(ids);
+  };
+  const deleteSelected = () => { deletePlaylists([...selected]); setConfirmDelete(false); exitEditing(); };
 
   const totalTracks = playlists.reduce((n, p) => n + p.tracks.length, 0);
 
@@ -39,6 +57,16 @@ export const PlaylistsGrid = ({
           { icon: <Music2 className="w-3.5 h-3.5" aria-hidden="true" />, text: `${totalTracks} ${totalTracks === 1 ? 'canción' : 'canciones'}` },
         ]}
         actions={
+          <div className="flex items-center gap-2">
+          {playlists.length > 0 && (
+            <button
+              onClick={() => (editing ? exitEditing() : setEditing(true))}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold backdrop-blur-xl transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer ${editing ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-white/[0.09] hover:bg-white/[0.17]'}`}
+            >
+              {editing ? <Check className="w-4 h-4" aria-hidden="true" /> : <ListChecks className="w-4 h-4" aria-hidden="true" />}
+              {editing ? 'Listo' : 'Seleccionar'}
+            </button>
+          )}
           <button
             onClick={() => setCreating(true)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-white/[0.09] hover:bg-white/[0.17] backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
@@ -46,6 +74,7 @@ export const PlaylistsGrid = ({
             <Plus className="w-4 h-4" aria-hidden="true" />
             Nueva lista
           </button>
+          </div>
         }
       />
 
@@ -61,8 +90,21 @@ export const PlaylistsGrid = ({
           {playlists.map((p, i) => {
             const album = playlistAsAlbum(p);
             return (
-              <motion.div
+              <SelectableCard
                 key={p.id}
+                id={p.id}
+                index={i}
+                editing={editing}
+                selected={selected.has(p.id)}
+                dragging={dragId === p.id}
+                label={p.name}
+                onToggle={toggleSelected}
+                onEnterEdit={(id) => { setEditing(true); setSelected(new Set([id])); }}
+                onDragStartId={setDragId}
+                onDragOverId={(id) => { if (dragId && dragId !== id) movePlaylist(dragId, id); }}
+                onDragEndId={() => setDragId(null)}
+              >
+              <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
@@ -120,10 +162,33 @@ export const PlaylistsGrid = ({
                   </button>
                 </div>
               </motion.div>
+              </SelectableCard>
             );
           })}
         </div>
       )}
+
+      <AnimatePresence>
+        {editing && (
+          <SelectionBar
+            count={selected.size}
+            total={playlists.length}
+            noun="listas"
+            onSelectAll={() => setSelected(new Set(playlists.map((p) => p.id)))}
+            onClearSelection={() => setSelected(new Set())}
+            onDelete={() => setConfirmDelete(true)}
+            onDone={exitEditing}
+          />
+        )}
+      </AnimatePresence>
+      <ConfirmDialog
+        open={confirmDelete}
+        title={`¿Eliminar ${selected.size} ${selected.size === 1 ? 'lista' : 'listas'}?`}
+        text="Las canciones no se borran de tu biblioteca, solo las listas. Esto no se puede deshacer."
+        confirmLabel="Sí, eliminar"
+        onConfirm={deleteSelected}
+        onCancel={() => setConfirmDelete(false)}
+      />
 
       <CreatePlaylistDialog open={creating} onClose={() => setCreating(false)} onCreate={(name, cover) => createPlaylist([], name, cover)} />
 

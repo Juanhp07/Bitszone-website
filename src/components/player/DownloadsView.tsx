@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useRubberBand } from '../ui/useRubberBand';
 import { ListScrollbar } from '../ui/ListScrollbar';
 import { createPortal } from 'react-dom';
@@ -9,7 +9,11 @@ import { BackButton } from '../ui/BackButton';
 import { SectionHero, SectionEmpty } from '../ui/SectionHero';
 import { NowPlayingToggle } from '../ui/NowPlayingToggle';
 import { TrackMenu } from './TrackMenu';
-import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle, Music2, Disc3, HardDrive, ListMusic, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { SelectableCard } from '../ui/SelectableCard';
+import { SelectionBar } from '../ui/SelectionBar';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { userStorage } from '../../lib/userStorage';
+import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle, Music2, Disc3, HardDrive, ListMusic, ChevronDown, MoreHorizontal, ListChecks } from 'lucide-react';
 import FuseButton from '../ui/FuseButton';
 import HoldButton from '../ui/HoldButton';
 import { useDownloads } from './DownloadsContext';
@@ -122,7 +126,16 @@ export const DownloadsView = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [sortBy, setSortBy] = useState<'default' | 'recent' | 'alpha' | 'size_desc' | 'size_asc'>('default');
+  const [sortBy, setSortBy] = useState<'default' | 'recent' | 'alpha' | 'size_desc' | 'size_asc' | 'manual'>('default');
+  // edit mode (like the iOS home screen): select albums with checks, delete them, or drag them into your own order
+  const [editing, setEditing] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const orderKey = `bz_album_order_${type}`;
+  const [manualOrder, setManualOrder] = useState<string[]>(() => {
+    try { return JSON.parse(userStorage.getItem(orderKey) || '[]'); } catch { return []; }
+  });
   const [showSort, setShowSort] = useState(false);
   const [rowMenu, setRowMenu] = useState<{ track: Track; anchor: { x: number; y: number; x2?: number } } | null>(null);
   const [sortPos, setSortPos] = useState({ top: 0, left: 0, right: 0 });
@@ -425,6 +438,10 @@ export const DownloadsView = ({
   };
 
   const sortedGroups = Object.values(groupedTracks).sort((a: any, b: any) => {
+    if (sortBy === 'manual') {
+      const rank = (g: any) => { const i = manualOrder.indexOf(String(g.id)); return i < 0 ? 1e9 : i; };
+      return rank(a) - rank(b);
+    }
     if (sortBy === 'recent' || sortBy === 'default') {
       return getGroupAddedAt(b) - getGroupAddedAt(a);
     } else if (sortBy === 'alpha') {
@@ -459,6 +476,28 @@ export const DownloadsView = ({
   });
 
   
+
+  const exitEditing = () => { setEditing(false); setSelected(new Set()); setDragId(null); };
+  const toggleSelected = (id: string) => setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const moveAlbum = (fromId: string, toId: string) => {
+    const ids = sortedGroups.map((g: any) => String(g.id));
+    const from = ids.indexOf(fromId), to = ids.indexOf(toId);
+    if (from < 0 || to < 0 || from === to) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    setManualOrder(ids);
+    userStorage.setItem(orderKey, JSON.stringify(ids));
+    setSortBy('manual');
+  };
+  const deleteSelected = () => {
+    selected.forEach((id) => {
+      if (type === 'downloads') removeAlbumFromDownloads(id);
+      else if (type === 'licenses') removeAlbumFromLicenses(id);
+      else removeAlbumFromFavorites(id);
+    });
+    setConfirmDelete(false);
+    exitEditing();
+  };
+  const where = type === 'downloads' ? 'tus descargas' : type === 'licenses' ? 'tus canciones con licencia' : 'tus favoritas';
 
   return (
     <div className="h-full flex flex-col relative">
@@ -554,34 +593,13 @@ export const DownloadsView = ({
           ...(type === 'downloads' ? [{ icon: <HardDrive className="w-3.5 h-3.5" aria-hidden="true" />, text: `${availableGB.toFixed(2)}GB libres de 5.00GB` }] : []),
         ]}
         actions={tracks.length > 0 ? (
-          <HoldButton
-            size="sm"
-            radius={20}
-            glow={true}
-            wave={true}
-            holdTime={5000}
-            backgroundColor="transparent"
-            fillColor="#e11d48"
-            textColor="rgba(255, 255, 255, 0.45)"
-            fillTextColor="#ffffff"
-            icon={<Trash2 className="w-4 h-4" />}
-            doneIcon={<Check className="w-4 h-4" />}
-            doneLabel="Eliminado"
-            className="!border-0 !bg-white/[0.07] backdrop-blur-xl font-medium hover:!bg-red-500/15 hover:!text-red-300 data-[phase=holding]:!bg-red-500/15 data-[phase=holding]:!text-red-300 transition-colors duration-300 group"
-            onHold={() => {
-              if (type === 'downloads') {
-                clearDownloads();
-              } else if (type === 'licenses') {
-                clearLicenses();
-              } else if (type === 'playlists') {
-                window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Todas las listas de reproducción fueron eliminadas' }));
-              } else {
-                clearFavorites();
-              }
-            }}
+          <button
+            onClick={() => { if (editing) exitEditing(); else { setViewMode('albumes'); setSelectedAlbumId(null); setEditing(true); } }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold backdrop-blur-xl transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer ${editing ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-white/[0.09] hover:bg-white/[0.17]'}`}
           >
-            Mantener para eliminar
-          </HoldButton>
+            {editing ? <Check className="w-4 h-4" aria-hidden="true" /> : <ListChecks className="w-4 h-4" aria-hidden="true" />}
+            {editing ? 'Listo' : 'Seleccionar'}
+          </button>
         ) : undefined}
       />
 
@@ -611,7 +629,7 @@ export const DownloadsView = ({
             aria-expanded={showSort}
             className="flex items-center gap-1.5 min-h-[44px] md:min-h-0 whitespace-nowrap text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.13] backdrop-blur-xl transition-colors text-sm font-medium group relative z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-full pl-4 pr-3 py-2 cursor-pointer"
           >
-            <span className="hidden sm:inline text-white/40 mr-0.5">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : 'Menos pesados'}
+            <span className="hidden sm:inline text-white/40 mr-0.5">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : sortBy === 'manual' ? 'Mi orden' : 'Menos pesados'}
             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${showSort ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
           <PopoverMenu
@@ -625,6 +643,7 @@ export const DownloadsView = ({
               { id: 'alpha', label: 'Alfabéticamente' },
               { id: 'size_desc', label: 'Más pesados' },
               { id: 'size_asc', label: 'Menos pesados' },
+              ...(manualOrder.length ? [{ id: 'manual', label: 'Mi orden' }] : []),
             ].map((opt) => ({
               label: opt.label,
               active: sortBy === opt.id,
@@ -709,7 +728,7 @@ export const DownloadsView = ({
               <div className="px-1 md:px-8 w-full pb-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 {/* like the album page: back button, cover with title and actions, and the list, all starting on the same line */}
                 <div className="grid grid-cols-1 lg:grid-cols-[44px_minmax(240px,380px)_minmax(0,1fr)] gap-4 lg:gap-12 items-start">
-                  <BackButton onClick={() => setSelectedAlbumId(null)} label="Volver a la lista de álbumes" text="Álbumes" hoverWidth="hover:w-[112px] md:hover:w-[120px]" />
+                  <BackButton onClick={() => setSelectedAlbumId(null)} label="Volver a la lista de álbumes" text="Volver a álbumes" hoverWidth="" />
                   <div className="flex flex-col items-center lg:items-start gap-4 min-w-0">
                     <div className="relative w-[min(68vw,300px)] lg:w-full lg:max-w-[min(100%,calc(100dvh-520px))] aspect-square rounded-3xl overflow-hidden bg-white/5 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.7)]">
                       {g.coverUrl ? <img src={g.coverUrl} alt={g.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Icon className="w-16 h-16 text-white/20" /></div>}
@@ -856,7 +875,7 @@ export const DownloadsView = ({
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-6 pb-12">
-            {sortedGroups.map((album: any) => {
+            {sortedGroups.map((album: any, albumIdx: number) => {
               const downloadedCount = album.tracks?.filter((t: any) => isDownloaded(t.id)).length || 0;
               const realAlbum = albums?.find(a => String(a.id) === String(album.id));
               const totalCount = realAlbum ? (realAlbum.tracks?.length || 0) : (album.tracks?.length || 0);
@@ -865,8 +884,21 @@ export const DownloadsView = ({
               const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every((t: any) => isFavorite(t.id)) : false;
               
               return (
-                <div 
+                <SelectableCard
                   key={album.id}
+                  id={String(album.id)}
+                  index={albumIdx}
+                  editing={editing}
+                  selected={selected.has(String(album.id))}
+                  dragging={dragId === String(album.id)}
+                  label={album.title}
+                  onToggle={toggleSelected}
+                  onEnterEdit={(id) => { setEditing(true); setSelected(new Set([id])); }}
+                  onDragStartId={setDragId}
+                  onDragOverId={(id) => { if (dragId && dragId !== id) moveAlbum(dragId, id); }}
+                  onDragEndId={() => setDragId(null)}
+                >
+                <div
                   className="shrink-0 flex flex-col gap-3 group cursor-pointer transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-1"
                   onClick={() => setSelectedAlbumId(album.id)}
                 >
@@ -948,6 +980,7 @@ export const DownloadsView = ({
                     })()}
                   </div>
                 </div>
+                </SelectableCard>
               );
             })}
           </div>
@@ -960,6 +993,28 @@ export const DownloadsView = ({
       
       
       
+    <AnimatePresence>
+      {editing && (
+        <SelectionBar
+          count={selected.size}
+          total={sortedGroups.length}
+          noun="álbumes"
+          onSelectAll={() => setSelected(new Set(sortedGroups.map((g: any) => String(g.id))))}
+          onClearSelection={() => setSelected(new Set())}
+          onDelete={() => setConfirmDelete(true)}
+          onDone={exitEditing}
+        />
+      )}
+    </AnimatePresence>
+    <ConfirmDialog
+      open={confirmDelete}
+      title={`¿Eliminar ${selected.size} ${selected.size === 1 ? 'álbum' : 'álbumes'}?`}
+      text={`Se quitarán de ${where}. Esto no se puede deshacer.`}
+      confirmLabel="Sí, eliminar"
+      onConfirm={deleteSelected}
+      onCancel={() => setConfirmDelete(false)}
+    />
+
     <TrackMenu
       track={rowMenu?.track ?? null}
       album={rowMenu ? albumFor(rowMenu.track) : ({ id: 0, title: '', artist: '', coverUrl: '', year: '', genre: '', trackCount: 0 } as Album)}
