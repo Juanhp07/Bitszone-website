@@ -41,12 +41,12 @@ export const SectionHero = ({
           initial={{ opacity: 0, scale: 0.85, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 210, damping: 20 }}
-          className="relative w-20 h-20 md:w-40 md:h-40 shrink-0 rounded-[26px] md:rounded-[38px] flex items-center justify-center backdrop-blur-2xl shadow-[0_24px_60px_-14px_rgba(0,0,0,0.65)] overflow-hidden"
+          className="relative w-20 h-20 md:w-40 md:h-40 shrink-0 rounded-[26px] md:rounded-[38px] flex items-center justify-center backdrop-blur-2xl overflow-hidden"
           style={{ background: `linear-gradient(150deg, rgba(${accent}, 0.62), rgba(${accent}, 0.2) 70%)` }}
         >
           {/* a light edge on top, like glass catching light */}
           <span aria-hidden="true" className="absolute inset-0 rounded-[inherit] bg-gradient-to-b from-white/25 to-transparent opacity-60 pointer-events-none" />
-          <Icon className={`relative w-9 h-9 md:w-16 md:h-16 text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.35)] custom-icon-${type}`} />
+          <Icon className={`relative w-9 h-9 md:w-16 md:h-16 text-white custom-icon-${type}`} />
         </motion.div>
 
         <div className="flex flex-col gap-1.5 md:gap-2.5 min-w-0">
@@ -99,7 +99,7 @@ export const SectionEmpty = ({
       className="flex flex-col items-center justify-center text-center gap-4 px-6 py-20 md:py-28"
     >
       <div
-        className="w-24 h-24 rounded-full flex items-center justify-center backdrop-blur-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.6)]"
+        className="w-24 h-24 rounded-full flex items-center justify-center backdrop-blur-2xl"
         style={{ background: `radial-gradient(circle at 30% 25%, rgba(${accent}, 0.4), rgba(${accent}, 0.1) 70%)` }}
       >
         <Icon className="w-10 h-10 text-white/90" />
