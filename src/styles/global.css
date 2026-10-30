@@ -265,6 +265,16 @@ html {
 }
 @media (prefers-reduced-motion: reduce) { .aurora-fill, .eq-bar { animation: none; } }
 
+/* Long title that slides to its end while hovered and eases back smoothly when the pointer leaves */
+.marquee-slide {
+  width: max-content;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .marquee-slide {
+  transform: translateX(var(--overflow-amount, -50px));
+  transition: transform var(--slide-duration, 3s) ease-in-out;
+}
+
 /* Long titles only scroll while their row is hovered */
 .marquee-on-hover { width: max-content; }
 .group:hover .marquee-on-hover {

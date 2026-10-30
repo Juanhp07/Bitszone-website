@@ -1,7 +1,11 @@
 import React from 'react';
 
 /** One-line title: if it does not fit it scrolls back and forth (always when `active`, otherwise while the parent `.group` is hovered). `center` centres it when it does fit. */
-export const MarqueeTitle = ({ text, active = false, center = false }: { text: string; active?: boolean; center?: boolean }) => {
+export const MarqueeTitle = ({ text, active = false, center = false, slideOnHover = false }: {
+  text: string; active?: boolean; center?: boolean;
+  /** hover slides the text to its end, and letting go eases it back (instead of looping and snapping back) */
+  slideOnHover?: boolean;
+}) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const textRef = React.useRef<HTMLSpanElement>(null);
   const [isOverflowing, setIsOverflowing] = React.useState(false);
@@ -30,8 +34,8 @@ export const MarqueeTitle = ({ text, active = false, center = false }: { text: s
   return (
     <div ref={containerRef} className="overflow-hidden flex-1 relative px-4 -mx-4 py-4 -my-4" style={{ maskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)' }}>
       <div
-        className={`whitespace-nowrap ${isOverflowing ? (active ? 'animate-marquee-pingpong' : 'marquee-on-hover') : center ? 'text-center' : ''}`}
-        style={isOverflowing ? { '--overflow-amount': `-${overflowAmount}px` } as React.CSSProperties : {}}
+        className={`whitespace-nowrap ${isOverflowing ? (active ? 'animate-marquee-pingpong' : slideOnHover ? 'marquee-slide' : 'marquee-on-hover') : center ? 'text-center' : ''}`}
+        style={isOverflowing ? { '--overflow-amount': `-${overflowAmount}px`, '--slide-duration': `${Math.max(1.5, overflowAmount / 160)}s` } as React.CSSProperties : {}}
       >
         <span ref={textRef} className="inline-block truncate-none">
           {text}
