@@ -417,13 +417,21 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       handleNextRef.current?.();
     };
 
+    // the stream stalls waiting for data (slow connection, seeking): show the same loading state until it resumes
+    const handleWaiting = () => setIsAudioLoading(true);
+    const handleResumed = () => setIsAudioLoading(false);
+
     audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
     audioRef.current.addEventListener('ended', handleEnded);
+    audioRef.current.addEventListener('waiting', handleWaiting);
+    audioRef.current.addEventListener('playing', handleResumed);
 
     return () => {
       if (audioRef.current) {
         audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
         audioRef.current.removeEventListener('ended', handleEnded);
+        audioRef.current.removeEventListener('waiting', handleWaiting);
+        audioRef.current.removeEventListener('playing', handleResumed);
       }
     };
   }, [nowPlayingAlbum, nowPlayingTrack, isShuffle, repeatMode]);
