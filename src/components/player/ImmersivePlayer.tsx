@@ -949,6 +949,7 @@ export const ImmersivePlayer = ({
                    aria-valuemin={0}
                    aria-valuemax={100}
                    aria-valuenow={Math.round((scrubProgress !== null ? scrubProgress : progress) * 100)}
+                   data-no-pressfx
                    className="flex-1 h-9 md:h-8 flex items-center relative cursor-pointer group touch-none py-2"
                    onPointerDown={handleTimelinePointerDown}
                    onPointerMove={handleTimelinePointerMove}

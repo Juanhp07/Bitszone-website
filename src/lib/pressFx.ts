@@ -1,6 +1,7 @@
 // Site-wide press micro-interaction: anything clickable dips when pressed and springs back with a small overshoot.
 // It animates the standalone `scale` property with the Web Animations API, so it never fights the element's own
-// transitions or `transform` utilities. The sidebar (and the phone tab bar that mirrors it) opt out with data-no-pressfx.
+// transitions or `transform` utilities. data-no-pressfx opts out a whole subtree (sidebar, phone tab bar, seek bars);
+// data-no-pressfx-self opts out only that element, not what is inside it.
 
 const CLICKABLE = 'button, [role="button"], [role="tab"], [role="menuitem"], a[href], summary, .cursor-pointer';
 
@@ -20,6 +21,7 @@ export const installPressFx = () => {
 
   const skip = (el: Element) =>
     el.closest('[data-no-pressfx]') ||
+    el.hasAttribute('data-no-pressfx-self') ||
     (el as HTMLButtonElement).disabled ||
     el.getAttribute('aria-disabled') === 'true' ||
     // these already have their own press feedback

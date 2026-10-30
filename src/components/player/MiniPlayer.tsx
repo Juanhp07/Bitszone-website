@@ -15,7 +15,7 @@ export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlay
   const unplayedPathRef = useRef<SVGPathElement>(null);
   const circleRef = useRef<SVGCircleElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const state = useRef({ phase: 0, amp: isPlaying ? 1 : 0, hoverAmp: 0, progress, isPlaying });
+  const state = useRef({ phase: 0, amp: isPlaying ? 1 : 0, hoverAmp: 0, grab: 0, held: false, progress, isPlaying });
   state.current.progress = progress;
   state.current.isPlaying = isPlaying;
 
@@ -23,6 +23,13 @@ export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlay
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let raf = 0;
     let last = performance.now();
+    // held = pointer down on the bar (the parent is the seek area)
+    const area = svgRef.current?.parentElement;
+    const hold = () => { state.current.held = true; };
+    const letGo = () => { state.current.held = false; };
+    area?.addEventListener('pointerdown', hold);
+    window.addEventListener('pointerup', letGo);
+    window.addEventListener('pointercancel', letGo);
     const WAVELENGTH = 34;
     const BASE_AMPLITUDE = 3.2;
     const HOVER_AMPLITUDE = 4.0;
@@ -38,13 +45,14 @@ export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlay
       // Smoothly expand curves when hovering over seek bar
       const isHovered = Boolean(svgRef.current?.closest('.group')?.matches(':hover'));
       st.hoverAmp += ((isHovered ? 1 : 0) - st.hoverAmp) * Math.min(1, dt / 140);
+      st.grab += ((st.held ? 1 : 0) - st.grab) * Math.min(1, dt / 110);
 
       if (!reduce) st.phase += dt * 0.0036;
 
       const totalWidth = svgRef.current?.clientWidth ?? 0;
       const width = Math.max(0, Math.min(totalWidth, totalWidth * st.progress));
       const MID = (svgRef.current?.clientHeight ?? 24) / 2;
-      const effectiveAmp = (BASE_AMPLITUDE + (HOVER_AMPLITUDE - BASE_AMPLITUDE) * st.hoverAmp) * st.amp;
+      const effectiveAmp = (BASE_AMPLITUDE + (HOVER_AMPLITUDE - BASE_AMPLITUDE) * st.hoverAmp) * Math.max(st.amp, st.grab * 0.6) * (1 + 0.5 * st.grab);
 
       // 1. Played wavy path (0 -> width): pure white sine wave
       let dPlayed = `M0 ${MID}`;
@@ -72,12 +80,18 @@ export const WavyProgress = ({ progress, isPlaying }: { progress: number; isPlay
       if (circleRef.current) {
         circleRef.current.setAttribute('cx', width.toFixed(1));
         circleRef.current.setAttribute('cy', MID.toString());
+        circleRef.current.setAttribute('r', (6 + 3.5 * st.grab).toFixed(2));
       }
 
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      area?.removeEventListener('pointerdown', hold);
+      window.removeEventListener('pointerup', letGo);
+      window.removeEventListener('pointercancel', letGo);
+    };
   }, []);
 
   return (
@@ -270,6 +284,7 @@ export const MiniPlayer = ({
         const control = target.closest('button, a, input, [role="button"], [role="slider"], .cursor-pointer');
         if (!control || control === e.currentTarget) onExpand();
       }}
+      data-no-pressfx-self
       className="w-full h-[80px] bg-transparent shrink-0 hidden md:flex items-center justify-between px-6 relative group/player rounded-none cursor-pointer"
     >
       {/* Decorative gradient overlay */}
@@ -280,6 +295,7 @@ export const MiniPlayer = ({
       </div>
       {/* Seek bar on the top edge with fluid pointer scrubbing */}
       <div
+        data-no-pressfx
         className="absolute left-0 right-0 top-0 -translate-y-1/2 h-6 z-20 group flex items-center cursor-pointer touch-none"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
