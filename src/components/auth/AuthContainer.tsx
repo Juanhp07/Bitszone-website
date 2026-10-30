@@ -66,7 +66,7 @@ const stepIndex: Record<Method, Record<Step, number>> = {
 };
 
 // the background reveals in this many seconds; the card and the corner buttons come in right as it reaches them
-const BG_INTRO_SECONDS = 1.4;
+const BG_INTRO_SECONDS = 1.0;
 
 export const AuthContainer = () => {
   const [step, setStep] = useState<Step>('choose');
@@ -308,8 +308,17 @@ export const AuthContainer = () => {
       )}
 
       <motion.div
-        className="relative z-10 w-full max-w-[960px] md:h-[min(600px,calc(100vh-2rem))] flex rounded-3xl overflow-hidden shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
-        style={{ ...cardStyle, y: cardY, WebkitMaskImage: cardMask, maskImage: cardMask }}
+        style={{ y: cardY }}
+        className="relative z-10 w-full max-w-[960px] md:h-[min(600px,calc(100vh-2rem))]"
+      >
+        <motion.div
+          aria-hidden="true"
+          style={{ opacity: cardReveal, boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.55)' }}
+          className="pointer-events-none absolute inset-0 rounded-3xl"
+        />
+      <motion.div
+        className="relative z-10 w-full h-full flex rounded-3xl overflow-hidden [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
+        style={{ ...cardStyle, boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2)', WebkitMaskImage: cardMask, maskImage: cardMask }}
       >
         {/* Left: the flow */}
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
@@ -529,6 +538,7 @@ export const AuthContainer = () => {
             })}
           </ol>
         </div>
+      </motion.div>
       </motion.div>
     </div>
   );
