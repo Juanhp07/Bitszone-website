@@ -615,15 +615,26 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   )}
 
                   {/* Search / Filter Shortcuts */}
-                  <div className="relative">
-                    <Search className="w-5 h-5 text-white/40 absolute left-4 top-1/2 -translate-y-1/2" />
+                  <div className="relative group">
+                    <Search className="w-4 h-4 text-white/45 group-focus-within:text-white absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10 transition-colors duration-200" />
                     <input
                       type="text"
                       placeholder="Buscar atajo (volumen, reproducir, letra)..."
                       value={shortcutsSearch}
                       onChange={(e) => setShortcutsSearch(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 focus:border-purple-400 text-sm text-white placeholder-white/40 focus:outline-none"
+                      className="w-full pl-11 pr-9 py-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.06] border border-white/10 focus:border-purple-400 text-sm text-white placeholder-white/40 focus:outline-none transition-colors"
                     />
+                    {shortcutsSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setShortcutsSearch('')}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-colors cursor-pointer z-10"
+                        title="Borrar búsqueda"
+                        aria-label="Borrar búsqueda"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
 
                   {/* Shortcuts List */}

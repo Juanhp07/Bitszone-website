@@ -809,15 +809,26 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
           <div className="p-6 rounded-[2rem] bg-black/40 border border-white/10 backdrop-blur-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
             
             {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-white/40 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="relative flex-1 group">
+              <Search className="w-4 h-4 text-white/45 group-focus-within:text-white absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10 transition-colors duration-200" />
               <input
                 type="text"
                 placeholder="Buscar usuario por nombre o correo..."
                 value={searchUserQuery}
                 onChange={(e) => setSearchUserQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-white/40 text-sm focus:outline-none focus:border-purple-400 transition-colors"
+                className="w-full pl-11 pr-9 py-3 rounded-2xl bg-white/5 hover:bg-white/[0.07] border border-white/10 text-white placeholder-white/40 text-sm focus:outline-none focus:border-purple-400 transition-colors"
               />
+              {searchUserQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchUserQuery('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-colors cursor-pointer z-10"
+                  title="Borrar búsqueda"
+                  aria-label="Borrar búsqueda"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
             {/* Role Filter & Add Button */}
