@@ -650,8 +650,8 @@ useEffect(() => {
                   {/* Right side: actions revealed on hover (always visible on touch) */}
                   <div className="relative flex items-center gap-1 lg:gap-3">
                     <div
-                      className={`flex items-center gap-1 lg:gap-3 lg:absolute lg:right-full lg:mr-1 lg:top-1/2 lg:-translate-y-1/2 transition-[opacity,clip-path] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] [@media(hover:none)]:opacity-100 ${
-                        isHovered || menuOpen ? 'opacity-100 lg:[clip-path:inset(0_0_0_0)]' : 'opacity-0 lg:[clip-path:inset(0_100%_0_0)] pointer-events-none [@media(hover:none)]:pointer-events-auto'
+                      className={`flex items-center gap-1 lg:gap-3 lg:absolute lg:right-full lg:mr-1 lg:top-1/2 lg:-translate-y-1/2 origin-right transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] [@media(hover:none)]:opacity-100 ${
+                        isHovered || menuOpen ? 'opacity-100 scale-100' : 'opacity-0 lg:scale-50 pointer-events-none [@media(hover:none)]:pointer-events-auto'
                       }`}
                     >
                       <button
@@ -703,7 +703,7 @@ useEffect(() => {
                         setTrackMenuPos({ top: rect.bottom + 6, left: rect.right - 270, isUpward: false });
                         setOpenTrackMenu(openTrackMenu === track.id ? null : track.id);
                       }}
-                      className={`w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-white/50 hover:text-white transition-[opacity,color] duration-300 p-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:opacity-100 cursor-pointer [@media(hover:none)]:opacity-100 ${isHovered || menuOpen ? 'opacity-100' : 'lg:opacity-0'}`}
+                      className={`w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-white/50 hover:text-white transition-[opacity,transform,color] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] p-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:opacity-100 focus-visible:scale-100 cursor-pointer [@media(hover:none)]:opacity-100 ${isHovered || menuOpen ? 'opacity-100 scale-100' : 'lg:opacity-0 lg:scale-50'}`}
                       title="Más opciones de la canción"
                       aria-label={`Más opciones para ${track.title}`}
                       aria-expanded={openTrackMenu === track.id}
