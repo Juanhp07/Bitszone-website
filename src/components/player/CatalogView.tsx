@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { Play, Pause, Download, Check, CheckCircle, Loader2, ChevronLeft, Heart, AlertCircle, HeartOff, X } from 'lucide-react';
+import { Play, Pause, Download, Check, CheckCircle, Loader2, ChevronLeft, Heart, AlertCircle, HeartOff, X, ArrowUpDown } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 import { usePlayback } from './PlaybackContext';
@@ -10,8 +10,42 @@ import { useAdminEdit } from '../admin/AdminEditContext';
 import { BackButton } from '../ui/BackButton';
 import { AdminPencil } from '../admin/AdminEditWidgets';
 import { cardStyle, titleStyle } from '../auth/authUi';
+import { PopoverMenu } from '../ui/PopoverMenu';
 
 type CatalogSection = 'canciones' | 'artistas' | 'destacados' | null;
+type SortOption = 'default' | 'alpha' | 'popular';
+
+type SortMenuState = {
+  section: 'canciones' | 'artistas' | 'destacados';
+  anchor: { x: number; y: number; x2?: number };
+} | null;
+
+const SORT_OPTIONS: { id: SortOption; label: string }[] = [
+  { id: 'default', label: 'Por defecto' },
+  { id: 'alpha', label: 'Alfabéticamente' },
+  { id: 'popular', label: 'Populares' },
+];
+
+const POPULAR_ARTISTS_RANK: Record<string, number> = {
+  'Michael Jackson': 100,
+  'Linkin Park': 95,
+  'Bruno Mars': 92,
+  'Travis Scott': 90,
+  'Post Malone': 88,
+  'Post Malone & Swae Lee': 87,
+  'Justin Bieber': 85,
+  'Radiohead': 82,
+  'Phil Collins': 80,
+  'Incubus': 78,
+  '5 Seconds of Summer': 75,
+  'Adolescent\'s Orquesta': 72,
+  'Whitesnake': 70,
+};
+
+const getArtistPopularity = (artistName: string): number => {
+  return POPULAR_ARTISTS_RANK[artistName] ?? 50;
+};
+
 let lastExpanded: CatalogSection = null;
 /** going Home from the sidebar shows the main catalog again */
 export const resetCatalogSection = () => { lastExpanded = null; };
@@ -46,6 +80,10 @@ export const CatalogView = ({
   const [showDownloadConfirm, setShowDownloadConfirm] = useState<Album | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState<Album | null>(null);
   const [completedFlashIds, setCompletedFlashIds] = useState<Record<string, number>>({});
+  const [songsSort, setSongsSort] = useState<SortOption>('default');
+  const [artistsSort, setArtistsSort] = useState<SortOption>('default');
+  const [albumsSort, setAlbumsSort] = useState<SortOption>('default');
+  const [sortMenu, setSortMenu] = useState<SortMenuState>(null);
 
   useEffect(() => {
     const handleCompleted = (e: any) => {
@@ -102,19 +140,73 @@ export const CatalogView = ({
     'Justin Bieber': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Justin_Bieber_20161111_009-2_%28cropped%29.jpg/500px-Justin_Bieber_20161111_009-2_%28cropped%29.jpg'
   };
 
-  const artistsMap = new Map();
-  albums.forEach(rawAlbum => {
-    const album = applyAlbumOverrides(rawAlbum);
-    if (!artistsMap.has(album.artist)) {
-      const baseArtist = {
-        name: album.artist,
-        img: knownArtistImages[album.artist] || album.coverUrl,
-        type: album.artist.includes('Combo') || album.artist.includes('Orquesta') ? 'Grupo Musical' : 'Artista'
-      };
-      artistsMap.set(album.artist, applyArtistOverrides(baseArtist));
+  const dynamicArtists = useMemo(() => {
+    const artistsMap = new Map();
+    albums.forEach(rawAlbum => {
+      const album = applyAlbumOverrides(rawAlbum);
+      if (!artistsMap.has(album.artist)) {
+        const baseArtist = {
+          name: album.artist,
+          img: knownArtistImages[album.artist] || album.coverUrl,
+          type: album.artist.includes('Combo') || album.artist.includes('Orquesta') ? 'Grupo Musical' : 'Artista'
+        };
+        artistsMap.set(album.artist, applyArtistOverrides(baseArtist));
+      }
+    });
+    return Array.from(artistsMap.values());
+  }, [albums, applyAlbumOverrides, applyArtistOverrides]);
+
+  const displayedSongs = useMemo(() => {
+    if (songsSort === 'default') return albums;
+    if (songsSort === 'alpha') {
+      return [...albums].sort((a, b) => {
+        const titleA = (a.tracks?.[0]?.title || a.title || '').trim();
+        const titleB = (b.tracks?.[0]?.title || b.title || '').trim();
+        return titleA.localeCompare(titleB, 'es', { sensitivity: 'base' });
+      });
     }
-  });
-  const dynamicArtists = Array.from(artistsMap.values());
+    if (songsSort === 'popular') {
+      return [...albums].sort((a, b) => {
+        const scoreA = getArtistPopularity(a.artist);
+        const scoreB = getArtistPopularity(b.artist);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return (b.tracks?.length || 0) - (a.tracks?.length || 0);
+      });
+    }
+    return albums;
+  }, [albums, songsSort]);
+
+  const displayedArtists = useMemo(() => {
+    if (artistsSort === 'default') return dynamicArtists;
+    if (artistsSort === 'alpha') {
+      return [...dynamicArtists].sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
+    }
+    if (artistsSort === 'popular') {
+      return [...dynamicArtists].sort((a, b) => {
+        const scoreA = getArtistPopularity(a.name);
+        const scoreB = getArtistPopularity(b.name);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+      });
+    }
+    return dynamicArtists;
+  }, [dynamicArtists, artistsSort]);
+
+  const displayedAlbums = useMemo(() => {
+    if (albumsSort === 'default') return albums;
+    if (albumsSort === 'alpha') {
+      return [...albums].sort((a, b) => a.title.localeCompare(b.title, 'es', { sensitivity: 'base' }));
+    }
+    if (albumsSort === 'popular') {
+      return [...albums].sort((a, b) => {
+        const scoreA = getArtistPopularity(a.artist) * 10 + (a.trackCount || a.tracks?.length || 0);
+        const scoreB = getArtistPopularity(b.artist) * 10 + (b.trackCount || b.tracks?.length || 0);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return a.title.localeCompare(b.title, 'es', { sensitivity: 'base' });
+      });
+    }
+    return albums;
+  }, [albums, albumsSort]);
 
   const renderList = (items: any[], isExpanded: boolean, renderItem: (item: any, i: number) => React.ReactNode, chevronTop?: number) => {
     if (isExpanded) {
@@ -448,12 +540,35 @@ export const CatalogView = ({
             {expandedSection && (
                             <BackButton onClick={() => setExpandedSection(null)} label="Volver a la vista principal" />
             )}
-            <div className="flex items-center min-w-0 gap-1">
+            <div className="flex items-center min-w-0 gap-2">
               <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
                 {personalized 
                   ? getButtonText('catalog.songs_personalized', 'Para ti') 
                   : getButtonText('catalog.songs_title', 'Canciones del momento')}
               </h2>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setSortMenu(prev =>
+                    prev?.section === 'canciones' ? null : {
+                      section: 'canciones',
+                      anchor: { x: rect.left, y: rect.bottom + 6, x2: rect.right }
+                    }
+                  );
+                }}
+                className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 shrink-0 ${
+                  songsSort !== 'default'
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                    : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/50 hover:text-white border border-white/5 hover:border-white/10'
+                }`}
+                title="Ordenar canciones"
+                aria-label="Opciones de ordenamiento para canciones"
+                aria-expanded={sortMenu?.section === 'canciones'}
+              >
+                <ArrowUpDown className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
+              </button>
               {isAdmin && isEditMode && (
                 <AdminPencil
                   target={{
@@ -494,7 +609,7 @@ export const CatalogView = ({
             </div>
           )}
         </div>
-        {loading ? renderSkeletonCards() : renderList(albums, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 128)}
+        {loading ? renderSkeletonCards() : renderList(displayedSongs, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 128)}
       </motion.section>
       )}
 
@@ -510,10 +625,33 @@ export const CatalogView = ({
             {expandedSection && (
                             <BackButton onClick={() => setExpandedSection(null)} label="Volver a la vista principal" />
             )}
-            <div className="flex items-center min-w-0 gap-1">
+            <div className="flex items-center min-w-0 gap-2">
               <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
                 {getButtonText('catalog.artists_title', 'Artistas populares')}
               </h2>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setSortMenu(prev =>
+                    prev?.section === 'artistas' ? null : {
+                      section: 'artistas',
+                      anchor: { x: rect.left, y: rect.bottom + 6, x2: rect.right }
+                    }
+                  );
+                }}
+                className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 shrink-0 ${
+                  artistsSort !== 'default'
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                    : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/50 hover:text-white border border-white/5 hover:border-white/10'
+                }`}
+                title="Ordenar artistas"
+                aria-label="Opciones de ordenamiento para artistas"
+                aria-expanded={sortMenu?.section === 'artistas'}
+              >
+                <ArrowUpDown className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
+              </button>
               {isAdmin && isEditMode && (
                 <AdminPencil
                   target={{
@@ -554,10 +692,10 @@ export const CatalogView = ({
             </div>
           )}
         </div>
-        {loading ? renderSkeletonArtists() : renderList(dynamicArtists, expandedSection === 'artistas', (rawArtist, i) => {
+        {loading ? renderSkeletonArtists() : renderList(displayedArtists, expandedSection === 'artistas', (rawArtist, i) => {
           const artist = applyArtistOverrides(rawArtist);
           return (
-            <div key={i} className={`${expandedSection ? 'w-full' : 'w-[40vw] max-w-[180px] sm:w-48 md:w-56 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer relative`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
+            <div key={artist.name || i} className={`${expandedSection ? 'w-full' : 'w-[40vw] max-w-[180px] sm:w-48 md:w-56 md:max-w-none'} shrink-0 snap-start flex flex-col items-center gap-3 md:gap-4 group cursor-pointer relative`} onClick={() => onSelectArtist && onSelectArtist(artist)}>
               <div className={`${expandedSection ? 'w-full aspect-square' : 'w-full aspect-square md:w-56 md:h-56'} rounded-full overflow-hidden shadow-xl relative`}>
                 <img src={artist.img} alt={artist.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none"></div>
@@ -602,10 +740,33 @@ export const CatalogView = ({
             {expandedSection && (
                             <BackButton onClick={() => setExpandedSection(null)} label="Volver a la vista principal" />
             )}
-            <div className="flex items-center min-w-0 gap-1">
+            <div className="flex items-center min-w-0 gap-2">
               <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
                 {getButtonText('catalog.albums_title', 'Álbumes destacados')}
               </h2>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setSortMenu(prev =>
+                    prev?.section === 'destacados' ? null : {
+                      section: 'destacados',
+                      anchor: { x: rect.left, y: rect.bottom + 6, x2: rect.right }
+                    }
+                  );
+                }}
+                className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 shrink-0 ${
+                  albumsSort !== 'default'
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                    : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/50 hover:text-white border border-white/5 hover:border-white/10'
+                }`}
+                title="Ordenar álbumes"
+                aria-label="Opciones de ordenamiento para álbumes"
+                aria-expanded={sortMenu?.section === 'destacados'}
+              >
+                <ArrowUpDown className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
+              </button>
               {isAdmin && isEditMode && (
                 <AdminPencil
                   target={{
@@ -646,7 +807,7 @@ export const CatalogView = ({
             </div>
           )}
         </div>
-        {loading ? renderSkeletonCards() : renderList(personalized ? albums : [...albums].sort((a, b) => a.title.localeCompare(b.title)), expandedSection === 'destacados', (album) => renderAlbumCard(album), 128)}
+        {loading ? renderSkeletonCards() : renderList(displayedAlbums, expandedSection === 'destacados', (album) => renderAlbumCard(album), 128)}
       </motion.section>
       )}
       
@@ -726,6 +887,34 @@ export const CatalogView = ({
         </div>,
         document.body
       )}
+
+      <PopoverMenu
+        open={Boolean(sortMenu)}
+        anchor={sortMenu?.anchor ?? null}
+        width={220}
+        onClose={() => setSortMenu(null)}
+        items={SORT_OPTIONS.map((opt) => {
+          const currentSort =
+            sortMenu?.section === 'canciones'
+              ? songsSort
+              : sortMenu?.section === 'artistas'
+                ? artistsSort
+                : albumsSort;
+          const isActive = currentSort === opt.id;
+          return {
+            label: opt.label,
+            active: isActive,
+            icon: isActive ? <Check className="w-4 h-4 text-white" /> : undefined,
+            onSelect: () => {
+              if (!sortMenu) return;
+              if (sortMenu.section === 'canciones') setSongsSort(opt.id);
+              else if (sortMenu.section === 'artistas') setArtistsSort(opt.id);
+              else if (sortMenu.section === 'destacados') setAlbumsSort(opt.id);
+              setSortMenu(null);
+            },
+          };
+        })}
+      />
 
     </div>
   );
