@@ -17,6 +17,37 @@ import { DownloadProgressPill } from './DownloadProgressPill';
 import type { Track, Album } from './types';
 import { cardStyle, titleStyle } from '../auth/authUi';
 
+const FadeScroll = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ top: false, bottom: false });
+  const update = () => {
+    const el = ref.current;
+    if (!el) return;
+    setEdges({ top: el.scrollTop > 4, bottom: el.scrollTop + el.clientHeight < el.scrollHeight - 4 });
+  };
+  useEffect(() => {
+    update();
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => ro.disconnect();
+  }, []);
+  const mask = `linear-gradient(to bottom, ${edges.top ? 'transparent 0, black 40px' : 'black 0'}, ${edges.bottom ? 'black calc(100% - 40px), transparent 100%' : 'black 100%'})`;
+  return (
+    <div
+      ref={ref}
+      onScroll={update}
+      onWheel={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) e.stopPropagation(); }}
+      className={`overflow-y-auto overscroll-contain scrollbar-hide ${className}`}
+      style={{ scrollbarWidth: 'none', maskImage: mask, WebkitMaskImage: mask }}
+    >
+      <div>{children}</div>
+    </div>
+  );
+};
+
 const TimeAgo = ({ dateStr }: { dateStr?: string }) => {
   const [now, setNow] = useState(Date.now());
   
@@ -665,15 +696,12 @@ export const DownloadsView = ({
               else removeAlbumFromFavorites(g.id);
             };
             return (
-              <div className="relative px-1 md:px-8 w-full pb-12 animate-in fade-in slide-in-from-right-4 duration-300">
-                {/* the back button sits in the corner like on the album page and takes no row of its own */}
-                <div className="absolute left-1 md:left-8 top-0 z-10">
+              <div className="px-1 md:px-8 w-full pb-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                {/* like the album page: back button, cover with title and actions, and the list, all starting on the same line */}
+                <div className="grid grid-cols-1 lg:grid-cols-[44px_minmax(240px,380px)_minmax(0,1fr)] gap-4 lg:gap-12 items-start">
                   <BackButton onClick={() => setSelectedAlbumId(null)} label="Volver a la lista de álbumes" text="Álbumes" hoverWidth="hover:w-[112px] md:hover:w-[120px]" />
-                </div>
-                {/* like the album page: cover, title and actions on the left, the list on the right (without the vinyl) */}
-                <div className="grid grid-cols-1 lg:grid-cols-[minmax(250px,380px)_minmax(0,1fr)] gap-8 lg:gap-14 lg:pl-16 pt-14 lg:pt-1 items-start">
-                  <div className="lg:sticky lg:top-24 flex flex-col items-center lg:items-start gap-5 min-w-0">
-                    <div className="relative w-[min(68vw,300px)] lg:w-full aspect-square rounded-3xl overflow-hidden bg-white/5 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.7)]">
+                  <div className="flex flex-col items-center lg:items-start gap-4 min-w-0">
+                    <div className="relative w-[min(68vw,300px)] lg:w-full lg:max-w-[min(100%,calc(100dvh-520px))] aspect-square rounded-3xl overflow-hidden bg-white/5 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.7)]">
                       {g.coverUrl ? <img src={g.coverUrl} alt={g.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Icon className="w-16 h-16 text-white/20" /></div>}
                     </div>
                     <div className="flex flex-col gap-1.5 text-center lg:text-left min-w-0 w-full">
@@ -727,9 +755,11 @@ export const DownloadsView = ({
                       <div className="text-center">TIEMPO</div>
                       <div className="text-center">{type === 'downloads' ? 'ELIMINAR' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
                     </div>
-                    <div className="flex flex-col gap-0.5">
-                      {g.tracks.map((track: any, index: number) => renderTrack(track, index))}
-                    </div>
+                    <FadeScroll className="lg:max-h-[min(calc(100dvh-400px),36rem)] -mx-2 px-2">
+                      <div className="flex flex-col gap-0.5">
+                        {g.tracks.map((track: any, index: number) => renderTrack(track, index))}
+                      </div>
+                    </FadeScroll>
                   </div>
                 </div>
               </div>
