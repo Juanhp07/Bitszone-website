@@ -44,6 +44,11 @@ export const SectionHero = ({
           className="relative w-20 h-20 md:w-40 md:h-40 shrink-0 rounded-[26px] md:rounded-[38px] flex items-center justify-center backdrop-blur-2xl overflow-hidden"
           style={{ background: `rgba(${accent}, 0.2)` }}
         >
+          <Icon className={`relative w-9 h-9 md:w-16 md:h-16 text-white custom-icon-${type}`} />
+        </motion.div>
+
+        <div className="flex flex-col gap-1.5 md:gap-2.5 min-w-0">
+          <span className="text-white/65 text-[11px] md:text-sm font-semibold tracking-[0.22em] uppercase">{kicker}</span>
           <div
             className="text-[26px] leading-tight md:text-4xl lg:text-5xl md:leading-none font-black text-white tracking-tight"
             style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
