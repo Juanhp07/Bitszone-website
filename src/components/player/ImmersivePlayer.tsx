@@ -85,7 +85,7 @@ const AnimatedSongTitle = ({
   return (
     <div
       key={trackId}
-      className={`relative flex w-full items-center justify-center max-w-full min-w-0 overflow-visible group group/title select-none ${className}`}
+      className={`relative flex w-full items-center justify-center max-w-full min-w-0 overflow-visible group/title select-none ${className}`}
     >
       <style>{`
         @keyframes titleCharRollUpOnce {

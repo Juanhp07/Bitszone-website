@@ -278,7 +278,7 @@ html {
   /* same duration and curve back as forward, so leaving the title eases back as gently as it slid */
   transition: transform var(--slide-duration, 3s) ease-in-out;
 }
-.group:hover .marquee-slide {
+.marquee-hover-scope:hover .marquee-slide {
   transform: translateX(var(--overflow-amount, -50px));
   transition: transform var(--slide-duration, 3s) ease-in-out;
 }

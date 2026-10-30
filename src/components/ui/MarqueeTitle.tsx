@@ -35,7 +35,7 @@ export const MarqueeTitle = ({ text = '', children, measureKey, active = false, 
   }, [text, measureKey]);
 
   return (
-    <div ref={containerRef} className="overflow-hidden flex-1 relative px-4 -mx-4 py-4 -my-4" style={{ maskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)' }}>
+    <div ref={containerRef} className={`overflow-hidden flex-1 relative px-4 -mx-4 py-4 -my-4 ${slideOnHover ? 'marquee-hover-scope' : ''}`} style={{ maskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)' }}>
       <div
         className={`whitespace-nowrap ${isOverflowing ? (active ? 'animate-marquee-pingpong' : slideOnHover ? 'marquee-slide' : 'marquee-on-hover') : center ? 'text-center' : ''}`}
         style={isOverflowing ? { '--overflow-amount': `-${overflowAmount}px`, '--slide-duration': `${Math.max(1.5, overflowAmount / 160)}s` } as React.CSSProperties : {}}

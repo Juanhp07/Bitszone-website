@@ -443,7 +443,7 @@ useEffect(() => {
                   <h1
                     onDoubleClick={() => isPlaylist && setIsRenaming(true)}
                     title={isPlaylist ? 'Doble clic para cambiar el nombre' : currentTitle}
-                    className="group min-w-0 flex-1 font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight pb-1"
+                    className="min-w-0 flex-1 font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight pb-1"
                   >
                     {/* one line, like the player: a long title scrolls (only while hovered) instead of wrapping and breaking the layout */}
                     <MarqueeTitle text={currentTitle} center slideOnHover />
