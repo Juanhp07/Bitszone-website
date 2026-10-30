@@ -266,9 +266,6 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
         aria-labelledby="general-settings-title"
         onClick={onClose}
       >
-        {/* Invisible SVG filter definitions */}
-        <ColorBlindnessSvgFilters />
-
         {/* Modal Card */}
         <motion.div
           id="config-modal-card"
@@ -707,7 +704,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       <div>
                         <div className="text-base font-bold text-white">Crossfade entre canciones</div>
                         <div className="text-sm text-white/60 mt-0.5">
-                          Funde el final de una canción con el inicio de la siguiente
+                          Funde la salida de una canción y la entrada de la siguiente
                         </div>
                       </div>
                       <span className="font-mono text-sm text-purple-300 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30 font-bold">
@@ -743,10 +740,10 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   {/* Volume Normalization */}
                   <ToggleSwitch
                     label="Normalización Automática de Volumen"
-                    description="Mantiene un nivel de volumen constante entre todas las pistas"
+                    description="Nivela los picos de volumen para que todas las pistas suenen parejo"
                     checked={settings.volumeNormalization}
                     onChange={(v) => onUpdateSettings(prev => ({ ...prev, volumeNormalization: v }))}
-                    badge="ReplayGain"
+                    badge="Nivelado"
                   />
                 </div>
               )}

@@ -16,6 +16,7 @@ import { AdminDashboard } from '../admin/AdminDashboard';
 import { AdminEditProvider } from '../admin/AdminEditContext';
 import { AdminEditModal } from '../admin/AdminEditModal';
 import { AdminEditFloatingBar } from '../admin/AdminEditWidgets';
+import { ColorBlindnessSvgFilters } from './GeneralSettingsModal';
 import { useProfile } from '../../lib/useProfile';
 import { recordListen } from '../../lib/listenHistory';
 import { ProfileDialog } from './ProfileDialog';
@@ -73,6 +74,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTabId>('appearance');
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(loadGeneralSettings);
   const generalSettingsRef = useRef(generalSettings);
+  useEffect(() => { audioVisualizer.setNormalization(generalSettings.volumeNormalization); }, [generalSettings.volumeNormalization]);
   useEffect(() => {
     generalSettingsRef.current = generalSettings;
   }, [generalSettings]);
@@ -226,7 +228,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
    * Fades audio volume smoothly to targetNormalized [0..1] over durationMs.
    * Modulates both Web Audio hardware GainNode and HTMLAudioElement.volume.
    */
-  const fadeAudioVolume = (targetNormalized: number, durationMs: number = 180): Promise<void> => {
+  const fadeAudioVolume = (targetNormalized: number, durationMs: number = 180, force = false): Promise<void> => {
+    // "Fade al pausar y reanudar" off = volume changes are instant (a forced fade, like the crossfade, still runs)
+    if (!force && !generalSettingsRef.current.smoothVolumeTransitions) durationMs = 0;
     return new Promise((resolve) => {
       if (volumeFadeRef.current) {
         volumeFadeRef.current.cancel();
@@ -386,6 +390,12 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         setProgress(audioRef.current.currentTime / audioRef.current.duration || 0);
         // time is moving, so it is not loading any more (a stalled "waiting" must never stay stuck)
         if (!audioRef.current.paused && !audioRef.current.seeking) setIsAudioLoading(false);
+        const cf = generalSettingsRef.current.crossfadeDuration;
+        const a = audioRef.current;
+        if (cf > 0 && !crossfadeOutRef.current && a.duration > cf * 2 && a.duration - a.currentTime <= cf) {
+          crossfadeOutRef.current = true;
+          fadeRef.current?.(0, Math.max(200, (a.duration - a.currentTime) * 1000), true);
+        }
       }
     };
 
@@ -468,11 +478,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   // Keyboard Shortcuts Refs
   const togglePlayRef = useRef<(() => void) | null>(null);
+  const fadeRef = useRef<typeof fadeAudioVolume | null>(null);
+  const crossfadeOutRef = useRef(false);
   const handlePrevRef = useRef<(() => void) | null>(null);
   const handleNextRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     togglePlayRef.current = togglePlay;
+    fadeRef.current = fadeAudioVolume;
     handlePrevRef.current = handlePrevTrack;
     handleNextRef.current = handleNextTrack;
   });
@@ -735,6 +748,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     }
     playRequestIdRef.current += 1;
     const currentRequestId = playRequestIdRef.current;
+    crossfadeOutRef.current = false;
 
     setIsAudioLoading(true);
     setNowPlayingTrack(track);
@@ -779,7 +793,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
          if (currentRequestId === playRequestIdRef.current) {
            setIsPlaying(true);
            setIsAudioLoading(false);
-           fadeAudioVolume(1.0, 320); // 320ms smooth crossfade in
+           const cf = generalSettingsRef.current.crossfadeDuration;
+           if (cf > 0) fadeAudioVolume(1.0, cf * 1000, true); // crossfade: the new song fades in over the chosen time
+           else fadeAudioVolume(1.0, 320); // 320ms smooth fade in
          }
       }).catch((err) => {
          console.error(err);
@@ -988,6 +1004,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     <PlaylistsProvider>
     <PlaybackContext.Provider value={playback}>
       <ToastContainer />
+      <ColorBlindnessSvgFilters />
       <AdminEditModal />
       <AnimatePresence>
         {loading && <PlayerLoadingScreen />}
@@ -999,7 +1016,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
       {/* Dynamic Album Background Glow (Expanded to entire web page) */}
       <div
-        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && currentViewingAlbum ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && currentViewingAlbum && generalSettings.ambientBackground ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="absolute inset-0 bg-black/45 z-10"></div>
         <AnimatePresence>
