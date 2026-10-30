@@ -4,7 +4,7 @@ import { Star, Play, Pause, Heart, HeartOff, MoreHorizontal, Clock, ArrowLeft, D
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 import { DownloadProgressPill } from './DownloadProgressPill';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useRubberBand } from '../ui/useRubberBand';
 import { ListScrollbar } from '../ui/ListScrollbar';
 import { PopoverMenu, type PopoverMenuItem } from '../ui/PopoverMenu';
@@ -602,25 +602,23 @@ useEffect(() => {
                   )}
                   <div className="relative text-white/50 font-medium flex items-center justify-center tabular-nums">
                     {isPlayingTrack ? (
-                      // icon of the playing song: bars, or what a click on the left zone will do (pop between them)
-                      <AnimatePresence mode="wait" initial={false}>
-                        <motion.span
-                          key={isLoading ? 'load' : eqZoneHover ? (isPlaying ? 'pause' : 'play') : 'eq'}
-                          initial={{ scale: 0.4, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0.4, opacity: 0 }}
-                          transition={{ type: 'spring', stiffness: 700, damping: 30, mass: 0.6 }}
-                          className="flex items-center justify-center"
-                        >
-                          {isLoading ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-white" aria-label="Cargando canción" />
-                          ) : eqZoneHover ? (
-                            isPlaying ? <Pause className="w-4 h-4 text-white" fill="currentColor" aria-hidden="true" /> : <Play className="w-4 h-4 ml-0.5 text-white" fill="currentColor" aria-hidden="true" />
-                          ) : (
-                            <EqBars playing={isPlaying} className="h-4 w-4" barClassName="w-[3px] bg-white" />
-                          )}
-                        </motion.span>
-                      </AnimatePresence>
+                      // icon of the playing song: bars, or what a click on the left zone will do. The four icons are stacked
+                      // and cross-fade with a small overshoot (pop); CSS only, so it stays smooth and never gets stuck mid-swap.
+                      <span className="relative w-5 h-5 flex items-center justify-center">
+                        {[
+                          { id: 'eq', on: !isLoading && !eqZoneHover, node: <EqBars playing={isPlaying} className="h-4 w-4" barClassName="w-[3px] bg-white" /> },
+                          { id: 'pause', on: !isLoading && eqZoneHover && isPlaying, node: <Pause className="w-4 h-4 text-white" fill="currentColor" aria-hidden="true" /> },
+                          { id: 'play', on: !isLoading && eqZoneHover && !isPlaying, node: <Play className="w-4 h-4 ml-0.5 text-white" fill="currentColor" aria-hidden="true" /> },
+                          { id: 'load', on: isLoading, node: <Loader2 className="w-4 h-4 animate-spin text-white" aria-label="Cargando canción" /> },
+                        ].map(({ id, on, node }) => (
+                          <span
+                            key={id}
+                            className={`absolute inset-0 flex items-center justify-center transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${on ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}
+                          >
+                            {node}
+                          </span>
+                        ))}
+                      </span>
                     ) : isHovered ? (
                       <Play className="w-4 h-4 text-white" fill="currentColor" />
                     ) : (

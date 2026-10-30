@@ -384,6 +384,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     const handleTimeUpdate = () => {
       if (audioRef.current) {
         setProgress(audioRef.current.currentTime / audioRef.current.duration || 0);
+        // time is moving, so it is not loading any more (a stalled "waiting" must never stay stuck)
+        if (!audioRef.current.paused && !audioRef.current.seeking) setIsAudioLoading(false);
       }
     };
 
@@ -418,7 +420,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     };
 
     // the stream stalls waiting for data (slow connection, seeking): show the same loading state until it resumes
-    const handleWaiting = () => setIsAudioLoading(true);
+    const handleWaiting = () => { if (audioRef.current && !audioRef.current.paused) setIsAudioLoading(true); };
     const handleResumed = () => setIsAudioLoading(false);
 
     audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
