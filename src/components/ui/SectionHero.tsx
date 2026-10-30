@@ -42,15 +42,8 @@ export const SectionHero = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 210, damping: 20 }}
           className="relative w-20 h-20 md:w-40 md:h-40 shrink-0 rounded-[26px] md:rounded-[38px] flex items-center justify-center backdrop-blur-2xl overflow-hidden"
-          style={{ background: `linear-gradient(150deg, rgba(${accent}, 0.62), rgba(${accent}, 0.2) 70%)` }}
+          style={{ background: `rgba(${accent}, 0.2)` }}
         >
-          {/* a light edge on top, like glass catching light */}
-          <span aria-hidden="true" className="absolute inset-0 rounded-[inherit] bg-gradient-to-b from-white/25 to-transparent opacity-60 pointer-events-none" />
-          <Icon className={`relative w-9 h-9 md:w-16 md:h-16 text-white custom-icon-${type}`} />
-        </motion.div>
-
-        <div className="flex flex-col gap-1.5 md:gap-2.5 min-w-0">
-          <span className="text-white/65 text-[11px] md:text-sm font-semibold tracking-[0.22em] uppercase">{kicker}</span>
           <div
             className="text-[26px] leading-tight md:text-4xl lg:text-5xl md:leading-none font-black text-white tracking-tight"
             style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
@@ -100,7 +93,7 @@ export const SectionEmpty = ({
     >
       <div
         className="w-24 h-24 rounded-full flex items-center justify-center backdrop-blur-2xl"
-        style={{ background: `radial-gradient(circle at 30% 25%, rgba(${accent}, 0.4), rgba(${accent}, 0.1) 70%)` }}
+        style={{ background: `rgba(${accent}, 0.18)` }}
       >
         <Icon className="w-10 h-10 text-white/90" />
       </div>
