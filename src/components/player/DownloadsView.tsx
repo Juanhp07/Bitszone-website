@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRubberBand } from '../ui/useRubberBand';
 import { createPortal } from 'react-dom';
+import { LiquidTabs } from '../ui/LiquidTabs';
+import { PopoverMenu } from '../ui/PopoverMenu';
 import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle } from 'lucide-react';
 import FuseButton from '../ui/FuseButton';
 import HoldButton from '../ui/HoldButton';
@@ -77,7 +79,7 @@ export const DownloadsView = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [sortBy, setSortBy] = useState<'default' | 'recent' | 'alpha' | 'size_desc' | 'size_asc'>('default');
   const [showSort, setShowSort] = useState(false);
-  const [sortPos, setSortPos] = useState({ top: 0, left: 0 });
+  const [sortPos, setSortPos] = useState({ top: 0, left: 0, right: 0 });
   const [searchPos, setSearchPos] = useState({ top: 0, left: 0, width: 0 });
   useEffect(() => { const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowSort(false); }; if (showSort) { document.addEventListener('keydown', handleKeyDown); } return () => document.removeEventListener('keydown', handleKeyDown); }, [showSort]);
   useEffect(() => {
@@ -522,60 +524,23 @@ export const DownloadsView = ({
 
       {/* Action Bar (Search & Tabs) */}
       <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 sticky top-0 bg-[#07050c]/80 md:bg-transparent backdrop-blur-md z-30 border-b border-white/5">
-        <div className="relative flex bg-white/5 rounded-full p-1 border border-white/10">
-          {/* Animated Background Pill */}
-          <div 
-            className={`absolute top-1 bottom-1 w-[96px] md:w-[110px] rounded-full transition-transform duration-300 ease-out border shadow-md ${
-              viewMode === 'canciones' ? 'translate-x-0' : 'translate-x-full'
-            } ${
-              type === 'licenses' ? 'bg-yellow-500/20 border-yellow-500/30' : 
-              type === 'playlists' ? 'bg-green-500/20 border-green-500/30' : 
-              type === 'downloads' ? 'bg-blue-500/20 border-blue-500/30' : 
-              'bg-[#a855f7]/20 border-[#a855f7]/30'
-            }`}
+        {/* same glass dock as the player's tabs */}
+        <div className="rounded-full p-1.5 w-[220px] md:w-[250px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors duration-300">
+          <LiquidTabs
+            value={viewMode}
+            onChange={(id) => { setViewMode(id); setSelectedAlbumId(null); }}
+            tabs={[
+              { id: 'canciones' as const, label: 'Canciones', title: 'Ver por canciones' },
+              { id: 'albumes' as const, label: 'Álbumes', title: 'Ver por álbumes' },
+            ]}
           />
-          
-          <button 
-            role="tab"
-            aria-selected={viewMode === 'canciones'}
-            title="Ver por canciones"
-            aria-label="Ver lista de canciones"
-            onClick={() => { setViewMode('canciones'); setSelectedAlbumId(null); }} 
-            className={`relative z-10 w-[96px] md:w-[110px] py-2 md:py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
-              viewMode === 'canciones' ? (
-                type === 'licenses' ? 'text-yellow-400' : 
-                type === 'playlists' ? 'text-green-400' : 
-                type === 'downloads' ? 'text-blue-400' : 
-                'text-[#c084fc]'
-              ) : 'text-white/50 hover:text-white'
-            }`}
-          >
-            Canciones
-          </button>
-          <button 
-            role="tab"
-            aria-selected={viewMode === 'albumes'}
-            title="Ver por álbumes"
-            aria-label="Ver lista de álbumes"
-            onClick={() => { setViewMode('albumes'); setSelectedAlbumId(null); }} 
-            className={`relative z-10 w-[96px] md:w-[110px] py-2 md:py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
-              viewMode === 'albumes' ? (
-                type === 'licenses' ? 'text-yellow-400' : 
-                type === 'playlists' ? 'text-green-400' : 
-                type === 'downloads' ? 'text-blue-400' : 
-                'text-[#c084fc]'
-              ) : 'text-white/50 hover:text-white'
-            }`}
-          >
-            Álbumes
-          </button>
         </div>
 
         <div className="relative z-50">
           <button 
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
-              setSortPos({ top: rect.bottom, left: Math.max(8, rect.right - 280) });
+              setSortPos({ top: rect.bottom + 6, left: rect.left, right: rect.right });
               setShowSort(!showSort);
             }} 
             title="Opciones de ordenamiento"
@@ -586,33 +551,24 @@ export const DownloadsView = ({
             <span className="hidden sm:inline text-white/30 mr-1">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : 'Menos pesados'}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-y-px"><path d="m6 9 6 6 6-6"/></svg>
           </button>
-          {showSort && typeof document !== 'undefined' && createPortal(
-            <>
-            <div className="fixed inset-0 z-[9998]" onClick={() => setShowSort(false)} />
-            <div 
-              style={{ top: sortPos.top, left: sortPos.left }}
-              className={`fixed mt-4 w-[min(280px,calc(100vw-16px))] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-[#140d1f]/95 md:bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : type === 'downloads' ? 'border-blue-500/20' : 'border-[#a855f7]/20'}`}>
-              {[
-                { id: 'default', label: 'Por defecto' },
-                { id: 'recent', label: 'Añadidos recientemente' },
-                { id: 'alpha', label: 'Alfabéticamente' },
-                { id: 'size_desc', label: 'Más pesados' },
-                { id: 'size_asc', label: 'Menos pesados' }
-              ].map(opt => (
-                <button 
-                  key={opt.id}
-                  onClick={() => { setSortBy(opt.id as any); setShowSort(false); }}
-                  title={`Ordenar por: ${opt.label}`}
-                  aria-label={`Ordenar por ${opt.label}`}
-                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${sortBy === opt.id ? 'bg-white/10 text-white font-medium' : `text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : type === 'downloads' ? 'hover:bg-blue-500/10' : 'hover:bg-[#a855f7]/10'}`}`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-            </>,
-            document.body
-          )}
+          <PopoverMenu
+            open={showSort}
+            anchor={showSort ? { x: sortPos.left, y: sortPos.top, x2: sortPos.right } : null}
+            width={260}
+            onClose={() => setShowSort(false)}
+            items={[
+              { id: 'default', label: 'Por defecto' },
+              { id: 'recent', label: 'Añadidos recientemente' },
+              { id: 'alpha', label: 'Alfabéticamente' },
+              { id: 'size_desc', label: 'Más pesados' },
+              { id: 'size_asc', label: 'Menos pesados' },
+            ].map((opt) => ({
+              label: opt.label,
+              active: sortBy === opt.id,
+              icon: sortBy === opt.id ? <Check className="w-4 h-4" /> : undefined,
+              onSelect: () => setSortBy(opt.id as any),
+            }))}
+          />
         </div>
         
         <div className="relative w-full md:max-w-sm md:ml-4">

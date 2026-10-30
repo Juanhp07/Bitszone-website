@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Heart, Star, ListMusic, ChevronDown } from 'lucide-react';
 import { DownloadsView } from './DownloadsView';
 import { PlaylistsGrid } from './PlaylistsGrid';
+import { PopoverMenu } from '../ui/PopoverMenu';
 
 const DropdownItem = ({ id, title, icon: Icon, hoverBg, activeTab, onSelect }: any) => {
   return (
@@ -49,6 +50,7 @@ const StaggeredRollingText = ({ text }: { text: string }) => {
 
 const LibraryDropdown = ({ activeTab, setActiveTab }: { activeTab: string, setActiveTab: (tab: any) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [anchor, setAnchor] = useState<{ x: number; y: number; x2: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const titles: any = {
@@ -56,23 +58,6 @@ const LibraryDropdown = ({ activeTab, setActiveTab }: { activeTab: string, setAc
     licenses: 'Canciones con licencia',
     playlists: 'Listas de reproducción'
   };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEsc);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, []);
 
   const getModalStyles = () => {
     if (activeTab === 'licenses') return 'bg-black/30 border-yellow-500/20 shadow-2xl';
@@ -99,7 +84,11 @@ const LibraryDropdown = ({ activeTab, setActiveTab }: { activeTab: string, setAc
       `}</style>
       
       <button 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setAnchor({ x: r.left, y: r.bottom + 8, x2: r.right });
+          setIsOpen(!isOpen);
+        }}
         title={isOpen ? "Cerrar menú de biblioteca" : "Cambiar sección de biblioteca"}
         aria-label={isOpen ? "Cerrar menú de biblioteca" : "Cambiar sección de biblioteca"}
         aria-haspopup="menu"
@@ -110,37 +99,17 @@ const LibraryDropdown = ({ activeTab, setActiveTab }: { activeTab: string, setAc
         <ChevronDown className={`w-6 h-6 md:w-10 md:h-10 shrink-0 text-white/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} strokeWidth={3} />
       </button>
       
-      {isOpen && (
-        <div 
-        className={`absolute top-full mt-3 md:mt-4 left-0 md:left-auto md:right-0 w-[min(280px,calc(100vw-32px))] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans ${getModalStyles()}`}
-        style={{ WebkitTextStroke: '0', fontWeight: 'normal' }}
-      >
-          <DropdownItem 
-            id="favorites" 
-            title="Canciones favoritas" 
-            icon={Heart}
-            hoverBg={getHoverBg()}
-            activeTab={activeTab}
-            onSelect={() => { setActiveTab('library-favorites'); setIsOpen(false); }}
-          />
-          <DropdownItem 
-            id="playlists" 
-            title="Listas de reproducción" 
-            icon={ListMusic}
-            hoverBg={getHoverBg()}
-            activeTab={activeTab}
-            onSelect={() => { setActiveTab('library-playlists'); setIsOpen(false); }}
-          />
-          <DropdownItem 
-            id="licenses" 
-            title="Canciones con licencia" 
-            icon={Star}
-            hoverBg={getHoverBg()}
-            activeTab={activeTab}
-            onSelect={() => { setActiveTab('library-licenses'); setIsOpen(false); }}
-          />
-        </div>
-      )}
+      <PopoverMenu
+        open={isOpen}
+        anchor={isOpen ? anchor : null}
+        width={270}
+        onClose={() => setIsOpen(false)}
+        items={[
+          { label: 'Canciones favoritas', icon: <Heart className="w-4 h-4" />, active: activeTab === 'favorites', onSelect: () => setActiveTab('library-favorites') },
+          { label: 'Listas de reproducción', icon: <ListMusic className="w-4 h-4" />, active: activeTab === 'playlists', onSelect: () => setActiveTab('library-playlists') },
+          { label: 'Canciones con licencia', icon: <Star className="w-4 h-4" />, active: activeTab === 'licenses', onSelect: () => setActiveTab('library-licenses') },
+        ]}
+      />
     </div>
   );
 };

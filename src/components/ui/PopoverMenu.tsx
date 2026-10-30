@@ -10,6 +10,8 @@ export type PopoverMenuItem = {
   danger?: boolean;
   /** Keep the menu open after selecting (e.g. to show a sub-step) */
   keepOpen?: boolean;
+  /** The current choice (sort order, section...): highlighted */
+  active?: boolean;
 };
 
 // Floating menu with an Apple-style "grow from the anchor" spring.
@@ -108,7 +110,7 @@ export const PopoverMenu = ({
                 transition={{ duration: 0.24, delay: 0.04 + i * 0.022, ease: [0.16, 1, 0.3, 1] }}
                 role="menuitem"
                 onClick={(e) => { e.stopPropagation(); item.onSelect(); if (!item.keepOpen) onClose(); }}
-                className={`w-full text-left flex items-center justify-between gap-3 px-3.5 py-2.5 text-[14px] rounded-xl transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:bg-white/10 cursor-pointer ${item.danger ? 'text-red-300/90 hover:text-red-200 hover:bg-red-500/15' : 'text-white/75 hover:text-white hover:bg-white/10'}`}
+                className={`w-full text-left flex items-center justify-between gap-3 px-3.5 py-2.5 text-[14px] rounded-xl transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:bg-white/10 cursor-pointer ${item.danger ? 'text-red-300/90 hover:text-red-200 hover:bg-red-500/15' : item.active ? 'text-white bg-white/[0.12]' : 'text-white/75 hover:text-white hover:bg-white/10'}`}
               >
                 {item.label}
                 {item.icon && <span className="shrink-0 opacity-80">{item.icon}</span>}

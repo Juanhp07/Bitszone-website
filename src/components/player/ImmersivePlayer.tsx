@@ -467,7 +467,7 @@ export const ImmersivePlayer = ({
       if (activeIndex === -1) { scroller.scrollTo({ top: 0, behavior: lyricsAlignedRef.current ? 'smooth' : 'auto' }); return; }
       if (!active) {
         // the lyrics appear after the tab's switch animation: try again shortly
-        if (tries++ < 15) timer = setTimeout(align, 80);
+        if (tries++ < 30) timer = setTimeout(align, 50);
         return;
       }
       const sc = scroller.getBoundingClientRect();
@@ -1142,7 +1142,6 @@ export const ImmersivePlayer = ({
                            return (
                              <motion.div
                                key={`${line.time}-${i}`}
-                               variants={cascadedItemVariants}
                                data-active-lyric={isActive ? 'true' : undefined}
                                onClick={() => {
                                  if (onSeek && durationSecs > 0) {
