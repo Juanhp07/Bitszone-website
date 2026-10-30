@@ -80,9 +80,13 @@ export function LiquidTabs<T extends string>({
           tinted dark so the album colour shows through. Little blur here: the label sits behind the glass. */}
       <motion.div
         aria-hidden="true"
-        className="absolute top-0 bottom-0 left-0 z-20 rounded-full overflow-hidden pointer-events-none transition-opacity duration-200"
+        className="absolute top-0 bottom-0 left-0 z-20 rounded-full overflow-hidden pointer-events-none transition-[opacity,top,bottom,left,width] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
         style={{
-          width: segment || `${100 / tabs.length}%`,
+          // held = a bit smaller (resized, not scaled: scaling a clipped glass layer breaks Chrome's rounded crop)
+          width: segment ? segment - (pressed ? 10 : 0) : `${100 / tabs.length}%`,
+          top: pressed ? 3 : 0,
+          bottom: pressed ? 3 : 0,
+          left: pressed ? 5 : 0,
           x: springX,
           opacity: hasActive ? 1 : 0,
         }}
