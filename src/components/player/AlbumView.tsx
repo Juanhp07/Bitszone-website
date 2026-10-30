@@ -108,9 +108,9 @@ export const AlbumView = ({
   }, [showDownloadConfirm]);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const moreMenuRef = useRef<HTMLButtonElement>(null);
-  const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0 });
+  const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0, right: 0 });
   const [openTrackMenu, setOpenTrackMenu] = useState<number | null>(null);
-  const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0, isUpward: false });
+  const [trackMenuPos, setTrackMenuPos] = useState<{ top: number; left: number; right?: number; isUpward: boolean }>({ top: 0, left: 0, isUpward: false });
   const { isLicensed, downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isSongRadio = Boolean((album as any)?.isSongRadio);
   // follow the playing song only while this radio is what's playing; another radio that merely contains it keeps its own song
@@ -387,7 +387,7 @@ useEffect(() => {
                     ref={moreMenuRef}
                     onClick={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
-                      setMoreMenuPos({ top: rect.bottom + 8, left: rect.right - 220 });
+                      setMoreMenuPos({ top: rect.bottom + 6, left: rect.left, right: rect.right });
                       setShowMoreMenu(!showMoreMenu);
                     }}
                     className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 text-white/75 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
@@ -399,7 +399,7 @@ useEffect(() => {
                   </button>
                   <PopoverMenu
                     open={showMoreMenu}
-                    anchor={showMoreMenu ? { x: moreMenuPos.left, y: moreMenuPos.top } : null}
+                    anchor={showMoreMenu ? { x: moreMenuPos.left, y: moreMenuPos.top, x2: moreMenuPos.right } : null}
                     width={220}
                     onClose={() => setShowMoreMenu(false)}
                     items={[
@@ -705,7 +705,7 @@ useEffect(() => {
                       onClick={(e) => {
                         e.stopPropagation();
                         const rect = e.currentTarget.getBoundingClientRect();
-                        setTrackMenuPos({ top: rect.bottom + 6, left: rect.right - 270, isUpward: false });
+                        setTrackMenuPos({ top: rect.bottom + 6, left: rect.left, right: rect.right, isUpward: false });
                         setOpenTrackMenu(openTrackMenu === track.id ? null : track.id);
                       }}
                       className={`w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-white/50 hover:text-white transition-[opacity,transform,color] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] p-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:opacity-100 focus-visible:scale-100 cursor-pointer [@media(hover:none)]:opacity-100 ${isHovered || menuOpen ? 'opacity-100 scale-100' : 'lg:opacity-0 lg:scale-50'}`}
@@ -773,7 +773,7 @@ useEffect(() => {
             track={menuTrack}
             album={album}
             hideGoToAlbum={!isPlaylist}
-            anchor={menuTrack ? { x: trackMenuPos.left, y: trackMenuPos.top } : null}
+            anchor={menuTrack ? { x: trackMenuPos.left, y: trackMenuPos.top, x2: trackMenuPos.right } : null}
             onClose={() => setOpenTrackMenu(null)}
             leadingItems={menuTrack ? [
               { label: isFavorite(menuTrack.id) ? 'Eliminar de favoritos' : 'Agregar a favoritos', icon: <Heart className="w-4 h-4" fill={isFavorite(menuTrack.id) ? 'currentColor' : 'none'} />, onSelect: () => toggleFavorite(menuTrack, album) },

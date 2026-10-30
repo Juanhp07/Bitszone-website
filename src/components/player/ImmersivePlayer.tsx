@@ -432,7 +432,7 @@ export const ImmersivePlayer = ({
 
   const { isFavorite, toggleFavorite, isLicensed, isDownloaded, downloadTrack } = useDownloads();
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
-  const [rowMenu, setRowMenu] = useState<{ track: Track; album: Album; inQueue: boolean; anchor: { x: number; y: number } } | null>(null);
+  const [rowMenu, setRowMenu] = useState<{ track: Track; album: Album; inQueue: boolean; anchor: { x: number; y: number; x2?: number } } | null>(null);
 
   const handleRowDownload = async (t: Track, from: Album) => {
     if (isDownloaded(t.id) || downloadingIds.includes(t.id)) return;
@@ -445,7 +445,7 @@ export const ImmersivePlayer = ({
     e.preventDefault();
     e.stopPropagation();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    setRowMenu({ track: t, album: from, inQueue, anchor: atCursor ? { x: e.clientX, y: e.clientY } : { x: rect.right - 270, y: rect.bottom + 6 } });
+    setRowMenu({ track: t, album: from, inQueue, anchor: atCursor ? { x: e.clientX, y: e.clientY } : { x: rect.left, y: rect.bottom + 6, x2: rect.right } });
   };
 
   // Download + more, revealed on row hover (right side)

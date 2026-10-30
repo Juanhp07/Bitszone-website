@@ -19,7 +19,7 @@ export const PlaylistsGrid = ({
 }) => {
   const { playlists, playlistAsAlbum, createPlaylist, renamePlaylist, deletePlaylist } = usePlaylists();
   const playback = usePlayback();
-  const [menu, setMenu] = useState<{ playlist: Playlist; anchor: { x: number; y: number } } | null>(null);
+  const [menu, setMenu] = useState<{ playlist: Playlist; anchor: { x: number; y: number; x2?: number } } | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -113,7 +113,7 @@ export const PlaylistsGrid = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       const r = e.currentTarget.getBoundingClientRect();
-                      setMenu({ playlist: p, anchor: { x: r.right - 220, y: r.bottom + 6 } });
+                      setMenu({ playlist: p, anchor: { x: r.left, y: r.bottom + 6, x2: r.right } });
                     }}
                     className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                     aria-label={`Más opciones para ${p.name}`}

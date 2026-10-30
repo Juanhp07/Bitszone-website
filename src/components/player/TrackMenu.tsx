@@ -23,7 +23,7 @@ export const TrackMenu = ({
 }: {
   track: Track | null;
   album: Album;
-  anchor: { x: number; y: number } | null;
+  anchor: { x: number; y: number; x2?: number } | null;
   onClose: () => void;
   leadingItems?: PopoverMenuItem[];
   trailingItems?: PopoverMenuItem[];

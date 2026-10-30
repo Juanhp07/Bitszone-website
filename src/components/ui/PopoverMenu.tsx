@@ -22,7 +22,9 @@ export const PopoverMenu = ({
   width = 240,
 }: {
   open: boolean;
-  anchor: { x: number; y: number } | null;
+  /** x/y = where the menu starts (a click, or the button's bottom-left). x2 = the button's right edge: if the menu
+   *  doesn't fit to the right it flips so its right edge lines up with the button's. */
+  anchor: { x: number; y: number; x2?: number } | null;
   items: PopoverMenuItem[];
   onClose: () => void;
   width?: number;
@@ -36,7 +38,7 @@ export const PopoverMenu = ({
     const openLeft = anchor.x + width + 8 > window.innerWidth;
     const openUp = anchor.y + h + 8 > window.innerHeight;
     setPos({
-      left: Math.max(8, openLeft ? anchor.x - width : anchor.x),
+      left: Math.max(8, openLeft ? (anchor.x2 ?? anchor.x) - width : anchor.x),
       top: Math.max(8, openUp ? anchor.y - h : anchor.y),
       originX: openLeft ? 'right' : 'left',
       originY: openUp ? 'bottom' : 'top',
@@ -71,11 +73,12 @@ export const PopoverMenu = ({
           <motion.div
             ref={menuRef}
             role="menu"
-            // no `filter` here: on the same element it switches off the backdrop blur
-            initial={{ opacity: 0, scale: 0.86 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.14, ease: [0.4, 0, 1, 1] } }}
-            transition={{ type: 'spring', stiffness: 520, damping: 34, mass: 0.7 }}
+            // Apple-style: the menu unrolls downward from where you clicked (clip reveal + a small stretch), then settles.
+            // No `filter` here: on the same element it switches off the backdrop blur.
+            initial={{ opacity: 0, scaleY: 0.9, scaleX: 0.97, y: pos?.originY === 'bottom' ? 6 : -6, clipPath: `inset(${pos?.originY === 'bottom' ? '60% 0 0 0' : '0 0 60% 0'} round 24px)` }}
+            animate={{ opacity: 1, scaleY: 1, scaleX: 1, y: 0, clipPath: 'inset(0% 0% 0% 0% round 24px)' }}
+            exit={{ opacity: 0, scaleY: 0.94, y: pos?.originY === 'bottom' ? 4 : -4, transition: { duration: 0.14, ease: [0.4, 0, 1, 1] } }}
+            transition={{ type: 'spring', stiffness: 460, damping: 36, mass: 0.7, opacity: { duration: 0.16 } }}
             style={{
               left: pos?.left ?? anchor.x,
               top: pos?.top ?? anchor.y,
@@ -100,9 +103,9 @@ export const PopoverMenu = ({
             {items.map((item, i) => (
               <motion.button
                 key={item.label}
-                initial={{ opacity: 0, x: 6 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.22, delay: i * 0.018, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.24, delay: 0.04 + i * 0.022, ease: [0.16, 1, 0.3, 1] }}
                 role="menuitem"
                 onClick={(e) => { e.stopPropagation(); item.onSelect(); if (!item.keepOpen) onClose(); }}
                 className={`w-full text-left flex items-center justify-between gap-3 px-3.5 py-2.5 text-[14px] rounded-xl transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:bg-white/10 cursor-pointer ${item.danger ? 'text-red-300/90 hover:text-red-200 hover:bg-red-500/15' : 'text-white/75 hover:text-white hover:bg-white/10'}`}
