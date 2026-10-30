@@ -25,6 +25,8 @@ export interface GradientASCIIProps extends Omit<HTMLAttributes<HTMLDivElement>,
   scrambleRadius?: number;
   clickEffect?: GradientASCIIClickEffect;
   intro?: boolean;
+  /** how long the intro reveal takes; defaults to INTRO_SECONDS */
+  introSeconds?: number;
   lightMode?: boolean;
   fontFamily?: string;
   dpr?: number;
@@ -52,6 +54,7 @@ type Settings = {
   scrambleRadius: number;
   clickEffect: number;
   intro: boolean;
+  introSeconds: number;
   lightMode: boolean;
   fontFamily: string;
   dpr?: number;
@@ -510,6 +513,7 @@ const GradientASCII = ({
   scrambleRadius = 0.1,
   clickEffect = 'wave',
   intro = true,
+  introSeconds = INTRO_SECONDS,
   lightMode = false,
   fontFamily = DEFAULT_FONT,
   dpr,
@@ -542,6 +546,7 @@ const GradientASCII = ({
     scrambleRadius: clamp(scrambleRadius, 0.02, 0.4),
     clickEffect: CLICK_EFFECTS[clickEffect] ?? 1,
     intro,
+    introSeconds: Math.max(0.2, introSeconds),
     lightMode,
     fontFamily: fontFamily || DEFAULT_FONT,
     dpr
@@ -799,7 +804,7 @@ const GradientASCII = ({
         time += dt * s.speed * 0.5;
         glyphTime += dt * Math.max(s.speed, 0.15);
       }
-      if (introClock < 1) introClock = Math.min(1, introClock + dt / INTRO_SECONDS);
+      if (introClock < 1) introClock = Math.min(1, introClock + dt / s.introSeconds);
       grainClock += dt;
       if (!reduce && grainClock > 1 / 24) {
         grainClock = 0;

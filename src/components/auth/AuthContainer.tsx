@@ -65,6 +65,9 @@ const stepIndex: Record<Method, Record<Step, number>> = {
   admin: { choose: 0, google: 0, code: 1, password: 1, done: 2 },
 };
 
+// the background reveals in this many seconds; the card and the corner buttons come in right as it reaches them
+const BG_INTRO_SECONDS = 1.2;
+
 export const AuthContainer = () => {
   const [step, setStep] = useState<Step>('choose');
   const [method, setMethod] = useState<Method>('email');
@@ -82,7 +85,7 @@ export const AuthContainer = () => {
 
   const MemoizedBackgrounds = useMemo(() => (
     <div className="absolute inset-0 z-0">
-      <GradientASCII colors={['#8a3aed', '#9c55f7', '#d05adc', '#bb38f8']} glow={0.15} grain={0.05} flicker={0.06} speed={0.55} gradientOpacity={0.85} style={{ filter: 'brightness(0.92)' }} />
+      <GradientASCII colors={['#8a3aed', '#9c55f7', '#d05adc', '#bb38f8']} glow={0.15} grain={0.05} flicker={0.06} speed={0.55} introSeconds={BG_INTRO_SECONDS} gradientOpacity={0.85} style={{ filter: 'brightness(0.92)' }} />
       {/* vignette: keeps the vivid glow near the top and eases the edges so it doesn't tire the eyes */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 120% 95% at 50% 15%, transparent 45%, rgba(5,5,10,0.22) 80%, rgba(5,5,10,0.5) 100%)' }} />
     </div>
@@ -257,7 +260,12 @@ export const AuthContainer = () => {
       {MemoizedBackgrounds}
 
       {(step === 'choose' || step === 'password') && (
-        <div className="absolute top-5 right-5 md:top-8 md:right-8 z-20">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: BG_INTRO_SECONDS * 0.85 }}
+          className="absolute top-5 right-5 md:top-8 md:right-8 z-20"
+        >
           <BackButton
             dark
             reverse
@@ -269,11 +277,16 @@ export const AuthContainer = () => {
               ? <User className="w-5 h-5" strokeWidth={2.2} aria-hidden="true" />
               : <UserCog className="w-5 h-5" strokeWidth={2.2} aria-hidden="true" />}
           />
-        </div>
+        </motion.div>
       )}
 
       {(step === 'choose' || step === 'password') && (
-        <div className="absolute top-5 left-5 md:top-8 md:left-8 z-20">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: BG_INTRO_SECONDS * 0.85 }}
+          className="absolute top-5 left-5 md:top-8 md:left-8 z-20"
+        >
           <BackButton
             dark
             onClick={() => {
@@ -281,10 +294,13 @@ export const AuthContainer = () => {
               else window.location.href = '/player';
             }}
           />
-        </div>
+        </motion.div>
       )}
 
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.55, delay: BG_INTRO_SECONDS * 0.85, ease: [0.16, 1, 0.3, 1] }}
         className="relative z-10 w-full max-w-[960px] md:h-[min(600px,calc(100vh-2rem))] flex rounded-3xl overflow-hidden shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
         style={cardStyle}
       >
@@ -327,7 +343,7 @@ export const AuthContainer = () => {
                       />
                     </div>
                     {emailError && <p className="text-sm text-pink-200 text-center -mt-2">{emailError}</p>}
-                    <LiquidButton onClick={sendCode} status={status} className="w-full h-14 !rounded-full !bg-white/10 hover:!bg-white/[0.16] !border-white/30 hover:!border-white/50 !backdrop-blur-2xl !shadow-[0_8px_30px_rgba(0,0,0,0.3)] active:scale-[0.99]">
+                    <LiquidButton onClick={sendCode} status={status} className="w-full h-14 !rounded-full !bg-white/[0.04] hover:!bg-white/[0.1] !border-white/35 hover:!border-white/55 !backdrop-blur-2xl !shadow-[0_8px_30px_rgba(0,0,0,0.3)] active:scale-[0.99]">
                       Continuar con correo
                     </LiquidButton>
                   </div>
@@ -451,7 +467,7 @@ export const AuthContainer = () => {
                     </div>
                     {passwordError && <p className="text-sm text-pink-200 text-center -mt-2">{passwordError}</p>}
 
-                    <LiquidButton onClick={signInWithPassword} status={status} className="w-full h-14 !rounded-full !bg-white/10 hover:!bg-white/[0.16] !border-white/30 hover:!border-white/50 !backdrop-blur-2xl !shadow-[0_8px_30px_rgba(0,0,0,0.3)] active:scale-[0.99]">
+                    <LiquidButton onClick={signInWithPassword} status={status} className="w-full h-14 !rounded-full !bg-white/[0.04] hover:!bg-white/[0.1] !border-white/35 hover:!border-white/55 !backdrop-blur-2xl !shadow-[0_8px_30px_rgba(0,0,0,0.3)] active:scale-[0.99]">
                       Entrar al Dashboard
                     </LiquidButton>
                   </div>
@@ -506,7 +522,7 @@ export const AuthContainer = () => {
             })}
           </ol>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
