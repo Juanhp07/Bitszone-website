@@ -250,16 +250,15 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
   };
 
   return (
-    <div className="relative">
+    <div className="relative group/scrollable">
       {showLeft && (
         <button
           onClick={() => scroll('left')}
-          className={`hidden md:block absolute left-0 -translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
-          style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(-40%, -50%)` } : undefined}
+          className="hidden md:flex absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 md:w-10 md:h-10 rounded-full items-center justify-center bg-black/65 hover:bg-black/85 active:bg-black/95 text-white/75 hover:text-white border border-white/15 hover:border-white/30 backdrop-blur-xl shadow-[0_8px_24px_rgba(0,0,0,0.5)] opacity-0 group-hover/scrollable:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer pointer-events-none group-hover/scrollable:pointer-events-auto"
           aria-label="Desplazar hacia la izquierda"
           title="Desplazar hacia la izquierda"
         >
-          <ChevronLeft className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} aria-hidden="true" />
+          <ChevronLeft className="w-5 h-5 -ml-0.5 text-white/90" strokeWidth={2.5} aria-hidden="true" />
         </button>
       )}
       
@@ -291,12 +290,11 @@ export const ScrollableList = ({ children, chevronTop }: { children: React.React
       {showRight && (
         <button
           onClick={() => scroll('right')}
-          className={`hidden md:block absolute right-0 translate-x-[40%] z-20 p-0 text-white/[0.15] hover:text-white/60 transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${!chevronTop ? "top-1/2 -translate-y-1/2" : ""}`}
-          style={chevronTop ? { top: `${chevronTop}px`, transform: `translate(40%, -50%)` } : undefined}
+          className="hidden md:flex absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 md:w-10 md:h-10 rounded-full items-center justify-center bg-black/65 hover:bg-black/85 active:bg-black/95 text-white/75 hover:text-white border border-white/15 hover:border-white/30 backdrop-blur-xl shadow-[0_8px_24px_rgba(0,0,0,0.5)] opacity-0 group-hover/scrollable:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer pointer-events-none group-hover/scrollable:pointer-events-auto"
           aria-label="Desplazar hacia la derecha"
           title="Desplazar hacia la derecha"
         >
-          <ChevronRight className="w-14 h-14 drop-shadow-md scale-y-[1.15]" strokeWidth={2.5} aria-hidden="true" />
+          <ChevronRight className="w-5 h-5 -mr-0.5 text-white/90" strokeWidth={2.5} aria-hidden="true" />
         </button>
       )}
     </div>

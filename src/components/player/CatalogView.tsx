@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { Play, Pause, Download, Check, CheckCircle, Loader2, ChevronLeft, Heart, AlertCircle, HeartOff, X, ArrowUpDown } from 'lucide-react';
+import { Play, Pause, Download, Check, CheckCircle, Loader2, ChevronLeft, Heart, AlertCircle, HeartOff, X, ListFilter } from 'lucide-react';
 import type { Album, Track } from './types';
 import { useDownloads } from './DownloadsContext';
 import { usePlayback } from './PlaybackContext';
@@ -208,7 +208,7 @@ export const CatalogView = ({
     return albums;
   }, [albums, albumsSort]);
 
-  const renderList = (items: any[], isExpanded: boolean, renderItem: (item: any, i: number) => React.ReactNode, chevronTop?: number) => {
+  const renderList = (items: any[], isExpanded: boolean, renderItem: (item: any, i: number) => React.ReactNode) => {
     if (isExpanded) {
       return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6 md:gap-6 pb-8">
@@ -217,7 +217,7 @@ export const CatalogView = ({
       );
     }
     return (
-      <ScrollableList chevronTop={chevronTop}>
+      <ScrollableList>
         {items.map(renderItem)}
       </ScrollableList>
     );
@@ -296,10 +296,14 @@ export const CatalogView = ({
             />
           )}
 
-          {/* Botón de reproducción blanco Liquid Glass y blur con borde fino de 1px sutil y opaco */}
-          <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+          {/* Botón de reproducción blanco Liquid Glass con efecto super blur */}
+          <div className="absolute inset-0 bg-black/35 backdrop-blur-[4px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
             <button 
-              className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur-xl md:backdrop-blur-2xl border border-white/20 hover:border-white/35 shadow-[0_8px_32px_rgba(0,0,0,0.35)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
+              className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 active:bg-white/35 border border-white/35 hover:border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.45),inset_0_1.5px_2px_rgba(255,255,255,0.55)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+              style={{
+                backdropFilter: 'blur(40px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 if (album.tracks && album.tracks.length > 0) {
@@ -314,7 +318,7 @@ export const CatalogView = ({
               title={showTrackTitle && album.tracks?.[0] ? `Reproducir ${album.tracks[0].title}` : `Reproducir ${album.title}`}
               aria-label={showTrackTitle && album.tracks?.[0] ? `Reproducir canción ${album.tracks[0].title}` : `Reproducir álbum ${album.title}`}
             >
-              <Play className="w-7 h-7 md:w-9 md:h-9 ml-1 md:ml-1.5 text-white/90 fill-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
+              <Play className="w-7 h-7 md:w-9 md:h-9 ml-1 md:ml-1.5 text-white fill-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -567,7 +571,7 @@ export const CatalogView = ({
                 aria-label="Opciones de ordenamiento para canciones"
                 aria-expanded={sortMenu?.section === 'canciones'}
               >
-                <ArrowUpDown className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
+                <ListFilter className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
               </button>
               {isAdmin && isEditMode && (
                 <AdminPencil
@@ -609,7 +613,7 @@ export const CatalogView = ({
             </div>
           )}
         </div>
-        {loading ? renderSkeletonCards() : renderList(displayedSongs, expandedSection === 'canciones', (album) => renderAlbumCard(album, true), 128)}
+        {loading ? renderSkeletonCards() : renderList(displayedSongs, expandedSection === 'canciones', (album) => renderAlbumCard(album, true))}
       </motion.section>
       )}
 
@@ -650,7 +654,7 @@ export const CatalogView = ({
                 aria-label="Opciones de ordenamiento para artistas"
                 aria-expanded={sortMenu?.section === 'artistas'}
               >
-                <ArrowUpDown className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
+                <ListFilter className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
               </button>
               {isAdmin && isEditMode && (
                 <AdminPencil
@@ -724,7 +728,7 @@ export const CatalogView = ({
               </div>
             </div>
           );
-        }, 112)}
+        })}
       </motion.section>
       )}
 
@@ -765,7 +769,7 @@ export const CatalogView = ({
                 aria-label="Opciones de ordenamiento para álbumes"
                 aria-expanded={sortMenu?.section === 'destacados'}
               >
-                <ArrowUpDown className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
+                <ListFilter className="w-3.5 h-3.5 md:w-4 md:h-4" aria-hidden="true" />
               </button>
               {isAdmin && isEditMode && (
                 <AdminPencil
@@ -807,7 +811,7 @@ export const CatalogView = ({
             </div>
           )}
         </div>
-        {loading ? renderSkeletonCards() : renderList(displayedAlbums, expandedSection === 'destacados', (album) => renderAlbumCard(album), 128)}
+        {loading ? renderSkeletonCards() : renderList(displayedAlbums, expandedSection === 'destacados', (album) => renderAlbumCard(album))}
       </motion.section>
       )}
       
