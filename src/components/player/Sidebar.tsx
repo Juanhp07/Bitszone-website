@@ -49,7 +49,7 @@ export const Sidebar = ({
   return (
     <aside data-no-pressfx className={`w-full h-full flex flex-col bg-transparent px-3.5 ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : 'pt-3'}`}>
       {/* Sidebar Header: Brand Logo & Menu Toggle */}
-      <div className="pt-1 pb-3 flex items-center justify-between shrink-0 h-14 overflow-hidden">
+      <div className={`pt-1 pb-3 flex items-center shrink-0 h-14 overflow-hidden ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
         <div
           className="flex items-center overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
           style={{
