@@ -62,7 +62,7 @@ const SUBTITLE: Record<Method, string> = {
 const stepIndex: Record<Method, Record<Step, number>> = {
   email: { choose: 0, google: 0, code: 1, password: 1, done: 2 },
   google: { choose: 0, google: 1, code: 1, password: 1, done: 2 },
-  admin: { choose: 0, google: 0, code: 1, password: 1, done: 2 },
+  admin: { choose: 0, google: 0, code: 1, password: 0, done: 2 },
 };
 
 // the background reveals in this many seconds; the card and the corner buttons come in right as it reaches them
@@ -250,7 +250,7 @@ export const AuthContainer = () => {
     afterSignIn(data.session);
   };
 
-  const active = stepIndex[method][step];
+  const active = method === 'admin' && step === 'password' && status === 'loading' ? 1 : stepIndex[method][step];
   const steps = STEPS[method];
 
   const toggleAdmin = () => {
@@ -327,7 +327,7 @@ export const AuthContainer = () => {
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
 
 
-          <div className="w-full max-w-[26rem]">
+          <div className="w-full max-w-[26rem] min-h-[26rem] flex flex-col justify-center">
             <AnimatePresence mode="wait" initial={false}>
               {step === 'choose' && (
                 <motion.div key="choose" {...slide}>
@@ -517,29 +517,38 @@ export const AuthContainer = () => {
             <span>Bitszone</span>
           </h2>
           <AnimatePresence mode="wait" initial={false}>
-            <motion.p key={method} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}
-              className="text-white/90 mb-10 max-w-[85%] text-lg">
-              {SUBTITLE[method]}
-            </motion.p>
-          </AnimatePresence>
+            <motion.div
+              key={method}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full flex flex-col items-center"
+            >
+              {/* two lines tall in every mode, so the steps start at the same height whichever mode you are in */}
+              <p className="text-white/90 mb-6 max-w-[85%] text-lg min-h-[3.5rem] flex items-center justify-center">
+                {SUBTITLE[method]}
+              </p>
 
-          <ol className="w-full max-w-[22rem] space-y-3 text-left">
-            {steps.map((s, i) => {
-              const done = i < active || step === 'done';
-              const current = i === active && step !== 'done';
-              return (
-                <li key={method + i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 border transition-all duration-500 ${current ? 'bg-white/12 border-white/35' : 'border-transparent'} ${!current && !done ? 'opacity-55' : ''}`}>
-                  <span className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm leading-none tabular-nums font-semibold border transition-all duration-500 [text-shadow:none] ${done ? 'bg-white text-purple-900 border-white' : current ? 'border-white text-white' : 'border-white/40 text-white/80'}`}>
-                    {done ? <Check className="w-4 h-4" strokeWidth={3} /> : i + 1}
-                  </span>
-                  <span className="leading-tight">
-                    <span className="block font-semibold">{s.title}</span>
-                    <span className="block text-sm text-white/80">{s.text}</span>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+              <ol className="w-full max-w-[22rem] space-y-3 text-left">
+                {steps.map((s, i) => {
+                  const done = i < active || step === 'done';
+                  const current = i === active && step !== 'done';
+                  return (
+                    <li key={i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 border transition-all duration-500 ${current ? 'bg-white/12 border-white/35' : 'border-transparent'} ${!current && !done ? 'opacity-55' : ''}`}>
+                      <span className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm leading-none tabular-nums font-semibold border transition-all duration-500 [text-shadow:none] ${done ? 'bg-white text-purple-900 border-white' : current ? 'border-white text-white' : 'border-white/40 text-white/80'}`}>
+                        {done ? <Check className="w-4 h-4" strokeWidth={3} /> : i + 1}
+                      </span>
+                      <span className="leading-tight">
+                        <span className="block font-semibold">{s.title}</span>
+                        <span className="block text-sm text-white/80">{s.text}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </motion.div>
       </motion.div>

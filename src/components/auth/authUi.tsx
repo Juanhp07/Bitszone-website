@@ -18,7 +18,7 @@ export const slide = {
   initial: { opacity: 0, x: 28 },
   animate: { opacity: 1, x: 0 },
   exit: { opacity: 0, x: -28 },
-  transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const },
+  transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] as const },
 };
 
 export const Heading = ({ title, subtitle }: { title: string; subtitle: React.ReactNode }) => (
