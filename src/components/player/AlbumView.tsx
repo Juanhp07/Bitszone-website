@@ -689,9 +689,12 @@ useEffect(() => {
                     </div>
 
                     {/* Resting state indicators (hidden while actions show) */}
-                    <div className={`hidden lg:flex items-center gap-2 transition-opacity duration-200 ${isHovered || menuOpen ? 'opacity-0' : 'opacity-100'}`} aria-hidden="true">
-                      {downloaded && <CheckCircle className="w-3.5 h-3.5 text-[#a855f7]/80" strokeWidth={2.5} />}
-                      {favorited && <Heart className="w-3.5 h-3.5 text-[#a855f7]/80" fill="currentColor" />}
+                    {/* zero-width slot: the icons hang to its left, so liking a song never pushes the duration or the menu around */}
+                    <div className="hidden lg:block relative w-0 h-0" aria-hidden="true">
+                      <div className={`absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 transition-opacity duration-200 ${isHovered || menuOpen ? 'opacity-0' : 'opacity-100'}`}>
+                        {downloaded && <CheckCircle className="w-3.5 h-3.5 text-[#a855f7]/80" strokeWidth={2.5} />}
+                        {favorited && <Heart className="w-3.5 h-3.5 text-[#a855f7]/80" fill="currentColor" />}
+                      </div>
                     </div>
 
                     <span className="hidden lg:block w-12 text-right text-white/50 text-sm tabular-nums">
