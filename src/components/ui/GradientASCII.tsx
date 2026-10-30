@@ -27,6 +27,8 @@ export interface GradientASCIIProps extends Omit<HTMLAttributes<HTMLDivElement>,
   intro?: boolean;
   /** how long the intro reveal takes; defaults to INTRO_SECONDS */
   introSeconds?: number;
+  /** receives the intro progress (0..1) every frame, e.g. a framer-motion MotionValue */
+  introProgress?: { set: (v: number) => void };
   lightMode?: boolean;
   fontFamily?: string;
   dpr?: number;
@@ -55,6 +57,7 @@ type Settings = {
   clickEffect: number;
   intro: boolean;
   introSeconds: number;
+  introProgress?: { set: (v: number) => void };
   lightMode: boolean;
   fontFamily: string;
   dpr?: number;
@@ -514,6 +517,7 @@ const GradientASCII = ({
   clickEffect = 'wave',
   intro = true,
   introSeconds = INTRO_SECONDS,
+  introProgress,
   lightMode = false,
   fontFamily = DEFAULT_FONT,
   dpr,
@@ -547,6 +551,7 @@ const GradientASCII = ({
     clickEffect: CLICK_EFFECTS[clickEffect] ?? 1,
     intro,
     introSeconds: Math.max(0.2, introSeconds),
+    introProgress,
     lightMode,
     fontFamily: fontFamily || DEFAULT_FONT,
     dpr
@@ -804,7 +809,10 @@ const GradientASCII = ({
         time += dt * s.speed * 0.5;
         glyphTime += dt * Math.max(s.speed, 0.15);
       }
-      if (introClock < 1) introClock = Math.min(1, introClock + dt / s.introSeconds);
+      if (introClock < 1) {
+        introClock = Math.min(1, introClock + dt / s.introSeconds);
+        s.introProgress?.set(introClock);
+      }
       grainClock += dt;
       if (!reduce && grainClock > 1 / 24) {
         grainClock = 0;

@@ -87,21 +87,19 @@ export const AuthContainer = () => {
   const intro = useMotionValue(reduceMotion ? 1 : 0);
   useEffect(() => {
     if (reduceMotion) { intro.set(1); return; }
-    const c = animate(intro, 1, { duration: BG_INTRO_SECONDS, ease: 'linear' });
-    return () => c.stop();
+    // the background drives `intro`; if it never does (no WebGL), reveal anyway
+    const t = setTimeout(() => { if (intro.get() === 0) animate(intro, 1, { duration: 0.6 }); }, 2500);
+    return () => clearTimeout(t);
   }, [reduceMotion, intro]);
   // the card is uncovered from its bottom edge upwards, as the wave passes over it
   const cardReveal = useTransform(intro, [0.18, 0.72], [0, 1], { clamp: true });
   const cardMask = useTransform(cardReveal, (v) => (v >= 1 ? 'none' : `linear-gradient(to top, #000 ${v * 150 - 50}%, transparent ${v * 150}%)`));
   const cardY = useTransform(cardReveal, [0, 1], [22, 0]);
   const cornerOpacity = useTransform(intro, [0.55, 0.9], [0, 1], { clamp: true });
-  // glow that lights the dark areas along the wavefront, then fades once the wave has crossed the page
-  const glowY = useTransform(intro, [0, 1], ['70vh', '-55vh']);
-  const glowOpacity = useTransform(intro, [0, 0.12, 0.7, 1], [0, 1, 1, 0]);
 
   const MemoizedBackgrounds = useMemo(() => (
     <div className="absolute inset-0 z-0">
-      <GradientASCII colors={['#8a3aed', '#9c55f7', '#d05adc', '#bb38f8']} glow={0.15} grain={0.05} flicker={0.06} speed={0.55} introSeconds={BG_INTRO_SECONDS} gradientOpacity={0.85} style={{ filter: 'brightness(0.92)' }} />
+      <GradientASCII colors={['#8a3aed', '#9c55f7', '#d05adc', '#bb38f8']} glow={0.15} grain={0.05} flicker={0.06} speed={0.55} introSeconds={BG_INTRO_SECONDS} introProgress={intro} gradientOpacity={0.85} style={{ filter: 'brightness(0.92)' }} />
       {/* vignette: keeps the vivid glow near the top and eases the edges so it doesn't tire the eyes */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 120% 95% at 50% 15%, transparent 45%, rgba(5,5,10,0.22) 80%, rgba(5,5,10,0.5) 100%)' }} />
     </div>
@@ -274,17 +272,6 @@ export const AuthContainer = () => {
     <div className="min-h-screen bg-[#05050A] flex flex-col items-center justify-center p-4 font-sans text-white relative overflow-hidden">
 
       {MemoizedBackgrounds}
-
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-[-20vw] top-0 z-[1] h-[70vh]"
-        style={{
-          y: glowY,
-          opacity: glowOpacity,
-          background: 'radial-gradient(ellipse 60% 46% at 50% 50%, rgba(156,85,247,0.34), rgba(138,58,237,0.12) 55%, transparent 75%)',
-          filter: 'blur(18px)',
-        }}
-      />
 
       {(step === 'choose' || step === 'password') && (
         <motion.div
