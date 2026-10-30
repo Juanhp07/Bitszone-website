@@ -31,5 +31,9 @@ const { title, scrollable = false } = Astro.props;
   </head>
   <body class:list={['bg-canvas text-on-surface min-h-screen relative', scrollable ? 'overflow-x-clip' : 'overflow-hidden']}>
     <slot />
+    <script>
+      import { installPressFx } from '../lib/pressFx';
+      installPressFx();
+    </script>
   </body>
 </html>

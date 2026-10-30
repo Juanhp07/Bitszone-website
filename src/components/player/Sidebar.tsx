@@ -46,7 +46,7 @@ export const Sidebar = ({
   const usedPercent = (totalUsedGB / 5.0) * 100;
 
   return (
-    <aside className={`w-full h-full flex flex-col bg-transparent px-3.5 ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : 'pt-3'}`}>
+    <aside data-no-pressfx className={`w-full h-full flex flex-col bg-transparent px-3.5 ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : 'pt-3'}`}>
       {/* Sidebar Header: Brand Logo & Menu Toggle */}
       <div className="pt-1 pb-3 flex items-center justify-between shrink-0 h-14 overflow-hidden">
         <div
