@@ -256,6 +256,22 @@ export const AuthContainer = () => {
 
       {MemoizedBackgrounds}
 
+      {(step === 'choose' || step === 'password') && (
+        <div className="absolute top-5 right-5 md:top-8 md:right-8 z-20">
+          <BackButton
+            dark
+            reverse
+            onClick={toggleAdmin}
+            label={step === 'password' ? 'Volver al inicio de sesión normal' : 'Acceso para administrador'}
+            text={step === 'password' ? 'Usuario' : 'Admin'}
+            hoverWidth={step === 'password' ? 'hover:w-[118px] md:hover:w-[126px]' : 'hover:w-[104px] md:hover:w-[112px]'}
+            icon={step === 'password'
+              ? <User className="w-5 h-5" strokeWidth={2.2} aria-hidden="true" />
+              : <UserCog className="w-5 h-5" strokeWidth={2.2} aria-hidden="true" />}
+          />
+        </div>
+      )}
+
       {step === 'choose' && (
         <div className="absolute top-5 left-5 md:top-8 md:left-8 z-20">
           <BackButton
@@ -275,16 +291,6 @@ export const AuthContainer = () => {
         {/* Left: the flow */}
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
 
-          {step === 'choose' && (
-            <button
-              type="button"
-              onClick={toggleAdmin}
-              className="absolute bottom-5 inset-x-0 mx-auto w-fit flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-            >
-              <UserCog className="w-3.5 h-3.5" aria-hidden="true" />
-              Acceso administrador
-            </button>
-          )}
 
           <div className="w-full max-w-[26rem]">
             <AnimatePresence mode="wait" initial={false}>
@@ -448,24 +454,6 @@ export const AuthContainer = () => {
                     <LiquidButton onClick={signInWithPassword} status={status} className="w-full h-14">
                       Entrar al Dashboard
                     </LiquidButton>
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between text-[15px]">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail('');
-                        setPassword('');
-                        setEmailError('');
-                        setPasswordError('');
-                        setMethod('email');
-                        setStep('choose');
-                      }}
-                      className="flex items-center gap-2 text-white/80 hover:text-white transition-colors cursor-pointer py-1 text-sm font-medium"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      <span>Volver al login de usuario normal</span>
-                    </button>
                   </div>
                 </motion.div>
               )}
