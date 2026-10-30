@@ -13,11 +13,13 @@ export function LiquidTabs<T extends string>({
   value,
   onChange,
   className = '',
+  tabClassName = 'py-2 md:py-2.5 px-2',
 }: {
   tabs: LiquidTab<T>[];
   value: T;
   onChange: (id: T) => void;
   className?: string;
+  tabClassName?: string;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [segment, setSegment] = useState(0);
@@ -119,7 +121,7 @@ export function LiquidTabs<T extends string>({
             aria-selected={active}
             title={t.title}
             onClick={(e) => { if (e.detail === 0) onChange(t.id); }}
-            className={`relative z-10 flex items-center justify-center py-2 md:py-2.5 px-2 text-[10px] sm:text-[11px] md:text-xs font-semibold tracking-[0.08em] sm:tracking-[0.1em] md:tracking-[0.14em] uppercase rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer select-none ${
+            className={`relative z-10 flex items-center justify-center ${tabClassName} text-[10px] sm:text-[11px] md:text-xs font-semibold tracking-[0.08em] sm:tracking-[0.1em] md:tracking-[0.14em] uppercase rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer select-none ${
               active ? 'text-white font-bold' : 'text-white/60 hover:text-white/90'
             }`}
           >

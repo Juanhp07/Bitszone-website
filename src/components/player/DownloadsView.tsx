@@ -13,7 +13,7 @@ import { SelectableCard } from '../ui/SelectableCard';
 import { SelectionBar } from '../ui/SelectionBar';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { userStorage } from '../../lib/userStorage';
-import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle, Music2, Disc3, HardDrive, ListMusic, ChevronDown, MoreHorizontal, ListChecks } from 'lucide-react';
+import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle, Music2, Disc3, HardDrive, ListMusic, ChevronDown, MoreHorizontal, ListChecks, ArrowUpDown } from 'lucide-react';
 import FuseButton from '../ui/FuseButton';
 import HoldButton from '../ui/HoldButton';
 import { useDownloads } from './DownloadsContext';
@@ -605,7 +605,7 @@ export const DownloadsView = ({
         ) : (
           <button
             onClick={() => { if (editing) exitEditing(); else { setViewMode('albumes'); setSelectedAlbumId(null); setEditing(true); } }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold backdrop-blur-xl transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer ${editing ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-white/[0.09] hover:bg-white/[0.17]'}`}
+            className={`flex items-center gap-2 h-10 px-5 rounded-full text-sm font-semibold backdrop-blur-xl transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer ${editing ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-white/[0.09] hover:bg-white/[0.17]'}`}
           >
             <ListChecks className="w-4 h-4" aria-hidden="true" />
             Seleccionar
@@ -616,13 +616,15 @@ export const DownloadsView = ({
       {/* Action Bar (Search & Tabs) */}
       <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 sticky top-0 bg-[#07050c]/60 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none z-30">
         {/* same glass dock as the player's tabs */}
-        <div className="rounded-full p-1.5 w-[220px] md:w-[250px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors duration-300">
+        <div className="h-10 rounded-full p-1 w-[240px] md:w-[270px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors duration-300 flex items-center">
           <LiquidTabs
             value={viewMode}
             onChange={(id) => { setViewMode(id); setSelectedAlbumId(null); }}
+            className="h-full w-full"
+            tabClassName="h-full py-0 px-2.5"
             tabs={[
-              { id: 'canciones' as const, label: 'Canciones', title: 'Ver por canciones' },
-              { id: 'albumes' as const, label: 'Álbumes', title: 'Ver por álbumes' },
+              { id: 'canciones' as const, label: 'Canciones', title: 'Ver por canciones', icon: <Music2 className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+              { id: 'albumes' as const, label: 'Álbumes', title: 'Ver por álbumes', icon: <Disc3 className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
             ]}
           />
         </div>
@@ -637,10 +639,12 @@ export const DownloadsView = ({
             title="Opciones de ordenamiento"
             aria-label="Ordenar elementos"
             aria-expanded={showSort}
-            className="flex items-center gap-1.5 min-h-[44px] md:min-h-0 whitespace-nowrap text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.13] backdrop-blur-xl transition-colors text-sm font-medium group relative z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-full pl-4 pr-3 py-2 cursor-pointer"
+            className="flex items-center gap-2 h-10 px-4 whitespace-nowrap text-white/80 hover:text-white bg-white/[0.07] hover:bg-white/[0.13] backdrop-blur-xl transition-colors text-sm font-medium group relative z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-full cursor-pointer"
           >
-            <span className="hidden sm:inline text-white/40 mr-0.5">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : sortBy === 'manual' ? 'Mi orden' : 'Menos pesados'}
-            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${showSort ? 'rotate-180' : ''}`} aria-hidden="true" />
+            <ArrowUpDown className="w-3.5 h-3.5 text-white/50 group-hover:text-white/80 transition-colors shrink-0" aria-hidden="true" />
+            <span className="hidden sm:inline text-white/40 mr-0.5">Ordenar:</span>
+            <span>{sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : sortBy === 'manual' ? 'Mi orden' : 'Menos pesados'}</span>
+            <ChevronDown className={`w-4 h-4 ml-0.5 text-white/50 group-hover:text-white transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${showSort ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
           <PopoverMenu
             open={showSort}
@@ -663,7 +667,7 @@ export const DownloadsView = ({
           />
         </div>
         
-        <div className="relative w-full md:max-w-sm md:ml-4 md:focus-within:max-w-md transition-[max-width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group">
+        <div className="relative w-full md:max-w-sm md:ml-4 md:focus-within:max-w-md h-10 transition-[max-width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group">
           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-white/45 group-focus-within:text-white pointer-events-none z-10 transition-colors duration-200" />
           <input 
             type="text"
@@ -681,7 +685,7 @@ export const DownloadsView = ({
               setShowSuggestions(true);
             }}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            className="w-full bg-white/[0.07] hover:bg-white/[0.09] backdrop-blur-xl rounded-full pl-11 pr-9 py-2.5 md:py-2.5 text-base md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:bg-white/[0.12] focus:ring-1 focus:ring-white/25 transition-[background-color,box-shadow] duration-300"
+            className="w-full h-10 bg-white/[0.07] hover:bg-white/[0.09] backdrop-blur-xl rounded-full pl-11 pr-9 text-base md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:bg-white/[0.12] focus:ring-1 focus:ring-white/25 transition-[background-color,box-shadow] duration-300"
           />
           {searchQuery && (
             <button
