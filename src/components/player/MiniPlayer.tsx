@@ -113,6 +113,7 @@ export const MiniPlayer = ({
   track,
   album,
   isPlaying,
+  isLoading = false,
   togglePlay,
   progress,
   volume,
@@ -134,6 +135,8 @@ export const MiniPlayer = ({
   track: Track,
   album: Album,
   isPlaying: boolean,
+  /** the song was chosen but its audio is still loading (or stalled waiting for data) */
+  isLoading?: boolean,
   togglePlay: () => void,
   progress: number,
   volume: number,
@@ -242,8 +245,10 @@ export const MiniPlayer = ({
           aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
           className="w-11 h-11 flex items-center justify-center shrink-0"
         >
-          <span className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center">
-            {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
+          <span className="relative w-9 h-9 rounded-full bg-white text-black flex items-center justify-center">
+            {isLoading
+              ? <span className="w-[18px] h-[18px] rounded-full border-[2.5px] border-black/20 border-t-black animate-spin" role="status" aria-label="Cargando canción" />
+              : isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
           </span>
         </button>
         <button
@@ -359,6 +364,7 @@ export const MiniPlayer = ({
             title={isPlaying ? "Pausar (Espacio)" : "Reproducir (Espacio)"}
             aria-label={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
             aria-pressed={isPlaying}
+            aria-busy={isLoading}
           >
             {/* Spinning Vinyl Cover */}
             <div
@@ -379,8 +385,10 @@ export const MiniPlayer = ({
             <div className="absolute w-4.5 h-4.5 rounded-full bg-black/40 backdrop-blur-xl border border-black/10 shadow-[0_0_10px_4px_rgba(0,0,0,0.35)] pointer-events-none" />
             <div className="absolute w-1 h-1 rounded-full bg-white/10 shadow-inner pointer-events-none" />
 
-            {/* Play/Pause Icon */}
-            {isPlaying ? (
+            {/* Loading ring while the song's audio loads; it turns into pause by itself once it plays */}
+            {isLoading ? (
+              <span className="relative z-20 w-6 h-6 rounded-full border-[2.5px] border-white/25 border-t-white animate-spin drop-shadow-md" role="status" aria-label="Cargando canción" />
+            ) : isPlaying ? (
               <Pause className="w-5 h-5 relative z-10 group-hover/vplay:scale-95 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
             ) : (
               <Play className="w-5 h-5 ml-0.5 relative z-10 group-hover/vplay:scale-105 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
