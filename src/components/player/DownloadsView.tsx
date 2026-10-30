@@ -665,12 +665,13 @@ export const DownloadsView = ({
               else removeAlbumFromFavorites(g.id);
             };
             return (
-              <div className="px-1 md:px-8 max-w-[1200px] mx-auto w-full pb-12 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="mb-5 md:mb-7">
+              <div className="relative px-1 md:px-8 w-full pb-12 animate-in fade-in slide-in-from-right-4 duration-300">
+                {/* the back button sits in the corner like on the album page and takes no row of its own */}
+                <div className="absolute left-1 md:left-8 top-0 z-10">
                   <BackButton onClick={() => setSelectedAlbumId(null)} label="Volver a la lista de álbumes" text="Álbumes" hoverWidth="hover:w-[112px] md:hover:w-[120px]" />
                 </div>
                 {/* like the album page: cover, title and actions on the left, the list on the right (without the vinyl) */}
-                <div className="grid grid-cols-1 lg:grid-cols-[minmax(250px,340px)_minmax(0,1fr)] gap-8 lg:gap-14 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(250px,380px)_minmax(0,1fr)] gap-8 lg:gap-14 lg:pl-16 pt-14 lg:pt-1 items-start">
                   <div className="lg:sticky lg:top-24 flex flex-col items-center lg:items-start gap-5 min-w-0">
                     <div className="relative w-[min(68vw,300px)] lg:w-full aspect-square rounded-3xl overflow-hidden bg-white/5 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.7)]">
                       {g.coverUrl ? <img src={g.coverUrl} alt={g.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Icon className="w-16 h-16 text-white/20" /></div>}
