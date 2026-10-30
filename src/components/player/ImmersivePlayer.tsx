@@ -409,23 +409,35 @@ export const ImmersivePlayer = ({
     }
   }
 
+  const lyricsAlignedRef = useRef(false);
   useEffect(() => {
-    // The tab's scroller is rightScrollRef (the lyrics wrapper itself doesn't scroll)
-    const scroller = rightScrollRef.current;
-    if (currentTab !== 'letra' || !scroller) return;
-    const active = scroller.querySelector<HTMLElement>('[data-active-lyric="true"]');
-    if (activeIndex === -1 || !active) {
-      scroller.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    const sc = scroller.getBoundingClientRect();
-    const el = active.getBoundingClientRect();
-    // Center active line at ~36% from top like Apple Music
-    const targetTop = scroller.scrollTop + (el.top - sc.top) - (sc.height * 0.36) + (el.height / 2);
-    scroller.scrollTo({
-      top: Math.max(0, targetTop),
-      behavior: 'smooth'
-    });
+    if (currentTab !== 'letra') { lyricsAlignedRef.current = false; return; }
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const align = () => {
+      // The tab's scroller is rightScrollRef (the lyrics wrapper itself doesn't scroll)
+      const scroller = rightScrollRef.current;
+      if (!scroller) return;
+      const active = scroller.querySelector<HTMLElement>('[data-active-lyric="true"]');
+      if (activeIndex === -1) { scroller.scrollTo({ top: 0, behavior: lyricsAlignedRef.current ? 'smooth' : 'auto' }); return; }
+      if (!active) {
+        // the lyrics appear after the tab's switch animation: try again shortly
+        if (tries++ < 15) timer = setTimeout(align, 80);
+        return;
+      }
+      const sc = scroller.getBoundingClientRect();
+      const el = active.getBoundingClientRect();
+      // Center active line at ~36% from top like Apple Music
+      const targetTop = scroller.scrollTop + (el.top - sc.top) - (sc.height * 0.36) + (el.height / 2);
+      scroller.scrollTo({
+        top: Math.max(0, targetTop),
+        // first alignment after opening the tab is instant; the following ones glide
+        behavior: lyricsAlignedRef.current ? 'smooth' : 'auto'
+      });
+      lyricsAlignedRef.current = true;
+    };
+    align();
+    return () => { if (timer) clearTimeout(timer); };
   }, [activeIndex, currentTab]);
 
 
@@ -1020,7 +1032,7 @@ export const ImmersivePlayer = ({
              {...rightScrollProps}
              onWheel={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) rightScrollProps.onWheel(e); }}
              onTouchMove={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) rightScrollProps.onTouchMove(e); }}
-             className="relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start px-5 md:pl-6 md:pr-12 xl:pl-4 xl:pr-[8rem] pb-12 pt-0 scrollbar-hide"
+             className={`relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start px-5 md:pr-12 xl:pr-[8rem] pb-12 pt-0 scrollbar-hide ${currentTab === 'letra' ? 'md:-ml-3 md:pl-9 xl:pl-7' : 'md:pl-6 xl:pl-4'}`}
              style={{
                scrollbarWidth: 'none',
                maskImage: currentTab === 'letra'
@@ -1069,7 +1081,7 @@ export const ImmersivePlayer = ({
                                }}
                                className={`text-left transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] select-none cursor-pointer transform origin-left ${
                                  isActive
-                                   ? 'text-white font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem] leading-[1.25] tracking-tight scale-[1.03] opacity-100 blur-none drop-shadow-[0_4px_24px_rgba(255,255,255,0.45)]'
+                                   ? 'text-white font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem] leading-[1.25] tracking-tight scale-[1.03] opacity-100 blur-none drop-shadow-[0_2px_14px_rgba(255,255,255,0.38)]'
                                    : 'text-white/35 font-bold text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem] leading-[1.25] tracking-tight scale-[0.98] blur-[1.2px] md:blur-[1.6px] hover:text-white/75 hover:blur-none hover:scale-[1.0]'
                                }`}
                              >
