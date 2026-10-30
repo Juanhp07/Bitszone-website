@@ -243,11 +243,11 @@ export const MiniPlayer = ({
       >
         <img src={(track.albumCover || album.coverUrl)} alt="" className="w-11 h-11 rounded-md object-cover shrink-0 shadow-md" />
         <div className="flex-1 min-w-0">
-          <p className="text-white text-[14px] font-semibold leading-tight truncate flex items-center gap-1">
-            {isLicensed(track.id) && <Star className="w-3 h-3 text-yellow-500 shrink-0" fill="currentColor" />}
+          <p className="text-white text-[15px] font-bold leading-tight truncate flex items-center gap-1">
+            {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
             <span className="truncate">{track.title}</span>
           </p>
-          <p className="text-white/60 text-[12px] leading-tight truncate mt-0.5">{track.artist}</p>
+          <p className="text-white/70 text-[13px] leading-tight truncate mt-0.5">{track.artist}</p>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); toggleFavorite(track, album); }}
@@ -308,14 +308,14 @@ export const MiniPlayer = ({
         <WavyProgress progress={activeProgress} isPlaying={isPlaying} />
       </div>
       {/* Left: Now Playing Info */}
-      <div className="flex items-center gap-4 w-[30%] min-w-[200px] relative z-10">
+      <div className="flex items-center gap-4 w-[32%] min-w-[220px] max-w-[380px] relative z-10">
         <div
           role="button"
           tabIndex={0}
           onClick={onExpand}
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onExpand()}
           data-cover-source="mini"
-          className="w-14 h-14 rounded-md overflow-hidden bg-white/10 cursor-pointer relative group shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          className="w-14 h-14 rounded-lg overflow-hidden bg-white/10 shrink-0 cursor-pointer relative group shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           title="Expandir reproductor a pantalla completa (F)"
           aria-label="Expandir reproductor a pantalla completa"
         >
@@ -324,29 +324,29 @@ export const MiniPlayer = ({
             <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
           </div>
         </div>
-        <div className="flex flex-col justify-center">
+        <div className="flex flex-col justify-center min-w-0">
           <h4
             onClick={(e) => { e.stopPropagation(); onExpand(); }}
-            className="text-white font-semibold text-[15px] line-clamp-1 hover:underline cursor-pointer flex items-center gap-1.5"
+            className="text-white font-bold text-[16.5px] leading-snug line-clamp-1 hover:underline cursor-pointer flex items-center gap-1.5"
             title="Abrir reproductor"
           >
-            {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" aria-hidden="true" />}
+            {isLicensed(track.id) && <Star className="w-4 h-4 text-yellow-500 shrink-0" fill="currentColor" aria-hidden="true" />}
             <span className="truncate">{track.title}</span>
           </h4>
-          <div className="flex items-center gap-1.5 mt-0.5 text-[13px] text-white/65 min-w-0">
+          <div className="flex items-center gap-1.5 mt-0.5 text-[14px] text-white/70 font-medium min-w-0">
             <span
               onClick={(e) => { e.stopPropagation(); onSelectArtist && onSelectArtist(); }}
-              className="truncate hover:underline hover:text-white/90 cursor-pointer"
+              className="truncate hover:underline hover:text-white cursor-pointer"
               title={`Artista: ${track.artist}`}
             >
               {track.artist}
             </span>
             {originAlbum && (
               <>
-                <span className="text-white/30" aria-hidden="true">•</span>
+                <span className="text-white/35 text-[11px]" aria-hidden="true">•</span>
                 <span
                   onClick={(e) => { e.stopPropagation(); onSelectAlbum && onSelectAlbum(); }}
-                  className="truncate hover:underline hover:text-white/90 cursor-pointer"
+                  className="truncate hover:underline hover:text-white cursor-pointer"
                   title={`Álbum: ${originAlbum.title}`}
                 >
                   {originAlbum.title}
@@ -361,7 +361,7 @@ export const MiniPlayer = ({
       <div className="flex flex-col items-center flex-1 max-w-[600px] relative z-10">
         <div className="flex items-center gap-6">
           <button
-            className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"} pop-press`}
+            className={`w-9 h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"} pop-press`}
             onClick={onToggleShuffle}
             title={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
             aria-label={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
@@ -370,12 +370,12 @@ export const MiniPlayer = ({
             <Shuffle className="w-[18px] h-[18px]" aria-hidden="true" />
           </button>
           <button
-            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer pop-press"
+            className="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer pop-press"
             onClick={onPrev}
             title="Canción anterior (←)"
             aria-label="Canción anterior"
           >
-            <SkipBack className="w-6 h-6" fill="currentColor" aria-hidden="true" />
+            <SkipBack className="w-5 h-5" fill="currentColor" aria-hidden="true" />
           </button>
           {/* Botón de reproducción estilo vinilo giratorio y cristal esmerilado (igual al reproductor gigante) */}
           <button
@@ -413,15 +413,15 @@ export const MiniPlayer = ({
             ]} />
           </button>
           <button
-            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer pop-press"
+            className="w-9 h-9 flex items-center justify-center text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer pop-press"
             onClick={onNext}
             title="Siguiente canción (→)"
             aria-label="Siguiente canción"
           >
-            <SkipForward className="w-6 h-6" fill="currentColor" aria-hidden="true" />
+            <SkipForward className="w-5 h-5" fill="currentColor" aria-hidden="true" />
           </button>
           <button
-            className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"} pop-press`}
+            className={`w-9 h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"} pop-press`}
             onClick={onToggleRepeat}
             title={repeatMode === 'one' ? "Repetir una canción" : repeatMode === 'all' ? "Repetir todo" : "Activar repetición"}
             aria-label={`Modo de repetición: ${repeatMode === 'one' ? 'repetir una canción' : repeatMode === 'all' ? 'repetir todo' : 'desactivado'}`}
@@ -429,12 +429,12 @@ export const MiniPlayer = ({
             {repeatMode === 'one' ? <Repeat1 className="w-[18px] h-[18px]" aria-hidden="true" /> : <Repeat className="w-[18px] h-[18px]" aria-hidden="true" />}
           </button>
           <button
-            className={`group/favbtn transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'} pop-press`}
+            className={`w-9 h-9 flex items-center justify-center group/favbtn transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'} pop-press`}
             onClick={() => toggleFavorite(track, album)}
             title={isFavorite(track.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
             aria-label={isFavorite(track.id) ? `Quitar ${track.title} de favoritos` : `Añadir ${track.title} a favoritos`}
           >
-            <span key={String(isFavorite(track.id))} className="pop-in inline-flex">
+            <span key={String(isFavorite(track.id))} className="pop-in flex items-center justify-center">
               {isFavorite(track.id) ? (
                 <>
                   <Heart className="w-[18px] h-[18px] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
@@ -454,7 +454,7 @@ export const MiniPlayer = ({
         <span className="text-sm font-medium text-white/60 tabular-nums whitespace-nowrap mr-1">{formatTime(currentSecs)} / {formatTime(durationSecs)}</span>
         <button
           onClick={onToggleLyrics}
-          className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isLyricsOpen ? 'text-[#a855f7]' : 'text-white/60 hover:text-white'}`}
+          className={`w-9 h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${isLyricsOpen ? 'text-[#a855f7]' : 'text-white/60 hover:text-white'}`}
           title={isLyricsOpen ? "Ocultar panel de letras" : "Mostrar panel de letras"}
           aria-label={isLyricsOpen ? "Ocultar letras de la canción" : "Mostrar letras de la canción"}
           aria-pressed={isLyricsOpen}
@@ -463,7 +463,7 @@ export const MiniPlayer = ({
         </button>
         <button
           onClick={onToggleMute}
-          className="text-white/60 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer"
+          className="w-9 h-9 flex items-center justify-center text-white/60 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer"
           title={volume === 0 ? "Activar sonido" : "Silenciar"}
           aria-label={volume === 0 ? "Activar sonido" : "Silenciar reproductor"}
           aria-pressed={volume === 0}
