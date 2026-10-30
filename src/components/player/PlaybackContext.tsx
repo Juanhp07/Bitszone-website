@@ -8,6 +8,10 @@ export interface QueueEntry {
 
 export interface PlaybackContextType {
   nowPlayingTrackId?: number;
+  /** audio is playing / its audio is loading, and the play-pause switch */
+  isPlaying: boolean;
+  isLoading: boolean;
+  togglePlay: () => void;
   /** 0..1 position of the song that's playing */
   progress: number;
   /** Real album of the song that's playing (with year), even when playing from a playlist */

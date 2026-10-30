@@ -9,6 +9,8 @@ class AudioVisualizerService {
   private leftAnalyser: AnalyserNode | null = null;
   private rightAnalyser: AnalyserNode | null = null;
   private gainNode: GainNode | null = null;
+  private compressor: DynamicsCompressorNode | null = null;
+  private normalize = false;
   private mediaSource: MediaElementAudioSourceNode | null = null;
   private connectedElement: HTMLAudioElement | null = null;
   private frequencyData: Uint8Array | null = null;
@@ -81,8 +83,8 @@ class AudioVisualizerService {
 
         // Route: source -> analyser -> gainNode -> destination
         this.mediaSource.connect(this.analyser);
-        this.analyser.connect(this.gainNode);
         this.gainNode.connect(this.audioCtx.destination);
+        this.routeOutput();
 
         this.connectedElement = audio;
         this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
@@ -93,6 +95,35 @@ class AudioVisualizerService {
       console.warn('[AudioVisualizerService] Notice connecting to audio node:', err);
       return this.analyser;
     }
+  }
+
+  /** analyser -> (compressor when volume normalization is on) -> gain. Called on connect and whenever the setting changes. */
+  private routeOutput(): void {
+    if (!this.audioCtx || !this.analyser || !this.gainNode) return;
+    try {
+      this.analyser.disconnect();
+      // the analyser also feeds the visualizer, which only reads it: keep it as the source of both paths
+      if (this.normalize) {
+        if (!this.compressor) {
+          this.compressor = this.audioCtx.createDynamicsCompressor();
+          this.compressor.threshold.value = -26;
+          this.compressor.knee.value = 24;
+          this.compressor.ratio.value = 5;
+          this.compressor.attack.value = 0.01;
+          this.compressor.release.value = 0.25;
+          this.compressor.connect(this.gainNode);
+        }
+        this.analyser.connect(this.compressor);
+      } else {
+        this.analyser.connect(this.gainNode);
+      }
+    } catch (_) {}
+  }
+
+  /** Levels loud peaks so every track plays at a similar volume (a compressor, not per-track ReplayGain data). */
+  public setNormalization(on: boolean): void {
+    this.normalize = on;
+    this.routeOutput();
   }
 
   /**

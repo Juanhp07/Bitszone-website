@@ -1,6 +1,7 @@
+import { SidebarToggleIcon } from '../ui/SidebarToggleIcon';
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, PanelLeftClose, PanelLeftOpen, PanelRightClose, LayoutDashboard } from "lucide-react";
+import { Home, Library, DownloadCloud, HardDrive, Keyboard, Settings, User, LayoutDashboard } from "lucide-react";
 import { useDownloads } from "./DownloadsContext";
 import { useAdminEdit } from "../admin/AdminEditContext";
 import { AdminPencil } from "../admin/AdminEditWidgets";
@@ -46,9 +47,9 @@ export const Sidebar = ({
   const usedPercent = (totalUsedGB / 5.0) * 100;
 
   return (
-    <aside className={`w-full h-full flex flex-col bg-transparent px-3.5 ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : 'pt-3'}`}>
+    <aside data-no-pressfx className={`w-full h-full flex flex-col bg-transparent px-3.5 ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : 'pt-3'}`}>
       {/* Sidebar Header: Brand Logo & Menu Toggle */}
-      <div className="pt-1 pb-3 flex items-center justify-between shrink-0 h-14 overflow-hidden">
+      <div className={`pt-1 pb-3 flex items-center shrink-0 h-14 overflow-hidden ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
         <div
           className="flex items-center overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
           style={{
@@ -88,29 +89,11 @@ export const Sidebar = ({
         {onToggleSidebar && (
           <button
             onClick={onToggleSidebar}
-            className="group w-9 h-9 flex items-center justify-center text-white/70 hover:text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 active:scale-95 transition-[color,background-color,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer shrink-0"
+            className="group w-9 h-9 flex items-center justify-center text-white/70 hover:text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 pop-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer shrink-0"
             title={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
             aria-label={isCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
           >
-            {drawerOnRight ? (
-              <PanelRightClose
-                className="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105"
-                strokeWidth={1.8}
-                aria-hidden="true"
-              />
-            ) : isCollapsed ? (
-              <PanelLeftOpen
-                className="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105"
-                strokeWidth={1.8}
-                aria-hidden="true"
-              />
-            ) : (
-              <PanelLeftClose
-                className="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105"
-                strokeWidth={1.8}
-                aria-hidden="true"
-              />
-            )}
+            <SidebarToggleIcon open={!isCollapsed} flip={drawerOnRight} />
           </button>
         )}
       </div>

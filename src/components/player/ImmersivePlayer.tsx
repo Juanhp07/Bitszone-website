@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Album, Track } from "./types";
-import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical, Sparkles, Sliders } from 'lucide-react';
+import { Star, Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, ChevronDown, Minimize2, Heart, HeartOff, Shuffle, Repeat, Repeat1, ListMusic, Mic2, ListOrdered, Download, CheckCircle, Loader2, MoreHorizontal, ListX, ListPlus, GripVertical, Sparkles, Sliders } from 'lucide-react';
 import { TrackMenu } from './TrackMenu';
 import { EqBars } from '../ui/EqBars';
+import { MarqueeTitle } from '../ui/MarqueeTitle';
+import { PopSwap } from '../ui/PopSwap';
+import { NowPlayingToggle } from '../ui/NowPlayingToggle';
 import { LiquidTabs } from '../ui/LiquidTabs';
 import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
@@ -62,46 +65,6 @@ const QueueReorderItem = ({ value, constraintsRef, children }: { value: unknown;
   );
 };
 
-const MarqueeTitle = ({ text, active = false }: { text: string; active?: boolean }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const textRef = React.useRef<HTMLSpanElement>(null);
-  const [isOverflowing, setIsOverflowing] = React.useState(false);
-  const [overflowAmount, setOverflowAmount] = React.useState(0);
-
-  React.useEffect(() => {
-    const checkOverflow = () => {
-      if (containerRef.current && textRef.current) {
-        const cWidth = containerRef.current.clientWidth;
-        const tWidth = textRef.current.scrollWidth;
-        if (tWidth > cWidth) {
-          setIsOverflowing(true);
-          setOverflowAmount(tWidth - cWidth + 30); // 30px extra padding so it scrolls past the last letter
-        } else {
-          setIsOverflowing(false);
-          setOverflowAmount(0);
-        }
-      }
-    };
-    checkOverflow();
-    setTimeout(checkOverflow, 100);
-    window.addEventListener('resize', checkOverflow);
-    return () => window.removeEventListener('resize', checkOverflow);
-  }, [text]);
-
-  return (
-    <div ref={containerRef} className="overflow-hidden flex-1 relative px-4 -mx-4 py-4 -my-4" style={{ maskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 16px, black calc(100% - 16px), transparent 100%)' }}>
-      <div
-        className={`whitespace-nowrap ${isOverflowing ? (active ? 'animate-marquee-pingpong' : 'marquee-on-hover') : ''}`}
-        style={isOverflowing ? { '--overflow-amount': `-${overflowAmount}px` } as React.CSSProperties : {}}
-      >
-        <span ref={textRef} className="inline-block truncate-none">
-          {text}
-        </span>
-      </div>
-    </div>
-  );
-};
-
 /**
  * Título de canción animado:
  * 1. Entrada escalonada letra por letra desde abajo que se ejecuta SOLO UNA VEZ al cambiar de canción.
@@ -123,7 +86,7 @@ const AnimatedSongTitle = ({
   return (
     <div
       key={trackId}
-      className={`relative inline-flex items-center justify-center max-w-full overflow-visible group/title select-none ${className}`}
+      className={`relative flex w-full items-center justify-center max-w-full min-w-0 overflow-visible group/title select-none ${className}`}
     >
       <style>{`
         @keyframes titleCharRollUpOnce {
@@ -184,7 +147,8 @@ const AnimatedSongTitle = ({
       `}</style>
 
       {/* Base Rolling Text with Letter-by-Letter recurring shimmer */}
-      <div className="flex flex-wrap items-center justify-center gap-x-[0.26em] gap-y-1 relative z-10 leading-tight">
+      <MarqueeTitle center slideOnHover measureKey={title}>
+      <div className="inline-flex flex-nowrap whitespace-nowrap items-center justify-center gap-x-[0.26em] relative z-10 leading-tight">
         {words.map((word, wIdx) => (
           <div key={wIdx} className="inline-flex items-center">
             {word.split('').map((char) => {
@@ -212,6 +176,7 @@ const AnimatedSongTitle = ({
           </div>
         ))}
       </div>
+      </MarqueeTitle>
     </div>
   );
 };
@@ -223,6 +188,7 @@ export const ImmersivePlayer = ({
   track,
   album,
   isPlaying,
+  isLoading = false,
   togglePlay,
   onPlayTrack,
   volume = 100,
@@ -246,6 +212,8 @@ export const ImmersivePlayer = ({
   album: Album | null,
   audioElement?: HTMLAudioElement | null,
   isPlaying: boolean,
+  /** the song was chosen but its audio is still loading */
+  isLoading?: boolean,
   togglePlay: () => void,
   onPlayTrack?: (t: Track, a: Album) => void,
   volume?: number,
@@ -384,14 +352,27 @@ export const ImmersivePlayer = ({
 
   const volumeRef = React.useRef<HTMLDivElement>(null);
   const isDraggingVol = React.useRef(false);
+  const [volDragging, setVolDragging] = useState(false);
+  const [volBubble, setVolBubble] = useState(false);   // the % bubble: while dragging and for a moment after any change
+  const [volPull, setVolPull] = useState(0);            // px the bars are stretched when you pull past the top / bottom
+  const volBubbleTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  const flashVolBubble = () => {
+    setVolBubble(true);
+    clearTimeout(volBubbleTimer.current);
+    volBubbleTimer.current = setTimeout(() => setVolBubble(false), 900);
+  };
   const handleVolumeDrag = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!setVolume || !volumeRef.current) return;
     const rect = volumeRef.current.getBoundingClientRect();
-    let p = 1 - ((e.clientY - rect.top) / rect.height);
-    p = Math.max(0, Math.min(1, p));
+    const raw = 1 - ((e.clientY - rect.top) / rect.height);
+    const p = Math.max(0, Math.min(1, raw));
+    // rubber band: past the ends the bars follow the finger with resistance
+    const over = raw > 1 ? raw - 1 : raw < 0 ? raw : 0;
+    setVolPull(Math.max(-14, Math.min(14, -over * rect.height * 0.35)));
     const newVol = Math.round(p * 20) * 5;
-    setVolume(newVol);
+    if (newVol !== volume) { setVolume(newVol); flashVolBubble(); }
   };
+  const VolIcon = (volume || 0) === 0 ? VolumeX : (volume || 0) < 50 ? Volume1 : Volume2;
 
   const [lyricsResult, setLyricsResult] = useState<LyricsResult | null>(null);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
@@ -443,29 +424,49 @@ export const ImmersivePlayer = ({
   }
 
   useEffect(() => {
-    // The tab's scroller is rightScrollRef (the lyrics wrapper itself doesn't scroll)
-    const scroller = rightScrollRef.current;
-    if (currentTab !== 'letra' || !scroller) return;
-    const active = scroller.querySelector<HTMLElement>('[data-active-lyric="true"]');
-    if (activeIndex === -1 || !active) {
-      scroller.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    const sc = scroller.getBoundingClientRect();
-    const el = active.getBoundingClientRect();
-    // Center active line at ~36% from top like Apple Music
-    const targetTop = scroller.scrollTop + (el.top - sc.top) - (sc.height * 0.36) + (el.height / 2);
-    scroller.scrollTo({
-      top: Math.max(0, targetTop),
-      behavior: 'smooth'
-    });
+    if (currentTab === 'letra') return;
+    // the new tab's content mounts right after the old one leaves: reset now and once more when it is there
+    const reset = () => rightScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    reset();
+    const t = setTimeout(reset, 320);
+    return () => clearTimeout(t);
+  }, [currentTab]);
+  const lyricsAlignedRef = useRef(false);
+  useEffect(() => {
+    if (currentTab !== 'letra') { lyricsAlignedRef.current = false; return; }
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const align = () => {
+      // The tab's scroller is rightScrollRef (the lyrics wrapper itself doesn't scroll)
+      const scroller = rightScrollRef.current;
+      if (!scroller) return;
+      const active = scroller.querySelector<HTMLElement>('[data-active-lyric="true"]');
+      if (activeIndex === -1) { scroller.scrollTo({ top: 0, behavior: lyricsAlignedRef.current ? 'smooth' : 'auto' }); return; }
+      if (!active) {
+        // the lyrics appear after the tab's switch animation: try again shortly
+        if (tries++ < 30) timer = setTimeout(align, 50);
+        return;
+      }
+      const sc = scroller.getBoundingClientRect();
+      const el = active.getBoundingClientRect();
+      // Center active line at ~36% from top like Apple Music
+      const targetTop = scroller.scrollTop + (el.top - sc.top) - (sc.height * 0.36) + (el.height / 2);
+      scroller.scrollTo({
+        top: Math.max(0, targetTop),
+        // first alignment after opening the tab is instant; the following ones glide
+        behavior: lyricsAlignedRef.current ? 'smooth' : 'auto'
+      });
+      lyricsAlignedRef.current = true;
+    };
+    align();
+    return () => { if (timer) clearTimeout(timer); };
   }, [activeIndex, currentTab]);
 
 
 
   const { isFavorite, toggleFavorite, isLicensed, isDownloaded, downloadTrack } = useDownloads();
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
-  const [rowMenu, setRowMenu] = useState<{ track: Track; album: Album; inQueue: boolean; anchor: { x: number; y: number } } | null>(null);
+  const [rowMenu, setRowMenu] = useState<{ track: Track; album: Album; inQueue: boolean; anchor: { x: number; y: number; x2?: number } } | null>(null);
 
   const handleRowDownload = async (t: Track, from: Album) => {
     if (isDownloaded(t.id) || downloadingIds.includes(t.id)) return;
@@ -478,7 +479,7 @@ export const ImmersivePlayer = ({
     e.preventDefault();
     e.stopPropagation();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    setRowMenu({ track: t, album: from, inQueue, anchor: atCursor ? { x: e.clientX, y: e.clientY } : { x: rect.right - 270, y: rect.bottom + 6 } });
+    setRowMenu({ track: t, album: from, inQueue, anchor: atCursor ? { x: e.clientX, y: e.clientY } : { x: rect.left, y: rect.bottom + 6, x2: rect.right } });
   };
 
   // Download + more, revealed on row hover (right side)
@@ -487,7 +488,7 @@ export const ImmersivePlayer = ({
     const downloading = downloadingIds.includes(t.id);
     const menuOpen = rowMenu?.track.id === t.id;
     return (
-      <div className={`flex items-center gap-1 md:gap-2 ml-3 shrink-0 transition-opacity duration-300 [@media(hover:none)]:opacity-100 ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'}`}>
+      <div className={`flex items-center gap-1 md:gap-2 ml-3 shrink-0 origin-right transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] [@media(hover:none)]:opacity-100 [@media(hover:none)]:scale-100 ${menuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 focus-within:opacity-100 focus-within:scale-100'}`}>
         <button
           onClick={(e) => { e.stopPropagation(); handleRowDownload(t, from); }}
           disabled={downloaded || downloading}
@@ -725,18 +726,25 @@ export const ImmersivePlayer = ({
            {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
            <div className="hidden md:flex absolute left-6 md:left-8 xl:left-10 top-1/2 -translate-y-1/2 z-50 w-11 md:w-12 flex-col items-center gap-2 opacity-100 transition-all duration-300">
              <button
-               onClick={() => setVolume && setVolume(100)}
-               className="mb-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+               onClick={() => { setVolume && setVolume(100); flashVolBubble(); }}
+               className="mb-2 p-2 hover:bg-white/10 rounded-full cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 pop-press"
                title="Volumen al máximo (100%)"
                aria-label="Subir volumen al máximo"
              >
-               <Volume2 className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" aria-hidden="true" />
+               <PopSwap className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white transition-colors" items={[
+                 { id: 'mute', on: (volume || 0) === 0, node: <VolumeX className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> },
+                 { id: 'low', on: (volume || 0) > 0 && (volume || 0) < 50, node: <Volume1 className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> },
+                 { id: 'high', on: (volume || 0) >= 50, node: <Volume2 className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> },
+               ]} />
              </button>
              <div
                ref={volumeRef}
-               className="flex flex-col gap-[3px] py-1 touch-none"
+               data-no-pressfx
+               className="relative flex flex-col gap-[3px] py-1 touch-none"
+               style={{ transform: `scaleY(${1 + Math.abs(volPull) / 160}) translateY(${volPull * 0.4}px)`, transformOrigin: volPull >= 0 ? 'bottom' : 'top', transition: volDragging ? 'transform 60ms linear' : 'transform 520ms cubic-bezier(0.34,1.56,0.64,1)' }}
                onPointerDown={(e) => {
                  isDraggingVol.current = true;
+                 setVolDragging(true);
                  handleVolumeDrag(e);
                  e.currentTarget.setPointerCapture(e.pointerId);
                }}
@@ -745,10 +753,15 @@ export const ImmersivePlayer = ({
                }}
                onPointerUp={(e) => {
                  isDraggingVol.current = false;
+                 setVolDragging(false);
+                 setVolPull(0);
                  e.currentTarget.releasePointerCapture(e.pointerId);
+                 flashVolBubble();
                }}
                onPointerCancel={(e) => {
                  isDraggingVol.current = false;
+                 setVolDragging(false);
+                 setVolPull(0);
                  e.currentTarget.releasePointerCapture(e.pointerId);
                }}
                onWheel={(e) => {
@@ -761,9 +774,18 @@ export const ImmersivePlayer = ({
                  if (delta < 0) newVol = Math.min(100, currentVol + 5);
                  if (newVol !== currentVol) {
                    setVolume(newVol);
+                   flashVolBubble();
                  }
                }}
              >
+               {/* value bubble: pops next to the level while you drag or change the volume */}
+               <div
+                 aria-hidden="true"
+                 className={`absolute left-full ml-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-xl text-xs font-semibold text-white tabular-nums pointer-events-none transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${volBubble || volDragging ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}
+                 style={{ top: `calc(${(1 - (volume || 0) / 100) * 100}% - 12px)`, transition: 'top 90ms linear, opacity 200ms, transform 200ms cubic-bezier(0.34,1.56,0.64,1)' }}
+               >
+                 {Math.round(volume || 0)}%
+               </div>
                {Array.from({ length: 20 }).map((_, i) => {
                  const level = (20 - i) * 5;
                  const isActive = (volume || 0) >= level;
@@ -775,18 +797,22 @@ export const ImmersivePlayer = ({
                      title={`Ajustar volumen al ${level}%`}
                      aria-label={`Volumen ${level}%`}
                    >
-                     <div className={`w-6 h-1 rounded-full transition-all duration-100 ${isActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20 group-hover/line:bg-white/60 group-hover/line:scale-y-150'}`} />
+                     {/* bars near the current level swell while you hold the control, like a wave under the finger */}
+                     <div
+                       className={`w-6 h-1 rounded-full transition-[background-color,box-shadow,transform] duration-150 ${isActive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-white/20 group-hover/line:bg-white/60 group-hover/line:scale-y-150'}`}
+                       style={volDragging ? { transform: `scale(${1 + 0.55 * Math.exp(-Math.abs(level - (volume || 0)) / 12)}, ${1 + 0.9 * Math.exp(-Math.abs(level - (volume || 0)) / 12)})` } : undefined}
+                     />
                    </button>
                  );
                })}
              </div>
              <button
-               onClick={() => setVolume && setVolume(0)}
-               className="mt-2 p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+               onClick={() => { setVolume && setVolume(0); flashVolBubble(); }}
+               className="mt-2 p-2 hover:bg-white/10 rounded-full cursor-pointer group/icon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 pop-press"
                title="Silenciar reproductor"
                aria-label="Silenciar reproductor"
              >
-               <VolumeX className="w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover/icon:text-white" aria-hidden="true" />
+               <VolumeX className={`w-4 h-4 md:w-5 md:h-5 transition-colors ${(volume || 0) === 0 ? 'text-white' : 'text-white/50 group-hover/icon:text-white'}`} aria-hidden="true" />
              </button>
            </div>
 
@@ -895,7 +921,7 @@ export const ImmersivePlayer = ({
               <div className="max-md:order-last w-full md:w-auto flex items-center justify-between md:justify-center gap-3 md:gap-12 mt-5 md:mt-0 mb-0 md:mb-6">
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleShuffle?.(); }}
-                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"} pop-press`}
                   title={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
                   aria-label={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
                   aria-pressed={isShuffle}
@@ -904,7 +930,7 @@ export const ImmersivePlayer = ({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer pop-press"
                   title="Canción anterior"
                   aria-label="Reproducir canción anterior"
                 >
@@ -917,6 +943,7 @@ export const ImmersivePlayer = ({
                   title={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
                   aria-label={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
                   aria-pressed={isPlaying}
+                  aria-busy={isLoading}
                 >
                   {/* Spinning Vinyl Cover */}
                   <div
@@ -937,17 +964,25 @@ export const ImmersivePlayer = ({
                   <div className="absolute w-7 h-7 md:w-10 md:h-10 rounded-full bg-black/40 backdrop-blur-xl border border-black/10 shadow-[0_0_15px_8px_rgba(0,0,0,0.35)] pointer-events-none" />
                   <div className="absolute w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-white/10 shadow-inner pointer-events-none" />
 
-                  {/* Play/Pause Icon */}
-                  {isPlaying ? (
-                    <Pause className="w-6 h-6 md:w-9 md:h-9 relative z-10 group-hover:scale-95 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
-                  ) : (
-                    <Play className="w-6 h-6 md:w-9 md:h-9 ml-1 relative z-10 group-hover:scale-105 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
-                  )}
+                  {/* Loading ring while the song's audio loads; it turns into pause by itself once it plays */}
+                  <span
+                    className={`absolute inset-0 z-20 rounded-full flex items-center justify-center bg-black/35 transition-opacity duration-200 ${isLoading ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                    role={isLoading ? 'status' : undefined}
+                    aria-label={isLoading ? 'Cargando canción' : undefined}
+                  >
+                    <span className="absolute inset-1 rounded-full border-[3px] border-white/20 border-t-white animate-spin" aria-hidden="true" />
+                  </span>
+
+                  {/* Play/Pause Icon: pops between the two */}
+                  <PopSwap className="relative z-10 w-6 h-6 md:w-9 md:h-9 drop-shadow-md" items={[
+                    { id: 'play', on: !isLoading && !isPlaying, node: <Play className="w-6 h-6 md:w-9 md:h-9 ml-1" fill="currentColor" aria-hidden="true" /> },
+                    { id: 'pause', on: !isLoading && isPlaying, node: <Pause className="w-6 h-6 md:w-9 md:h-9" fill="currentColor" aria-hidden="true" /> },
+                  ]} />
                 </button>
 
                 <button
                   onClick={(e) => { e.stopPropagation(); onNext?.(); }}
-                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer pop-press"
                   title="Siguiente canción"
                   aria-label="Reproducir siguiente canción"
                 >
@@ -955,7 +990,7 @@ export const ImmersivePlayer = ({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleRepeat?.(); }}
-                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"} pop-press`}
                   title={repeatMode === 'one' ? "Repetir una canción" : repeatMode === 'all' ? "Repetir todo" : "Activar repetición"}
                   aria-label={`Modo de repetición: ${repeatMode === 'one' ? 'una canción' : repeatMode === 'all' ? 'todas' : 'desactivado'}`}
                 >
@@ -973,6 +1008,7 @@ export const ImmersivePlayer = ({
                    aria-valuemin={0}
                    aria-valuemax={100}
                    aria-valuenow={Math.round((scrubProgress !== null ? scrubProgress : progress) * 100)}
+                   data-no-pressfx
                    className="flex-1 h-9 md:h-8 flex items-center relative cursor-pointer group touch-none py-2"
                    onPointerDown={handleTimelinePointerDown}
                    onPointerMove={handleTimelinePointerMove}
@@ -998,7 +1034,7 @@ export const ImmersivePlayer = ({
           ref={sheetRef}
           data-sheet
           style={isMobile ? { transform: sheetTransform(sheetOpen) } : undefined}
-          className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} group/list max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:h-[88dvh] max-md:rounded-t-[28px] max-md:border-t max-md:border-white/10 max-md:bg-black/45 max-md:backdrop-blur-3xl max-md:backdrop-saturate-150 max-md:shadow-[0_-20px_60px_rgba(0,0,0,0.5)] max-md:transition-transform max-md:duration-500 w-full md:w-[48%] md:h-full shrink-0 relative overflow-hidden flex-col md:pt-[19vh] pb-0 md:pb-[8vh] md:transition-transform md:ease-[cubic-bezier(0.32,0.72,0,1)] ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'md:translate-y-0 md:duration-700 md:delay-75' : 'md:translate-y-10 md:duration-300'}`}
+          className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} group/list max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:h-[88dvh] max-md:rounded-t-[28px] max-md:border-t max-md:border-white/10 max-md:bg-black/45 max-md:backdrop-blur-3xl max-md:backdrop-saturate-150 max-md:shadow-[0_-20px_60px_rgba(0,0,0,0.5)] max-md:transition-transform max-md:duration-500 w-full md:w-[48%] md:h-full shrink-0 relative overflow-hidden flex-col md:pt-[calc(19vh+14px)] pb-0 md:pb-[3vh] md:transition-transform md:ease-[cubic-bezier(0.32,0.72,0,1)] ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'md:translate-y-0 md:duration-700 md:delay-75' : 'md:translate-y-10 md:duration-300'}`}
         >
            {/* Phones: grab handle — tap or drag to open/close the sheet */}
            <div
@@ -1012,7 +1048,7 @@ export const ImmersivePlayer = ({
            >
              <span className="w-11 h-1.5 rounded-full bg-white/40" />
            </div>
-           <ListScrollbar containerRef={rightScrollRef} onBounce={rightBounce} springY={rightSpringY} className="hidden md:flex right-8 xl:right-12 top-[19vh] bottom-[8vh]" />
+           <ListScrollbar containerRef={rightScrollRef} onBounce={rightBounce} springY={rightSpringY} className="hidden md:flex right-8 xl:right-12 top-[calc(19vh+14px)] bottom-[3vh]" />
            <TrackMenu
              track={rowMenu?.track ?? null}
              album={rowMenu?.album ?? album}
@@ -1043,18 +1079,18 @@ export const ImmersivePlayer = ({
              {...rightScrollProps}
              onWheel={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) rightScrollProps.onWheel(e); }}
              onTouchMove={(e) => { const el = e.currentTarget; if (el.scrollHeight > el.clientHeight + 1) rightScrollProps.onTouchMove(e); }}
-             className="relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start px-5 md:pl-6 md:pr-12 xl:pl-4 xl:pr-[8rem] pb-20 pt-1 scrollbar-hide"
+             className={`relative w-full flex-1 overflow-y-auto overscroll-y-contain flex flex-col justify-start px-5 md:pr-12 xl:pr-[8rem] pb-12 pt-0 scrollbar-hide ${currentTab === 'letra' ? 'md:-ml-3 md:pl-9 xl:pl-7' : 'md:pl-6 xl:pl-4'}`}
              style={{
                scrollbarWidth: 'none',
                maskImage: currentTab === 'letra'
                  ? 'linear-gradient(to bottom, transparent 0%, black 14%, black 78%, transparent 100%)'
-                 : 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)',
+                 : 'linear-gradient(to bottom, transparent 0px, black 12px, black calc(100% - 24px), transparent 100%)',
                WebkitMaskImage: currentTab === 'letra'
                  ? 'linear-gradient(to bottom, transparent 0%, black 14%, black 78%, transparent 100%)'
-                 : 'linear-gradient(to bottom, transparent 0px, black 40px, black calc(100% - 40px), transparent 100%)'
+                 : 'linear-gradient(to bottom, transparent 0px, black 12px, black calc(100% - 24px), transparent 100%)'
              }}
            >
-             <motion.div style={{ y: rightSpringY }} className="w-full">
+             <motion.div style={{ y: rightSpringY }} className={`w-full ${currentTab === 'pistas' ? '-mt-[10px]' : 'pt-3'}`}>
                <AnimatePresence mode="wait">
                  {currentTab === 'letra' && (
                    <motion.div
@@ -1083,7 +1119,6 @@ export const ImmersivePlayer = ({
                            return (
                              <motion.div
                                key={`${line.time}-${i}`}
-                               variants={cascadedItemVariants}
                                data-active-lyric={isActive ? 'true' : undefined}
                                onClick={() => {
                                  if (onSeek && durationSecs > 0) {
@@ -1092,7 +1127,7 @@ export const ImmersivePlayer = ({
                                }}
                                className={`text-left transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] select-none cursor-pointer transform origin-left ${
                                  isActive
-                                   ? 'text-white font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem] leading-[1.25] tracking-tight scale-[1.03] opacity-100 blur-none drop-shadow-[0_4px_24px_rgba(255,255,255,0.45)]'
+                                   ? 'text-white font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem] leading-[1.25] tracking-tight scale-[1.03] opacity-100 blur-none drop-shadow-[0_2px_14px_rgba(255,255,255,0.38)]'
                                    : 'text-white/35 font-bold text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem] leading-[1.25] tracking-tight scale-[0.98] blur-[1.2px] md:blur-[1.6px] hover:text-white/75 hover:blur-none hover:scale-[1.0]'
                                }`}
                              >
@@ -1140,10 +1175,11 @@ export const ImmersivePlayer = ({
                              <div className="flex items-center relative min-w-[2.75rem] md:min-w-[3.5rem] shrink-0">
                                <button
                                  onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
-                                 className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                                 className={`group/favbtn absolute left-0 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100'}`}
                                  title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
                                  aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
                                >
+                                 <span key={String(isFavorite(t.id))} className="pop-in inline-flex">
                                  {isFavorite(t.id) ? (
                                    <>
                                      <Heart className="w-4 h-4 md:w-5 md:h-5 text-[#a855f7] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
@@ -1152,6 +1188,7 @@ export const ImmersivePlayer = ({
                                  ) : (
                                    <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
                                  )}
+                                 </span>
                                </button>
                                <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#e9d5ff]' : 'text-white/40'}`}>
                                  {(t.trackNumber || i + 1).toString().padStart(2, '0')}
@@ -1160,7 +1197,7 @@ export const ImmersivePlayer = ({
                              <div className="flex flex-col flex-1 min-w-0">
                                <div className="flex items-center min-w-0">
                                  {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
-                                 <MarqueeTitle text={t.title} active={isActive} />
+                                 <MarqueeTitle text={t.title} slideOnHover />
                                </div>
                                {((album as any)?.isSongRadio || (t.artist && t.artist !== album.artist)) && (
                                  <span className={`text-xs md:text-sm font-medium tracking-wide truncate transition-colors ${isActive ? 'text-[#ebd5ff]/80' : 'text-white/40 group-hover:text-white/70'}`}>
@@ -1169,7 +1206,7 @@ export const ImmersivePlayer = ({
                                )}
                              </div>
                              {isActive && (
-                               <EqBars playing={isPlaying} className="h-5 md:h-6 ml-2 md:ml-4" barClassName="w-[3px] md:w-[4px] bg-[#e9d5ff]" />
+                               <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} className="ml-1 md:ml-2" />
                              )}
                              {renderRowActions(t, album, false)}
                            </div>
@@ -1238,10 +1275,10 @@ export const ImmersivePlayer = ({
                              </div>
                              <div className="flex items-center flex-1 min-w-0">
                                {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
-                               <MarqueeTitle text={t.title} active={isCurrent} />
+                               <MarqueeTitle text={t.title} slideOnHover />
                              </div>
                              {isCurrent && (
-                               <EqBars playing={isPlaying} className="h-5 md:h-6" barClassName="w-[3px] md:w-[4px] bg-[#e9d5ff]" />
+                               <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} />
                              )}
                              {renderRowActions(t, from, true)}
                              <button

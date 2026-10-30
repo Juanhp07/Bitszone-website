@@ -16,6 +16,7 @@ import { AdminDashboard } from '../admin/AdminDashboard';
 import { AdminEditProvider } from '../admin/AdminEditContext';
 import { AdminEditModal } from '../admin/AdminEditModal';
 import { AdminEditFloatingBar } from '../admin/AdminEditWidgets';
+import { ColorBlindnessSvgFilters } from './GeneralSettingsModal';
 import { useProfile } from '../../lib/useProfile';
 import { recordListen } from '../../lib/listenHistory';
 import { ProfileDialog } from './ProfileDialog';
@@ -73,6 +74,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTabId>('appearance');
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(loadGeneralSettings);
   const generalSettingsRef = useRef(generalSettings);
+  useEffect(() => { audioVisualizer.setNormalization(generalSettings.volumeNormalization); }, [generalSettings.volumeNormalization]);
   useEffect(() => {
     generalSettingsRef.current = generalSettings;
   }, [generalSettings]);
@@ -207,6 +209,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedAlbumFull, setSelectedAlbumFull] = useState<Album | null>(null);
+  // true once a song was picked from the open song page: its header then follows the playing song
+  const [radioFollow, setRadioFollow] = useState(false);
 
   const [nowPlayingTrack, setNowPlayingTrack] = useState<Track | null>(null);
   const [nowPlayingAlbum, setNowPlayingAlbum] = useState<Album | null>(null);
@@ -226,7 +230,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
    * Fades audio volume smoothly to targetNormalized [0..1] over durationMs.
    * Modulates both Web Audio hardware GainNode and HTMLAudioElement.volume.
    */
-  const fadeAudioVolume = (targetNormalized: number, durationMs: number = 180): Promise<void> => {
+  const fadeAudioVolume = (targetNormalized: number, durationMs: number = 180, force = false): Promise<void> => {
+    // "Fade al pausar y reanudar" off = volume changes are instant (a forced fade, like the crossfade, still runs)
+    if (!force && !generalSettingsRef.current.smoothVolumeTransitions) durationMs = 0;
     return new Promise((resolve) => {
       if (volumeFadeRef.current) {
         volumeFadeRef.current.cancel();
@@ -384,6 +390,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     const handleTimeUpdate = () => {
       if (audioRef.current) {
         setProgress(audioRef.current.currentTime / audioRef.current.duration || 0);
+        // time is moving, so it is not loading any more (a stalled "waiting" must never stay stuck)
+        if (!audioRef.current.paused && !audioRef.current.seeking) setIsAudioLoading(false);
+        const cf = generalSettingsRef.current.crossfadeDuration;
+        const a = audioRef.current;
+        if (cf > 0 && !crossfadeOutRef.current && a.duration > cf * 2 && a.duration - a.currentTime <= cf) {
+          crossfadeOutRef.current = true;
+          fadeRef.current?.(0, Math.max(200, (a.duration - a.currentTime) * 1000), true);
+        }
       }
     };
 
@@ -417,13 +431,21 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
       handleNextRef.current?.();
     };
 
+    // the stream stalls waiting for data (slow connection, seeking): show the same loading state until it resumes
+    const handleWaiting = () => { if (audioRef.current && !audioRef.current.paused) setIsAudioLoading(true); };
+    const handleResumed = () => setIsAudioLoading(false);
+
     audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
     audioRef.current.addEventListener('ended', handleEnded);
+    audioRef.current.addEventListener('waiting', handleWaiting);
+    audioRef.current.addEventListener('playing', handleResumed);
 
     return () => {
       if (audioRef.current) {
         audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
         audioRef.current.removeEventListener('ended', handleEnded);
+        audioRef.current.removeEventListener('waiting', handleWaiting);
+        audioRef.current.removeEventListener('playing', handleResumed);
       }
     };
   }, [nowPlayingAlbum, nowPlayingTrack, isShuffle, repeatMode]);
@@ -458,11 +480,14 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   // Keyboard Shortcuts Refs
   const togglePlayRef = useRef<(() => void) | null>(null);
+  const fadeRef = useRef<typeof fadeAudioVolume | null>(null);
+  const crossfadeOutRef = useRef(false);
   const handlePrevRef = useRef<(() => void) | null>(null);
   const handleNextRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     togglePlayRef.current = togglePlay;
+    fadeRef.current = fadeAudioVolume;
     handlePrevRef.current = handlePrevTrack;
     handleNextRef.current = handleNextTrack;
   });
@@ -585,6 +610,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   }, [currentView]);
 
   const handleSelectAlbum = async (album: Album) => {
+    setRadioFollow(false);
     setSelectedAlbum(album);
     setCurrentView('album');
     // Playlists and song radios are built locally; AlbumView reads their live contents
@@ -595,6 +621,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
   const handleSelectSongRadio = (track: Track, originAlbum: Album) => {
     const radioAlbum = buildSongRadio(track, originAlbum, albums);
+    setRadioFollow(false);
     setSelectedAlbum(radioAlbum);
     setSelectedAlbumFull(radioAlbum);
     setCurrentView('album');
@@ -725,6 +752,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     }
     playRequestIdRef.current += 1;
     const currentRequestId = playRequestIdRef.current;
+    crossfadeOutRef.current = false;
 
     setIsAudioLoading(true);
     setNowPlayingTrack(track);
@@ -769,7 +797,9 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
          if (currentRequestId === playRequestIdRef.current) {
            setIsPlaying(true);
            setIsAudioLoading(false);
-           fadeAudioVolume(1.0, 320); // 320ms smooth crossfade in
+           const cf = generalSettingsRef.current.crossfadeDuration;
+           if (cf > 0) fadeAudioVolume(1.0, cf * 1000, true); // crossfade: the new song fades in over the chosen time
+           else fadeAudioVolume(1.0, 320); // 320ms smooth fade in
          }
       }).catch((err) => {
          console.error(err);
@@ -871,17 +901,20 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     if (!currentViewingAlbum) return '';
     const isSongRadio = isSongRadioAlbum(currentViewingAlbum);
     if (isSongRadio) {
-      // same rule as AlbumView: follow the playing song only while this radio is what's playing
+      // same rule as AlbumView: the song it was opened from, unless a song was picked from this page (then the playing one)
       const radioIsPlaying = queueList[queueIndex]?.album?.id === currentViewingAlbum.id;
-      const activeTrack = (radioIsPlaying && currentViewingAlbum.tracks?.find(t => t.id === nowPlayingTrack?.id))
+      const headerTrack = (radioFollow && radioIsPlaying && currentViewingAlbum.tracks?.find(t => t.id === nowPlayingTrack?.id))
         || currentViewingAlbum.tracks?.[0];
-      return activeTrack?.albumCover || currentViewingAlbum.coverUrl || '';
+      return headerTrack?.albumCover || currentViewingAlbum.coverUrl || '';
     }
     return currentViewingAlbum.coverUrl || '';
   })();
 
   const playback = {
     nowPlayingTrackId: nowPlayingTrack?.id,
+    isPlaying,
+    isLoading: isAudioLoading,
+    togglePlay: () => { togglePlay(); },
     progress,
     nowPlayingOrigin,
     upNext,
@@ -962,7 +995,8 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
   // On phones the sidebar is an overlay drawer, so the glass frame never reserves room for it.
   // On desktop, the sidebar is either expanded (256px) or compact (72px).
   const sidebarInFlow = !isCompact;
-  const sidebarW = isCompact ? 0 : (isSidebarOpen ? 256 : 72);
+  // rem, not px: the text-size setting scales the root font size, and the sidebar's content scales with it
+  const sidebarW = isCompact ? '0rem' : (isSidebarOpen ? '16rem' : '4.5rem');
   const cornerR = sidebarInFlow ? 24 : 0.01;
   const headerH = 56;
 
@@ -978,6 +1012,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     <PlaylistsProvider>
     <PlaybackContext.Provider value={playback}>
       <ToastContainer />
+      <ColorBlindnessSvgFilters />
       <AdminEditModal />
       <AnimatePresence>
         {loading && <PlayerLoadingScreen />}
@@ -989,7 +1024,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
 
       {/* Dynamic Album Background Glow (Expanded to entire web page) */}
       <div
-        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && currentViewingAlbum ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 ${currentView === 'album' && currentViewingAlbum && generalSettings.ambientBackground ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="absolute inset-0 bg-black/45 z-10"></div>
         <AnimatePresence>
@@ -1053,7 +1088,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         {!isCompact && (
           <div
             className="absolute top-0 bottom-0 left-0 bg-black/30 backdrop-blur-xl border-r border-white/10 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
-            style={{ width: `${sidebarW}px` }}
+            style={{ width: sidebarW }}
           />
         )}
       </div>
@@ -1086,7 +1121,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         <div
           className={isCompact
             ? `fixed inset-y-0 z-[60] w-[min(82vw,300px)] bg-[#0b0712]/[0.97] border-white/10 will-change-transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] right-0 border-l shadow-[-12px_0_32px_rgba(0,0,0,0.5)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`
-            : `h-full shrink-0 relative z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-[72px]'}`}
+            : `h-full shrink-0 relative z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden ${isSidebarOpen ? 'w-64' : 'w-[4.5rem]'}`}
           aria-hidden={isCompact && !isSidebarOpen ? true : undefined}
         >
           <motion.div
@@ -1174,7 +1209,11 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       onPlayTrack={handlePlayTrack}
                       nowPlayingTrackId={nowPlayingTrack?.id}
                       isPlaying={isPlaying}
+                      isLoading={isAudioLoading}
                       togglePlay={togglePlay}
+                      followPlaying={radioFollow}
+                      onFollowPlaying={() => setRadioFollow(true)}
+                      onOpenPlayer={() => { setImmersiveTab("pistas"); setIsPlayerExpanded(true); }}
                     />
                   )}
                   {currentView === 'downloads' && <DownloadsView type="downloads" albums={albums} onPlayTrack={handlePlayTrack} onSelectAlbum={handleSelectAlbum} />}
@@ -1228,6 +1267,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     track={nowPlayingTrack}
                     album={nowPlayingAlbum}
                     isPlaying={isPlaying}
+                    isLoading={isAudioLoading}
                     togglePlay={togglePlay}
                     progress={progress}
                     volume={volume}
@@ -1282,6 +1322,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         track={nowPlayingTrack}
         album={nowPlayingAlbum}
         isPlaying={isPlaying}
+        isLoading={isAudioLoading}
         togglePlay={togglePlay}
         onPlayTrack={handlePlayTrack}
         volume={volume}
@@ -1344,9 +1385,13 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               style={{
                 ...cardStyle,
-                left: isCompact ? '16px' : isSidebarOpen ? '280px' : '96px',
+                // no outline or top highlight, like the menus: only the soft drop shadow
+                background: 'rgba(0, 0, 0, 0.25)',
+                border: 'none',
+                boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.55)',
+                left: isCompact ? '16px' : isSidebarOpen ? '17.5rem' : '6rem',
               }}
-              className="absolute bottom-[105px] w-[20.5rem] sm:w-[22rem] max-w-[calc(100vw-2rem)] rounded-3xl p-6 text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className="absolute bottom-[105px] w-[20.5rem] sm:w-[22rem] max-w-[calc(100vw-2rem)] rounded-3xl p-6 text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] transition-[left] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
             >
               <div className="flex justify-between items-center mb-5 pb-3 border-b border-white/10">
                 <div className="flex items-center gap-2.5">

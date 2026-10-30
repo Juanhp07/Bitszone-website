@@ -56,6 +56,7 @@ export const MobileTabBar = ({ currentView, onViewChange, onOpenMenu, menuOpen =
 
   return (
     <nav
+      data-no-pressfx
       aria-label="Navegación principal"
       className="lg:hidden shrink-0 relative z-30 px-4 pt-2"
       style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}

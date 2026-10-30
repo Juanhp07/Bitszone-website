@@ -10,6 +10,7 @@ import { ListScrollbar } from '../ui/ListScrollbar';
 import { PopoverMenu, type PopoverMenuItem } from '../ui/PopoverMenu';
 import { TrackMenu } from './TrackMenu';
 import { EqBars } from '../ui/EqBars';
+import { MarqueeTitle } from '../ui/MarqueeTitle';
 import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
 import { usePlaylists, isPlaylistAlbum, withAlbumInfo, PLAYLIST_ID_PREFIX } from './PlaylistsContext';
@@ -51,7 +52,11 @@ export const AlbumView = ({
   onPlayTrack,
   nowPlayingTrackId,
   isPlaying,
-  togglePlay
+  isLoading = false,
+  togglePlay,
+  onOpenPlayer,
+  followPlaying = false,
+  onFollowPlaying
 }: {
   album: Album | null,
   loading: boolean,
@@ -59,7 +64,13 @@ export const AlbumView = ({
   onPlayTrack: (t: Track, a: Album) => void,
   nowPlayingTrackId?: number,
   isPlaying: boolean,
-  togglePlay: () => void
+  isLoading?: boolean,
+  togglePlay: () => void,
+  /** open the full-screen player (click on the song that is playing) */
+  onOpenPlayer?: () => void,
+  /** the header of a song page follows the playing song (set once a song is picked from the page) */
+  followPlaying?: boolean,
+  onFollowPlaying?: () => void
 }) => {
   const { playlists, playlistAsAlbum, createPlaylist, removeFromPlaylist, renamePlaylist, deletePlaylist } = usePlaylists();
   const playback = usePlayback();
@@ -71,6 +82,7 @@ export const AlbumView = ({
   const album = rawAlbum ? applyAlbumOverrides(rawAlbum) : null;
   const [isRenaming, setIsRenaming] = useState(false);
   const [hoveredTrack, setHoveredTrack] = useState<number | null>(null);
+  const [eqZoneHover, setEqZoneHover] = useState(false);
   const [downloadingIds, setDownloadingIds] = useState<number[]>([]);
   const [showDownloadConfirm, setShowDownloadConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -101,15 +113,16 @@ export const AlbumView = ({
   }, [showDownloadConfirm]);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const moreMenuRef = useRef<HTMLButtonElement>(null);
-  const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0 });
+  const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0, right: 0 });
   const [openTrackMenu, setOpenTrackMenu] = useState<number | null>(null);
-  const [trackMenuPos, setTrackMenuPos] = useState({ top: 0, left: 0, isUpward: false });
+  const [trackMenuPos, setTrackMenuPos] = useState<{ top: number; left: number; right?: number; isUpward: boolean }>({ top: 0, left: 0, isUpward: false });
   const { isLicensed, downloadTrack, isDownloaded, toggleFavorite, isFavorite, toggleFavoriteAlbum, removeDownload, downloadingAlbums, downloadAlbum, cancelAlbumDownload } = useDownloads();
   const isSongRadio = Boolean((album as any)?.isSongRadio);
-  // follow the playing song only while this radio is what's playing; another radio that merely contains it keeps its own song
+  // A song page is about the song you opened it from (the radio's first track). Once you pick a song from this page its
+  // header follows what plays; opening the page again from the catalog starts on its own song, whatever is playing.
   const radioIsPlaying = isSongRadio && playback.queueList[playback.queueIndex]?.album?.id === album?.id;
   const activeTrack = isSongRadio
-    ? ((radioIsPlaying && album?.tracks?.find(t => t.id === nowPlayingTrackId)) || album?.tracks?.[0])
+    ? ((followPlaying && radioIsPlaying && album?.tracks?.find(t => t.id === nowPlayingTrackId)) || album?.tracks?.[0])
     : null;
   const currentCover = (isSongRadio && activeTrack?.albumCover) ? activeTrack.albumCover : (album?.coverUrl || '');
   const dominantColor = useAverageColor(currentCover);
@@ -207,7 +220,9 @@ useEffect(() => {
   const isEmpty = !album.tracks?.length;
   const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every(t => isFavorite(t.id)) : false;
   // a radio only counts as active when it's the one playing, not when it merely contains the playing song
-  const isAlbumActive = !!nowPlayingTrackId && !!album.tracks?.some(t => t.id === nowPlayingTrackId) && (!isSongRadio || radioIsPlaying);
+  const isAlbumActive = !!nowPlayingTrackId && (isSongRadio
+    ? activeTrack?.id === nowPlayingTrackId
+    : !!album.tracks?.some(t => t.id === nowPlayingTrackId));
   const isAlbumPlaying = isPlaying && isAlbumActive;
 
   return (
@@ -301,23 +316,24 @@ useEffect(() => {
 
               {/* Actions — bottom-right of the sleeve */}
               <div className="relative lg:absolute lg:-bottom-4 lg:-right-2 mt-5 lg:mt-0 flex items-center justify-center gap-1.5 p-1.5 rounded-full bg-white/[0.18] hover:bg-white/[0.22] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_16px_40px_rgba(0,0,0,0.35)] w-max mx-auto lg:mx-0 z-20 transition-all">
+                {/* always "play it all": pause/resume lives in the player and in the playing row, so this one never changes meaning */}
                 <button
-                  className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl border border-white/30 hover:border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer text-white"
+                  className="h-12 pl-4 pr-5 rounded-full flex items-center gap-2 bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl border border-white/30 hover:border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer text-white text-sm font-semibold whitespace-nowrap"
                   onClick={() => {
-                    if (nowPlayingTrackId && album.tracks?.find(t => t.id === nowPlayingTrackId)) {
-                      togglePlay();
-                    } else if (album.tracks && album.tracks.length > 0) {
-                      playback.playAlbum(album);
+                    if (album.tracks && album.tracks.length > 0) {
+                      playback.playAlbum(album, isSongRadio ? activeTrack ?? undefined : undefined);
+                      onFollowPlaying?.();
                     }
                   }}
-                  title={isAlbumPlaying ? "Pausar" : (album as any)?.isSongRadio ? "Reproducir canción y similares" : "Reproducir álbum"}
-                  aria-label={isAlbumPlaying ? "Pausar" : (album as any)?.isSongRadio ? "Reproducir canción y similares" : "Reproducir álbum"}
+                  title={isSongRadio ? "Reproducir esta canción y las similares" : "Reproducir todo el álbum desde el inicio"}
+                  aria-label={isSongRadio ? "Reproducir canción y similares" : "Reproducir todo el álbum"}
                 >
-                  {isAlbumPlaying ? (
-                    <Pause className="w-5 h-5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
+                  {isLoading && isAlbumActive ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-white/95" aria-label="Cargando canción" />
                   ) : (
-                    <Play className="w-5 h-5 ml-0.5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
+                    <Play className="w-5 h-5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
                   )}
+                  {isSongRadio ? 'Reproducir' : 'Reproducir todo'}
                 </button>
                 <button
                   onClick={() => {
@@ -378,7 +394,7 @@ useEffect(() => {
                     ref={moreMenuRef}
                     onClick={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
-                      setMoreMenuPos({ top: rect.bottom + 8, left: rect.right - 220 });
+                      setMoreMenuPos({ top: rect.bottom + 6, left: rect.left, right: rect.right });
                       setShowMoreMenu(!showMoreMenu);
                     }}
                     className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 text-white/75 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
@@ -390,7 +406,7 @@ useEffect(() => {
                   </button>
                   <PopoverMenu
                     open={showMoreMenu}
-                    anchor={showMoreMenu ? { x: moreMenuPos.left, y: moreMenuPos.top } : null}
+                    anchor={showMoreMenu ? { x: moreMenuPos.left, y: moreMenuPos.top, x2: moreMenuPos.right } : null}
                     width={220}
                     onClose={() => setShowMoreMenu(false)}
                     items={[
@@ -430,13 +446,14 @@ useEffect(() => {
                   className="mt-2 w-full text-center bg-white/5 border border-white/15 rounded-xl px-3 py-1 font-inter font-bold text-white text-4xl md:text-5xl xl:text-6xl leading-[1.1] tracking-tight outline-none focus:border-purple-400/60"
                 />
               ) : (
-                <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="flex items-center justify-center gap-2 mt-2 w-full min-w-0">
                   <h1
                     onDoubleClick={() => isPlaylist && setIsRenaming(true)}
-                    title={isPlaylist ? 'Doble clic para cambiar el nombre' : undefined}
-                    className="font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight [overflow-wrap:anywhere] pb-1"
+                    title={isPlaylist ? 'Doble clic para cambiar el nombre' : currentTitle}
+                    className="min-w-0 flex-1 font-inter font-bold text-white text-4xl md:text-5xl lg:text-[clamp(1.75rem,6dvh,3.75rem)] leading-[1.1] tracking-tight pb-1"
                   >
-                    {currentTitle}
+                    {/* one line, like the player: a long title scrolls (only while hovered) instead of wrapping and breaking the layout */}
+                    <MarqueeTitle text={currentTitle} center slideOnHover />
                   </h1>
                   {isAdmin && isEditMode && album && !isPlaylist && (
                     <AdminPencil
@@ -556,7 +573,11 @@ useEffect(() => {
                   key={track.id}
                   onMouseEnter={() => setHoveredTrack(track.id)}
                   onMouseLeave={() => setHoveredTrack(null)}
-                  onClick={() => playback.playAlbum(album, track)}
+                  onClick={() => {
+                    if (isPlayingTrack && onOpenPlayer) { onOpenPlayer(); return; }
+                    playback.playAlbum(album, track);
+                    onFollowPlaying?.();
+                  }}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     setTrackMenuPos({ top: e.clientY, left: e.clientX, isUpward: false });
@@ -579,9 +600,38 @@ useEffect(() => {
                       </span>
                     );
                   })()}
+                  {isPlayingTrack && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                      onMouseEnter={() => setEqZoneHover(true)}
+                      onMouseLeave={() => setEqZoneHover(false)}
+                      onFocus={() => setEqZoneHover(true)}
+                      onBlur={() => setEqZoneHover(false)}
+                      title={isPlaying ? 'Pausar' : 'Reanudar'}
+                      aria-label={isPlaying ? 'Pausar' : 'Reanudar'}
+                      className="absolute inset-y-0 left-0 z-10 w-14 lg:w-24 rounded-l-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60"
+                    />
+                  )}
                   <div className="relative text-white/50 font-medium flex items-center justify-center tabular-nums">
                     {isPlayingTrack ? (
-                      <EqBars playing={isPlaying} className="h-4 w-4" barClassName="w-[3px] bg-white" />
+                      // icon of the playing song: bars, or what a click on the left zone will do. The four icons are stacked
+                      // and cross-fade with a small overshoot (pop); CSS only, so it stays smooth and never gets stuck mid-swap.
+                      <span className="relative w-5 h-5 flex items-center justify-center">
+                        {[
+                          { id: 'eq', on: !isLoading && !eqZoneHover, node: <EqBars playing={isPlaying} className="h-4 w-4" barClassName="w-[3px] bg-white" /> },
+                          { id: 'pause', on: !isLoading && eqZoneHover && isPlaying, node: <Pause className="w-4 h-4 text-white" fill="currentColor" aria-hidden="true" /> },
+                          { id: 'play', on: !isLoading && eqZoneHover && !isPlaying, node: <Play className="w-4 h-4 ml-0.5 text-white" fill="currentColor" aria-hidden="true" /> },
+                          { id: 'load', on: isLoading, node: <Loader2 className="w-4 h-4 animate-spin text-white" aria-label="Cargando canción" /> },
+                        ].map(({ id, on, node }) => (
+                          <span
+                            key={id}
+                            className={`absolute inset-0 flex items-center justify-center transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${on ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}
+                          >
+                            {node}
+                          </span>
+                        ))}
+                      </span>
                     ) : isHovered ? (
                       <Play className="w-4 h-4 text-white" fill="currentColor" />
                     ) : (
@@ -613,8 +663,8 @@ useEffect(() => {
                   {/* Right side: actions revealed on hover (always visible on touch) */}
                   <div className="relative flex items-center gap-1 lg:gap-3">
                     <div
-                      className={`flex items-center gap-1 lg:gap-3 lg:absolute lg:right-full lg:mr-1 lg:top-1/2 lg:-translate-y-1/2 transition-[opacity,clip-path] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] [@media(hover:none)]:opacity-100 ${
-                        isHovered || menuOpen ? 'opacity-100 lg:[clip-path:inset(0_0_0_0)]' : 'opacity-0 lg:[clip-path:inset(0_100%_0_0)] pointer-events-none [@media(hover:none)]:pointer-events-auto'
+                      className={`flex items-center gap-1 lg:gap-3 lg:absolute lg:right-full lg:mr-1 lg:top-1/2 lg:-translate-y-1/2 origin-right transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] [@media(hover:none)]:opacity-100 ${
+                        isHovered || menuOpen ? 'opacity-100 scale-100' : 'opacity-0 lg:scale-50 pointer-events-none [@media(hover:none)]:pointer-events-auto'
                       }`}
                     >
                       <button
@@ -650,9 +700,12 @@ useEffect(() => {
                     </div>
 
                     {/* Resting state indicators (hidden while actions show) */}
-                    <div className={`hidden lg:flex items-center gap-2 transition-opacity duration-200 ${isHovered || menuOpen ? 'opacity-0' : 'opacity-100'}`} aria-hidden="true">
-                      {downloaded && <CheckCircle className="w-3.5 h-3.5 text-[#a855f7]/80" strokeWidth={2.5} />}
-                      {favorited && <Heart className="w-3.5 h-3.5 text-[#a855f7]/80" fill="currentColor" />}
+                    {/* zero-width slot: the icons hang to its left, so liking a song never pushes the duration or the menu around */}
+                    <div className="hidden lg:block relative w-0 h-0" aria-hidden="true">
+                      <div className={`absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 transition-opacity duration-200 ${isHovered || menuOpen ? 'opacity-0' : 'opacity-100'}`}>
+                        {downloaded && <CheckCircle className="w-3.5 h-3.5 text-[#a855f7]/80" strokeWidth={2.5} />}
+                        {favorited && <Heart className="w-3.5 h-3.5 text-[#a855f7]/80" fill="currentColor" />}
+                      </div>
                     </div>
 
                     <span className="hidden lg:block w-12 text-right text-white/50 text-sm tabular-nums">
@@ -663,10 +716,10 @@ useEffect(() => {
                       onClick={(e) => {
                         e.stopPropagation();
                         const rect = e.currentTarget.getBoundingClientRect();
-                        setTrackMenuPos({ top: rect.bottom + 6, left: rect.right - 270, isUpward: false });
+                        setTrackMenuPos({ top: rect.bottom + 6, left: rect.left, right: rect.right, isUpward: false });
                         setOpenTrackMenu(openTrackMenu === track.id ? null : track.id);
                       }}
-                      className={`w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-white/50 hover:text-white transition-[opacity,color] duration-300 p-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:opacity-100 cursor-pointer [@media(hover:none)]:opacity-100 ${isHovered || menuOpen ? 'opacity-100' : 'lg:opacity-0'}`}
+                      className={`w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-white/50 hover:text-white transition-[opacity,transform,color] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] p-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:opacity-100 focus-visible:scale-100 cursor-pointer [@media(hover:none)]:opacity-100 ${isHovered || menuOpen ? 'opacity-100 scale-100' : 'lg:opacity-0 lg:scale-50'}`}
                       title="Más opciones de la canción"
                       aria-label={`Más opciones para ${track.title}`}
                       aria-expanded={openTrackMenu === track.id}
@@ -731,7 +784,7 @@ useEffect(() => {
             track={menuTrack}
             album={album}
             hideGoToAlbum={!isPlaylist}
-            anchor={menuTrack ? { x: trackMenuPos.left, y: trackMenuPos.top } : null}
+            anchor={menuTrack ? { x: trackMenuPos.left, y: trackMenuPos.top, x2: trackMenuPos.right } : null}
             onClose={() => setOpenTrackMenu(null)}
             leadingItems={menuTrack ? [
               { label: isFavorite(menuTrack.id) ? 'Eliminar de favoritos' : 'Agregar a favoritos', icon: <Heart className="w-4 h-4" fill={isFavorite(menuTrack.id) ? 'currentColor' : 'none'} />, onSelect: () => toggleFavorite(menuTrack, album) },

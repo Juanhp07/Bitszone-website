@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useRubberBand } from '../ui/useRubberBand';
+import { ListScrollbar } from '../ui/ListScrollbar';
 import { createPortal } from 'react-dom';
-import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle } from 'lucide-react';
+import { LiquidTabs } from '../ui/LiquidTabs';
+import { PopoverMenu } from '../ui/PopoverMenu';
+import { BackButton } from '../ui/BackButton';
+import { SectionHero, SectionEmpty } from '../ui/SectionHero';
+import { NowPlayingToggle } from '../ui/NowPlayingToggle';
+import { TrackMenu } from './TrackMenu';
+import { SelectableCard } from '../ui/SelectableCard';
+import { SelectionBar } from '../ui/SelectionBar';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { userStorage } from '../../lib/userStorage';
+import { Star, StarOff, DownloadCloud, Play, Heart, HeartOff, Clock, X, Trash2, Search, Loader2, Check, AlertCircle, Music2, Disc3, HardDrive, ListMusic, ChevronDown, MoreHorizontal, ListChecks } from 'lucide-react';
 import FuseButton from '../ui/FuseButton';
 import HoldButton from '../ui/HoldButton';
 import { useDownloads } from './DownloadsContext';
@@ -10,6 +21,46 @@ import { usePlayback } from './PlaybackContext';
 import { DownloadProgressPill } from './DownloadProgressPill';
 import type { Track, Album } from './types';
 import { cardStyle, titleStyle } from '../auth/authUi';
+
+const FadeScroll = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => {
+  const { containerRef, springValue, scrollProps, triggerBounce } = useRubberBand({ axis: 'y' });
+  const [edges, setEdges] = useState({ top: false, bottom: false });
+  const update = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    setEdges({ top: el.scrollTop > 4, bottom: el.scrollTop + el.clientHeight < el.scrollHeight - 4 });
+  };
+  useEffect(() => {
+    update();
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => ro.disconnect();
+  }, []);
+  const mask = `linear-gradient(to bottom, ${edges.top ? 'transparent 0, black 40px' : 'black 0'}, ${edges.bottom ? 'black calc(100% - 40px), transparent 100%' : 'black 100%'})`;
+  return (
+    <div className="relative">
+      <ListScrollbar containerRef={containerRef} onBounce={triggerBounce} springY={springValue} className="-right-5 top-2 bottom-2" />
+      <div
+        ref={containerRef}
+        {...scrollProps}
+        onScroll={() => { scrollProps.onScroll(); update(); }}
+        onWheel={(e) => {
+          scrollProps.onWheel(e);
+          // the page stays still while the list itself scrolls
+          const el = e.currentTarget;
+          if (el.scrollHeight > el.clientHeight + 1) e.stopPropagation();
+        }}
+        className={`overflow-y-auto overscroll-contain scrollbar-hide ${className}`}
+        style={{ scrollbarWidth: 'none', maskImage: mask, WebkitMaskImage: mask }}
+      >
+        <motion.div style={{ y: springValue }}>{children}</motion.div>
+      </div>
+    </div>
+  );
+};
 
 const TimeAgo = ({ dateStr }: { dateStr?: string }) => {
   const [now, setNow] = useState(Date.now());
@@ -75,9 +126,19 @@ export const DownloadsView = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [sortBy, setSortBy] = useState<'default' | 'recent' | 'alpha' | 'size_desc' | 'size_asc'>('default');
+  const [sortBy, setSortBy] = useState<'default' | 'recent' | 'alpha' | 'size_desc' | 'size_asc' | 'manual'>('default');
+  // edit mode (like the iOS home screen): select albums with checks, delete them, or drag them into your own order
+  const [editing, setEditing] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const orderKey = `bz_album_order_${type}`;
+  const [manualOrder, setManualOrder] = useState<string[]>(() => {
+    try { return JSON.parse(userStorage.getItem(orderKey) || '[]'); } catch { return []; }
+  });
   const [showSort, setShowSort] = useState(false);
-  const [sortPos, setSortPos] = useState({ top: 0, left: 0 });
+  const [rowMenu, setRowMenu] = useState<{ track: Track; anchor: { x: number; y: number; x2?: number } } | null>(null);
+  const [sortPos, setSortPos] = useState({ top: 0, left: 0, right: 0 });
   const [searchPos, setSearchPos] = useState({ top: 0, left: 0, width: 0 });
   useEffect(() => { const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowSort(false); }; if (showSort) { document.addEventListener('keydown', handleKeyDown); } return () => document.removeEventListener('keydown', handleKeyDown); }, [showSort]);
   useEffect(() => {
@@ -232,31 +293,53 @@ export const DownloadsView = ({
     return acc;
   }, {} as Record<string, { id: string, title: string, coverUrl: string, tracks: Track[] }>);
 
-  const renderTrack = (track: Track, index: number) => {
+  // the album a song belongs to, for the song menu (queue, playlists, go to album / artist)
+  const albumFor = (t: Track): Album =>
+    albums?.find((a) => String(a.id) === String(t.albumId)) ??
+    ({ id: t.albumId ?? 0, title: t.albumTitle || '', artist: t.artist, coverUrl: t.albumCover || '', year: '', genre: '', trackCount: 0 } as Album);
+
+  const rowMenuItems = (t: Track) => [
+    { label: 'Reproducir', icon: <Play className="w-4 h-4" />, onSelect: () => handlePlay(t) },
+    type === 'favorites'
+      ? { label: 'Quitar de favoritos', icon: <HeartOff className="w-4 h-4" />, onSelect: () => toggleFavorite(t), danger: true }
+      : { label: isFavorite(t.id) ? 'Quitar de favoritos' : 'Agregar a favoritos', icon: <Heart className="w-4 h-4" />, onSelect: () => toggleFavorite(t) },
+    ...(type === 'downloads' ? [{ label: 'Eliminar descarga', icon: <Trash2 className="w-4 h-4" />, onSelect: () => removeDownload(t.id), danger: true }] : []),
+    ...(type === 'licenses' ? [{ label: 'Quitar licencia', icon: <StarOff className="w-4 h-4" />, onSelect: () => setTrackToRemove(t), danger: true }] : []),
+  ];
+
+  const renderTrack = (track: Track, index: number, large = false) => {
     const isHovered = hoveredTrack === track.id;
+    const isCurrent = playback.nowPlayingTrackId === track.id;
+    const layer = 'absolute inset-0 flex items-center justify-center transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)]';
     return (
-      <div 
+      <div
         key={track.id}
         onMouseEnter={() => setHoveredTrack(track.id)}
         onMouseLeave={() => setHoveredTrack(null)}
         onClick={() => handlePlay(track)}
-        className={`grid grid-cols-[28px_minmax(0,1fr)_44px] ${type === 'downloads' ? 'lg:grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'lg:grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'lg:grid-cols-[50px_1fr_130px_80px_100px]'} gap-2 lg:gap-4 px-1 lg:px-4 py-2 items-center rounded-xl cursor-pointer group hover:bg-white/5 transition-colors`}
+        onContextMenu={(e) => { e.preventDefault(); setRowMenu({ track, anchor: { x: e.clientX, y: e.clientY } }); }}
+        className={`grid grid-cols-[28px_minmax(0,1fr)_84px] ${type === 'downloads' ? 'lg:grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'lg:grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'lg:grid-cols-[50px_1fr_130px_80px_100px]'} gap-2 lg:gap-4 px-1 lg:px-4 ${large ? 'py-4' : 'py-2.5'} items-center rounded-2xl cursor-pointer group transition-colors duration-300 ${isCurrent ? 'bg-white/[0.09] backdrop-blur-xl' : 'hover:bg-white/[0.06]'}`}
       >
-        <div className="text-center text-white/50 font-medium">
-          {isHovered ? (
-            <Play className="w-4 h-4 text-white mx-auto" fill="currentColor" />
+        <div className="relative h-9 flex items-center justify-center text-white/50 font-medium">
+          {isCurrent ? (
+            // the playing song: bars that become pause / play on hover
+            <NowPlayingToggle isPlaying={playback.isPlaying} isLoading={playback.isLoading} onToggle={playback.togglePlay} className="-mx-1 lg:mx-0" />
           ) : (
-            <span>{index + 1}</span>
+            // number that pops into a play icon on hover
+            <span className="relative w-6 h-6 flex items-center justify-center">
+              <span className={`${layer} tabular-nums ${isHovered ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`}>{index + 1}</span>
+              <span className={`${layer} text-white ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}><Play className="w-4 h-4" fill="currentColor" aria-hidden="true" /></span>
+            </span>
           )}
         </div>
-        
+
         <div className="flex flex-col min-w-0 pr-1 lg:pr-4">
-          <span className="font-medium line-clamp-1 text-white text-[15px] lg:text-sm flex items-center gap-1.5">
+          <span className={`font-medium line-clamp-1 text-white ${large ? 'text-base lg:text-[17px]' : 'text-[15px] lg:text-sm'} flex items-center gap-1.5`}>
             {isLicensed(track.id) && <Star className="w-3.5 h-3.5 text-yellow-500 shrink-0" fill="currentColor" />}
             <span className="truncate">{track.title}</span>
           </span>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-white/50 text-[13px] lg:text-sm line-clamp-1 group-hover:text-white/80 transition-colors">{track.artist}</span>
+            <span className={`text-white/50 text-[13px] ${large ? 'lg:text-[15px]' : 'lg:text-sm'} line-clamp-1 group-hover:text-white/80 transition-colors`}>{track.artist}</span>
             {type === 'licenses' && <span className="lg:hidden shrink-0 text-yellow-500/80 text-[11px] font-bold tracking-wide">· {getDaysLeft(track.addedAt)}</span>}
           </div>
         </div>
@@ -286,7 +369,19 @@ export const DownloadsView = ({
           {formatDuration(track.duration)}
         </div>
 
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-end lg:justify-center gap-0.5">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const r = e.currentTarget.getBoundingClientRect();
+              setRowMenu({ track, anchor: { x: r.left, y: r.bottom + 6, x2: r.right } });
+            }}
+            className="w-9 h-9 lg:w-8 lg:h-8 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+            title="Más opciones"
+            aria-label={`Más opciones para ${track.title}`}
+          >
+            <MoreHorizontal className="w-4 h-4" aria-hidden="true" />
+          </button>
           {type === 'downloads' ? (
             <FuseButton fuse="outline" commitOn="fuseEnd" radius={16} 
               
@@ -309,7 +404,7 @@ export const DownloadsView = ({
               }}
               aria-label={`Quitar licencia de ${track.title}`}
               title="Quitar licencia"
-              className="group/favbtn w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-yellow-500 hover:text-yellow-400 opacity-100 transition-all p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 rounded-lg cursor-pointer"
+              className="group/favbtn w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-yellow-500 hover:text-yellow-400 opacity-100 transition-colors p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 rounded-full cursor-pointer pop-press"
             >
               <Star className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
               <StarOff className="w-4 h-4 hidden group-hover/favbtn:block" />
@@ -322,7 +417,7 @@ export const DownloadsView = ({
               }}
               aria-label={`Quitar ${track.title} de favoritos`}
               title="Quitar de favoritos"
-              className="group/favbtn w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-[#a855f7] hover:text-[#b066f8] opacity-100 transition-all p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg cursor-pointer"
+              className="group/favbtn w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center text-[#a855f7] hover:text-[#b066f8] opacity-100 transition-colors p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer pop-press"
             >
               <Heart className="w-4 h-4 block group-hover/favbtn:hidden" fill="currentColor" />
               <HeartOff className="w-4 h-4 hidden group-hover/favbtn:block" />
@@ -343,6 +438,10 @@ export const DownloadsView = ({
   };
 
   const sortedGroups = Object.values(groupedTracks).sort((a: any, b: any) => {
+    if (sortBy === 'manual') {
+      const rank = (g: any) => { const i = manualOrder.indexOf(String(g.id)); return i < 0 ? 1e9 : i; };
+      return rank(a) - rank(b);
+    }
     if (sortBy === 'recent' || sortBy === 'default') {
       return getGroupAddedAt(b) - getGroupAddedAt(a);
     } else if (sortBy === 'alpha') {
@@ -377,6 +476,28 @@ export const DownloadsView = ({
   });
 
   
+
+  const exitEditing = () => { setEditing(false); setSelected(new Set()); setDragId(null); };
+  const toggleSelected = (id: string) => setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const moveAlbum = (fromId: string, toId: string) => {
+    const ids = sortedGroups.map((g: any) => String(g.id));
+    const from = ids.indexOf(fromId), to = ids.indexOf(toId);
+    if (from < 0 || to < 0 || from === to) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    setManualOrder(ids);
+    userStorage.setItem(orderKey, JSON.stringify(ids));
+    setSortBy('manual');
+  };
+  const deleteSelected = () => {
+    selected.forEach((id) => {
+      if (type === 'downloads') removeAlbumFromDownloads(id);
+      else if (type === 'licenses') removeAlbumFromLicenses(id);
+      else removeAlbumFromFavorites(id);
+    });
+    setConfirmDelete(false);
+    exitEditing();
+  };
+  const where = type === 'downloads' ? 'tus descargas' : type === 'licenses' ? 'tus canciones con licencia' : 'tus favoritas';
 
   return (
     <div className="h-full flex flex-col relative">
@@ -461,161 +582,88 @@ export const DownloadsView = ({
         }
       `}</style>
       {/* Hero Section */}
-      <div className="px-4 md:px-8 pt-4 md:pt-8 pb-4 md:pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-40 border-b border-white/5">
-        <div className="flex items-center gap-4 md:gap-6 min-w-0 w-full md:w-auto">
-          <div className={`w-20 h-20 md:w-40 md:h-40 shrink-0 rounded-2xl flex items-center justify-center ${type === 'licenses' ? 'bg-yellow-500' : type === 'playlists' ? 'bg-green-500' : type === 'downloads' ? 'bg-blue-500' : 'bg-[#a855f7]'}`}>
-            <Icon className={`w-9 h-9 md:w-16 md:h-16 text-white custom-icon-${type}`} />
-          </div>
-          
-          <div className="flex flex-col gap-1 md:gap-2 min-w-0">
-            {type === 'downloads' ? <span className="text-white/70 text-[11px] md:text-sm font-semibold tracking-widest uppercase md:mt-2">Mis descargas</span> : <span className="text-white/70 text-[11px] md:text-sm font-semibold tracking-widest uppercase md:mt-2">Biblioteca</span>}
-            <div className="text-[24px] leading-tight md:text-4xl lg:text-5xl md:leading-none font-black text-white tracking-tight md:[-webkit-text-stroke:1px_currentColor]" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{title}</div>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 md:mt-2 text-white/80 font-medium text-xs md:text-sm">
-              <span>{tracks.length} {tracks.length === 1 ? 'canción' : 'canciones'}</span>
-              <span className="text-white/30">•</span>
-              <span>{Object.keys(groupedTracks).length} {Object.keys(groupedTracks).length === 1 ? 'álbum' : 'álbumes'}</span>
-              {type === 'downloads' && (
-                <>
-                  <span className="text-white/30">•</span>
-                  <span className="text-white/60">
-                    {availableGB.toFixed(2)}GB libres de 5.00GB
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {tracks.length > 0 && (
-          <div>
-            <HoldButton
-              size="sm"
-              radius={20}
-              glow={true}
-              wave={true}
-              holdTime={5000}
-              backgroundColor="transparent"
-              fillColor="#e11d48"
-              textColor="rgba(255, 255, 255, 0.3)"
-              fillTextColor="#ffffff"
-              icon={<Trash2 className="w-4 h-4" />}
-              doneIcon={<Check className="w-4 h-4" />}
-              doneLabel="Eliminado"
-              className="!border border-white/10 font-medium hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=holding]:!border-red-500/30 data-[phase=holding]:!bg-red-500/10 data-[phase=holding]:!text-red-400 transition-colors duration-300 group"
-              onHold={() => {
-                if (type === 'downloads') {
-                  clearDownloads();
-                } else if (type === 'licenses') {
-                  clearLicenses();
-                } else if (type === 'playlists') {
-                  window.dispatchEvent(new CustomEvent('show-toast', { detail: 'Todas las listas de reproducción fueron eliminadas' }));
-                } else {
-                  clearFavorites();
-                }
-              }}
-            >
-              Mantener para eliminar
-            </HoldButton>
-          </div>
-        )}
-      </div>
+      <SectionHero
+        type={type}
+        icon={Icon}
+        kicker={type === 'downloads' ? 'Mis descargas' : 'Biblioteca'}
+        title={title}
+        stats={[
+          { icon: <Music2 className="w-3.5 h-3.5" aria-hidden="true" />, text: `${tracks.length} ${tracks.length === 1 ? 'canción' : 'canciones'}` },
+          { icon: <Disc3 className="w-3.5 h-3.5" aria-hidden="true" />, text: `${Object.keys(groupedTracks).length} ${Object.keys(groupedTracks).length === 1 ? 'álbum' : 'álbumes'}` },
+          ...(type === 'downloads' ? [{ icon: <HardDrive className="w-3.5 h-3.5" aria-hidden="true" />, text: `${availableGB.toFixed(2)}GB libres de 5.00GB` }] : []),
+        ]}
+        actions={tracks.length > 0 ? (editing ? (
+          <SelectionBar
+            count={selected.size}
+            total={sortedGroups.length}
+            noun="álbumes"
+            onSelectAll={() => setSelected(new Set(sortedGroups.map((g: any) => String(g.id))))}
+            onClearSelection={() => setSelected(new Set())}
+            onDelete={() => setConfirmDelete(true)}
+            onDone={exitEditing}
+          />
+        ) : (
+          <button
+            onClick={() => { if (editing) exitEditing(); else { setViewMode('albumes'); setSelectedAlbumId(null); setEditing(true); } }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold backdrop-blur-xl transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer ${editing ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-white/[0.09] hover:bg-white/[0.17]'}`}
+          >
+            <ListChecks className="w-4 h-4" aria-hidden="true" />
+            Seleccionar
+          </button>
+        )) : undefined}
+      />
 
       {/* Action Bar (Search & Tabs) */}
-      <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 sticky top-0 bg-[#07050c]/80 md:bg-transparent backdrop-blur-md z-30 border-b border-white/5">
-        <div className="relative flex bg-white/5 rounded-full p-1 border border-white/10">
-          {/* Animated Background Pill */}
-          <div 
-            className={`absolute top-1 bottom-1 w-[96px] md:w-[110px] rounded-full transition-transform duration-300 ease-out border shadow-md ${
-              viewMode === 'canciones' ? 'translate-x-0' : 'translate-x-full'
-            } ${
-              type === 'licenses' ? 'bg-yellow-500/20 border-yellow-500/30' : 
-              type === 'playlists' ? 'bg-green-500/20 border-green-500/30' : 
-              type === 'downloads' ? 'bg-blue-500/20 border-blue-500/30' : 
-              'bg-[#a855f7]/20 border-[#a855f7]/30'
-            }`}
+      <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 sticky top-0 bg-[#07050c]/60 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none z-30">
+        {/* same glass dock as the player's tabs */}
+        <div className="rounded-full p-1.5 w-[220px] md:w-[250px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors duration-300">
+          <LiquidTabs
+            value={viewMode}
+            onChange={(id) => { setViewMode(id); setSelectedAlbumId(null); }}
+            tabs={[
+              { id: 'canciones' as const, label: 'Canciones', title: 'Ver por canciones' },
+              { id: 'albumes' as const, label: 'Álbumes', title: 'Ver por álbumes' },
+            ]}
           />
-          
-          <button 
-            role="tab"
-            aria-selected={viewMode === 'canciones'}
-            title="Ver por canciones"
-            aria-label="Ver lista de canciones"
-            onClick={() => { setViewMode('canciones'); setSelectedAlbumId(null); }} 
-            className={`relative z-10 w-[96px] md:w-[110px] py-2 md:py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
-              viewMode === 'canciones' ? (
-                type === 'licenses' ? 'text-yellow-400' : 
-                type === 'playlists' ? 'text-green-400' : 
-                type === 'downloads' ? 'text-blue-400' : 
-                'text-[#c084fc]'
-              ) : 'text-white/50 hover:text-white'
-            }`}
-          >
-            Canciones
-          </button>
-          <button 
-            role="tab"
-            aria-selected={viewMode === 'albumes'}
-            title="Ver por álbumes"
-            aria-label="Ver lista de álbumes"
-            onClick={() => { setViewMode('albumes'); setSelectedAlbumId(null); }} 
-            className={`relative z-10 w-[96px] md:w-[110px] py-2 md:py-1.5 rounded-full text-sm font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${
-              viewMode === 'albumes' ? (
-                type === 'licenses' ? 'text-yellow-400' : 
-                type === 'playlists' ? 'text-green-400' : 
-                type === 'downloads' ? 'text-blue-400' : 
-                'text-[#c084fc]'
-              ) : 'text-white/50 hover:text-white'
-            }`}
-          >
-            Álbumes
-          </button>
         </div>
 
         <div className="relative z-50">
           <button 
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
-              setSortPos({ top: rect.bottom, left: Math.max(8, rect.right - 280) });
+              setSortPos({ top: rect.bottom + 6, left: rect.left, right: rect.right });
               setShowSort(!showSort);
             }} 
             title="Opciones de ordenamiento"
             aria-label="Ordenar elementos"
             aria-expanded={showSort}
-            className="flex items-center gap-1.5 min-h-[44px] md:min-h-0 whitespace-nowrap text-white/50 hover:text-white transition-colors text-sm font-medium group relative z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 py-1 cursor-pointer"
+            className="flex items-center gap-1.5 min-h-[44px] md:min-h-0 whitespace-nowrap text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.13] backdrop-blur-xl transition-colors text-sm font-medium group relative z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-full pl-4 pr-3 py-2 cursor-pointer"
           >
-            <span className="hidden sm:inline text-white/30 mr-1">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : 'Menos pesados'}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-y-px"><path d="m6 9 6 6 6-6"/></svg>
+            <span className="hidden sm:inline text-white/40 mr-0.5">Ordenar:</span> {sortBy === 'default' ? 'Por defecto' : sortBy === 'recent' ? 'Añadidos recientemente' : sortBy === 'alpha' ? 'Alfabéticamente' : sortBy === 'size_desc' ? 'Más pesados' : sortBy === 'manual' ? 'Mi orden' : 'Menos pesados'}
+            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${showSort ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
-          {showSort && typeof document !== 'undefined' && createPortal(
-            <>
-            <div className="fixed inset-0 z-[9998]" onClick={() => setShowSort(false)} />
-            <div 
-              style={{ top: sortPos.top, left: sortPos.left }}
-              className={`fixed mt-4 w-[min(280px,calc(100vw-16px))] border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-[#140d1f]/95 md:bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : type === 'downloads' ? 'border-blue-500/20' : 'border-[#a855f7]/20'}`}>
-              {[
-                { id: 'default', label: 'Por defecto' },
-                { id: 'recent', label: 'Añadidos recientemente' },
-                { id: 'alpha', label: 'Alfabéticamente' },
-                { id: 'size_desc', label: 'Más pesados' },
-                { id: 'size_asc', label: 'Menos pesados' }
-              ].map(opt => (
-                <button 
-                  key={opt.id}
-                  onClick={() => { setSortBy(opt.id as any); setShowSort(false); }}
-                  title={`Ordenar por: ${opt.label}`}
-                  aria-label={`Ordenar por ${opt.label}`}
-                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${sortBy === opt.id ? 'bg-white/10 text-white font-medium' : `text-white/60 hover:text-white ${type === 'licenses' ? 'hover:bg-yellow-500/10' : type === 'playlists' ? 'hover:bg-green-500/10' : type === 'downloads' ? 'hover:bg-blue-500/10' : 'hover:bg-[#a855f7]/10'}`}`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-            </>,
-            document.body
-          )}
+          <PopoverMenu
+            open={showSort}
+            anchor={showSort ? { x: sortPos.left, y: sortPos.top, x2: sortPos.right } : null}
+            width={260}
+            onClose={() => setShowSort(false)}
+            items={[
+              { id: 'default', label: 'Por defecto' },
+              { id: 'recent', label: 'Añadidos recientemente' },
+              { id: 'alpha', label: 'Alfabéticamente' },
+              { id: 'size_desc', label: 'Más pesados' },
+              { id: 'size_asc', label: 'Menos pesados' },
+              ...(manualOrder.length ? [{ id: 'manual', label: 'Mi orden' }] : []),
+            ].map((opt) => ({
+              label: opt.label,
+              active: sortBy === opt.id,
+              icon: sortBy === opt.id ? <Check className="w-4 h-4" /> : undefined,
+              onSelect: () => setSortBy(opt.id as any),
+            }))}
+          />
         </div>
         
-        <div className="relative w-full md:max-w-sm md:ml-4">
+        <div className="relative w-full md:max-w-sm md:ml-4 md:focus-within:max-w-md transition-[max-width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
           <input 
             type="text"
@@ -633,12 +681,12 @@ export const DownloadsView = ({
               setShowSuggestions(true);
             }}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            className="w-full bg-white/5 border border-white/10 rounded-full pl-11 pr-4 py-2.5 md:py-2 text-base md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-colors"
+            className="w-full bg-white/[0.07] backdrop-blur-xl rounded-full pl-11 pr-4 py-2.5 md:py-2.5 text-base md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:bg-white/[0.12] focus:ring-1 focus:ring-white/25 transition-[background-color,box-shadow] duration-300"
           />
           {showSuggestions && suggestions.length > 0 && typeof document !== 'undefined' && createPortal(
             <div 
               style={{ top: searchPos.top, left: searchPos.left, width: searchPos.width }}
-              className={`fixed mt-4 border rounded-xl p-1.5 z-[9999] backdrop-blur-3xl flex flex-col gap-1.5 font-sans shadow-2xl bg-[#140d1f]/95 md:bg-black/30 ${type === 'licenses' ? 'border-yellow-500/20' : type === 'playlists' ? 'border-green-500/20' : type === 'downloads' ? 'border-blue-500/20' : 'border-[#a855f7]/20'}`}>
+              className="fixed mt-3 rounded-3xl p-2 z-[9999] backdrop-blur-xl flex flex-col gap-0.5 font-sans bg-black/40 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)]">
               {suggestions.map((sug, idx) => (
                 <button 
                   key={idx}
@@ -648,7 +696,7 @@ export const DownloadsView = ({
                   }}
                   title={`Buscar: ${sug}`}
                   aria-label={`Sugerencia de búsqueda: ${sug}`}
-                  className={`w-full text-left px-4 py-3 text-[15px] tracking-wide rounded-lg transition-colors whitespace-nowrap overflow-hidden text-ellipsis focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${type === 'licenses' ? 'text-white/60 hover:text-white hover:bg-yellow-500/10' : type === 'playlists' ? 'text-white/60 hover:text-white hover:bg-green-500/10' : type === 'downloads' ? 'text-white/60 hover:text-white hover:bg-blue-500/10' : 'text-white/60 hover:text-white hover:bg-[#a855f7]/10'}`}
+                  className="w-full text-left px-3.5 py-2.5 text-[14px] rounded-2xl transition-colors whitespace-nowrap overflow-hidden text-ellipsis focus-visible:outline-none focus-visible:bg-white/10 text-white/75 hover:text-white hover:bg-white/10"
                 >
                   {sug}
                 </button>
@@ -665,92 +713,106 @@ export const DownloadsView = ({
         style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         <motion.div style={{ y: listSpringY }}>
-        {filteredTracks.length === 0 && searchQuery !== '' ? (
-           <div className="text-center pt-10 text-white/50">
-             No se encontraron resultados para "{searchQuery}"
+        {tracks.length === 0 && searchQuery === '' ? (
+          <SectionEmpty
+            type={type}
+            icon={Icon}
+            title={type === 'downloads' ? "Aún no tienes descargas" : type === 'favorites' ? "Todavía no tienes favoritas" : "No tienes canciones con licencia"}
+            text={type === 'downloads' ? "Descarga canciones o álbumes con el botón de descarga y escúchalas aquí, sin conexión." : type === 'favorites' ? "Toca el corazón de cualquier canción para guardarla aquí." : "Las canciones con licencia aparecen aquí y duran 30 días."}
+          />
+        ) : filteredTracks.length === 0 && searchQuery !== '' ? (
+           <div className="text-center pt-16 text-white/55">
+             No se encontraron resultados para <span className="text-white/85 font-medium">"{searchQuery}"</span>
            </div>
         ) : selectedAlbumId && groupedTracks[selectedAlbumId] ? (
-          <div className="px-1 md:px-8 max-w-[1200px] mx-auto w-full pb-12 animate-in fade-in slide-in-from-right-4 duration-300">
-            <button 
-              onClick={() => setSelectedAlbumId(null)}
-              title="Volver a álbumes"
-              aria-label="Volver a la lista de álbumes"
-              className="flex items-center gap-2 min-h-[44px] md:min-h-0 text-white/50 hover:text-white font-medium text-sm mb-3 md:mb-6 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 py-1 -ml-2 cursor-pointer"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-              Volver a álbumes
-            </button>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6 mb-6 md:mb-8">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl bg-white/5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xl">
-                {groupedTracks[selectedAlbumId].coverUrl ? (
-                  <img src={groupedTracks[selectedAlbumId].coverUrl} alt={groupedTracks[selectedAlbumId].title} className="w-full h-full object-cover" />
-                ) : (
-                  <Icon className="w-12 h-12 text-white/20" />
-                )}
-              </div>
-              <div className="flex flex-col gap-1.5 md:gap-2 min-w-0">
-                <span className="text-white/70 text-xs font-bold tracking-widest uppercase">Álbum</span>
-                <h2 className="text-2xl md:text-4xl font-bold text-white tracking-tight break-words">{groupedTracks[selectedAlbumId].title}</h2>
-                <p className="text-white/50 text-sm md:text-base">{groupedTracks[selectedAlbumId].tracks[0]?.artist || 'Artista'} • {groupedTracks[selectedAlbumId].tracks.length} {groupedTracks[selectedAlbumId].tracks.length === 1 ? 'canción' : 'canciones'}</p>
-                <div className="flex flex-wrap items-center gap-3 mt-2">
-                  <button 
-                    onClick={() => playback.playAlbum(groupedTracks[selectedAlbumId] as any)} 
-                    title={`Reproducir álbum ${groupedTracks[selectedAlbumId].title}`}
-                    aria-label={`Reproducir álbum ${groupedTracks[selectedAlbumId].title}`}
-                    className="h-11 md:h-auto px-6 md:py-2 rounded-full bg-white hover:bg-white/90 text-black font-bold flex items-center gap-2 transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-                  >
-                    <Play className="w-4 h-4" fill="currentColor" />
-                    Reproducir
-                  </button>
-                  <FuseButton fuse="outline" commitOn="fuseEnd" radius={20} 
-              
-                      label="Eliminar"
-                      undoLabel="Deshacer"
-                      doneLabel="Eliminado"
-                      background="transparent"
-                      color="#ffffff"
-                      fuseColor="#ef4444"
-                      undoWindow={2000}
-                      className="!h-10 rounded-full border border-white/20 font-medium text-sm transition-all duration-300 hover:!border-red-500/30 hover:!bg-red-500/10 hover:!text-red-400 data-[phase=armed]:!border-red-500/30 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-400 group/fuse"
-                      onCommit={() => {
-                        const id = groupedTracks[selectedAlbumId].id;
-                        if (type === 'downloads') {
-                          removeAlbumFromDownloads(id);
-                        } else if (type === 'licenses') {
-                          removeAlbumFromLicenses(id);
-                        } else if (type === 'playlists') {
-                          window.dispatchEvent(new CustomEvent('show-toast', { detail: `Lista de reproducción '${groupedTracks[selectedAlbumId].title}' eliminada` }));
-                        } else {
-                          removeAlbumFromFavorites(id);
-                        }
-                      }}
-                    />
+          (() => {
+            const g = groupedTracks[selectedAlbumId];
+            const favAlbum = g.tracks.length ? g.tracks.every((t: any) => isFavorite(t.id)) : false;
+            const removeAll = () => {
+              if (type === 'downloads') removeAlbumFromDownloads(g.id);
+              else if (type === 'licenses') removeAlbumFromLicenses(g.id);
+              else if (type === 'playlists') window.dispatchEvent(new CustomEvent('show-toast', { detail: `Lista de reproducción '${g.title}' eliminada` }));
+              else removeAlbumFromFavorites(g.id);
+            };
+            return (
+              <div className="px-1 md:px-8 w-full pb-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                {/* like the album page: back button, cover with title and actions, and the list, all starting on the same line */}
+                <div className="grid grid-cols-1 lg:grid-cols-[44px_minmax(240px,380px)_minmax(0,1fr)] gap-4 lg:gap-12 items-start">
+                  <BackButton onClick={() => setSelectedAlbumId(null)} label="Volver a la lista de álbumes" text="Volver a álbumes" hoverWidth="" />
+                  <div className="flex flex-col items-center lg:items-start gap-4 min-w-0">
+                    <div className="relative w-[min(68vw,300px)] lg:w-full lg:max-w-[min(100%,calc(100dvh-520px))] aspect-square rounded-3xl overflow-hidden bg-white/5 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.7)]">
+                      {g.coverUrl ? <img src={g.coverUrl} alt={g.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Icon className="w-16 h-16 text-white/20" /></div>}
+                    </div>
+                    <div className="flex flex-col gap-1.5 text-center lg:text-left min-w-0 w-full">
+                      <span className="text-white/60 text-xs font-semibold tracking-[0.25em] uppercase">Álbum</span>
+                      <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight break-words">{g.title}</h2>
+                      <p className="text-white/60 text-sm md:text-base">{g.tracks[0]?.artist || 'Artista'} • {g.tracks.length} {g.tracks.length === 1 ? 'canción' : 'canciones'}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 p-1.5 rounded-full w-max" style={{ background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(28px) saturate(1.15)', WebkitBackdropFilter: 'blur(28px) saturate(1.15)' }}>
+                      <button
+                        onClick={() => playback.playAlbum(g as any)}
+                        title={`Reproducir todo ${g.title}`}
+                        aria-label={`Reproducir todo ${g.title}`}
+                        className="h-12 pl-4 pr-5 rounded-full flex items-center gap-2 bg-white/[0.14] hover:bg-white/[0.24] text-white text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+                      >
+                        <Play className="w-5 h-5" fill="currentColor" aria-hidden="true" />
+                        Reproducir todo
+                      </button>
+                      <button
+                        onClick={() => toggleFavoriteAlbum && toggleFavoriteAlbum(g as any)}
+                        title={favAlbum ? 'Quitar álbum de favoritos' : 'Guardar álbum en favoritos'}
+                        aria-label={favAlbum ? 'Quitar álbum de favoritos' : 'Guardar álbum en favoritos'}
+                        aria-pressed={favAlbum}
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+                      >
+                        <span key={String(favAlbum)} className="pop-in inline-flex">
+                          <Heart className={`w-5 h-5 ${favAlbum ? 'text-[#a855f7]' : ''}`} fill={favAlbum ? 'currentColor' : 'none'} aria-hidden="true" />
+                        </span>
+                      </button>
+                      <FuseButton fuse="outline" commitOn="fuseEnd" radius={20}
+                        label=""
+                        undoLabel=""
+                        doneLabel=""
+                        background="transparent"
+                        color="rgba(255,255,255,0.8)"
+                        fuseColor="#ef4444"
+                        undoWindow={2000}
+                        className="!w-12 !h-12 !min-w-[48px] !px-0 rounded-full border border-transparent transition-colors duration-300 hover:!bg-red-500/10 hover:!text-red-300 data-[phase=armed]:!bg-red-500/10 data-[phase=armed]:!text-red-300 group/fuse"
+                        icon={<Trash2 className="w-5 h-5" />}
+                        onCommit={removeAll}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className={`hidden lg:grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase mb-2`}>
+                      <div className="text-center">#</div>
+                      <div>TÍTULO</div>
+                      <div className="text-center">AÑADIDO</div>
+                      {type === 'downloads' && <div className="text-center">TAMAÑO</div>}
+                      {type === 'licenses' && <div className="text-center">EXPIRACIÓN</div>}
+                      {type === 'licenses' && <div className="text-center">HASTA</div>}
+                      <div className="text-center">TIEMPO</div>
+                      <div className="text-center">{type === 'downloads' ? 'ELIMINAR' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
+                    </div>
+                    {/* about six big rows, then it scrolls inside */}
+                    <FadeScroll className="lg:max-h-[min(calc(100dvh-400px),30rem)] -mx-2 px-2">
+                      <div className="flex flex-col gap-0.5">
+                        {g.tracks.map((track: any, index: number) => renderTrack(track, index, true))}
+                      </div>
+                    </FadeScroll>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className={`hidden lg:grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-2`}>
-              <div className="text-center">#</div>
-              <div>TÍTULO</div>
-              <div className="text-center">AÑADIDO</div>
-              {type === 'downloads' && <div className="text-center">TAMAÑO</div>}
-              {type === 'licenses' && <div className="text-center">EXPIRACIÓN</div>}
-              {type === 'licenses' && <div className="text-center">HASTA</div>}
-              <div className="text-center">TIEMPO</div>
-              <div className="text-center">{type === 'downloads' ? 'ELIMINAR' : type === 'licenses' ? 'LICENCIA' : 'FAVORITOS'}</div>
-            </div>
-
-            <div className="flex flex-col gap-0.5">
-              {groupedTracks[selectedAlbumId].tracks.map((track, index) => renderTrack(track, index))}
-            </div>
-          </div>
+            );
+          })()
         ) : viewMode === 'canciones' ? (
           <div className="flex flex-col gap-8 md:gap-10">
             {sortedGroups.map((group: any) => (
               <div key={group.id} className="flex flex-col">
                 <div className="flex items-center justify-between gap-3 md:gap-4 mb-3 md:mb-4 px-1 md:px-4">
                   <div className="flex items-center gap-3 md:gap-4 min-w-0 cursor-pointer group/title" onClick={() => setSelectedAlbumId(group.id)}>
-                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-md bg-white/5 flex items-center justify-center shrink-0 overflow-hidden shadow-lg transition-transform group-hover/title:scale-105">
+                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white/5 flex items-center justify-center shrink-0 overflow-hidden shadow-[0_12px_30px_-8px_rgba(0,0,0,0.6)] transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/title:scale-105">
                       {group.coverUrl ? (
                         <img src={group.coverUrl} alt={group.title} className="w-full h-full object-cover" />
                       ) : (
@@ -775,7 +837,7 @@ export const DownloadsView = ({
                       onClick={() => playback.playAlbum(group as any)} 
                       title={`Reproducir ${group.title}`}
                       aria-label={`Reproducir ${group.title}`}
-                      className={`w-11 h-11 md:w-10 md:h-10 rounded-full bg-white/10 hover:scale-105 flex items-center justify-center text-white transition-all border border-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${type === 'licenses' ? 'hover:bg-yellow-500 hover:border-yellow-500' : type === 'playlists' ? 'hover:bg-green-500 hover:border-green-500' : type === 'downloads' ? 'hover:bg-blue-500 hover:border-blue-500' : 'hover:bg-[#a855f7] hover:border-[#a855f7]'}`}
+                      className="w-11 h-11 md:w-10 md:h-10 rounded-full bg-white/[0.1] hover:bg-white/[0.2] backdrop-blur-xl flex items-center justify-center text-white transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
                     >
                       <Play className="w-5 h-5 ml-1" fill="currentColor" />
                     </button>
@@ -804,7 +866,7 @@ export const DownloadsView = ({
                   </div>
                 </div>
                 
-                <div className={`hidden lg:grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase border-b border-white/5 mb-1`}>
+                <div className={`hidden lg:grid ${type === 'downloads' ? 'grid-cols-[50px_1fr_130px_90px_80px_100px]' : type === 'licenses' ? 'grid-cols-[50px_1fr_130px_90px_90px_80px_100px]' : 'grid-cols-[50px_1fr_130px_80px_100px]'} gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase mb-1`}>
                   <div className="text-center">#</div>
                   <div>TÍTULO</div>
                   <div className="text-center">AÑADIDO</div>
@@ -823,7 +885,7 @@ export const DownloadsView = ({
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-6 pb-12">
-            {sortedGroups.map((album: any) => {
+            {sortedGroups.map((album: any, albumIdx: number) => {
               const downloadedCount = album.tracks?.filter((t: any) => isDownloaded(t.id)).length || 0;
               const realAlbum = albums?.find(a => String(a.id) === String(album.id));
               const totalCount = realAlbum ? (realAlbum.tracks?.length || 0) : (album.tracks?.length || 0);
@@ -832,12 +894,25 @@ export const DownloadsView = ({
               const isEntireAlbumFavorited = album.tracks?.length ? album.tracks.every((t: any) => isFavorite(t.id)) : false;
               
               return (
-                <div 
+                <SelectableCard
                   key={album.id}
-                  className="shrink-0 flex flex-col gap-3 group cursor-pointer"
+                  id={String(album.id)}
+                  index={albumIdx}
+                  editing={editing}
+                  selected={selected.has(String(album.id))}
+                  dragging={dragId === String(album.id)}
+                  label={album.title}
+                  onToggle={toggleSelected}
+                  onEnterEdit={(id) => { setEditing(true); setSelected(new Set([id])); }}
+                  onDragStartId={setDragId}
+                  onDragOverId={(id) => { if (dragId && dragId !== id) moveAlbum(dragId, id); }}
+                  onDragEndId={() => setDragId(null)}
+                >
+                <div
+                  className="shrink-0 flex flex-col gap-3 group cursor-pointer transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-1"
                   onClick={() => setSelectedAlbumId(album.id)}
                 >
-                  <div className="w-full aspect-square rounded-xl overflow-hidden relative shadow-lg bg-white/5">
+                  <div className="w-full aspect-square rounded-2xl overflow-hidden relative shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)] bg-white/5">
                     <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     {downloadingAlbums?.includes(String(album.id)) && (
                       <button 
@@ -850,11 +925,11 @@ export const DownloadsView = ({
                         <X className="w-5 h-5 hidden group-hover/cancel:block text-red-400" />
                       </button>
                     )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <button 
                         title={`Reproducir álbum ${album.title}`}
                         aria-label={`Reproducir álbum ${album.title}`}
-                        className={`${type === 'licenses' ? 'bg-yellow-500 hover:bg-yellow-400' : type === 'playlists' ? 'bg-green-500 hover:bg-green-400' : type === 'downloads' ? 'bg-blue-500 hover:bg-blue-400' : 'bg-[#a855f7] hover:bg-[#b066f8]'} w-14 h-14 text-white rounded-full flex items-center justify-center transition-all hover:scale-105 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400`}
+                        className="w-14 h-14 text-white rounded-full flex items-center justify-center bg-white/20 hover:bg-white/30 backdrop-blur-2xl shadow-[0_12px_32px_rgba(0,0,0,0.4)] scale-75 group-hover:scale-100 transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (album.tracks && album.tracks.length > 0) {
@@ -915,6 +990,7 @@ export const DownloadsView = ({
                     })()}
                   </div>
                 </div>
+                </SelectableCard>
               );
             })}
           </div>
@@ -927,9 +1003,26 @@ export const DownloadsView = ({
       
       
       
+    <ConfirmDialog
+      open={confirmDelete}
+      title={`¿Eliminar ${selected.size} ${selected.size === 1 ? 'álbum' : 'álbumes'}?`}
+      text={`Se quitarán de ${where}. Esto no se puede deshacer.`}
+      confirmLabel="Sí, eliminar"
+      onConfirm={deleteSelected}
+      onCancel={() => setConfirmDelete(false)}
+    />
+
+    <TrackMenu
+      track={rowMenu?.track ?? null}
+      album={rowMenu ? albumFor(rowMenu.track) : ({ id: 0, title: '', artist: '', coverUrl: '', year: '', genre: '', trackCount: 0 } as Album)}
+      anchor={rowMenu?.anchor ?? null}
+      onClose={() => setRowMenu(null)}
+      leadingItems={rowMenu ? rowMenuItems(rowMenu.track) : []}
+    />
+
     {trackToRemove && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl" onClick={() => setTrackToRemove(null)}>
-          <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
+          <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)' }} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 mb-4 relative z-10">
               <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
                 <AlertCircle className="w-6 h-6 text-amber-300" />
@@ -966,7 +1059,7 @@ export const DownloadsView = ({
 
     {showCancelConfirm && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl" onClick={() => setShowCancelConfirm(null)}>
-          <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={cardStyle} onClick={(e) => e.stopPropagation()}>
+          <div className="relative rounded-3xl p-8 sm:p-9 max-w-md w-full shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden animate-in fade-in zoom-in-95 duration-200" style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)' }} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 mb-4 relative z-10">
               <div className="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg">
                 <AlertCircle className="w-6 h-6 text-red-300" />

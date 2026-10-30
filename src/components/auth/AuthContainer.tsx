@@ -1,5 +1,6 @@
+import { BackButton } from '../ui/BackButton';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform } from 'framer-motion';
 import { Mail, ArrowLeft, Check, Link2, User, UserCog, KeyRound, Eye, EyeOff } from 'lucide-react';
 import GradientASCII from '../ui/GradientASCII';
 import { LiquidButton } from '../ui/LiquidButton';
@@ -61,8 +62,11 @@ const SUBTITLE: Record<Method, string> = {
 const stepIndex: Record<Method, Record<Step, number>> = {
   email: { choose: 0, google: 0, code: 1, password: 1, done: 2 },
   google: { choose: 0, google: 1, code: 1, password: 1, done: 2 },
-  admin: { choose: 0, google: 0, code: 1, password: 1, done: 2 },
+  admin: { choose: 0, google: 0, code: 1, password: 0, done: 2 },
 };
+
+// the background reveals in this many seconds; the card and the corner buttons come in right as it reaches them
+const BG_INTRO_SECONDS = 1.0;
 
 export const AuthContainer = () => {
   const [step, setStep] = useState<Step>('choose');
@@ -73,16 +77,32 @@ export const AuthContainer = () => {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isAdminHovered, setIsAdminHovered] = useState(false);
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [codeError, setCodeError] = useState('');
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
   const handled = useRef(false);
   const digitRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const reduceMotion = useReducedMotion();
+  const intro = useMotionValue(reduceMotion ? 1 : 0);
+  useEffect(() => {
+    if (reduceMotion) { intro.set(1); return; }
+    // the background drives `intro`; if it never does (no WebGL), reveal anyway
+    const t = setTimeout(() => { if (intro.get() === 0) animate(intro, 1, { duration: 0.6 }); }, 2500);
+    return () => clearTimeout(t);
+  }, [reduceMotion, intro]);
+  // the card is uncovered from its bottom edge upwards, as the wave passes over it
+  const cardReveal = useTransform(intro, [0.18, 0.72], [0, 1], { clamp: true });
+  const cardMask = useTransform(cardReveal, (v) => (v >= 1 ? 'none' : `linear-gradient(to top, #000 ${v * 150 - 50}%, transparent ${v * 150}%)`));
+  const cardY = useTransform(cardReveal, [0, 1], [22, 0]);
+  // corner buttons: scale in instead of fading. An ancestor with opacity < 1 turns it into the backdrop root and the
+  // buttons' blur renders wrong (washed out) until the next repaint, which is what showed until you hovered them.
+  const cornerScale = useTransform(intro, [0.55, 0.9], [0.5, 1], { clamp: true });
+  const cornerVisibility = useTransform(intro, (v) => (v < 0.55 ? 'hidden' : 'visible'));
+
   const MemoizedBackgrounds = useMemo(() => (
     <div className="absolute inset-0 z-0">
-      <GradientASCII colors={['#8a3aed', '#9c55f7', '#d05adc', '#bb38f8']} glow={0.15} grain={0.05} flicker={0.06} speed={0.55} gradientOpacity={0.85} style={{ filter: 'brightness(0.92)' }} />
+      <GradientASCII colors={['#8a3aed', '#9c55f7', '#d05adc', '#bb38f8']} glow={0.15} grain={0.05} flicker={0.06} speed={0.55} introSeconds={BG_INTRO_SECONDS} introProgress={intro} gradientOpacity={0.85} style={{ filter: 'brightness(0.92)' }} />
       {/* vignette: keeps the vivid glow near the top and eases the edges so it doesn't tire the eyes */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 120% 95% at 50% 15%, transparent 45%, rgba(5,5,10,0.22) 80%, rgba(5,5,10,0.5) 100%)' }} />
     </div>
@@ -230,103 +250,84 @@ export const AuthContainer = () => {
     afterSignIn(data.session);
   };
 
-  const active = stepIndex[method][step];
+  const active = method === 'admin' && step === 'password' && status === 'loading' ? 1 : stepIndex[method][step];
   const steps = STEPS[method];
+
+  const toggleAdmin = () => {
+    if (step === 'password') {
+      setEmail('');
+      setPassword('');
+      setEmailError('');
+      setPasswordError('');
+      setMethod('email');
+      setStep('choose');
+    } else {
+      setEmail(email.trim() || 'bitszone.app@gmail.com');
+      setPassword('');
+      setEmailError('');
+      setPasswordError('');
+      setMethod('admin');
+      setStep('password');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#05050A] flex flex-col items-center justify-center p-4 font-sans text-white relative overflow-hidden">
 
       {MemoizedBackgrounds}
 
+      {(step === 'choose' || step === 'password') && (
+        <motion.div
+          style={{ scale: cornerScale, visibility: cornerVisibility }}
+          className="absolute top-5 right-5 md:top-8 md:right-8 z-20"
+        >
+          <BackButton
+            dark
+            reverse
+            onClick={toggleAdmin}
+            label={step === 'password' ? 'Volver al inicio de sesión normal' : 'Acceso para administrador'}
+            text={step === 'password' ? 'Usuario' : 'Admin'}
+            hoverWidth={step === 'password' ? 'hover:w-[118px] md:hover:w-[126px]' : 'hover:w-[104px] md:hover:w-[112px]'}
+            icon={step === 'password'
+              ? <User className="w-5 h-5" strokeWidth={2.2} aria-hidden="true" />
+              : <UserCog className="w-5 h-5" strokeWidth={2.2} aria-hidden="true" />}
+          />
+        </motion.div>
+      )}
 
-      <div
-        className="relative z-10 w-full max-w-[960px] md:h-[min(600px,calc(100vh-2rem))] flex rounded-3xl overflow-hidden shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
-        style={cardStyle}
+      {(step === 'choose' || step === 'password') && (
+        <motion.div
+          style={{ scale: cornerScale, visibility: cornerVisibility }}
+          className="absolute top-5 left-5 md:top-8 md:left-8 z-20"
+        >
+          <BackButton
+            dark
+            onClick={() => {
+              if (window.history.length > 1 && document.referrer.startsWith(window.location.origin)) window.history.back();
+              else window.location.href = '/player';
+            }}
+          />
+        </motion.div>
+      )}
+
+      <motion.div
+        style={{ y: cardY }}
+        className="relative z-10 w-full max-w-[960px] md:h-[min(600px,calc(100vh-2rem))]"
+      >
+        <motion.div
+          aria-hidden="true"
+          style={{ opacity: cardReveal, boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.55)' }}
+          className="pointer-events-none absolute inset-0 rounded-3xl"
+        />
+      <motion.div
+        className="relative z-10 w-full h-full flex rounded-3xl overflow-hidden [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
+        style={{ ...cardStyle, boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2)', WebkitMaskImage: cardMask, maskImage: cardMask }}
       >
         {/* Left: the flow */}
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
-          
-          {/* Botón dinámico Admin / Usuario en la parte superior central del panel izquierdo */}
-          {(step === 'choose' || step === 'password') && (
-            <div className="absolute top-5 inset-x-0 flex justify-center z-20 pointer-events-none">
-              <motion.button
-                layout
-                type="button"
-                onMouseEnter={() => setIsAdminHovered(true)}
-                onMouseLeave={() => setIsAdminHovered(false)}
-                onClick={() => {
-                  if (step === 'password') {
-                    setEmail('');
-                    setPassword('');
-                    setEmailError('');
-                    setPasswordError('');
-                    setMethod('email');
-                    setStep('choose');
-                  } else {
-                    setEmail(email.trim() || 'bitszone.app@gmail.com');
-                    setPassword('');
-                    setEmailError('');
-                    setPasswordError('');
-                    setMethod('admin');
-                    setStep('password');
-                  }
-                }}
-                transition={{
-                  layout: { type: 'spring', stiffness: 500, damping: 32 }
-                }}
-                className="pointer-events-auto h-9 min-w-9 px-2.5 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg backdrop-blur-md transition-colors cursor-pointer group"
-                title={step === 'password' ? 'Volver a inicio de sesión normal' : 'Acceso para Administrador (con contraseña)'}
-                aria-label={step === 'password' ? 'Modo Usuario' : 'Modo Administrador'}
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {step === 'password' ? (
-                    <motion.div
-                      key="user-icon"
-                      initial={{ opacity: 0, scale: 0.7, rotate: -25 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.7, rotate: 25 }}
-                      transition={{ duration: 0.18 }}
-                      className="flex items-center justify-center shrink-0"
-                    >
-                      <User className="w-4 h-4 text-purple-300 group-hover:text-purple-100" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="admin-icon"
-                      initial={{ opacity: 0, scale: 0.7, rotate: 25 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.7, rotate: -25 }}
-                      transition={{ duration: 0.18 }}
-                      className="flex items-center justify-center shrink-0"
-                    >
-                      <UserCog className="w-4 h-4 text-purple-400 group-hover:text-purple-300" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
-                <AnimatePresence initial={false}>
-                  {isAdminHovered && (
-                    <motion.span
-                      key={step === 'password' ? 'label-user' : 'label-admin'}
-                      initial={{ opacity: 0, width: 0, marginLeft: 0 }}
-                      animate={{ opacity: 1, width: 'auto', marginLeft: 6 }}
-                      exit={{ opacity: 0, width: 0, marginLeft: 0 }}
-                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                      className="text-xs font-semibold whitespace-nowrap overflow-hidden pr-1"
-                    >
-                      {step === 'password' ? (
-                        <span className="text-purple-200">Usuario</span>
-                      ) : (
-                        <span className="text-white/90">Admin</span>
-                      )}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </div>
-          )}
 
-          <div className="w-full max-w-[26rem]">
+          <div className="w-full max-w-[26rem] min-h-[26rem] flex flex-col justify-center">
             <AnimatePresence mode="wait" initial={false}>
               {step === 'choose' && (
                 <motion.div key="choose" {...slide}>
@@ -361,7 +362,7 @@ export const AuthContainer = () => {
                       />
                     </div>
                     {emailError && <p className="text-sm text-pink-200 text-center -mt-2">{emailError}</p>}
-                    <LiquidButton onClick={sendCode} status={status} className="w-full h-14">
+                    <LiquidButton onClick={sendCode} status={status} className="w-full h-14 !rounded-full !bg-white/[0.04] hover:!bg-white/[0.1] !border-white/35 hover:!border-white/55 !backdrop-blur-2xl !shadow-[0_8px_30px_rgba(0,0,0,0.3)] active:scale-[0.99]">
                       Continuar con correo
                     </LiquidButton>
                   </div>
@@ -485,27 +486,9 @@ export const AuthContainer = () => {
                     </div>
                     {passwordError && <p className="text-sm text-pink-200 text-center -mt-2">{passwordError}</p>}
 
-                    <LiquidButton onClick={signInWithPassword} status={status} className="w-full h-14">
+                    <LiquidButton onClick={signInWithPassword} status={status} className="w-full h-14 !rounded-full !bg-white/[0.04] hover:!bg-white/[0.1] !border-white/35 hover:!border-white/55 !backdrop-blur-2xl !shadow-[0_8px_30px_rgba(0,0,0,0.3)] active:scale-[0.99]">
                       Entrar al Dashboard
                     </LiquidButton>
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between text-[15px]">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail('');
-                        setPassword('');
-                        setEmailError('');
-                        setPasswordError('');
-                        setMethod('email');
-                        setStep('choose');
-                      }}
-                      className="flex items-center gap-2 text-white/80 hover:text-white transition-colors cursor-pointer py-1 text-sm font-medium"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      <span>Volver al login de usuario normal</span>
-                    </button>
                   </div>
                 </motion.div>
               )}
@@ -534,31 +517,41 @@ export const AuthContainer = () => {
             <span>Bitszone</span>
           </h2>
           <AnimatePresence mode="wait" initial={false}>
-            <motion.p key={method} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}
-              className="text-white/90 mb-10 max-w-[85%] text-lg">
-              {SUBTITLE[method]}
-            </motion.p>
-          </AnimatePresence>
+            <motion.div
+              key={method}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full flex flex-col items-center"
+            >
+              {/* two lines tall in every mode, so the steps start at the same height whichever mode you are in */}
+              <p className="text-white/90 mb-6 max-w-[85%] text-lg min-h-[3.5rem] flex items-center justify-center">
+                {SUBTITLE[method]}
+              </p>
 
-          <ol className="w-full max-w-[22rem] space-y-3 text-left">
-            {steps.map((s, i) => {
-              const done = i < active || step === 'done';
-              const current = i === active && step !== 'done';
-              return (
-                <li key={method + i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 border transition-all duration-500 ${current ? 'bg-white/12 border-white/35' : 'border-transparent'} ${!current && !done ? 'opacity-55' : ''}`}>
-                  <span className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold border transition-all duration-500 ${done ? 'bg-white text-purple-900 border-white' : current ? 'border-white text-white' : 'border-white/40 text-white/80'}`}>
-                    {done ? <Check className="w-4 h-4" strokeWidth={3} /> : i + 1}
-                  </span>
-                  <span className="leading-tight">
-                    <span className="block font-semibold">{s.title}</span>
-                    <span className="block text-sm text-white/80">{s.text}</span>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+              <ol className="w-full max-w-[22rem] space-y-3 text-left">
+                {steps.map((s, i) => {
+                  const done = i < active || step === 'done';
+                  const current = i === active && step !== 'done';
+                  return (
+                    <li key={i} className={`flex items-center gap-4 rounded-2xl px-4 py-3 border transition-all duration-500 ${current ? 'bg-white/12 border-white/35' : 'border-transparent'} ${!current && !done ? 'opacity-55' : ''}`}>
+                      <span className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm leading-none tabular-nums font-semibold border transition-all duration-500 [text-shadow:none] ${done ? 'bg-white text-purple-900 border-white' : current ? 'border-white text-white' : 'border-white/40 text-white/80'}`}>
+                        {done ? <Check className="w-4 h-4" strokeWidth={3} /> : i + 1}
+                      </span>
+                      <span className="leading-tight">
+                        <span className="block font-semibold">{s.title}</span>
+                        <span className="block text-sm text-white/80">{s.text}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
+      </motion.div>
     </div>
   );
 };
