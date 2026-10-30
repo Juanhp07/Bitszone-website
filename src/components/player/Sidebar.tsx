@@ -67,10 +67,16 @@ export const Sidebar = ({
                   window.location.reload();
                 }
               }}
-              className="cursor-pointer hover:opacity-85 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg py-1 px-1 flex items-center transition-transform"
+              className="cursor-pointer hover:opacity-85 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg py-1 px-1 flex items-center gap-2.5 transition-transform"
               title="Bitszone - Inicio"
               aria-label="Bitszone - Ir al catálogo"
             >
+              <img
+                src="/bitszone-icon.png"
+                alt="Bitszone"
+                className="w-7 h-7 object-contain shrink-0 drop-shadow-[0_2px_10px_rgba(168,85,247,0.4)] select-none"
+                draggable={false}
+              />
               {/* wordmark with a lighter "zone" and thicker typography */}
               <span className="flex items-center select-none">
                 <span className="font-inter text-[22px] leading-none tracking-[-0.03em]">

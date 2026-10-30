@@ -49,10 +49,16 @@ export const TopNav = ({
               window.location.reload();
             }
           }}
-          className="cursor-pointer hover:opacity-85 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg py-1 px-1 flex items-center transition-transform"
+          className="cursor-pointer hover:opacity-85 active:scale-95 border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg py-1 px-1 flex items-center gap-2 transition-transform"
           title="Bitszone - Inicio"
           aria-label="Bitszone - Ir al catálogo"
         >
+          <img
+            src="/bitszone-icon.png"
+            alt="Bitszone"
+            className="w-6 h-6 md:w-7 md:h-7 object-contain shrink-0 drop-shadow-[0_2px_10px_rgba(168,85,247,0.4)] select-none"
+            draggable={false}
+          />
           <span className="font-inter text-xl md:text-2xl leading-none tracking-[-0.03em] select-none">
             <span className="font-black text-white">Bits</span><span className="font-bold text-white/60">zone</span>
           </span>

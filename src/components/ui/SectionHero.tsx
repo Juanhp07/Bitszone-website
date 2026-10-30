@@ -30,6 +30,103 @@ export const SectionHero = ({
   const accent = ACCENT[type];
   return (
     <div className="relative px-4 md:px-8 pt-4 md:pt-8 pb-5 md:pb-7 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 z-40">
+      <style>{`
+        @keyframes heartBeat {
+          0%, 100% { transform: scale(1); fill: transparent; }
+          15% { transform: scale(1.25); fill: white; }
+          30% { transform: scale(1.05); fill: white; }
+          45% { transform: scale(1.25); fill: white; }
+          60%, 80% { transform: scale(1); fill: transparent; }
+        }
+        .custom-icon-favorites {
+          animation: heartBeat 2.5s ease-in-out infinite;
+          transform-origin: center;
+        }
+
+        @keyframes starSpin {
+          0% { transform: rotate(0deg) scale(1); fill: transparent; }
+          15%, 35% { transform: rotate(144deg) scale(1.2); fill: white; }
+          50%, 70% { transform: rotate(288deg) scale(1.2); fill: white; }
+          85%, 100% { transform: rotate(360deg) scale(1); fill: transparent; }
+        }
+        .custom-icon-licenses {
+          animation: starSpin 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+          transform-origin: center;
+        }
+
+        @keyframes playlistBeat {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          15% { transform: scale(1.2) rotate(-3deg); }
+          30% { transform: scale(1.05) rotate(2deg); }
+          45% { transform: scale(1.2) rotate(-1deg); }
+          60%, 80% { transform: scale(1) rotate(0deg); }
+        }
+        @keyframes noteHeadFill {
+          0%, 100% { fill: transparent; transform: scale(1); }
+          15%, 45% { fill: white; transform: scale(1.12); }
+          60%, 80% { fill: transparent; transform: scale(1); }
+        }
+        @keyframes linePulse1 {
+          0%, 100% { transform: scaleX(1); opacity: 0.7; }
+          15%, 35% { transform: scaleX(1.15); opacity: 1; }
+          60%, 80% { transform: scaleX(1); opacity: 0.7; }
+        }
+        @keyframes linePulse2 {
+          0%, 100% { transform: scaleX(1); opacity: 0.7; }
+          25%, 45% { transform: scaleX(1.25); opacity: 1; }
+          65%, 85% { transform: scaleX(1); opacity: 0.7; }
+        }
+        @keyframes linePulse3 {
+          0%, 100% { transform: scaleX(1); opacity: 0.7; }
+          35%, 55% { transform: scaleX(1.2); opacity: 1; }
+          70%, 90% { transform: scaleX(1); opacity: 0.7; }
+        }
+        .custom-icon-playlists {
+          animation: playlistBeat 2.5s ease-in-out infinite;
+          transform-origin: center;
+        }
+        .custom-icon-playlists circle {
+          animation: noteHeadFill 2.5s ease-in-out infinite;
+          transform-origin: 18px 16px;
+        }
+        .custom-icon-playlists path:nth-of-type(1) {
+          animation: linePulse1 2.5s ease-in-out infinite;
+          transform-origin: left center;
+        }
+        .custom-icon-playlists path:nth-of-type(2) {
+          animation: linePulse2 2.5s ease-in-out infinite;
+          transform-origin: left center;
+        }
+        .custom-icon-playlists path:nth-of-type(3) {
+          animation: linePulse3 2.5s ease-in-out infinite;
+          transform-origin: left center;
+        }
+
+        @keyframes arrowSwipeDown {
+          0% { transform: translateY(-4px); opacity: 0; }
+          20% { transform: translateY(0px); opacity: 1; }
+          80% { transform: translateY(4px); opacity: 1; }
+          100% { transform: translateY(8px); opacity: 0; }
+        }
+        @keyframes cloudPulse {
+          0%, 100% { transform: scale(1); opacity: 0.7; }
+          50% { transform: scale(1.05); opacity: 1; }
+        }
+        .custom-icon-downloads {
+          fill: transparent !important;
+          overflow: visible;
+        }
+        .custom-icon-downloads path[d*="A"],
+        .custom-icon-downloads path[d*="a"] {
+          animation: cloudPulse 2.5s ease-in-out infinite;
+          transform-origin: center;
+        }
+        .custom-icon-downloads path:not([d*="A"]):not([d*="a"]),
+        .custom-icon-downloads line,
+        .custom-icon-downloads polyline {
+          animation: arrowSwipeDown 1.8s ease-in-out infinite;
+        }
+      `}</style>
       {/* soft light of the section's colour behind the header */}
       <div
         aria-hidden="true"
