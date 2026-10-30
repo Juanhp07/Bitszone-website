@@ -85,7 +85,11 @@ export const PopoverMenu = ({
               // same body as the shortcuts card (cardStyle: 24px blur, soft lilac rim, big shadow, top highlight), with a dark
               // tint where that card gets its darkness from the dimmed page behind it
               ...cardStyle,
-              background: 'rgba(10, 8, 16, 0.5)',
+              // the shortcuts card is dark because a 40% black layer dims the page behind it; same dimming here, and a
+              // slightly deeper blur so the soft light and colour of what is behind still shows through like in that card
+              background: 'rgba(0, 0, 0, 0.4)',
+              backdropFilter: 'blur(28px) saturate(1.15)',
+              WebkitBackdropFilter: 'blur(28px) saturate(1.15)',
               // no rim: the shortcuts card's outline and top highlight are left out, only the soft drop shadow stays
               border: 'none',
               boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.55)',
