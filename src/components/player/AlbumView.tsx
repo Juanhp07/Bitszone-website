@@ -585,7 +585,21 @@ useEffect(() => {
                   })()}
                   <div className="relative text-white/50 font-medium flex items-center justify-center tabular-nums">
                     {isPlayingTrack ? (
-                      <EqBars playing={isPlaying} className="h-4 w-4" barClassName="w-[3px] bg-white" />
+                      // the bars are the pause/resume button of the song that is playing; on hover they show what a click will do
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                        title={isPlaying ? 'Pausar' : 'Reanudar'}
+                        aria-label={isPlaying ? 'Pausar' : 'Reanudar'}
+                        className="group/eq relative w-7 h-7 -m-1.5 flex items-center justify-center rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                      >
+                        <span className="transition-opacity duration-150 group-hover/eq:opacity-0 group-focus-visible/eq:opacity-0">
+                          <EqBars playing={isPlaying} className="h-4 w-4" barClassName="w-[3px] bg-white" />
+                        </span>
+                        <span className="absolute inset-0 flex items-center justify-center text-white opacity-0 transition-opacity duration-150 group-hover/eq:opacity-100 group-focus-visible/eq:opacity-100">
+                          {isPlaying ? <Pause className="w-4 h-4" fill="currentColor" aria-hidden="true" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" aria-hidden="true" />}
+                        </span>
+                      </button>
                     ) : isHovered ? (
                       <Play className="w-4 h-4 text-white" fill="currentColor" />
                     ) : (
