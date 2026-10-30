@@ -1174,6 +1174,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                       onPlayTrack={handlePlayTrack}
                       nowPlayingTrackId={nowPlayingTrack?.id}
                       isPlaying={isPlaying}
+                      isLoading={isAudioLoading}
                       togglePlay={togglePlay}
                     />
                   )}
@@ -1282,6 +1283,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
         track={nowPlayingTrack}
         album={nowPlayingAlbum}
         isPlaying={isPlaying}
+        isLoading={isAudioLoading}
         togglePlay={togglePlay}
         onPlayTrack={handlePlayTrack}
         volume={volume}

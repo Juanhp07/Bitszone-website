@@ -223,6 +223,7 @@ export const ImmersivePlayer = ({
   track,
   album,
   isPlaying,
+  isLoading = false,
   togglePlay,
   onPlayTrack,
   volume = 100,
@@ -246,6 +247,8 @@ export const ImmersivePlayer = ({
   album: Album | null,
   audioElement?: HTMLAudioElement | null,
   isPlaying: boolean,
+  /** the song was chosen but its audio is still loading */
+  isLoading?: boolean,
   togglePlay: () => void,
   onPlayTrack?: (t: Track, a: Album) => void,
   volume?: number,
@@ -917,6 +920,7 @@ export const ImmersivePlayer = ({
                   title={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
                   aria-label={isPlaying ? "Pausar reproducción" : "Iniciar reproducción"}
                   aria-pressed={isPlaying}
+                  aria-busy={isLoading}
                 >
                   {/* Spinning Vinyl Cover */}
                   <div
@@ -937,11 +941,18 @@ export const ImmersivePlayer = ({
                   <div className="absolute w-7 h-7 md:w-10 md:h-10 rounded-full bg-black/40 backdrop-blur-xl border border-black/10 shadow-[0_0_15px_8px_rgba(0,0,0,0.35)] pointer-events-none" />
                   <div className="absolute w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-white/10 shadow-inner pointer-events-none" />
 
+                  {/* Loading ring while the song's audio loads; it turns into pause by itself once it plays */}
+                  {isLoading && (
+                    <span className="absolute inset-0 z-20 rounded-full flex items-center justify-center bg-black/35" role="status" aria-label="Cargando canción">
+                      <span className="absolute inset-1 rounded-full border-[3px] border-white/20 border-t-white animate-spin" aria-hidden="true" />
+                    </span>
+                  )}
+
                   {/* Play/Pause Icon */}
                   {isPlaying ? (
-                    <Pause className="w-6 h-6 md:w-9 md:h-9 relative z-10 group-hover:scale-95 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
+                    <Pause className={`w-6 h-6 md:w-9 md:h-9 relative z-10 group-hover:scale-95 transition-all drop-shadow-md ${isLoading ? 'opacity-0' : ''}`} fill="currentColor" aria-hidden="true" />
                   ) : (
-                    <Play className="w-6 h-6 md:w-9 md:h-9 ml-1 relative z-10 group-hover:scale-105 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
+                    <Play className={`w-6 h-6 md:w-9 md:h-9 ml-1 relative z-10 group-hover:scale-105 transition-all drop-shadow-md ${isLoading ? 'opacity-0' : ''}`} fill="currentColor" aria-hidden="true" />
                   )}
                 </button>
 
