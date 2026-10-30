@@ -1,3 +1,4 @@
+import { cardStyle } from '../auth/authUi';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -81,10 +82,13 @@ export const PopoverMenu = ({
               width,
               transformOrigin: `${pos?.originX ?? 'left'} ${pos?.originY ?? 'top'}`,
               visibility: pos ? 'visible' : 'hidden',
-              // same dark glass as the notifications
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%), rgba(12,12,16,0.58)',
+              // same body as the shortcuts card (cardStyle: 24px blur, soft lilac rim, big shadow, top highlight), with a dark
+              // tint where that card gets its darkness from the dimmed page behind it
+              ...cardStyle,
+              background: 'rgba(10, 8, 16, 0.5)',
             }}
-            className="fixed z-[9999] p-1.5 flex flex-col gap-0.5 rounded-2xl backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_0_0_1px_rgba(255,255,255,0.14)] font-sans"            onClick={(e) => e.stopPropagation()}
+            className="fixed z-[9999] p-2 flex flex-col gap-0.5 rounded-3xl font-sans text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
+            onClick={(e) => e.stopPropagation()}
           >
             {items.map((item, i) => (
               <motion.button
