@@ -140,7 +140,7 @@ export const LibraryView = ({ albums, handlePlayTrack, handleSelectAlbum, curren
   const config = configs[activeTab];
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+    <div className="flex-1 flex flex-col h-full overflow-x-clip relative">
       {activeTab === 'playlists' ? (
         <PlaylistsGrid
           title={<LibraryDropdown activeTab={activeTab} setActiveTab={setCurrentView} />}

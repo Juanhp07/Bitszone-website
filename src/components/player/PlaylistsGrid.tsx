@@ -58,22 +58,32 @@ export const PlaylistsGrid = ({
         ]}
         actions={
           <div className="flex items-center gap-2">
-          {playlists.length > 0 && (
+          {playlists.length > 0 && (editing ? (
+            <SelectionBar
+              count={selected.size}
+              total={playlists.length}
+              noun="listas"
+              onSelectAll={() => setSelected(new Set(playlists.map((p) => p.id)))}
+              onClearSelection={() => setSelected(new Set())}
+              onDelete={() => setConfirmDelete(true)}
+              onDone={exitEditing}
+            />
+          ) : (
             <button
               onClick={() => (editing ? exitEditing() : setEditing(true))}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold backdrop-blur-xl transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer ${editing ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-white/[0.09] hover:bg-white/[0.17]'}`}
             >
-              {editing ? <Check className="w-4 h-4" aria-hidden="true" /> : <ListChecks className="w-4 h-4" aria-hidden="true" />}
-              {editing ? 'Listo' : 'Seleccionar'}
+              <ListChecks className="w-4 h-4" aria-hidden="true" />
+              Seleccionar
             </button>
-          )}
-          <button
+          ))}
+          {!editing && <button
             onClick={() => setCreating(true)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-white/[0.09] hover:bg-white/[0.17] backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
           >
             <Plus className="w-4 h-4" aria-hidden="true" />
             Nueva lista
-          </button>
+          </button>}
           </div>
         }
       />
@@ -168,19 +178,6 @@ export const PlaylistsGrid = ({
         </div>
       )}
 
-      <AnimatePresence>
-        {editing && (
-          <SelectionBar
-            count={selected.size}
-            total={playlists.length}
-            noun="listas"
-            onSelectAll={() => setSelected(new Set(playlists.map((p) => p.id)))}
-            onClearSelection={() => setSelected(new Set())}
-            onDelete={() => setConfirmDelete(true)}
-            onDone={exitEditing}
-          />
-        )}
-      </AnimatePresence>
       <ConfirmDialog
         open={confirmDelete}
         title={`¿Eliminar ${selected.size} ${selected.size === 1 ? 'lista' : 'listas'}?`}

@@ -69,7 +69,7 @@ export const SelectableCard = ({
       className={`relative ${editing ? 'jiggle' : ''} ${dragging ? 'opacity-40' : ''} transition-opacity duration-200`}
       style={{ ['--jd' as string]: `${-(index % 6) * 0.06}s` }}
     >
-      {children}
+      <div className={`transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${editing && selected ? 'scale-[0.92]' : ''}`}>{children}</div>
       {editing && (
         // in edit mode the whole card is one big target: tap = select / unselect, drag = move
         <button
@@ -77,7 +77,7 @@ export const SelectableCard = ({
           onClick={(e) => { e.stopPropagation(); onToggle(id); }}
           aria-pressed={selected}
           aria-label={`${selected ? 'Quitar de la selección' : 'Seleccionar'} ${label}`}
-          className={`absolute inset-0 z-30 rounded-3xl cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 transition-[background-color] duration-200 ${selected ? 'bg-white/[0.08]' : ''}`}
+          className={`absolute inset-0 z-30 rounded-3xl cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 transition-shadow duration-200 ${selected ? 'ring-2 ring-white/80' : ''}`}
         >
           <span
             aria-hidden="true"

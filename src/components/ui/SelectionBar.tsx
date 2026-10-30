@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 
-/** Floating bar of edit mode: how many are selected, select all, delete and done. Same blur body as the menus. */
+/** Edit mode dock, lives in the section hero where the Seleccionar button was: how many are selected, select all, delete and done. Same blur body as the menus. */
 export const SelectionBar = ({
   count,
   total,
@@ -20,13 +20,12 @@ export const SelectionBar = ({
   onDone: () => void;
 }) => (
   <motion.div
-    initial={{ opacity: 0, y: 24, scale: 0.96 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    exit={{ opacity: 0, y: 16, scale: 0.97 }}
+    initial={{ scale: 0.92, x: 16 }}
+    animate={{ scale: 1, x: 0 }}
     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
     role="toolbar"
     aria-label="Edición"
-    className="fixed left-1/2 -translate-x-1/2 bottom-28 z-[80] flex items-center gap-1.5 p-1.5 rounded-full max-w-[calc(100vw-1.5rem)]"
+    className="flex items-center gap-1.5 p-1.5 rounded-full max-w-full origin-right"
     style={{ background: 'rgba(0, 0, 0, 0.45)', backdropFilter: 'blur(28px) saturate(1.15)', WebkitBackdropFilter: 'blur(28px) saturate(1.15)', boxShadow: '0 24px 60px -12px rgba(0,0,0,0.55)' }}
   >
     <span className="pl-4 pr-2 text-sm font-medium text-white/85 whitespace-nowrap tabular-nums">

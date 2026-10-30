@@ -592,15 +592,25 @@ export const DownloadsView = ({
           { icon: <Disc3 className="w-3.5 h-3.5" aria-hidden="true" />, text: `${Object.keys(groupedTracks).length} ${Object.keys(groupedTracks).length === 1 ? 'álbum' : 'álbumes'}` },
           ...(type === 'downloads' ? [{ icon: <HardDrive className="w-3.5 h-3.5" aria-hidden="true" />, text: `${availableGB.toFixed(2)}GB libres de 5.00GB` }] : []),
         ]}
-        actions={tracks.length > 0 ? (
+        actions={tracks.length > 0 ? (editing ? (
+          <SelectionBar
+            count={selected.size}
+            total={sortedGroups.length}
+            noun="álbumes"
+            onSelectAll={() => setSelected(new Set(sortedGroups.map((g: any) => String(g.id))))}
+            onClearSelection={() => setSelected(new Set())}
+            onDelete={() => setConfirmDelete(true)}
+            onDone={exitEditing}
+          />
+        ) : (
           <button
             onClick={() => { if (editing) exitEditing(); else { setViewMode('albumes'); setSelectedAlbumId(null); setEditing(true); } }}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold backdrop-blur-xl transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer ${editing ? 'bg-white text-black hover:bg-white/90' : 'text-white bg-white/[0.09] hover:bg-white/[0.17]'}`}
           >
-            {editing ? <Check className="w-4 h-4" aria-hidden="true" /> : <ListChecks className="w-4 h-4" aria-hidden="true" />}
-            {editing ? 'Listo' : 'Seleccionar'}
+            <ListChecks className="w-4 h-4" aria-hidden="true" />
+            Seleccionar
           </button>
-        ) : undefined}
+        )) : undefined}
       />
 
       {/* Action Bar (Search & Tabs) */}
@@ -993,19 +1003,6 @@ export const DownloadsView = ({
       
       
       
-    <AnimatePresence>
-      {editing && (
-        <SelectionBar
-          count={selected.size}
-          total={sortedGroups.length}
-          noun="álbumes"
-          onSelectAll={() => setSelected(new Set(sortedGroups.map((g: any) => String(g.id))))}
-          onClearSelection={() => setSelected(new Set())}
-          onDelete={() => setConfirmDelete(true)}
-          onDone={exitEditing}
-        />
-      )}
-    </AnimatePresence>
     <ConfirmDialog
       open={confirmDelete}
       title={`¿Eliminar ${selected.size} ${selected.size === 1 ? 'álbum' : 'álbumes'}?`}

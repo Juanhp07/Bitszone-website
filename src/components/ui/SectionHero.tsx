@@ -33,8 +33,9 @@ export const SectionHero = ({
       {/* soft light of the section's colour behind the header */}
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 -top-6 h-80 pointer-events-none"
-        style={{ background: `radial-gradient(ellipse 70% 100% at 18% 0%, rgba(${accent}, 0.22), transparent 70%)` }}
+        // reaches well above the hero so the rubber-band pull of the page never shows where the glow ends
+        className="absolute inset-x-0 -top-24 h-[26rem] pointer-events-none"
+        style={{ background: `radial-gradient(ellipse 70% 20rem at 18% 4.5rem,rgba(${accent}, 0.22), transparent 70%)` }}
       />
       <div className="relative flex items-center gap-4 md:gap-7 min-w-0 w-full md:w-auto">
         <motion.div
