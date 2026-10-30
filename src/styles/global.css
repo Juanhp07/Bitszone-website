@@ -265,10 +265,18 @@ html {
 }
 @media (prefers-reduced-motion: reduce) { .aurora-fill, .eq-bar { animation: none; } }
 
+/* Micro-interactions: buttons dip a little when pressed and spring back with a small overshoot */
+.pop-press { transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s, background-color 0.2s; }
+.pop-press:active { transform: scale(0.86); transition-duration: 0.08s; }
+@keyframes pop-in { 0% { transform: scale(0.4); opacity: 0.2; } 60% { transform: scale(1.25); opacity: 1; } 100% { transform: scale(1); } }
+.pop-in { animation: pop-in 0.38s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@media (prefers-reduced-motion: reduce) { .pop-in { animation: none; } .pop-press:active { transform: none; } }
+
 /* Long title that slides to its end while hovered and eases back smoothly when the pointer leaves */
 .marquee-slide {
   width: max-content;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  /* same duration and curve back as forward, so leaving the title eases back as gently as it slid */
+  transition: transform var(--slide-duration, 3s) ease-in-out;
 }
 .group:hover .marquee-slide {
   transform: translateX(var(--overflow-amount, -50px));

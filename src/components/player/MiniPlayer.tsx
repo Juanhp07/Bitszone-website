@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { PopSwap } from '../ui/PopSwap';
 import { Star, Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Shuffle, Repeat, Repeat1, Heart, HeartOff, Mic2 } from 'lucide-react';
 import { useDownloads } from './DownloadsContext';
 import { usePlayback } from './PlaybackContext';
@@ -246,9 +247,11 @@ export const MiniPlayer = ({
           className="w-11 h-11 flex items-center justify-center shrink-0"
         >
           <span className="relative w-9 h-9 rounded-full bg-white text-black flex items-center justify-center">
-            {isLoading
-              ? <span className="w-[18px] h-[18px] rounded-full border-[2.5px] border-black/20 border-t-black animate-spin" role="status" aria-label="Cargando canción" />
-              : isPlaying ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
+            <PopSwap className="w-5 h-5" items={[
+              { id: 'play', on: !isLoading && !isPlaying, node: <Play className="w-4 h-4 ml-0.5" fill="currentColor" /> },
+              { id: 'pause', on: !isLoading && isPlaying, node: <Pause className="w-4 h-4" fill="currentColor" /> },
+              { id: 'load', on: isLoading, node: <span className="w-[18px] h-[18px] rounded-full border-[2.5px] border-black/20 border-t-black animate-spin" role="status" aria-label="Cargando canción" /> },
+            ]} />
           </span>
         </button>
         <button
@@ -341,7 +344,7 @@ export const MiniPlayer = ({
       <div className="flex flex-col items-center flex-1 max-w-[600px] relative z-10">
         <div className="flex items-center gap-6">
           <button
-            className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
+            className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"} pop-press`}
             onClick={onToggleShuffle}
             title={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
             aria-label={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
@@ -350,7 +353,7 @@ export const MiniPlayer = ({
             <Shuffle className="w-[18px] h-[18px]" aria-hidden="true" />
           </button>
           <button
-            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer"
+            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer pop-press"
             onClick={onPrev}
             title="Canción anterior (←)"
             aria-label="Canción anterior"
@@ -386,16 +389,14 @@ export const MiniPlayer = ({
             <div className="absolute w-1 h-1 rounded-full bg-white/10 shadow-inner pointer-events-none" />
 
             {/* Loading ring while the song's audio loads; it turns into pause by itself once it plays */}
-            {isLoading ? (
-              <span className="relative z-20 w-6 h-6 rounded-full border-[2.5px] border-white/25 border-t-white animate-spin drop-shadow-md" role="status" aria-label="Cargando canción" />
-            ) : isPlaying ? (
-              <Pause className="w-5 h-5 relative z-10 group-hover/vplay:scale-95 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
-            ) : (
-              <Play className="w-5 h-5 ml-0.5 relative z-10 group-hover/vplay:scale-105 transition-transform drop-shadow-md" fill="currentColor" aria-hidden="true" />
-            )}
+            <PopSwap className="relative z-20 w-6 h-6 drop-shadow-md" items={[
+              { id: 'play', on: !isLoading && !isPlaying, node: <Play className="w-5 h-5 ml-0.5" fill="currentColor" aria-hidden="true" /> },
+              { id: 'pause', on: !isLoading && isPlaying, node: <Pause className="w-5 h-5" fill="currentColor" aria-hidden="true" /> },
+              { id: 'load', on: isLoading, node: <span className="w-6 h-6 rounded-full border-[2.5px] border-white/25 border-t-white animate-spin" role="status" aria-label="Cargando canción" /> },
+            ]} />
           </button>
           <button
-            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer"
+            className="text-white/70 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer pop-press"
             onClick={onNext}
             title="Siguiente canción (→)"
             aria-label="Siguiente canción"
@@ -403,7 +404,7 @@ export const MiniPlayer = ({
             <SkipForward className="w-6 h-6" fill="currentColor" aria-hidden="true" />
           </button>
           <button
-            className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"}`}
+            className={`transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"} pop-press`}
             onClick={onToggleRepeat}
             title={repeatMode === 'one' ? "Repetir una canción" : repeatMode === 'all' ? "Repetir todo" : "Activar repetición"}
             aria-label={`Modo de repetición: ${repeatMode === 'one' ? 'repetir una canción' : repeatMode === 'all' ? 'repetir todo' : 'desactivado'}`}
@@ -411,19 +412,21 @@ export const MiniPlayer = ({
             {repeatMode === 'one' ? <Repeat1 className="w-[18px] h-[18px]" aria-hidden="true" /> : <Repeat className="w-[18px] h-[18px]" aria-hidden="true" />}
           </button>
           <button
-            className={`group/favbtn transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'}`}
+            className={`group/favbtn transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-2 cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/50 hover:text-white'} pop-press`}
             onClick={() => toggleFavorite(track, album)}
             title={isFavorite(track.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
             aria-label={isFavorite(track.id) ? `Quitar ${track.title} de favoritos` : `Añadir ${track.title} a favoritos`}
           >
-            {isFavorite(track.id) ? (
-              <>
-                <Heart className="w-[18px] h-[18px] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
-                <HeartOff className="w-[18px] h-[18px] hidden group-hover/favbtn:block" aria-hidden="true" />
-              </>
-            ) : (
-              <Heart className="w-[18px] h-[18px]" fill="none" aria-hidden="true" />
-            )}
+            <span key={String(isFavorite(track.id))} className="pop-in inline-flex">
+              {isFavorite(track.id) ? (
+                <>
+                  <Heart className="w-[18px] h-[18px] block group-hover/favbtn:hidden" fill="currentColor" aria-hidden="true" />
+                  <HeartOff className="w-[18px] h-[18px] hidden group-hover/favbtn:block" aria-hidden="true" />
+                </>
+              ) : (
+                <Heart className="w-[18px] h-[18px]" fill="none" aria-hidden="true" />
+              )}
+            </span>
           </button>
         </div>
 

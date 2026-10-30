@@ -5,6 +5,7 @@ import { Star, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown
 import { TrackMenu } from './TrackMenu';
 import { EqBars } from '../ui/EqBars';
 import { MarqueeTitle } from '../ui/MarqueeTitle';
+import { PopSwap } from '../ui/PopSwap';
 import { LiquidTabs } from '../ui/LiquidTabs';
 import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
@@ -859,7 +860,7 @@ export const ImmersivePlayer = ({
               <div className="max-md:order-last w-full md:w-auto flex items-center justify-between md:justify-center gap-3 md:gap-12 mt-5 md:mt-0 mb-0 md:mb-6">
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleShuffle?.(); }}
-                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"} pop-press`}
                   title={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
                   aria-label={isShuffle ? "Desactivar modo aleatorio" : "Activar modo aleatorio"}
                   aria-pressed={isShuffle}
@@ -868,7 +869,7 @@ export const ImmersivePlayer = ({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer pop-press"
                   title="Canción anterior"
                   aria-label="Reproducir canción anterior"
                 >
@@ -903,23 +904,24 @@ export const ImmersivePlayer = ({
                   <div className="absolute w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-white/10 shadow-inner pointer-events-none" />
 
                   {/* Loading ring while the song's audio loads; it turns into pause by itself once it plays */}
-                  {isLoading && (
-                    <span className="absolute inset-0 z-20 rounded-full flex items-center justify-center bg-black/35" role="status" aria-label="Cargando canción">
-                      <span className="absolute inset-1 rounded-full border-[3px] border-white/20 border-t-white animate-spin" aria-hidden="true" />
-                    </span>
-                  )}
+                  <span
+                    className={`absolute inset-0 z-20 rounded-full flex items-center justify-center bg-black/35 transition-opacity duration-200 ${isLoading ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                    role={isLoading ? 'status' : undefined}
+                    aria-label={isLoading ? 'Cargando canción' : undefined}
+                  >
+                    <span className="absolute inset-1 rounded-full border-[3px] border-white/20 border-t-white animate-spin" aria-hidden="true" />
+                  </span>
 
-                  {/* Play/Pause Icon */}
-                  {isPlaying ? (
-                    <Pause className={`w-6 h-6 md:w-9 md:h-9 relative z-10 group-hover:scale-95 transition-all drop-shadow-md ${isLoading ? 'opacity-0' : ''}`} fill="currentColor" aria-hidden="true" />
-                  ) : (
-                    <Play className={`w-6 h-6 md:w-9 md:h-9 ml-1 relative z-10 group-hover:scale-105 transition-all drop-shadow-md ${isLoading ? 'opacity-0' : ''}`} fill="currentColor" aria-hidden="true" />
-                  )}
+                  {/* Play/Pause Icon: pops between the two */}
+                  <PopSwap className="relative z-10 w-6 h-6 md:w-9 md:h-9 drop-shadow-md" items={[
+                    { id: 'play', on: !isLoading && !isPlaying, node: <Play className="w-6 h-6 md:w-9 md:h-9 ml-1" fill="currentColor" aria-hidden="true" /> },
+                    { id: 'pause', on: !isLoading && isPlaying, node: <Pause className="w-6 h-6 md:w-9 md:h-9" fill="currentColor" aria-hidden="true" /> },
+                  ]} />
                 </button>
 
                 <button
                   onClick={(e) => { e.stopPropagation(); onNext?.(); }}
-                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                  className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/40 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_24px_rgba(0,0,0,0.25)] text-white transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer pop-press"
                   title="Siguiente canción"
                   aria-label="Reproducir siguiente canción"
                 >
@@ -927,7 +929,7 @@ export const ImmersivePlayer = ({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleRepeat?.(); }}
-                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+                  className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${repeatMode !== 'off' ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)] bg-white/5" : "text-white/40 hover:text-white hover:bg-white/5"} pop-press`}
                   title={repeatMode === 'one' ? "Repetir una canción" : repeatMode === 'all' ? "Repetir todo" : "Activar repetición"}
                   aria-label={`Modo de repetición: ${repeatMode === 'one' ? 'una canción' : repeatMode === 'all' ? 'todas' : 'desactivado'}`}
                 >
