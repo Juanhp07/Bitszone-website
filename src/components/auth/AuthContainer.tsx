@@ -1,3 +1,4 @@
+import { BackButton } from '../ui/BackButton';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Mail, ArrowLeft, Check, Link2, User, UserCog, KeyRound, Eye, EyeOff } from 'lucide-react';
@@ -246,6 +247,17 @@ export const AuthContainer = () => {
         {/* Left: the flow */}
         <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl min-h-[560px] md:min-h-0">
           
+          {step === 'choose' && (
+            <div className="absolute top-5 left-5 z-20">
+              <BackButton
+                onClick={() => {
+                  if (window.history.length > 1 && document.referrer.startsWith(window.location.origin)) window.history.back();
+                  else window.location.href = '/player';
+                }}
+              />
+            </div>
+          )}
+
           {/* Botón dinámico Admin / Usuario en la parte superior central del panel izquierdo */}
           {(step === 'choose' || step === 'password') && (
             <div className="absolute top-5 inset-x-0 flex justify-center z-20 pointer-events-none">
@@ -274,7 +286,7 @@ export const AuthContainer = () => {
                 transition={{
                   layout: { type: 'spring', stiffness: 500, damping: 32 }
                 }}
-                className="pointer-events-auto h-9 min-w-9 px-2.5 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-lg backdrop-blur-md transition-colors cursor-pointer group"
+                className="pointer-events-auto h-10 md:h-11 min-w-10 md:min-w-11 px-2.5 flex items-center justify-center rounded-full bg-black/35 hover:bg-black/50 border border-white/40 hover:border-white/60 text-white shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition-colors cursor-pointer group"
                 title={step === 'password' ? 'Volver a inicio de sesión normal' : 'Acceso para Administrador (con contraseña)'}
                 aria-label={step === 'password' ? 'Modo Usuario' : 'Modo Administrador'}
               >
@@ -288,7 +300,7 @@ export const AuthContainer = () => {
                       transition={{ duration: 0.18 }}
                       className="flex items-center justify-center shrink-0"
                     >
-                      <User className="w-4 h-4 text-purple-300 group-hover:text-purple-100" />
+                      <User className="w-5 h-5 text-white" strokeWidth={2.2} />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -299,7 +311,7 @@ export const AuthContainer = () => {
                       transition={{ duration: 0.18 }}
                       className="flex items-center justify-center shrink-0"
                     >
-                      <UserCog className="w-4 h-4 text-purple-400 group-hover:text-purple-300" />
+                      <UserCog className="w-5 h-5 text-white" strokeWidth={2.2} />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -315,9 +327,9 @@ export const AuthContainer = () => {
                       className="text-xs font-semibold whitespace-nowrap overflow-hidden pr-1"
                     >
                       {step === 'password' ? (
-                        <span className="text-purple-200">Usuario</span>
+                        <span className="text-white">Usuario</span>
                       ) : (
-                        <span className="text-white/90">Admin</span>
+                        <span className="text-white">Admin</span>
                       )}
                     </motion.span>
                   )}
