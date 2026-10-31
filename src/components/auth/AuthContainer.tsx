@@ -272,7 +272,7 @@ export const AuthContainer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#05050A] flex flex-col items-center justify-center p-4 font-sans text-white relative overflow-hidden">
+    <div className="min-h-screen bg-[#05050A] flex flex-col items-center justify-center p-4 pt-20 md:pt-4 font-sans text-white relative overflow-hidden">
 
       {MemoizedBackgrounds}
 

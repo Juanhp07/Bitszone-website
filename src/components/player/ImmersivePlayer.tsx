@@ -500,6 +500,15 @@ export const ImmersivePlayer = ({
             : <Download className="w-5 h-5" aria-hidden="true" />}
         </button>
         <button
+          onClick={(e) => { e.stopPropagation(); toggleFavorite(t, from); }}
+          className={`md:hidden w-9 h-9 flex items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isFavorite(t.id) ? 'text-[#a855f7]' : 'text-white/45'}`}
+          aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
+        >
+          <span key={String(isFavorite(t.id))} className="pop-in inline-flex">
+            <Heart className="w-[18px] h-[18px]" fill={isFavorite(t.id) ? 'currentColor' : 'none'} aria-hidden="true" />
+          </span>
+        </button>
+        <button
           onClick={(e) => openRowMenu(e, t, from, inQueue, false)}
           className="w-9 h-9 flex items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
           title="Más opciones"
@@ -685,15 +694,15 @@ export const ImmersivePlayer = ({
         <div className="absolute top-3 md:top-8 xl:top-10 left-3 md:left-8 xl:left-10 z-50">
           <button
             onClick={onClose}
-            className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[114px] md:hover:w-[124px] rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-2xl border border-white/20 hover:border-white/30 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none"
+            className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[114px] md:hover:w-[124px] rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-2xl border border-white/20 hover:border-white/30 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none max-md:!w-10 max-md:!bg-transparent max-md:!border-transparent max-md:!shadow-none max-md:backdrop-blur-none [@media(hover:none)]:!w-10 md:[@media(hover:none)]:!w-11"
             title="Minimizar reproductor (F o Esc)"
             aria-label="Minimizar reproductor"
           >
             <div className="w-10 md:w-11 h-10 md:h-11 flex items-center justify-center shrink-0">
-              <ChevronDown className="md:hidden w-5 h-5 transition-transform duration-300 group-hover:translate-y-0.5" strokeWidth={2.2} aria-hidden="true" />
+              <ChevronDown className="md:hidden w-7 h-7 transition-transform duration-300 group-hover:translate-y-0.5" strokeWidth={2.2} aria-hidden="true" />
               <Minimize2 className="hidden md:block w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-90" strokeWidth={2.2} aria-hidden="true" />
             </div>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
+            <span className="opacity-0 group-hover:opacity-100 max-md:hidden [@media(hover:none)]:hidden transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
               Minimizar
             </span>
           </button>
@@ -717,11 +726,11 @@ export const ImmersivePlayer = ({
             </button>
           )}
 
-          {(isMobile || currentTab === 'inmersion') && immersionToggle(false)}
+          {currentTab === 'inmersion' && immersionToggle(false)}
         </div>
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
-        <div className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex-col justify-center items-center group px-6 md:px-12 md:pl-32 xl:pl-40 pt-14 pb-[44px] md:pt-20 md:pb-10 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'transform-none duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
+        <div className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex-col justify-center items-center group px-6 md:px-12 md:pl-32 xl:pl-40 pt-14 pb-[104px] md:pt-20 md:pb-10 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'transform-none duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
            {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
            <div className="hidden md:flex absolute left-6 md:left-8 xl:left-10 top-1/2 -translate-y-1/2 z-50 w-11 md:w-12 flex-col items-center gap-2 opacity-100 transition-all duration-300">
              <button
@@ -817,10 +826,6 @@ export const ImmersivePlayer = ({
 
            {/* Floating Content: Album Title -> Square -> Artist -> Player Controls */}
            <div className="relative z-30 flex flex-col items-center justify-center w-full max-w-2xl">
-              {/* Phones: song title sits above the cover */}
-              <h2 className="md:hidden w-full flex justify-center text-center font-inter font-bold text-white text-[26px] leading-normal tracking-tight mb-4 px-2 py-1">
-                <AnimatedSongTitle title={track.title} trackId={track.id} />
-              </h2>
               {/* Cover + vinyl + reactions dock: the album page's left column, carried into the player */}
               <div className="relative md:mr-[min(11vw,190px)]">
                 {/* Vinyl peeking out (desktop), spinning only while playing */}
@@ -894,8 +899,8 @@ export const ImmersivePlayer = ({
               </div>
 
               {/* Title + meta, laid out like the album page */}
-              <div className="flex flex-col items-center text-center mt-6 md:mt-[clamp(24px,5.5dvh,76px)] mb-3 md:mb-[clamp(8px,2dvh,32px)] w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
-                <h2 className="hidden md:flex justify-center font-inter font-bold text-white text-2xl md:text-4xl xl:text-5xl leading-normal tracking-tight max-w-full py-1.5 px-2">
+              <div className="flex flex-col items-center text-center mt-5 md:mt-[clamp(24px,5.5dvh,76px)] mb-3 md:mb-[clamp(8px,2dvh,32px)] w-full md:w-[min(40vw,680px)] min-w-0 px-0 md:px-4">
+                <h2 className="flex justify-center font-inter font-bold text-white text-[24px] md:text-4xl xl:text-5xl leading-normal tracking-tight max-w-full py-1.5 px-2">
                   <AnimatedSongTitle title={track.title} trackId={track.id} />
                 </h2>
                 <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 mt-0 md:mt-2 text-[15px] md:text-base xl:text-lg text-white/70 font-medium [&>span]:whitespace-nowrap">
@@ -906,10 +911,9 @@ export const ImmersivePlayer = ({
                   >
                     {track.artist || album.artist}
                   </button>
-                  <span aria-hidden="true">•</span>
                   <button
                     onClick={() => playback.goToAlbum(playback.nowPlayingOrigin ?? album)}
-                    className="hover:text-white hover:underline underline-offset-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded"
+                    className="before:content-['•'] before:mr-2.5 before:text-white/70 before:no-underline before:inline-block hover:text-white hover:underline underline-offset-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded"
                     title="Ir al álbum"
                   >
                     {track.albumTitle || playback.nowPlayingOrigin?.title || album.title}
@@ -1059,7 +1063,7 @@ export const ImmersivePlayer = ({
            {/* Top Tabs (PISTAS / LETRA / COLA) - Left-aligned Liquid Glass Pill */}
            {/* a fixed 4.5rem above the list (which starts at 19vh), so the gap is the same on any screen height */}
            <div className="md:absolute md:top-[calc(19vh-4.5rem)] md:left-6 md:right-12 xl:left-4 xl:right-[8rem] w-full md:w-auto mb-6 md:mb-0 shrink-0 z-40 flex items-center justify-between gap-3 px-5 md:px-0">
-              <div className="rounded-full p-1.5 w-[290px] sm:w-[330px] md:w-auto md:flex-1 md:min-w-0 md:max-w-[385px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
+              <div className="rounded-full p-1.5 w-[min(290px,calc(100vw-6.5rem))] sm:w-[330px] md:w-auto md:flex-1 md:min-w-0 md:max-w-[385px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
                 <LiquidTabs
                   value={currentTab}
                   onChange={handleTabSelect}
@@ -1070,7 +1074,7 @@ export const ImmersivePlayer = ({
                   ]}
                 />
               </div>
-              {!isMobile && currentTab !== 'inmersion' && immersionToggle(true)}
+              {currentTab !== 'inmersion' && immersionToggle(true)}
            </div>
 
            {/* Tab Content: PISTAS, LETRA or COLA with Apple Rubber Band & Smooth Top-to-Bottom Cascade */}
@@ -1172,10 +1176,10 @@ export const ImmersivePlayer = ({
                            }`}
                          >
                            <div className="flex items-center gap-4 md:gap-6">
-                             <div className="flex items-center relative min-w-[2.75rem] md:min-w-[3.5rem] shrink-0">
+                             <div className="flex items-center relative min-w-[1.75rem] md:min-w-[3.5rem] shrink-0">
                                <button
                                  onClick={(e) => { e.stopPropagation(); toggleFavorite(t, album); }}
-                                 className={`group/favbtn absolute left-0 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100'}`}
+                                 className={`group/favbtn max-md:hidden absolute left-0 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100'}`}
                                  title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
                                  aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
                                >
@@ -1190,10 +1194,11 @@ export const ImmersivePlayer = ({
                                  )}
                                  </span>
                                </button>
-                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isActive ? 'text-[#e9d5ff]' : 'text-white/40'}`}>
+                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'md:pl-8' : 'md:group-hover:pl-8'} ${isActive ? 'text-[#e9d5ff]' : 'text-white/40'}`}>
                                  {(t.trackNumber || i + 1).toString().padStart(2, '0')}
                                </span>
                              </div>
+                             {isActive && <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} className="md:hidden -ml-2" />}
                              <div className="flex flex-col flex-1 min-w-0">
                                <div className="flex items-center min-w-0">
                                  {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
@@ -1206,7 +1211,7 @@ export const ImmersivePlayer = ({
                                )}
                              </div>
                              {isActive && (
-                               <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} className="ml-1 md:ml-2" />
+                               <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} className="max-md:hidden ml-2" />
                              )}
                              {renderRowActions(t, album, false)}
                            </div>
@@ -1253,10 +1258,10 @@ export const ImmersivePlayer = ({
                            }`}
                          >
                            <div className="flex items-center gap-4 md:gap-6">
-                             <div className="flex items-center relative min-w-[2.75rem] md:min-w-[3.5rem] shrink-0">
+                             <div className="flex items-center relative min-w-[1.75rem] md:min-w-[3.5rem] shrink-0">
                                <button
                                  onClick={(e) => { e.stopPropagation(); toggleFavorite(t, from); }}
-                                 className={`group/favbtn absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
+                                 className={`group/favbtn max-md:hidden absolute left-0 transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full p-1 cursor-pointer ${isFavorite(t.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
                                  title={isFavorite(t.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
                                  aria-label={isFavorite(t.id) ? `Quitar ${t.title} de favoritos` : `Añadir ${t.title} a favoritos`}
                                >
@@ -1269,16 +1274,17 @@ export const ImmersivePlayer = ({
                                    <Heart className="w-4 h-4 md:w-5 md:h-5 text-white/40 hover:text-white transition-colors" fill="none" aria-hidden="true" />
                                  )}
                                </button>
-                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'pl-8' : 'pl-0 group-hover:pl-8'} ${isCurrent ? 'text-[#e9d5ff]' : 'text-white/40'}`}>
+                               <span className={`text-base md:text-lg xl:text-xl font-medium tracking-widest transition-all duration-300 ${isFavorite(t.id) ? 'md:pl-8' : 'md:group-hover:pl-8'} ${isCurrent ? 'text-[#e9d5ff]' : 'text-white/40'}`}>
                                  {(idx + 1).toString().padStart(2, '0')}
                                </span>
                              </div>
+                             {isCurrent && <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} className="md:hidden -ml-2" />}
                              <div className="flex items-center flex-1 min-w-0">
                                {isLicensed(t.id) && <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-500 mr-2 shrink-0" fill="currentColor" />}
                                <MarqueeTitle text={t.title} slideOnHover />
                              </div>
                              {isCurrent && (
-                               <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} />
+                               <NowPlayingToggle isPlaying={isPlaying} isLoading={isLoading} onToggle={togglePlay} className="max-md:hidden" />
                              )}
                              {renderRowActions(t, from, true)}
                              <button
@@ -1337,14 +1343,14 @@ export const ImmersivePlayer = ({
 
         {/* 3. FULL IMMERSION CAVA STAGE */}
         {currentTab === 'inmersion' && (
-          <div className={`absolute inset-0 z-40 flex flex-col justify-between overflow-hidden pt-5 md:pt-8 pb-0 select-none ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+          <div className={`absolute inset-0 z-40 flex flex-col justify-between overflow-hidden pt-16 md:pt-8 pb-0 select-none ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
             {/* Top Area: Clean Song Title with Prev/Next buttons on Left and Right, and Artist */}
             <div className={`flex flex-col items-center justify-center text-center mt-1 md:mt-2 z-20 max-w-5xl mx-auto w-full px-4 md:px-8 ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
               {/* Title row flanked by Prev and Next buttons */}
               <div className="flex items-center justify-center gap-3 sm:gap-6 md:gap-8 w-full max-w-4xl">
                 <button
                   onClick={onPrev}
-                  className="p-3 md:p-3.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white backdrop-blur-2xl border border-white/20 shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                  className="p-2.5 md:p-3.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white backdrop-blur-2xl border border-white/20 shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
                   title="Canción anterior"
                   aria-label="Canción anterior"
                 >
@@ -1355,13 +1361,13 @@ export const ImmersivePlayer = ({
                   <AnimatedSongTitle
                     title={track.title}
                     trackId={track.id}
-                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.7)] text-center leading-[1.1] max-w-full"
+                    className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.7)] text-center leading-[1.1] max-w-full"
                   />
                 </div>
 
                 <button
                   onClick={onNext}
-                  className="p-3 md:p-3.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white backdrop-blur-2xl border border-white/20 shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                  className="p-2.5 md:p-3.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white backdrop-blur-2xl border border-white/20 shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
                   title="Siguiente canción"
                   aria-label="Siguiente canción"
                 >

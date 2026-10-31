@@ -22,7 +22,7 @@ const DropdownItem = ({ id, title, icon: Icon, hoverBg, activeTab, onSelect }: a
 
 // Letters are grouped per word so a long title can wrap between words on narrow screens
 // (each letter is its own rolling column, which would otherwise never wrap).
-const StaggeredRollingText = ({ text }: { text: string }) => {
+const StaggeredRollingText = ({ text, tail }: { text: string; tail?: React.ReactNode }) => {
   let i = 0;
   return (
     <div key={text} className="flex flex-wrap items-center gap-x-[0.25em] gap-y-1">
@@ -42,6 +42,7 @@ const StaggeredRollingText = ({ text }: { text: string }) => {
               </div>
             );
           })}
+          {w === text.split(' ').length - 1 && tail}
         </div>
       ))}
     </div>
@@ -95,8 +96,8 @@ const LibraryDropdown = ({ activeTab, setActiveTab }: { activeTab: string, setAc
         aria-expanded={isOpen}
         className="flex items-center gap-2 md:gap-3 min-w-0 text-left hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg p-1 cursor-pointer"
       >
-        <StaggeredRollingText text={titles[activeTab]} />
-        <ChevronDown className={`w-6 h-6 md:w-10 md:h-10 shrink-0 text-white/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} strokeWidth={3} />
+        {/* the chevron rides on the last word so it stays next to the title when it wraps */}
+        <StaggeredRollingText text={titles[activeTab]} tail={<ChevronDown className={`ml-2 md:ml-3 w-6 h-6 md:w-10 md:h-10 shrink-0 text-white/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} strokeWidth={3} />} />
       </button>
       
       <PopoverMenu

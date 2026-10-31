@@ -141,6 +141,8 @@ export const DownloadsView = ({
   const [sortPos, setSortPos] = useState({ top: 0, left: 0, right: 0 });
   const [searchPos, setSearchPos] = useState({ top: 0, left: 0, width: 0 });
   useEffect(() => { const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowSort(false); }; if (showSort) { document.addEventListener('keydown', handleKeyDown); } return () => document.removeEventListener('keydown', handleKeyDown); }, [showSort]);
+  // opening or closing an album starts from the top, otherwise the phone lands in the middle of the list
+  useEffect(() => { document.getElementById('main-scroll-container')?.scrollTo({ top: 0 }); }, [selectedAlbumId]);
   useEffect(() => {
     const container = document.getElementById('main-scroll-container');
     if (!container) return;
@@ -501,6 +503,8 @@ export const DownloadsView = ({
 
   return (
     <div className="h-full flex flex-col relative">
+      {/* phones: an open album gets the whole screen, the hero and the filters step aside */}
+      <div className={selectedAlbumId && viewMode === 'albumes' ? 'max-md:hidden md:contents' : 'contents'}>
       {/* Hero Section */}
       <SectionHero
         type={type}
@@ -534,9 +538,9 @@ export const DownloadsView = ({
       />
 
       {/* Action Bar (Search & Tabs) */}
-      <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 sticky top-0 bg-[#07050c]/60 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none z-30">
+      <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 md:sticky md:top-0 z-30">
         {/* same glass dock as the player's tabs */}
-        <div className="h-10 rounded-full p-1 w-[240px] md:w-[270px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors duration-300 flex items-center">
+        <div className="h-10 shrink-0 rounded-full p-1 w-[240px] md:w-[270px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors duration-300 flex items-center">
           <LiquidTabs
             value={viewMode}
             onChange={(id) => { setViewMode(id); setSelectedAlbumId(null); }}
@@ -587,7 +591,7 @@ export const DownloadsView = ({
           />
         </div>
         
-        <div className="relative w-full md:max-w-sm md:ml-4 md:focus-within:max-w-md h-10 transition-[max-width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group">
+        <div className="relative w-full lg:max-w-sm lg:ml-4 lg:focus-within:max-w-md h-10 transition-[max-width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group">
           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-white/45 group-focus-within:text-white pointer-events-none z-10 transition-colors duration-200" />
           <input 
             type="text"
@@ -643,6 +647,7 @@ export const DownloadsView = ({
             document.body
           )}
         </div>
+      </div>
       </div>
       <div 
         ref={listScrollRef} 
