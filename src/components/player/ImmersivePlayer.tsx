@@ -8,7 +8,6 @@ import { MarqueeTitle } from '../ui/MarqueeTitle';
 import { PopSwap } from '../ui/PopSwap';
 import { NowPlayingToggle } from '../ui/NowPlayingToggle';
 import { LiquidTabs } from '../ui/LiquidTabs';
-import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
 import { usePlaylists, withAlbumInfo } from './PlaylistsContext';
 import { ListScrollbar } from '../ui/ListScrollbar';
@@ -853,9 +852,23 @@ export const ImmersivePlayer = ({
                   <div className="absolute inset-0 rounded-[inherit] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),inset_0_0_0_1px_rgba(255,255,255,0.06)] pointer-events-none" />
                 </div>
 
-                {/* Reactions dock for the song (desktop), same white/light pill and blur as the album page */}
-                <div className="hidden md:flex absolute -bottom-4 -right-2 z-20 items-center justify-center gap-1.5 p-1.5 rounded-full overflow-hidden isolate [&>*:not(:first-child)]:relative [&>*:not(:first-child)]:z-10 bg-white/[0.18] hover:bg-white/[0.22] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_16px_40px_rgba(0,0,0,0.35)] transition-all">
-                  <SmokedGlass src={coverSource} veil="light" />
+                {/* Actions dock for the song (desktop), identical white/light pill and frosted blur as the album page */}
+                <div className="hidden md:flex absolute -bottom-4 -right-2 z-20 items-center justify-center gap-1.5 p-1.5 rounded-full bg-white/[0.18] hover:bg-white/[0.22] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_16px_40px_rgba(0,0,0,0.35)] w-max transition-all">
+                  <button
+                    className="h-12 pl-4 pr-5 rounded-full flex items-center gap-2 bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl border border-white/30 hover:border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer text-white text-sm font-semibold whitespace-nowrap"
+                    onClick={togglePlay}
+                    title={isPlaying ? "Pausar" : "Reproducir"}
+                    aria-label={isPlaying ? "Pausar" : "Reproducir"}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-white/95" aria-label="Cargando canción" />
+                    ) : isPlaying ? (
+                      <Pause className="w-5 h-5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
+                    ) : (
+                      <Play className="w-5 h-5 ml-0.5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
+                    )}
+                    {isPlaying ? 'Pausar' : 'Reproducir'}
+                  </button>
                   <button
                     onClick={() => toggleFavorite(track, album)}
                     className={`group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isFavorite(track.id) ? 'text-[#c084fc] hover:text-[#d8b4fe]' : 'text-white/75 hover:text-white'}`}
@@ -882,14 +895,16 @@ export const ImmersivePlayer = ({
                       : isDownloaded(track.id) ? <CheckCircle className="w-5 h-5 text-[#c084fc]" strokeWidth={2.5} aria-hidden="true" />
                       : <Download className="w-5 h-5" aria-hidden="true" />}
                   </button>
-                  <button
-                    onClick={(e) => openRowMenu(e, track, album, true, false)}
-                    className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 text-white/75 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
-                    title="Más opciones"
-                    aria-label={`Más opciones para ${track.title}`}
-                  >
-                    <MoreHorizontal className="w-5 h-5" aria-hidden="true" />
-                  </button>
+                  <div className="relative z-50">
+                    <button
+                      onClick={(e) => openRowMenu(e, track, album, true, false)}
+                      className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 text-white/75 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                      title="Más opciones"
+                      aria-label={`Más opciones para ${track.title}`}
+                    >
+                      <MoreHorizontal className="w-5 h-5" aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
