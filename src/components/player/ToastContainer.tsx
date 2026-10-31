@@ -46,14 +46,13 @@ const ToastPill = React.forwardRef<HTMLDivElement, { toast: Toast; reduce: boole
           backgroundOpacity={0.16}
           saturation={1}
           distortionScale={-70}
-          style={{ maxWidth: 'calc(100vw - 32px)' }}
+          style={{ maxWidth: 'calc(100vw - 32px)', border: 'none', boxShadow: '0 12px 32px -8px rgba(0,0,0,0.5)' }}
         >
           <span
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 rounded-[inherit]"
             style={{
               background: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%), rgba(12,12,16,0.58)',
-              boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.14)',
             }}
           />
           <motion.span

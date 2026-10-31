@@ -479,18 +479,15 @@ useEffect(() => {
                 </div>
                 {currentAlbumTitle && (
                   <>
-                    <span aria-hidden="true">•</span>
-                    <span className="text-white/80 font-medium">{currentAlbumTitle}</span>
+                    <span className="text-white/80 font-medium whitespace-nowrap"><span aria-hidden="true" className="mr-2 text-white/70 font-normal">•</span>{currentAlbumTitle}</span>
                   </>
                 )}
                 {currentYear && (
                   <>
-                    <span aria-hidden="true">•</span>
-                    <span>{currentYear}</span>
+                    <span className="whitespace-nowrap"><span aria-hidden="true" className="mr-2">•</span>{currentYear}</span>
                   </>
                 )}
-                <span aria-hidden="true">•</span>
-                <span>{album.trackCount} {album.trackCount === 1 ? "canción" : (album as any)?.isSongRadio ? "canciones similares" : "canciones"}</span>
+                <span className="whitespace-nowrap"><span aria-hidden="true" className="mr-2">•</span>{album.trackCount} {album.trackCount === 1 ? "canción" : (album as any)?.isSongRadio ? "canciones similares" : "canciones"}</span>
                 {album.totalDuration ? (
                   <>
                     {/* the bullet travels with its value so a wrapped line never ends in a lone dot */}

@@ -685,7 +685,7 @@ export const ImmersivePlayer = ({
         <div className="absolute top-3 md:top-8 xl:top-10 left-3 md:left-8 xl:left-10 z-50">
           <button
             onClick={onClose}
-            className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[114px] md:hover:w-[124px] rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-2xl border border-white/20 hover:border-white/30 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none"
+            className="group flex items-center h-10 md:h-11 w-10 md:w-11 hover:w-[114px] md:hover:w-[124px] rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-2xl border border-white/20 hover:border-white/30 shadow-[0_8px_30px_rgba(0,0,0,0.35)] text-white/90 hover:text-white transition-[width,background-color,border-color,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer overflow-hidden select-none [@media(hover:none)]:!w-10 md:[@media(hover:none)]:!w-11"
             title="Minimizar reproductor (F o Esc)"
             aria-label="Minimizar reproductor"
           >
@@ -693,7 +693,7 @@ export const ImmersivePlayer = ({
               <ChevronDown className="md:hidden w-5 h-5 transition-transform duration-300 group-hover:translate-y-0.5" strokeWidth={2.2} aria-hidden="true" />
               <Minimize2 className="hidden md:block w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-90" strokeWidth={2.2} aria-hidden="true" />
             </div>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
+            <span className="opacity-0 group-hover:opacity-100 [@media(hover:none)]:hidden transition-opacity duration-200 delay-75 text-sm font-medium tracking-wide pr-3.5 whitespace-nowrap">
               Minimizar
             </span>
           </button>
@@ -717,11 +717,11 @@ export const ImmersivePlayer = ({
             </button>
           )}
 
-          {(isMobile || currentTab === 'inmersion') && immersionToggle(false)}
+          {currentTab === 'inmersion' && immersionToggle(false)}
         </div>
 
         {/* 1. LEFT: Unified Cover, Info & Controls */}
-        <div className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex-col justify-center items-center group px-6 md:px-12 md:pl-32 xl:pl-40 pt-14 pb-[44px] md:pt-20 md:pb-10 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'transform-none duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
+        <div className={`${currentTab === 'inmersion' ? 'hidden' : 'flex'} w-full md:w-[52%] h-[100dvh] md:h-full shrink-0 relative flex-col justify-center items-center group px-6 md:px-12 md:pl-32 xl:pl-40 pt-14 pb-[104px] md:pt-20 md:pb-10 md:overflow-y-auto scrollbar-hide transition-transform ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? 'transform-none duration-700' : 'translate-y-6 scale-[0.97] duration-300'}`}>
            {/* Vertical Volume Control (Always visible, aligned with minimize button) */}
            <div className="hidden md:flex absolute left-6 md:left-8 xl:left-10 top-1/2 -translate-y-1/2 z-50 w-11 md:w-12 flex-col items-center gap-2 opacity-100 transition-all duration-300">
              <button
@@ -1059,7 +1059,7 @@ export const ImmersivePlayer = ({
            {/* Top Tabs (PISTAS / LETRA / COLA) - Left-aligned Liquid Glass Pill */}
            {/* a fixed 4.5rem above the list (which starts at 19vh), so the gap is the same on any screen height */}
            <div className="md:absolute md:top-[calc(19vh-4.5rem)] md:left-6 md:right-12 xl:left-4 xl:right-[8rem] w-full md:w-auto mb-6 md:mb-0 shrink-0 z-40 flex items-center justify-between gap-3 px-5 md:px-0">
-              <div className="rounded-full p-1.5 w-[290px] sm:w-[330px] md:w-auto md:flex-1 md:min-w-0 md:max-w-[385px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
+              <div className="rounded-full p-1.5 w-[min(290px,calc(100vw-6.5rem))] sm:w-[330px] md:w-auto md:flex-1 md:min-w-0 md:max-w-[385px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300">
                 <LiquidTabs
                   value={currentTab}
                   onChange={handleTabSelect}
@@ -1070,7 +1070,7 @@ export const ImmersivePlayer = ({
                   ]}
                 />
               </div>
-              {!isMobile && currentTab !== 'inmersion' && immersionToggle(true)}
+              {currentTab !== 'inmersion' && immersionToggle(true)}
            </div>
 
            {/* Tab Content: PISTAS, LETRA or COLA with Apple Rubber Band & Smooth Top-to-Bottom Cascade */}

@@ -141,6 +141,8 @@ export const DownloadsView = ({
   const [sortPos, setSortPos] = useState({ top: 0, left: 0, right: 0 });
   const [searchPos, setSearchPos] = useState({ top: 0, left: 0, width: 0 });
   useEffect(() => { const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowSort(false); }; if (showSort) { document.addEventListener('keydown', handleKeyDown); } return () => document.removeEventListener('keydown', handleKeyDown); }, [showSort]);
+  // opening or closing an album starts from the top, otherwise the phone lands in the middle of the list
+  useEffect(() => { document.getElementById('main-scroll-container')?.scrollTo({ top: 0 }); }, [selectedAlbumId]);
   useEffect(() => {
     const container = document.getElementById('main-scroll-container');
     if (!container) return;
@@ -501,6 +503,8 @@ export const DownloadsView = ({
 
   return (
     <div className="h-full flex flex-col relative">
+      {/* phones: an open album gets the whole screen, the hero and the filters step aside */}
+      <div className={selectedAlbumId && viewMode === 'albumes' ? 'max-md:hidden md:contents' : 'contents'}>
       {/* Hero Section */}
       <SectionHero
         type={type}
@@ -643,6 +647,7 @@ export const DownloadsView = ({
             document.body
           )}
         </div>
+      </div>
       </div>
       <div 
         ref={listScrollRef} 
