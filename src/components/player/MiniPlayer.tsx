@@ -239,7 +239,7 @@ export const MiniPlayer = ({
         onClick={onExpand}
         onKeyDown={(e) => { if (e.key === 'Enter') onExpand(); }}
         aria-label={`Abrir reproductor: ${track.title}, ${track.artist}`}
-        className="flex items-center gap-3 pl-3 pr-1 h-16 cursor-pointer active:bg-white/[0.04]"
+        className="flex items-center gap-3 pl-3 pr-2.5 h-16 cursor-pointer active:bg-white/[0.04]"
       >
         <img src={(track.albumCover || album.coverUrl)} alt="" className="w-11 h-11 rounded-md object-cover shrink-0 shadow-md" />
         <div className="flex-1 min-w-0">
@@ -359,7 +359,7 @@ export const MiniPlayer = ({
 
       {/* Center: Playback Controls */}
       <div className="flex flex-col items-center flex-1 max-w-[600px] relative z-10">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 lg:gap-6">
           <button
             className={`w-9 h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-full cursor-pointer ${isShuffle ? "text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" : "text-white/40 hover:text-white"} pop-press`}
             onClick={onToggleShuffle}

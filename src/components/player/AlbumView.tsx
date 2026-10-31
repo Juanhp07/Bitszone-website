@@ -315,7 +315,7 @@ useEffect(() => {
               </div>
 
               {/* Actions — bottom-right of the sleeve */}
-              <div className="relative lg:absolute lg:-bottom-4 lg:-right-2 mt-5 lg:mt-0 flex items-center justify-center gap-1.5 p-1.5 rounded-full bg-white/[0.18] hover:bg-white/[0.22] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_16px_40px_rgba(0,0,0,0.35)] w-max mx-auto lg:mx-0 z-20 transition-all">
+              <div className="relative lg:absolute lg:-bottom-4 lg:-right-2 mt-5 lg:mt-0 flex items-center justify-center gap-1.5 p-1.5 rounded-full bg-white/[0.18] hover:bg-white/[0.22] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_16px_40px_rgba(0,0,0,0.35)] w-max left-1/2 -translate-x-1/2 lg:left-auto lg:translate-x-0 z-20 transition-all">
                 {/* always "play it all": pause/resume lives in the player and in the playing row, so this one never changes meaning */}
                 <button
                   className="h-12 pl-4 pr-5 rounded-full flex items-center gap-2 bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl border border-white/30 hover:border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer text-white text-sm font-semibold whitespace-nowrap"
@@ -493,8 +493,8 @@ useEffect(() => {
                 <span>{album.trackCount} {album.trackCount === 1 ? "canción" : (album as any)?.isSongRadio ? "canciones similares" : "canciones"}</span>
                 {album.totalDuration ? (
                   <>
-                    <span aria-hidden="true">•</span>
-                    <span className="text-white/50">
+                    {/* the bullet travels with its value so a wrapped line never ends in a lone dot */}
+                    <span className="text-white/50 whitespace-nowrap"><span aria-hidden="true" className="mr-2 text-white/70">•</span>
                       {Math.floor(album.totalDuration / 3600000) > 0
                         ? `${Math.floor(album.totalDuration / 3600000)} h ${Math.floor((album.totalDuration % 3600000) / 60000)} min`
                         : `${Math.floor(album.totalDuration / 60000)} min ${Math.floor((album.totalDuration % 60000) / 1000)} s`}

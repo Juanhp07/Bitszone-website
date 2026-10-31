@@ -539,13 +539,13 @@ export const CatalogView = ({
         transition={getSectionSpring(0.08)}
         className="px-4 md:px-8"
       >
-        <div className="flex items-center justify-between gap-3 mb-4 md:mb-5">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
                             <BackButton onClick={() => setExpandedSection(null)} label="Volver a la vista principal" />
             )}
             <div className="flex items-center min-w-0 gap-2">
-              <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
+              <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-white tracking-tight truncate">
                 {personalized 
                   ? getButtonText('catalog.songs_personalized', 'Para ti') 
                   : getButtonText('catalog.songs_title', 'Canciones del momento')}
@@ -564,8 +564,8 @@ export const CatalogView = ({
                 }}
                 className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 shrink-0 ${
                   songsSort !== 'default'
-                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-                    : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/50 hover:text-white border border-white/5 hover:border-white/10'
+                    ? 'bg-purple-500/20 text-purple-300'
+                    : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/50 hover:text-white'
                 }`}
                 title="Ordenar canciones"
                 aria-label="Opciones de ordenamiento para canciones"
@@ -591,7 +591,7 @@ export const CatalogView = ({
             <div className="flex items-center">
               <button 
                 onClick={() => setExpandedSection('canciones')} 
-                className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 cursor-pointer"
+                className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-1 sm:px-2 cursor-pointer"
                 title="Mostrar todas las canciones del momento"
                 aria-label="Mostrar todas las canciones del momento"
               >
@@ -624,13 +624,13 @@ export const CatalogView = ({
         transition={getSectionSpring(0.22)}
         className="px-4 md:px-8"
       >
-        <div className="flex items-center justify-between gap-3 mb-4 md:mb-5">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
                             <BackButton onClick={() => setExpandedSection(null)} label="Volver a la vista principal" />
             )}
             <div className="flex items-center min-w-0 gap-2">
-              <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
+              <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-white tracking-tight truncate">
                 {getButtonText('catalog.artists_title', 'Artistas populares')}
               </h2>
               <button
@@ -647,8 +647,8 @@ export const CatalogView = ({
                 }}
                 className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 shrink-0 ${
                   artistsSort !== 'default'
-                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-                    : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/50 hover:text-white border border-white/5 hover:border-white/10'
+                    ? 'bg-purple-500/20 text-purple-300'
+                    : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/50 hover:text-white'
                 }`}
                 title="Ordenar artistas"
                 aria-label="Opciones de ordenamiento para artistas"
@@ -674,7 +674,7 @@ export const CatalogView = ({
             <div className="flex items-center">
               <button 
                 onClick={() => setExpandedSection('artistas')} 
-                className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 cursor-pointer"
+                className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-1 sm:px-2 cursor-pointer"
                 title="Mostrar todos los artistas populares"
                 aria-label="Mostrar todos los artistas populares"
               >
@@ -739,13 +739,13 @@ export const CatalogView = ({
         transition={getSectionSpring(0.36)}
         className="px-4 md:px-8"
       >
-        <div className="flex items-center justify-between gap-3 mb-4 md:mb-5">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-4 min-w-0">
             {expandedSection && (
                             <BackButton onClick={() => setExpandedSection(null)} label="Volver a la vista principal" />
             )}
             <div className="flex items-center min-w-0 gap-2">
-              <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
+              <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-white tracking-tight truncate">
                 {getButtonText('catalog.albums_title', 'Álbumes destacados')}
               </h2>
               <button
@@ -762,8 +762,8 @@ export const CatalogView = ({
                 }}
                 className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 shrink-0 ${
                   albumsSort !== 'default'
-                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-                    : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/50 hover:text-white border border-white/5 hover:border-white/10'
+                    ? 'bg-purple-500/20 text-purple-300'
+                    : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/50 hover:text-white'
                 }`}
                 title="Ordenar álbumes"
                 aria-label="Opciones de ordenamiento para álbumes"
@@ -789,7 +789,7 @@ export const CatalogView = ({
             <div className="flex items-center">
               <button 
                 onClick={() => setExpandedSection('destacados')} 
-                className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-2 cursor-pointer"
+                className="shrink-0 whitespace-nowrap py-2 md:py-0 text-[13px] md:text-sm font-medium text-white/50 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 rounded-lg px-1 sm:px-2 cursor-pointer"
                 title="Mostrar todos los álbumes destacados"
                 aria-label="Mostrar todos los álbumes destacados"
               >
