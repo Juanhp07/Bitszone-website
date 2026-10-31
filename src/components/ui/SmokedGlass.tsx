@@ -26,14 +26,14 @@ export const SmokedGlass = ({
           src={src}
           alt=""
           className={`absolute inset-0 w-full h-full object-cover scale-[2.5] blur-2xl ${
-            isLight ? 'saturate-[1.8] opacity-60' : 'saturate-[1.6]'
+            isLight ? 'saturate-[1.8] brightness-125 opacity-75' : 'saturate-[1.6]'
           }`}
         />
       ) : null}
       <span
         className={`absolute inset-0 ${
           isLight
-            ? 'bg-[radial-gradient(120%_160%_at_50%_0%,rgba(255,255,255,0.30),rgba(255,255,255,0.08))]'
+            ? 'bg-[radial-gradient(120%_160%_at_50%_0%,rgba(255,255,255,0.40),rgba(255,255,255,0.12))]'
             : veil === 'strong'
             ? 'bg-[radial-gradient(120%_160%_at_50%_0%,rgba(0,0,0,0.5),rgba(0,0,0,0.82))]'
             : 'bg-[radial-gradient(120%_160%_at_30%_0%,rgba(0,0,0,0.45),rgba(0,0,0,0.72))]'
