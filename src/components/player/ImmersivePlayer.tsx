@@ -8,7 +8,6 @@ import { MarqueeTitle } from '../ui/MarqueeTitle';
 import { PopSwap } from '../ui/PopSwap';
 import { NowPlayingToggle } from '../ui/NowPlayingToggle';
 import { LiquidTabs } from '../ui/LiquidTabs';
-import { SmokedGlass } from '../ui/SmokedGlass';
 import { usePlayback } from './PlaybackContext';
 import { usePlaylists, withAlbumInfo } from './PlaylistsContext';
 import { ListScrollbar } from '../ui/ListScrollbar';
@@ -853,12 +852,11 @@ export const ImmersivePlayer = ({
                   <div className="absolute inset-0 rounded-[inherit] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),inset_0_0_0_1px_rgba(255,255,255,0.06)] pointer-events-none" />
                 </div>
 
-                {/* Reactions dock for the song (desktop), same pill and blur as the album page */}
-                <div className="hidden md:flex absolute -bottom-4 -right-2 z-20 items-center justify-center gap-1 p-1.5 rounded-full overflow-hidden isolate [&>*:not(:first-child)]:relative [&>*:not(:first-child)]:z-10 backdrop-blur-[40px] backdrop-saturate-[1.8] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_20px_44px_rgba(0,0,0,0.5)]">
-                  <SmokedGlass src={coverSource} />
+                {/* Reactions dock for the song (desktop), same white/light pill and blur as the album page */}
+                <div className="hidden md:flex absolute -bottom-4 -right-2 z-20 items-center justify-center gap-1.5 p-1.5 rounded-full bg-white/[0.18] hover:bg-white/[0.22] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_16px_40px_rgba(0,0,0,0.35)] transition-all">
                   <button
                     onClick={() => toggleFavorite(track, album)}
-                    className={`group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isFavorite(track.id) ? 'text-[#a855f7] hover:text-[#b066f8]' : 'text-white/60 hover:text-white'}`}
+                    className={`group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isFavorite(track.id) ? 'text-[#c084fc] hover:text-[#d8b4fe]' : 'text-white/75 hover:text-white'}`}
                     title={isFavorite(track.id) ? 'Quitar de favoritos' : 'Añadir a favoritos'}
                     aria-label={isFavorite(track.id) ? `Quitar ${track.title} de favoritos` : `Añadir ${track.title} a favoritos`}
                   >
@@ -874,17 +872,17 @@ export const ImmersivePlayer = ({
                   <button
                     onClick={() => handleRowDownload(track, album)}
                     disabled={isDownloaded(track.id) || downloadingIds.includes(track.id)}
-                    className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors disabled:hover:bg-transparent disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 text-white/75 hover:text-white transition-colors disabled:hover:bg-transparent disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                     title={downloadingIds.includes(track.id) ? 'Descargando...' : isDownloaded(track.id) ? 'Canción descargada' : `Descargar ${track.title}`}
                     aria-label={downloadingIds.includes(track.id) ? 'Descargando canción' : isDownloaded(track.id) ? 'Canción descargada' : `Descargar ${track.title}`}
                   >
-                    {downloadingIds.includes(track.id) ? <Loader2 className="w-5 h-5 animate-spin text-[#a855f7]" aria-hidden="true" />
-                      : isDownloaded(track.id) ? <CheckCircle className="w-5 h-5 text-[#a855f7]" strokeWidth={2.5} aria-hidden="true" />
+                    {downloadingIds.includes(track.id) ? <Loader2 className="w-5 h-5 animate-spin text-[#c084fc]" aria-hidden="true" />
+                      : isDownloaded(track.id) ? <CheckCircle className="w-5 h-5 text-[#c084fc]" strokeWidth={2.5} aria-hidden="true" />
                       : <Download className="w-5 h-5" aria-hidden="true" />}
                   </button>
                   <button
                     onClick={(e) => openRowMenu(e, track, album, true, false)}
-                    className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 text-white/75 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
                     title="Más opciones"
                     aria-label={`Más opciones para ${track.title}`}
                   >
