@@ -48,7 +48,7 @@ export const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 md:mt-8 2xl:mt-10"
         >
-          <a href="/" target="_blank" rel="noopener noreferrer" className="block no-underline group cursor-pointer transition-all duration-300 hover:scale-105 hover:drop-shadow-[0_0_35px_rgba(255,159,252,0.8)] hover:brightness-110">
+          <a href="/player" target="_blank" rel="noopener noreferrer" className="block no-underline group cursor-pointer transition-all duration-300 hover:scale-105 hover:drop-shadow-[0_0_35px_rgba(255,159,252,0.8)] hover:brightness-110">
             <GlassSurface
               width="fit-content"
               height="fit-content"

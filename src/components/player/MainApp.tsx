@@ -60,10 +60,10 @@ export const MainApp = ({
   const getInitialView = (): string => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.replace(/\/+$/, '');
-      if (path === '/biblioteca') return 'library';
-      if (path === '/descargas') return 'downloads';
-      if (path === '/dashboard') return 'dashboard';
-      if (path === '' || path === '/' || path === '/player') return 'catalog';
+      if (path === '/player/biblioteca' || path === '/biblioteca') return 'library';
+      if (path === '/player/descargas' || path === '/descargas') return 'downloads';
+      if (path === '/player/dashboard' || path === '/dashboard') return 'dashboard';
+      if (path === '/player' || path === '') return 'catalog';
     }
     return initialView || 'catalog';
   };
@@ -73,14 +73,14 @@ export const MainApp = ({
   useEffect(() => {
     const handlePopState = () => {
       if (typeof window === 'undefined') return;
-      const path = window.location.pathname.replace(/\/+$/, '') || '/';
-      if (path === '/biblioteca') {
+      const path = window.location.pathname.replace(/\/+$/, '') || '/player';
+      if (path === '/player/biblioteca' || path === '/biblioteca') {
         setCurrentView('library');
-      } else if (path === '/descargas') {
+      } else if (path === '/player/descargas' || path === '/descargas') {
         setCurrentView('downloads');
-      } else if (path === '/dashboard') {
+      } else if (path === '/player/dashboard' || path === '/dashboard') {
         setCurrentView('dashboard');
-      } else if (path === '/' || path === '/player') {
+      } else if (path === '/player') {
         resetCatalogSection();
         setCurrentView('catalog');
       }
@@ -1044,19 +1044,19 @@ export const MainApp = ({
     if (isCompact) setIsSidebarOpen(false);
 
     if (typeof window !== 'undefined') {
-      let targetPath = '/';
+      let targetPath = '/player';
       if (view.startsWith('library')) {
-        targetPath = '/biblioteca';
+        targetPath = '/player/biblioteca';
       } else if (view === 'downloads') {
-        targetPath = '/descargas';
+        targetPath = '/player/descargas';
       } else if (view === 'dashboard') {
-        targetPath = '/dashboard';
+        targetPath = '/player/dashboard';
       } else if (view === 'catalog') {
-        targetPath = '/';
+        targetPath = '/player';
       }
 
-      const currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
-      if (currentPath !== targetPath && ['/', '/biblioteca', '/descargas', '/dashboard'].includes(targetPath)) {
+      const currentPath = window.location.pathname.replace(/\/+$/, '') || '/player';
+      if (currentPath !== targetPath) {
         window.history.pushState({ view }, '', targetPath);
       }
     }

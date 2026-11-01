@@ -17,7 +17,7 @@ type Status = 'idle' | 'loading' | 'success';
 // must match Supabase > Authentication > Providers > Email > Email OTP Length
 const CODE_LENGTH = 8;
 const RESEND_SECONDS = 30;
-const AFTER_LOGIN = '/';
+const AFTER_LOGIN = '/player';
 
 const friendly = (e: { message?: string; status?: number }) =>
   e.status === 429 || /rate limit|too many|seconds/i.test(e.message ?? '')
@@ -304,7 +304,7 @@ export const AuthContainer = () => {
             dark
             onClick={() => {
               if (window.history.length > 1 && document.referrer.startsWith(window.location.origin)) window.history.back();
-              else window.location.href = '/';
+              else window.location.href = '/player';
             }}
           />
         </motion.div>

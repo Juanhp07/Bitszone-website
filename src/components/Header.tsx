@@ -8,7 +8,7 @@ export const Header = () => {
       <div className="d-flex align-items-center justify-content-center w-100">
         
         {/* Center: Logo */}
-        <a href="/landing" className="d-flex align-items-center justify-content-center text-decoration-none" style={{ pointerEvents: "auto", cursor: "pointer" }}>
+        <a href="/" className="d-flex align-items-center justify-content-center text-decoration-none" style={{ pointerEvents: "auto", cursor: "pointer" }}>
           <SpecularText
             text="Bitszone"
             className="pe-2"
