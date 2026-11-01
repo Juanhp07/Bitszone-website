@@ -1227,9 +1227,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     />
                   )}
                   {currentView === 'dashboard' && (
-                    <div className="flex-1 flex flex-col items-center justify-start py-4 px-3 md:px-6 w-full max-w-7xl mx-auto">
-                      <AdminDashboard onBack={() => setCurrentView('catalog')} />
-                    </div>
+                    <AdminDashboard onBack={() => setCurrentView('catalog')} />
                   )}
                 </motion.div>
               </main>
