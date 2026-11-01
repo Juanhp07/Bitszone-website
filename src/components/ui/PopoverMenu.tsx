@@ -49,7 +49,13 @@ export const PopoverMenu = ({
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        onClose();
+      }
+    };
     const onScroll = () => onClose();
     window.addEventListener('keydown', onKey, true);
     window.addEventListener('wheel', onScroll, { passive: true });

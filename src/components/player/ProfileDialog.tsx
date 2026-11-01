@@ -59,10 +59,16 @@ export const ProfileDialog = ({
   useEffect(() => {
     if (!open) return;
     setName(username); setAvatar(avatarUrl); setError(''); setStatus('idle');
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [open, onClose, username, avatarUrl]);
 
   const stats = useMemo(() => {
     if (!open) return null;

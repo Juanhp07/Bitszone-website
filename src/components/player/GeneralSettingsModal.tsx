@@ -172,18 +172,32 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   const [shortcutsSearch, setShortcutsSearch] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  // Close reset confirmation dialog on Escape
+  // Close reset confirmation dialog, recording, or modal on Escape
   useEffect(() => {
-    if (!showResetConfirm) return;
+    if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (showResetConfirm) {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          setShowResetConfirm(false);
+          return;
+        }
+        if (recordingAction) {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          setRecordingAction(null);
+          setShortcutConflict(null);
+          return;
+        }
         e.stopPropagation();
-        setShowResetConfirm(false);
+        e.stopImmediatePropagation();
+        onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [showResetConfirm]);
+  }, [isOpen, showResetConfirm, recordingAction, onClose]);
 
   // Keep active tab in sync if initialTab changes on open
   useEffect(() => {

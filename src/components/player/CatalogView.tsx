@@ -109,12 +109,19 @@ export const CatalogView = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setShowDownloadConfirm(null);
+        if (showDownloadConfirm) {
+          e.stopPropagation();
+          setShowDownloadConfirm(null);
+        }
+        if (showCancelConfirm) {
+          e.stopPropagation();
+          setShowCancelConfirm(null);
+        }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showDownloadConfirm]);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [showDownloadConfirm, showCancelConfirm]);
     const [expandedSection, setExpandedSection] = useState<CatalogSection>(() => lastExpanded);
     // remembered so the album page's back arrow returns to this "Mostrar todo"
     useEffect(() => { lastExpanded = expandedSection; }, [expandedSection]);

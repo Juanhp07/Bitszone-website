@@ -105,12 +105,23 @@ export const AlbumView = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setShowDownloadConfirm(false);
+        if (showDownloadConfirm) {
+          e.stopPropagation();
+          setShowDownloadConfirm(false);
+        }
+        if (showCancelConfirm) {
+          e.stopPropagation();
+          setShowCancelConfirm(false);
+        }
+        if (showDeleteConfirm) {
+          e.stopPropagation();
+          setShowDeleteConfirm(false);
+        }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showDownloadConfirm]);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [showDownloadConfirm, showCancelConfirm, showDeleteConfirm]);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const moreMenuRef = useRef<HTMLButtonElement>(null);
   const [moreMenuPos, setMoreMenuPos] = useState({ top: 0, left: 0, right: 0 });

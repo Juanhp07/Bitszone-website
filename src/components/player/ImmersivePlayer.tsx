@@ -585,11 +585,42 @@ export const ImmersivePlayer = ({
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isExpanded) onClose();
+      if (e.key === 'Escape' && isExpanded) {
+        if (rowMenu) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          setRowMenu(null);
+          return;
+        }
+        if (isCavaSettingsOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          setIsCavaSettingsOpen(false);
+          return;
+        }
+        if (clearQueueConfirm) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          setClearQueueConfirm(false);
+          return;
+        }
+        onClose();
+      }
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [isExpanded, onClose]);
+  }, [isExpanded, onClose, rowMenu, isCavaSettingsOpen, clearQueueConfirm]);
+
+  useEffect(() => {
+    if (!isExpanded) {
+      setRowMenu(null);
+      setIsCavaSettingsOpen(false);
+      setClearQueueConfirm(false);
+    }
+  }, [isExpanded]);
 
   // Waveform pattern
   const formatTime = (ms?: number) => {

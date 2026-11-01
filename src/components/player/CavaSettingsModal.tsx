@@ -104,8 +104,11 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
       if (e.key === 'Escape') {
         if (showResetConfirm) {
           e.stopPropagation();
+          e.stopImmediatePropagation();
           setShowResetConfirm(false);
         } else {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
           onClose();
         }
       }

@@ -187,6 +187,20 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
     fetchRealData();
   }, []);
 
+  // Handle ESC key to close active modal
+  useEffect(() => {
+    if (!activeModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        setActiveModal(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [activeModal]);
+
   // Demo datasets
   const [demoUsersList, setDemoUsersList] = useState<DashboardUser[]>([
     {
@@ -575,17 +589,17 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
       <div className="px-4 md:px-8 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 sticky top-0 bg-[#07050c]/60 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none z-30">
         
         {/* LiquidTabs Dock */}
-        <div className="h-10 rounded-full p-1 w-full sm:w-[500px] md:w-[540px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors duration-300 flex items-center overflow-x-auto scrollbar-hide shrink-0">
+        <div className="h-10 rounded-full p-1 w-full sm:w-[680px] md:w-[740px] bg-white/10 hover:bg-white/15 backdrop-blur-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors duration-300 flex items-center overflow-x-auto scrollbar-hide shrink-0">
           <LiquidTabs
             value={activeTab}
             onChange={(id) => setActiveTab(id as DashboardTab)}
             className="h-full w-full"
-            tabClassName="h-full py-0 px-3 whitespace-nowrap text-xs sm:text-sm font-semibold"
+            tabClassName="h-full py-0 px-4 md:px-5 whitespace-nowrap text-xs sm:text-sm font-semibold tracking-wide"
             tabs={[
-              { id: 'overview' as const, label: 'Visión General', icon: <Activity className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
-              { id: 'users' as const, label: `Usuarios (${activeUsersList.length})`, icon: <Users className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
-              { id: 'music' as const, label: `Música (${dataSource === 'real' ? realTracksCount : 380})`, icon: <Music className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
-              { id: 'tools' as const, label: 'Herramientas', icon: <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+              { id: 'overview' as const, label: 'Visión General', icon: <Activity className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
+              { id: 'users' as const, label: `Usuarios (${activeUsersList.length})`, icon: <Users className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
+              { id: 'music' as const, label: `Música (${dataSource === 'real' ? realTracksCount : 380})`, icon: <Music className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
+              { id: 'tools' as const, label: 'Herramientas', icon: <SlidersHorizontal className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
             ]}
           />
         </div>
@@ -1093,7 +1107,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                       placeholder="ej. nuevo.admin@gmail.com o usuario_1"
                       value={adminInput}
                       onChange={(e) => setAdminInput(e.target.value)}
-                      className="w-full px-4.5 py-3.5 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
+                      className="w-full px-5 sm:px-6 py-3.5 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
                     />
                     <p className="text-xs text-white/55 mt-2 leading-relaxed">
                       Si el usuario ya está registrado en Supabase, se actualizará su rol en la tabla <code>profiles</code> inmediatamente.
@@ -1252,7 +1266,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                       placeholder="Ej. Liquid Beats Vol. 1"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
-                      className="w-full px-4.5 py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
+                      className="w-full px-5 sm:px-6 py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
                     />
                   </div>
 
@@ -1266,7 +1280,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                       placeholder="Ej. J3T & JuanHP"
                       value={newArtist}
                       onChange={(e) => setNewArtist(e.target.value)}
-                      className="w-full px-4.5 py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
+                      className="w-full px-5 sm:px-6 py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
                     />
                   </div>
 
@@ -1277,7 +1291,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                     <select 
                       value={newGenre}
                       onChange={(e) => setNewGenre(e.target.value)}
-                      className="w-full px-4.5 py-3 rounded-2xl bg-[#1b1230] border border-white/10 text-white text-base focus:outline-none focus:border-purple-400/60 transition-all cursor-pointer"
+                      className="w-full px-5 sm:px-6 py-3 rounded-2xl bg-[#1b1230] border border-white/10 text-white text-base focus:outline-none focus:border-purple-400/60 transition-all cursor-pointer"
                     >
                       <option value="Pop / Alternativo">Pop / Alternativo</option>
                       <option value="Rock / Metal">Rock / Metal</option>

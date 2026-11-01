@@ -184,17 +184,20 @@ export const DownloadsView = ({
     const handleKeyDown = (e: any) => {
       if (e.key === 'Escape') {
         setShowSort(false);
-        if (albumToRemove) setAlbumToRemove(null);
-        if (trackToRemove) setTrackToRemove(null);
+        if (albumToRemove) { e.stopPropagation(); setAlbumToRemove(null); return; }
+        if (trackToRemove) { e.stopPropagation(); setTrackToRemove(null); return; }
+        if (showCancelConfirm) { e.stopPropagation(); setShowCancelConfirm(null); return; }
         if (showClearConfirm) {
+          e.stopPropagation();
           setShowClearConfirm(false);
           setConfirmText("");
+          return;
         }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [albumToRemove, trackToRemove, showClearConfirm]);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [albumToRemove, trackToRemove, showCancelConfirm, showClearConfirm]);
 
   const filteredTracks = tracks.filter(t => {
     const q = searchQuery.toLowerCase();
