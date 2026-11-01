@@ -1,6 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
-import GlassSurface from './GlassSurface';
 
 export type LiquidTab<T extends string> = { id: T; label: string; icon?: React.ReactNode; title?: string };
 
@@ -78,33 +77,25 @@ export function LiquidTabs<T extends string>({
       }}
       onPointerCancel={() => { drag.current = null; setPressed(false); x.set(index * segment); }}
     >
-      {/* Indicador deslizante estilo Liquid Glass.
-          Situado en z-0 detrás de las etiquetas (z-10) para mantener el texto 100% nítido
-          en todos los navegadores, preservando el efecto glass/liquid y blur de la píldora. */}
+      {/* Indicador deslizante estilo Liquid Glass con blur y acabado suave */}
       <motion.div
         aria-hidden="true"
-        className="absolute top-0 bottom-0 left-0 z-0 rounded-full overflow-hidden pointer-events-none transition-[opacity,top,bottom,left,width] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+        className="absolute top-0 bottom-0 left-0 z-0 rounded-full pointer-events-none transition-[opacity,top,bottom,left,width] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
         style={{
-          // held = a bit smaller (resized, not scaled: scaling a clipped glass layer breaks Chrome's rounded crop)
-          width: segment ? segment - (pressed ? 10 : 0) : `${100 / tabs.length}%`,
-          top: pressed ? 3 : 0,
-          bottom: pressed ? 3 : 0,
-          left: pressed ? 5 : 0,
+          // held = a bit smaller
+          width: segment ? segment - (pressed ? 8 : 0) : `${100 / tabs.length}%`,
+          top: pressed ? 2 : 0,
+          bottom: pressed ? 2 : 0,
+          left: pressed ? 4 : 0,
           x: springX,
           opacity: hasActive ? 1 : 0,
         }}
       >
-        {/* Lente de cristal líquido sobre el fondo del dock */}
-        <div className="absolute -inset-[7px]">
-          <GlassSurface width="100%" height="100%" borderRadius={999} displace={0.6} blur={5} backgroundOpacity={0} saturation={1.5} distortionScale={-22} greenOffset={0} blueOffset={0} />
-        </div>
-        <span
-          className="pointer-events-none absolute inset-0 rounded-full"
-          // light frosted fill over the album colour; pressing brightens it (scaling the lens on press
-          // made Chrome lose the rounded crop and show the glass's dark outer ring)
+        <div
+          className="pointer-events-none absolute inset-0 rounded-full backdrop-blur-md"
           style={{
-            background: `rgba(255,255,255,${pressed ? 0.24 : 0.16})`,
-            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.3), inset 0 1px 0 rgba(255,255,255,0.18)',
+            background: `rgba(255, 255, 255, ${pressed ? 0.25 : 0.17})`,
+            boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15)',
             transition: 'background 200ms ease-out',
           }}
         />
