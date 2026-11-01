@@ -866,21 +866,6 @@ export const ImmersivePlayer = ({
                     <span className="absolute inset-0 bg-[radial-gradient(120%_160%_at_50%_0%,rgba(255,255,255,0.35),rgba(255,255,255,0.10))]" />
                   </span>
                   <button
-                    className="h-12 pl-4 pr-5 rounded-full flex items-center gap-2 bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-xl border border-white/30 hover:border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer text-white text-sm font-semibold whitespace-nowrap"
-                    onClick={togglePlay}
-                    title={isPlaying ? "Pausar" : "Reproducir"}
-                    aria-label={isPlaying ? "Pausar" : "Reproducir"}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin text-white/95" aria-label="Cargando canción" />
-                    ) : isPlaying ? (
-                      <Pause className="w-5 h-5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
-                    ) : (
-                      <Play className="w-5 h-5 ml-0.5 text-white/95 fill-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
-                    )}
-                    {isPlaying ? 'Pausar' : 'Reproducir'}
-                  </button>
-                  <button
                     onClick={() => toggleFavorite(track, album)}
                     className={`group/favbtn w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer ${isFavorite(track.id) ? 'text-[#c084fc] hover:text-[#d8b4fe]' : 'text-white/75 hover:text-white'}`}
                     title={isFavorite(track.id) ? 'Quitar de favoritos' : 'Añadir a favoritos'}
