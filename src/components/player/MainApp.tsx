@@ -46,10 +46,48 @@ import {
 } from './generalSettingsTypes';
 import { cardStyle, titleStyle } from '../auth/authUi';
 
-export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string, supabaseAnonKey?: string }) => {
+export const MainApp = ({
+  supabaseUrl,
+  supabaseAnonKey,
+  initialView = 'catalog',
+}: {
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
+  initialView?: string;
+}) => {
   const { containerRef: mainScrollRef, springValue: springMainY, scrollProps: mainScrollProps } = useRubberBand({ axis: 'y' });
 
-  const [currentView, setCurrentView] = useState<string>("catalog");
+  const getInitialView = (): string => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.replace(/\/+$/, '');
+      if (path === '/biblioteca') return 'library';
+      if (path === '/descargas') return 'downloads';
+      if (path === '/dashboard') return 'dashboard';
+      if (path === '' || path === '/' || path === '/player') return 'catalog';
+    }
+    return initialView || 'catalog';
+  };
+
+  const [currentView, setCurrentView] = useState<string>(getInitialView);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === 'undefined') return;
+      const path = window.location.pathname.replace(/\/+$/, '') || '/';
+      if (path === '/biblioteca') {
+        setCurrentView('library');
+      } else if (path === '/descargas') {
+        setCurrentView('downloads');
+      } else if (path === '/dashboard') {
+        setCurrentView('dashboard');
+      } else if (path === '/' || path === '/player') {
+        resetCatalogSection();
+        setCurrentView('catalog');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   const [selectedArtist, setSelectedArtist] = useState<{name: string, img: string, type?: string} | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const isMobile = useIsMobile();   // phone layout (header, mini player, lyrics)
@@ -1004,6 +1042,24 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
     if (view === 'catalog') resetCatalogSection();
     setCurrentView(view);
     if (isCompact) setIsSidebarOpen(false);
+
+    if (typeof window !== 'undefined') {
+      let targetPath = '/';
+      if (view.startsWith('library')) {
+        targetPath = '/biblioteca';
+      } else if (view === 'downloads') {
+        targetPath = '/descargas';
+      } else if (view === 'dashboard') {
+        targetPath = '/dashboard';
+      } else if (view === 'catalog') {
+        targetPath = '/';
+      }
+
+      const currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+      if (currentPath !== targetPath && ['/', '/biblioteca', '/descargas', '/dashboard'].includes(targetPath)) {
+        window.history.pushState({ view }, '', targetPath);
+      }
+    }
   };
 
   return (
@@ -1205,7 +1261,7 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     <AlbumView
                       album={selectedAlbumFull || selectedAlbum}
                       loading={!selectedAlbumFull}
-                      onViewChange={(v) => setCurrentView(v === 'catalog' ? viewBeforeAlbumRef.current : v)}
+                      onViewChange={(v) => navigate(v === 'catalog' ? viewBeforeAlbumRef.current : v)}
                       onPlayTrack={handlePlayTrack}
                       nowPlayingTrackId={nowPlayingTrack?.id}
                       isPlaying={isPlaying}
@@ -1217,17 +1273,17 @@ export const MainApp = ({ supabaseUrl, supabaseAnonKey }: { supabaseUrl?: string
                     />
                   )}
                   {currentView === 'downloads' && <DownloadsView type="downloads" albums={albums} onPlayTrack={handlePlayTrack} onSelectAlbum={handleSelectAlbum} />}
-                  {currentView.startsWith('library') && <LibraryView albums={albums} handlePlayTrack={handlePlayTrack} handleSelectAlbum={handleSelectAlbum} currentView={currentView} setCurrentView={setCurrentView} />}
+                  {currentView.startsWith('library') && <LibraryView albums={albums} handlePlayTrack={handlePlayTrack} handleSelectAlbum={handleSelectAlbum} currentView={currentView} setCurrentView={navigate} />}
                   {currentView === 'artist' && selectedArtist && (
                     <ArtistView
                       artist={selectedArtist}
                       albums={albums}
-                      onBack={() => setCurrentView('catalog')}
+                      onBack={() => navigate('catalog')}
                       onSelectAlbum={handleSelectAlbum}
                     />
                   )}
                   {currentView === 'dashboard' && (
-                    <AdminDashboard onBack={() => setCurrentView('catalog')} />
+                    <AdminDashboard onBack={() => navigate('catalog')} />
                   )}
                 </motion.div>
               </main>
