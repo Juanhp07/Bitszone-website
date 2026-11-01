@@ -78,11 +78,12 @@ export function LiquidTabs<T extends string>({
       }}
       onPointerCancel={() => { drag.current = null; setPressed(false); x.set(index * segment); }}
     >
-      {/* Liquid glass lens over the labels, same glass as the notifications: it bends the letters under it,
-          tinted dark so the album colour shows through. Little blur here: the label sits behind the glass. */}
+      {/* Indicador deslizante estilo Liquid Glass.
+          Situado en z-0 detrás de las etiquetas (z-10) para mantener el texto 100% nítido
+          en todos los navegadores, preservando el efecto glass/liquid y blur de la píldora. */}
       <motion.div
         aria-hidden="true"
-        className="absolute top-0 bottom-0 left-0 z-20 rounded-full overflow-hidden pointer-events-none transition-[opacity,top,bottom,left,width] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+        className="absolute top-0 bottom-0 left-0 z-0 rounded-full overflow-hidden pointer-events-none transition-[opacity,top,bottom,left,width] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
         style={{
           // held = a bit smaller (resized, not scaled: scaling a clipped glass layer breaks Chrome's rounded crop)
           width: segment ? segment - (pressed ? 10 : 0) : `${100 / tabs.length}%`,
@@ -93,9 +94,7 @@ export function LiquidTabs<T extends string>({
           opacity: hasActive ? 1 : 0,
         }}
       >
-        {/* gentler than the notifications: the lens is short and the label sits right under it, so strong bending or colour split would make it unreadable */}
-        {/* short reach (-22) + 7px of cropped ring: at the first/last tab the lens touches the bar's curved end,
-            and a longer reach pulled that curve and the dark outside into the lens as a notch */}
+        {/* Lente de cristal líquido sobre el fondo del dock */}
         <div className="absolute -inset-[7px]">
           <GlassSurface width="100%" height="100%" borderRadius={999} displace={0.6} blur={5} backgroundOpacity={0} saturation={1.5} distortionScale={-22} greenOffset={0} blueOffset={0} />
         </div>
@@ -121,7 +120,7 @@ export function LiquidTabs<T extends string>({
             aria-selected={active}
             title={t.title}
             onClick={(e) => { if (e.detail === 0) onChange(t.id); }}
-            className={`relative z-10 flex items-center justify-center ${tabClassName} text-[10px] sm:text-[11px] md:text-xs font-semibold tracking-[0.08em] sm:tracking-[0.1em] md:tracking-[0.14em] uppercase rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer select-none ${
+            className={`relative z-10 flex items-center justify-center ${tabClassName} text-[10px] sm:text-[11px] md:text-xs font-semibold tracking-[0.08em] sm:tracking-[0.1em] md:tracking-[0.14em] uppercase rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-400 cursor-pointer select-none antialiased [text-rendering:geometricPrecision] ${
               active ? 'text-white font-bold' : 'text-white/60 hover:text-white/90'
             }`}
           >
