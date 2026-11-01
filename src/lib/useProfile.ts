@@ -4,6 +4,25 @@ import { supabase } from './supabase';
 
 export type Profile = { username: string | null; avatar_url: string | null; role?: string | null };
 
+export const isSuperAdminAccount = (user: User | null, profile: Profile | null) => {
+  if (!user && !profile) return false;
+  const email = (user?.email || '').toLowerCase().trim();
+  const username = (profile?.username || '').toLowerCase().trim();
+  const role = (profile?.role || '').toLowerCase().trim();
+  const appRole = (user?.app_metadata && (user.app_metadata as Record<string, any>).role) || '';
+  const userRole = (user?.user_metadata && (user.user_metadata as Record<string, any>).role) || '';
+
+  return (
+    email === 'bitszone.app@gmail.com' ||
+    username === 'owner' ||
+    username === 'admin_bitszone' ||
+    role === 'superadmin' ||
+    role === 'owner' ||
+    appRole === 'superadmin' ||
+    userRole === 'superadmin'
+  );
+};
+
 // Current session + its profile row. `profile` stays null if the lookup fails, so a DB hiccup never blocks the app.
 export const useProfile = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -31,15 +50,18 @@ export const useProfile = () => {
 
   const reload = useCallback(() => load(user), [load, user]);
 
+  const isSuperAdmin = isSuperAdminAccount(user, profile);
+
   const isAdmin = Boolean(
-    user && (
-      user.email === 'bitszone.app@gmail.com' ||
-      profile?.role === 'admin' ||
-      (user.app_metadata && (user.app_metadata as Record<string, any>).role === 'admin') ||
-      (user.user_metadata && (user.user_metadata as Record<string, any>).role === 'admin')
+    isSuperAdmin || (
+      user && (
+        profile?.role === 'admin' ||
+        (user.app_metadata && (user.app_metadata as Record<string, any>).role === 'admin') ||
+        (user.user_metadata && (user.user_metadata as Record<string, any>).role === 'admin')
+      )
     )
   );
 
-  return { user, profile, isAdmin, ready, reload };
+  return { user, profile, isAdmin, isSuperAdmin, ready, reload };
 };
 

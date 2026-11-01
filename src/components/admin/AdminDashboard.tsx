@@ -27,7 +27,8 @@ import {
   Flame, 
   UserPlus,
   Trash2,
-  Check
+  Check,
+  Crown
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useProfile } from '../../lib/useProfile';
@@ -41,18 +42,38 @@ type DataSource = 'real' | 'demo';
 type DashboardTab = 'overview' | 'users' | 'music' | 'tools';
 type TimeRange = '7d' | '24h' | '30d';
 
-interface DashboardUser {
+export interface DashboardUser {
   id: string;
   username: string;
   email?: string;
   avatar_url?: string | null;
-  role: 'admin' | 'user';
+  role: 'superadmin' | 'admin' | 'user';
   status: 'online' | 'idle' | 'offline';
   playedSongsCount: number;
   downloadedCount: number;
   lastActive: string;
   joinedAt: string;
 }
+
+export const isSuperAdminUser = (u?: {
+  email?: string | null;
+  username?: string | null;
+  role?: string | null;
+  id?: string | null;
+} | null) => {
+  if (!u) return false;
+  const email = (u.email || '').toLowerCase().trim();
+  const username = (u.username || '').toLowerCase().trim();
+  const role = (u.role || '').toLowerCase().trim();
+
+  return (
+    email === 'bitszone.app@gmail.com' ||
+    username === 'owner' ||
+    username === 'admin_bitszone' ||
+    role === 'superadmin' ||
+    role === 'owner'
+  );
+};
 
 interface PopularTrack {
   id: number | string;
@@ -66,7 +87,7 @@ interface PopularTrack {
 }
 
 export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
-  const { user, isAdmin, ready } = useProfile();
+  const { user, profile, isAdmin, isSuperAdmin, ready } = useProfile();
 
   // Mode and view states: Default to Demo as requested
   const [dataSource, setDataSource] = useState<DataSource>('demo');
@@ -138,14 +159,23 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
       // Build real users list
       const usersList: DashboardUser[] = [];
 
+      // Find if current user has matching profile in profilesData
+      const userProfile = profilesData?.find((p) => user && p.id === user.id);
+
       // Current authenticated admin
       if (user) {
+        const isCurrentSuper = isSuperAdmin || isSuperAdminUser({
+          email: user.email,
+          username: userProfile?.username || profile?.username,
+          role: userProfile?.role || profile?.role,
+        });
+
         usersList.push({
           id: user.id,
-          username: user.email?.split('@')[0] || 'admin',
-          email: user.email || 'bitszone.app@gmail.com',
-          avatar_url: user.user_metadata?.avatar_url || null,
-          role: 'admin',
+          username: userProfile?.username || profile?.username || user.email?.split('@')[0] || 'admin',
+          email: user.email || (isCurrentSuper ? 'bitszone.app@gmail.com' : undefined),
+          avatar_url: userProfile?.avatar_url || profile?.avatar_url || user.user_metadata?.avatar_url || null,
+          role: isCurrentSuper ? 'superadmin' : (userProfile?.role === 'admin' || profile?.role === 'admin' ? 'admin' : 'user'),
           status: 'online',
           playedSongsCount: tracksData ? Math.min(tracksData.length, 36) : 12,
           downloadedCount: downloadsCount || 4,
@@ -158,12 +188,24 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
       if (profilesData && Array.isArray(profilesData)) {
         profilesData.forEach((p, idx) => {
           if (user && p.id === user.id) return;
+
+          const isSuper = isSuperAdminUser({
+            username: p.username,
+            role: p.role,
+          });
+
+          // Prevent duplicate superadmin if current authenticated user is already the superadmin
+          if (isSuper && usersList.some((u) => u.role === 'superadmin')) {
+            return;
+          }
+
           usersList.push({
             id: p.id || `user-${idx}`,
             username: p.username || `usuario_${idx + 1}`,
-            email: p.id ? `${p.username || 'usuario'}@bitszone.net` : undefined,
+            // Real email for superadmin; keep undefined for regular users without public email (avoids fake @bitszone.net)
+            email: isSuper ? 'bitszone.app@gmail.com' : undefined,
             avatar_url: p.avatar_url || null,
-            role: p.role === 'admin' ? 'admin' : 'user',
+            role: isSuper ? 'superadmin' : (p.role === 'admin' ? 'admin' : 'user'),
             status: idx === 0 ? 'online' : idx % 2 === 0 ? 'idle' : 'offline',
             playedSongsCount: Math.max(4, 22 - idx * 4),
             downloadedCount: Math.max(0, 5 - idx),
@@ -171,6 +213,16 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
             joinedAt: 'Reciente',
           });
         });
+      }
+
+      // Guarantee at least one superadmin is explicitly identified in the list
+      const hasSuper = usersList.some((u) => u.role === 'superadmin');
+      if (!hasSuper) {
+        const ownerIdx = usersList.findIndex((u) => u.username === 'owner' || u.email === 'bitszone.app@gmail.com');
+        if (ownerIdx !== -1) {
+          usersList[ownerIdx].role = 'superadmin';
+          usersList[ownerIdx].email = 'bitszone.app@gmail.com';
+        }
       }
 
       setRealUsers(usersList);
@@ -205,10 +257,10 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
   const [demoUsersList, setDemoUsersList] = useState<DashboardUser[]>([
     {
       id: 'demo-1',
-      username: 'admin_bitszone',
+      username: 'owner',
       email: 'bitszone.app@gmail.com',
       avatar_url: null,
-      role: 'admin',
+      role: 'superadmin',
       status: 'online',
       playedSongsCount: 842,
       downloadedCount: 124,
@@ -275,7 +327,8 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         u.username.toLowerCase().includes(query) ||
         (u.email && u.email.toLowerCase().includes(query));
       const matchesRole = 
-        userRoleFilter === 'all' || u.role === userRoleFilter;
+        userRoleFilter === 'all' ||
+        (userRoleFilter === 'admin' ? (u.role === 'admin' || u.role === 'superadmin') : u.role === 'user');
       return matchesSearch && matchesRole;
     });
   }, [activeUsersList, searchUserQuery, userRoleFilter]);
@@ -366,6 +419,11 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
     const target = adminInput.trim().toLowerCase();
 
     try {
+      if (target === 'bitszone.app@gmail.com' || target === 'owner' || target === 'admin_bitszone') {
+        setNotification('El usuario ya es el Superadministrador principal de BitsZone');
+        return;
+      }
+
       // 1. Try finding in Supabase profiles by email or username
       const { data: matchedProfiles, error: searchError } = await supabase
         .from('profiles')
@@ -374,6 +432,11 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
 
       if (!searchError && matchedProfiles && matchedProfiles.length > 0) {
         const found = matchedProfiles[0];
+        if (isSuperAdminUser(found)) {
+          setNotification(`"${found.username}" es el Superadministrador principal.`);
+          return;
+        }
+
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ role: 'admin' })
@@ -391,7 +454,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
           const newDemoAdmin: DashboardUser = {
             id: `demo-${Date.now()}`,
             username: target.includes('@') ? target.split('@')[0] : target,
-            email: target.includes('@') ? target : `${target}@bitszone.net`,
+            email: target.includes('@') ? target : undefined,
             avatar_url: null,
             role: 'admin',
             status: 'online',
@@ -418,19 +481,25 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
 
   // Toggle user role
   const handleToggleUserRole = async (targetUser: DashboardUser) => {
-    if (targetUser.email === 'bitszone.app@gmail.com') {
-      setNotification('No se pueden modificar los permisos del Superadministrador principal');
-      setTimeout(() => setNotification(null), 3000);
+    if (isSuperAdminUser(targetUser)) {
+      setNotification('No es posible modificar los permisos del Superadministrador principal');
+      setTimeout(() => setNotification(null), 3500);
       return;
     }
 
     const newRole = targetUser.role === 'admin' ? 'user' : 'admin';
 
     if (dataSource === 'real') {
-      await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({ role: newRole })
         .eq('id', targetUser.id);
+      
+      if (error) {
+        setNotification(`Error al actualizar rol: ${error.message}`);
+        setTimeout(() => setNotification(null), 4000);
+        return;
+      }
       await fetchRealData();
     } else {
       setDemoUsersList((prev) =>
@@ -608,20 +677,27 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto ml-auto">
           {activeTab === 'users' && (
             <div className="h-10 rounded-full p-1 bg-white/[0.07] border border-white/10 backdrop-blur-xl flex items-center gap-1">
-              {(['all', 'admin', 'user'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setUserRoleFilter(r)}
-                  className={`h-full px-3.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                    userRoleFilter === r
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-white/60 hover:text-white'
-                  }`}
-                >
-                  {r === 'all' ? `Todos (${activeUsersList.length})` : r === 'admin' ? `Admins (${activeUsersList.filter(u => u.role === 'admin').length})` : `Usuarios (${activeUsersList.filter(u => u.role === 'user').length})`}
-                </button>
-              ))}
+              {(['all', 'admin', 'user'] as const).map((r) => {
+                const count = r === 'all' 
+                  ? activeUsersList.length 
+                  : r === 'admin' 
+                  ? activeUsersList.filter(u => u.role === 'admin' || u.role === 'superadmin').length 
+                  : activeUsersList.filter(u => u.role === 'user').length;
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setUserRoleFilter(r)}
+                    className={`h-full px-3.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      userRoleFilter === r
+                        ? 'bg-white text-black shadow-sm'
+                        : 'text-white/60 hover:text-white'
+                    }`}
+                  >
+                    {r === 'all' ? `Todos (${count})` : r === 'admin' ? `Admins (${count})` : `Usuarios (${count})`}
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -693,7 +769,9 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 </div>
                 <div className="text-xs text-white/50">
                   <span className="text-purple-300 font-semibold">
-                    {dataSource === 'real' ? '1 Administrador principal' : '+14.8% este mes'}
+                    {dataSource === 'real' 
+                      ? `${realUsers.filter(u => u.role === 'superadmin' || u.role === 'admin').length} Administradores` 
+                      : '+14.8% este mes'}
                   </span>
                 </div>
               </div>
@@ -842,7 +920,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 </div>
               ) : (
                 filteredUsers.map((u) => {
-                  const isRoot = u.email === 'bitszone.app@gmail.com';
+                  const isSuper = isSuperAdminUser(u);
                   return (
                     <div
                       key={u.id}
@@ -860,17 +938,26 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                         <div className="min-w-0">
                           <div className="font-semibold text-white flex items-center gap-1.5 truncate">
                             <span>{u.username}</span>
-                            {u.role === 'admin' && (
+                            {isSuper ? (
+                              <Crown className="w-4 h-4 text-amber-300 shrink-0" />
+                            ) : u.role === 'admin' ? (
                               <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0" />
-                            )}
+                            ) : null}
                           </div>
-                          <span className="text-xs text-white/50 font-mono truncate block">{u.email || u.id}</span>
+                          <span className="text-xs text-white/50 font-mono truncate block">
+                            {u.email || `@${u.username}`}
+                          </span>
                         </div>
                       </div>
 
                       {/* Role */}
                       <div className="flex lg:justify-center">
-                        {u.role === 'admin' ? (
+                        {isSuper ? (
+                          <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500/30 to-amber-500/20 text-purple-200 border border-purple-400/40 flex items-center gap-1 shadow-sm">
+                            <Crown className="w-3 h-3 text-amber-300" />
+                            Superadmin
+                          </span>
+                        ) : u.role === 'admin' ? (
                           <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30">
                             Admin
                           </span>
@@ -903,8 +990,14 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
 
                       {/* Action */}
                       <div className="flex items-center justify-end">
-                        {isRoot ? (
-                          <span className="text-xs text-white/40 italic">Superadmin</span>
+                        {isSuper ? (
+                          <span 
+                            className="text-xs px-3 py-1 rounded-full font-medium text-white/40 bg-white/[0.04] border border-white/10 flex items-center gap-1.5 cursor-default select-none"
+                            title="El Superadministrador no puede ser modificado"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                            <span>Inmutable</span>
+                          </span>
                         ) : (
                           <button
                             type="button"
