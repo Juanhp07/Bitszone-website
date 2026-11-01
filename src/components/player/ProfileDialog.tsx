@@ -146,8 +146,7 @@ export const ProfileDialog = ({
 
             {/* Left: the account */}
             <div
-              className="md:w-[38%] shrink-0 p-6 md:p-8 flex flex-col items-center backdrop-blur-xl md:border-r border-white/10 overflow-y-auto scrollbar-hide"
-              style={{ scrollbarWidth: 'none' }}
+              className="md:w-[38%] shrink-0 p-6 md:p-8 flex flex-col items-center backdrop-blur-xl md:border-r border-white/10 overflow-y-auto hover-subtle-scrollbar"
             >
               <button
                 type="button"
@@ -253,7 +252,7 @@ export const ProfileDialog = ({
             </div>
 
             {/* Right: listening stats */}
-            <div className="flex-1 min-w-0 p-6 md:p-8 overflow-y-auto bg-black/20 scrollbar-thin scrollbar-thumb-white/15 scrollbar-track-transparent">
+            <div className="flex-1 min-w-0 p-6 md:p-8 overflow-y-auto bg-black/20 hover-subtle-scrollbar">
               <h2 className="text-2xl md:text-3xl mb-1" style={titleStyle}>Tu música</h2>
               <p className="text-sm text-white/60 mb-6">Lo que más suena en tu Bitszone.</p>
 

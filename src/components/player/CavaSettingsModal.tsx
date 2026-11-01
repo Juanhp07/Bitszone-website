@@ -200,7 +200,7 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
             </div>
 
             {/* Content Panel */}
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 md:p-9 scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 md:p-9 hover-subtle-scrollbar">
               <motion.div
                 key={activeTab}
                 initial={{ opacity: 0, y: 10 }}
