@@ -600,11 +600,11 @@ export const ImmersivePlayer = ({
           setIsCavaSettingsOpen(false);
           return;
         }
-        if (clearQueueConfirm) {
+        if (sheetOpen) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
-          setClearQueueConfirm(false);
+          setSheetOpen(false);
           return;
         }
         onClose();
@@ -612,13 +612,13 @@ export const ImmersivePlayer = ({
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [isExpanded, onClose, rowMenu, isCavaSettingsOpen, clearQueueConfirm]);
+  }, [isExpanded, onClose, rowMenu, isCavaSettingsOpen, sheetOpen]);
 
   useEffect(() => {
     if (!isExpanded) {
       setRowMenu(null);
       setIsCavaSettingsOpen(false);
-      setClearQueueConfirm(false);
+      setSheetOpen(false);
     }
   }, [isExpanded]);
 
