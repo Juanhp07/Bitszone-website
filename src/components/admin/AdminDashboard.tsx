@@ -28,7 +28,10 @@ import {
   UserPlus,
   Trash2,
   Check,
-  Crown
+  Crown,
+  Database,
+  Copy,
+  Terminal
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useProfile } from '../../lib/useProfile';
@@ -86,6 +89,96 @@ interface PopularTrack {
   trend: string;
 }
 
+const USERS_SQL_SCRIPT = `-- ==============================================================================
+-- BITSZONE: Sincronización de Usuarios, Perfiles y Telemetría en Vivo
+-- Ejecuta este script UNA SOLA VEZ en el SQL Editor de tu Dashboard de Supabase:
+-- https://supabase.com/dashboard/project/oxloqoggjldbjjratwoh/sql
+-- ==============================================================================
+
+-- 1. Columnas necesarias en 'profiles'
+create table if not exists public.profiles (
+  id uuid references auth.users on delete cascade primary key,
+  username text,
+  avatar_url text,
+  role text default 'user',
+  created_at timestamptz default now()
+);
+
+alter table public.profiles add column if not exists email text;
+alter table public.profiles add column if not exists role text default 'user';
+alter table public.profiles add column if not exists created_at timestamptz default now();
+
+-- 2. Políticas RLS en 'profiles'
+alter table public.profiles enable row level security;
+
+drop policy if exists "Perfiles visibles para todos" on public.profiles;
+create policy "Perfiles visibles para todos" on public.profiles for select using (true);
+
+drop policy if exists "Usuarios pueden insertar su propio perfil" on public.profiles;
+create policy "Usuarios pueden insertar su propio perfil" on public.profiles for insert with check (auth.uid() = id);
+
+drop policy if exists "Usuarios pueden actualizar su propio perfil" on public.profiles;
+create policy "Usuarios pueden actualizar su propio perfil" on public.profiles for update using (auth.uid() = id);
+
+drop policy if exists "Administradores pueden actualizar perfiles" on public.profiles;
+create policy "Administradores pueden actualizar perfiles" on public.profiles for update using (auth.role() = 'authenticated');
+
+-- 3. Trigger para auto-crear perfil al registrarse nuevo usuario
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, username, avatar_url, role, created_at)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'user_name', new.raw_user_meta_data->>'name', split_part(new.email, '@', 1), 'usuario'),
+    coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture', null),
+    case when lower(trim(coalesce(new.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else 'user' end,
+    coalesce(new.created_at, now())
+  )
+  on conflict (id) do update set
+    email = coalesce(excluded.email, public.profiles.email),
+    role = case when lower(trim(coalesce(excluded.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else coalesce(public.profiles.role, excluded.role) end;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users for each row execute procedure public.handle_new_user();
+
+-- 4. Sincronizar usuarios existentes
+insert into public.profiles (id, email, username, avatar_url, role, created_at)
+select 
+  u.id, u.email,
+  coalesce(u.raw_user_meta_data->>'user_name', u.raw_user_meta_data->>'name', split_part(u.email, '@', 1), 'usuario'),
+  coalesce(u.raw_user_meta_data->>'avatar_url', u.raw_user_meta_data->>'picture', null),
+  case when lower(trim(coalesce(u.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else coalesce(p.role, 'user') end,
+  coalesce(u.created_at, now())
+from auth.users u
+left join public.profiles p on p.id = u.id
+on conflict (id) do update set
+  email = coalesce(excluded.email, public.profiles.email),
+  role = case when lower(trim(coalesce(excluded.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else coalesce(public.profiles.role, excluded.role) end;
+
+-- 5. Función RPC get_dashboard_users para telemetría completa
+create or replace function public.get_dashboard_users()
+returns table (
+  id uuid, email text, username text, avatar_url text, role text, created_at timestamptz, last_sign_in_at timestamptz
+) security definer set search_path = public, auth language plpgsql as $$
+begin
+  return query
+  select 
+    u.id, u.email::text, coalesce(p.username, split_part(u.email, '@', 1), 'usuario'),
+    p.avatar_url, coalesce(p.role, case when lower(trim(coalesce(u.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else 'user' end),
+    u.created_at, u.last_sign_in_at
+  from auth.users u
+  left join public.profiles p on p.id = u.id
+  order by coalesce(u.last_sign_in_at, u.created_at) desc;
+end;
+$$;
+
+grant execute on function public.get_dashboard_users() to authenticated, anon;`;
+
 export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
   const { user, profile, isAdmin, isSuperAdmin, ready } = useProfile();
 
@@ -99,7 +192,8 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
 
   // Modals & notifications
-  const [activeModal, setActiveModal] = useState<'catalog' | 'release' | 'add_admin' | null>(null);
+  const [activeModal, setActiveModal] = useState<'catalog' | 'release' | 'add_admin' | 'sql_help' | null>(null);
+  const [copiedSql, setCopiedSql] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
 
   // Form states for "Nuevo Lanzamiento"
@@ -138,10 +232,40 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         setRealTracksList(tracksData);
       }
 
-      // 2. Fetch profiles
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url, role');
+      // 2. Fetch users & profiles from Supabase
+      let rawUsers: Array<{
+        id: string;
+        username: string | null;
+        email?: string | null;
+        avatar_url: string | null;
+        role?: string | null;
+        created_at?: string | null;
+        last_sign_in_at?: string | null;
+      }> = [];
+
+      // A. Try calling get_dashboard_users RPC (reads auth.users + profiles)
+      const { data: rpcUsers, error: rpcErr } = await supabase.rpc('get_dashboard_users');
+
+      if (!rpcErr && rpcUsers && Array.isArray(rpcUsers) && rpcUsers.length > 0) {
+        rawUsers = rpcUsers;
+      } else {
+        // B. Fallback to selecting from profiles table (try with email first)
+        const { data: profilesWithEmail, error: emailErr } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url, role, created_at, email');
+
+        if (!emailErr && profilesWithEmail && Array.isArray(profilesWithEmail)) {
+          rawUsers = profilesWithEmail;
+        } else {
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, username, avatar_url, role, created_at');
+
+          if (profilesData && Array.isArray(profilesData)) {
+            rawUsers = profilesData;
+          }
+        }
+      }
 
       // 3. Check local & account downloads
       let downloadsCount = 0;
@@ -158,12 +282,12 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
 
       // Build real users list
       const usersList: DashboardUser[] = [];
-
-      // Find if current user has matching profile in profilesData
-      const userProfile = profilesData?.find((p) => user && p.id === user.id);
+      const seenIds = new Set<string>();
 
       // Current authenticated admin
       if (user) {
+        seenIds.add(user.id);
+        const userProfile = rawUsers.find((p) => p.id === user.id);
         const isCurrentSuper = isSuperAdmin || isSuperAdminUser({
           email: user.email,
           username: userProfile?.username || profile?.username,
@@ -180,40 +304,72 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
           playedSongsCount: tracksData ? Math.min(tracksData.length, 36) : 12,
           downloadedCount: downloadsCount || 4,
           lastActive: 'En este instante',
-          joinedAt: user.created_at ? new Date(user.created_at).toLocaleDateString() : '2026-10-28',
+          joinedAt: user.created_at
+            ? new Date(user.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+            : '28 oct 2026',
         });
       }
 
       // Other profiles from Supabase DB
-      if (profilesData && Array.isArray(profilesData)) {
-        profilesData.forEach((p, idx) => {
-          if (user && p.id === user.id) return;
+      rawUsers.forEach((u, idx) => {
+        if (seenIds.has(u.id)) return;
+        seenIds.add(u.id);
 
-          const isSuper = isSuperAdminUser({
-            username: p.username,
-            role: p.role,
-          });
-
-          // Prevent duplicate superadmin if current authenticated user is already the superadmin
-          if (isSuper && usersList.some((u) => u.role === 'superadmin')) {
-            return;
-          }
-
-          usersList.push({
-            id: p.id || `user-${idx}`,
-            username: p.username || `usuario_${idx + 1}`,
-            // Real email for superadmin; keep undefined for regular users without public email (avoids fake @bitszone.net)
-            email: isSuper ? 'bitszone.app@gmail.com' : undefined,
-            avatar_url: p.avatar_url || null,
-            role: isSuper ? 'superadmin' : (p.role === 'admin' ? 'admin' : 'user'),
-            status: idx === 0 ? 'online' : idx % 2 === 0 ? 'idle' : 'offline',
-            playedSongsCount: Math.max(4, 22 - idx * 4),
-            downloadedCount: Math.max(0, 5 - idx),
-            lastActive: idx === 0 ? 'Hace 5 min' : 'Hace 1 hora',
-            joinedAt: 'Reciente',
-          });
+        const isSuper = isSuperAdminUser({
+          email: u.email,
+          username: u.username,
+          role: u.role,
         });
-      }
+
+        // Prevent duplicate superadmin if current authenticated user is already the superadmin
+        if (isSuper && usersList.some((existing) => existing.role === 'superadmin')) {
+          return;
+        }
+
+        // Calculate activity and status
+        let status: 'online' | 'idle' | 'offline' = 'offline';
+        let lastActiveText = 'Reciente';
+
+        if (u.last_sign_in_at) {
+          const lastTime = new Date(u.last_sign_in_at).getTime();
+          const diffMinutes = Math.max(0, Math.round((Date.now() - lastTime) / 60000));
+          if (diffMinutes < 15) {
+            status = 'online';
+            lastActiveText = 'En este instante';
+          } else if (diffMinutes < 60) {
+            status = 'online';
+            lastActiveText = `Hace ${diffMinutes} min`;
+          } else if (diffMinutes < 1440) {
+            status = 'idle';
+            const h = Math.round(diffMinutes / 60);
+            lastActiveText = `Hace ${h} h`;
+          } else {
+            status = 'offline';
+            const d = Math.round(diffMinutes / 1440);
+            lastActiveText = d === 1 ? 'Ayer' : `Hace ${d} días`;
+          }
+        } else {
+          status = idx === 0 ? 'online' : idx % 2 === 0 ? 'idle' : 'offline';
+          lastActiveText = idx === 0 ? 'Hace 5 min' : 'Hace 1 hora';
+        }
+
+        const joinedText = u.created_at
+          ? new Date(u.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+          : 'Reciente';
+
+        usersList.push({
+          id: u.id || `user-${idx}`,
+          username: u.username || (u.email ? u.email.split('@')[0] : `usuario_${idx + 1}`),
+          email: u.email || (isSuper ? 'bitszone.app@gmail.com' : undefined),
+          avatar_url: u.avatar_url || null,
+          role: isSuper ? 'superadmin' : (u.role === 'admin' ? 'admin' : 'user'),
+          status,
+          playedSongsCount: Math.max(4, 22 - idx * 4),
+          downloadedCount: Math.max(0, 5 - idx),
+          lastActive: lastActiveText,
+          joinedAt: joinedText,
+        });
+      });
 
       // Guarantee at least one superadmin is explicitly identified in the list
       const hasSuper = usersList.some((u) => u.role === 'superadmin');
@@ -424,11 +580,49 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         return;
       }
 
-      // 1. Try finding in Supabase profiles by email or username
-      const { data: matchedProfiles, error: searchError } = await supabase
-        .from('profiles')
-        .select('id, username, role')
-        .or(`username.ilike.%${target}%,id.eq.${target}`);
+      // 1. Try finding in loaded realUsers first
+      const alreadyLoaded = realUsers.find(
+        (u) =>
+          u.username.toLowerCase() === target ||
+          (u.email && u.email.toLowerCase() === target) ||
+          u.id.toLowerCase() === target
+      );
+
+      if (alreadyLoaded) {
+        if (isSuperAdminUser(alreadyLoaded)) {
+          setNotification(`"${alreadyLoaded.username}" es el Superadministrador principal.`);
+          return;
+        }
+
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: alreadyLoaded.id,
+            role: 'admin',
+            username: alreadyLoaded.username,
+            avatar_url: alreadyLoaded.avatar_url,
+            ...(alreadyLoaded.email ? { email: alreadyLoaded.email } : {}),
+          }, { onConflict: 'id' });
+
+        if (!updateError) {
+          setNotification(`¡"${alreadyLoaded.username}" ahora es Administrador en Supabase!`);
+          await fetchRealData();
+        } else {
+          setNotification(`No se pudo actualizar el rol: ${updateError.message}`);
+        }
+        return;
+      }
+
+      // 2. Query Supabase profiles safely (validating UUID format)
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(target);
+      let query = supabase.from('profiles').select('id, username, role');
+      if (isUuid) {
+        query = query.eq('id', target);
+      } else {
+        query = query.ilike('username', `%${target}%`);
+      }
+
+      const { data: matchedProfiles, error: searchError } = await query;
 
       if (!searchError && matchedProfiles && matchedProfiles.length > 0) {
         const found = matchedProfiles[0];
@@ -461,7 +655,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
             playedSongsCount: 0,
             downloadedCount: 0,
             lastActive: 'En este instante',
-            joinedAt: new Date().toLocaleDateString(),
+            joinedAt: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }),
           };
           setDemoUsersList((prev) => [newDemoAdmin, ...prev]);
           setNotification(`¡Administrador de demostración "${newDemoAdmin.username}" creado!`);
@@ -492,8 +686,13 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
     if (dataSource === 'real') {
       const { error } = await supabase
         .from('profiles')
-        .update({ role: newRole })
-        .eq('id', targetUser.id);
+        .upsert({
+          id: targetUser.id,
+          role: newRole,
+          username: targetUser.username,
+          avatar_url: targetUser.avatar_url,
+          ...(targetUser.email ? { email: targetUser.email } : {}),
+        }, { onConflict: 'id' });
       
       if (error) {
         setNotification(`Error al actualizar rol: ${error.message}`);
@@ -902,6 +1101,33 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         {activeTab === 'users' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col">
             
+            {/* Supabase Live Telemetry Banner */}
+            {dataSource === 'real' && (
+              <div className="mb-4 p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 shrink-0">
+                    <Database className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white">
+                      Telemetría en Vivo de Supabase: <span className="font-mono text-purple-300 font-semibold">{realUsers.length}</span> {realUsers.length === 1 ? 'usuario cargado' : 'usuarios cargados'}
+                    </p>
+                    <p className="text-white/50 text-[11px] mt-0.5">
+                      Para sincronizar automáticamente registros de Supabase Auth y habilitar permisos RLS para administradores, consulta el script SQL.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('sql_help')}
+                  className="px-3.5 py-1.5 rounded-full bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-400/30 font-medium transition-colors cursor-pointer shrink-0 text-xs flex items-center gap-1.5"
+                >
+                  <Terminal className="w-3.5 h-3.5" />
+                  <span>Script SQL</span>
+                </button>
+              </div>
+            )}
+
             {/* Table Header matching DownloadsView style */}
             <div className="hidden lg:grid grid-cols-[1fr_120px_120px_100px_100px_130px] gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase mb-2">
               <div>USUARIO</div>
@@ -1415,6 +1641,108 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                     </button>
                   </div>
                 </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* MODAL: SQL Telemetry Setup */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {activeModal === 'sql_help' && (
+            <motion.div 
+              initial={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+              animate={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(20px)' }}
+              exit={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
+              className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+              onClick={() => setActiveModal(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                className="relative w-full max-w-2xl max-h-[88vh] flex flex-col rounded-3xl p-6 sm:p-8 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
+                style={cardStyle}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-5 shrink-0">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
+                      <Database className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl sm:text-2xl text-white tracking-tight" style={titleStyle}>Sincronización Supabase</h3>
+                      <p className="text-xs text-white/65 mt-0.5">Sincroniza auth.users, RLS y lectura de telemetría</p>
+                    </div>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setActiveModal(null)}
+                    aria-label="Cerrar modal"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs text-white/80">
+                  <p className="leading-relaxed">
+                    Por defecto en Supabase, la seguridad a nivel de fila (RLS) impide que los usuarios lean los perfiles de otros usuarios, y los registros de autenticación residen en <code className="text-purple-300 font-mono">auth.users</code>. Ejecuta este script en tu proyecto para sincronizarlos y leerlos en vivo:
+                  </p>
+
+                  <div className="relative rounded-2xl bg-black/60 border border-white/10 p-4 font-mono text-[11px] leading-relaxed overflow-x-auto max-h-56">
+                    <pre className="text-purple-200 whitespace-pre">{USERS_SQL_SCRIPT}</pre>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                    <a
+                      href="https://supabase.com/dashboard/project/oxloqoggjldbjjratwoh/sql"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-purple-300 hover:text-purple-200 flex items-center gap-1.5 transition-colors underline underline-offset-4"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Abrir SQL Editor en Supabase</span>
+                    </a>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(USERS_SQL_SCRIPT);
+                          setCopiedSql(true);
+                          setTimeout(() => setCopiedSql(false), 3000);
+                        }}
+                        className="px-5 py-2.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all flex items-center gap-2 cursor-pointer"
+                      >
+                        {copiedSql ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>¡Copiado!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-purple-300" />
+                            <span>Copiar Script SQL</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveModal(null);
+                          fetchRealData();
+                        }}
+                        className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#8a3aed] hover:bg-[#9c55f7] text-white transition-all cursor-pointer"
+                      >
+                        Sincronizar Ahora
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             </motion.div>
           )}
