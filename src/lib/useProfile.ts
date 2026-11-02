@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+import { getAdminEmails, isCachedAdminEmail, SUPERADMIN_EMAIL } from './adminAccess';
 
 export type Profile = { username: string | null; avatar_url: string | null; role?: string | null };
 
@@ -13,7 +14,7 @@ export const isSuperAdminAccount = (user: User | null, profile: Profile | null) 
   const userRole = (user?.user_metadata && (user.user_metadata as Record<string, any>).role) || '';
 
   return (
-    email === 'bitszone.app@gmail.com' ||
+    email === SUPERADMIN_EMAIL ||
     username === 'owner' ||
     username === 'admin_bitszone' ||
     role === 'superadmin' ||
@@ -32,9 +33,46 @@ export const useProfile = () => {
   const load = useCallback(async (u: User | null) => {
     setUser(u);
     if (!u) { setProfile(null); setReady(true); return; }
+
     const { data, error } = await supabase.from('profiles').select('username, avatar_url, role').eq('id', u.id).maybeSingle();
     if (error) console.error('profiles lookup failed', error);
-    setProfile(error ? null : (data ?? { username: null, avatar_url: null, role: 'user' }));
+
+    let resolvedRole = data?.role || 'user';
+    const email = (u.email || '').toLowerCase().trim();
+
+    // Check if user is superadmin
+    const isSuper = isSuperAdminAccount(u, data || null);
+
+    if (isSuper) {
+      resolvedRole = 'superadmin';
+    } else if (email) {
+      // Check if email is in authorized admin list from Supabase
+      const adminEmails = await getAdminEmails();
+      const isAuthorizedAdmin = adminEmails.includes(email);
+
+      if (isAuthorizedAdmin) {
+        resolvedRole = 'admin';
+        // Auto-update profile role in DB if it was still 'user'
+        if (data?.role !== 'admin') {
+          supabase.from('profiles').upsert({
+            id: u.id,
+            role: 'admin',
+            username: data?.username || email.split('@')[0],
+            avatar_url: data?.avatar_url || null,
+          }).then();
+        }
+      } else if (data?.role === 'admin' && !isSuper) {
+        // Demoted by superadmin
+        resolvedRole = 'user';
+        supabase.from('profiles').update({ role: 'user' }).eq('id', u.id).then();
+      }
+    }
+
+    setProfile(error && !data ? null : {
+      username: data?.username ?? null,
+      avatar_url: data?.avatar_url ?? null,
+      role: resolvedRole
+    });
     setReady(true);
   }, []);
 
@@ -45,7 +83,25 @@ export const useProfile = () => {
       // never await supabase calls inside this callback (it can deadlock), so defer
       setTimeout(() => load(session?.user ?? null), 0);
     });
-    return () => data.subscription.unsubscribe();
+
+    // Realtime listener for admin list updates from app_config
+    const channel = supabase
+      .channel('app_config_admin_sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'app_config' },
+        () => {
+          supabase.auth.getSession().then(({ data: sessData }) => {
+            if (sessData.session?.user) load(sessData.session.user);
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      data.subscription.unsubscribe();
+      supabase.removeChannel(channel);
+    };
   }, [load]);
 
   const reload = useCallback(() => load(user), [load, user]);
@@ -56,6 +112,7 @@ export const useProfile = () => {
     isSuperAdmin || (
       user && (
         profile?.role === 'admin' ||
+        isCachedAdminEmail(user.email) ||
         (user.app_metadata && (user.app_metadata as Record<string, any>).role === 'admin') ||
         (user.user_metadata && (user.user_metadata as Record<string, any>).role === 'admin')
       )
@@ -64,4 +121,3 @@ export const useProfile = () => {
 
   return { user, profile, isAdmin, isSuperAdmin, ready, reload };
 };
-

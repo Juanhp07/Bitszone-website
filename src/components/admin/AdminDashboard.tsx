@@ -37,6 +37,7 @@ import { createPortal } from 'react-dom';
 import { useProfile } from '../../lib/useProfile';
 import { supabase } from '../../lib/supabase';
 import { userStorage } from '../../lib/userStorage';
+import { getAdminEmails, getAdminRecords, addAdminAccount, removeAdminAccount, SUPERADMIN_EMAIL } from '../../lib/adminAccess';
 import { cardStyle, titleStyle } from '../auth/authUi';
 import { SectionHero } from '../ui/SectionHero';
 import { LiquidTabs } from '../ui/LiquidTabs';
@@ -89,96 +90,6 @@ interface PopularTrack {
   trend: string;
 }
 
-const USERS_SQL_SCRIPT = `-- ==============================================================================
--- BITSZONE: Sincronización de Usuarios, Perfiles y Telemetría en Vivo
--- Ejecuta este script UNA SOLA VEZ en el SQL Editor de tu Dashboard de Supabase:
--- https://supabase.com/dashboard/project/oxloqoggjldbjjratwoh/sql
--- ==============================================================================
-
--- 1. Columnas necesarias en 'profiles'
-create table if not exists public.profiles (
-  id uuid references auth.users on delete cascade primary key,
-  username text,
-  avatar_url text,
-  role text default 'user',
-  created_at timestamptz default now()
-);
-
-alter table public.profiles add column if not exists email text;
-alter table public.profiles add column if not exists role text default 'user';
-alter table public.profiles add column if not exists created_at timestamptz default now();
-
--- 2. Políticas RLS en 'profiles'
-alter table public.profiles enable row level security;
-
-drop policy if exists "Perfiles visibles para todos" on public.profiles;
-create policy "Perfiles visibles para todos" on public.profiles for select using (true);
-
-drop policy if exists "Usuarios pueden insertar su propio perfil" on public.profiles;
-create policy "Usuarios pueden insertar su propio perfil" on public.profiles for insert with check (auth.uid() = id);
-
-drop policy if exists "Usuarios pueden actualizar su propio perfil" on public.profiles;
-create policy "Usuarios pueden actualizar su propio perfil" on public.profiles for update using (auth.uid() = id);
-
-drop policy if exists "Administradores pueden actualizar perfiles" on public.profiles;
-create policy "Administradores pueden actualizar perfiles" on public.profiles for update using (auth.role() = 'authenticated');
-
--- 3. Trigger para auto-crear perfil al registrarse nuevo usuario
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, email, username, avatar_url, role, created_at)
-  values (
-    new.id,
-    new.email,
-    coalesce(new.raw_user_meta_data->>'user_name', new.raw_user_meta_data->>'name', split_part(new.email, '@', 1), 'usuario'),
-    coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture', null),
-    case when lower(trim(coalesce(new.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else 'user' end,
-    coalesce(new.created_at, now())
-  )
-  on conflict (id) do update set
-    email = coalesce(excluded.email, public.profiles.email),
-    role = case when lower(trim(coalesce(excluded.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else coalesce(public.profiles.role, excluded.role) end;
-  return new;
-end;
-$$ language plpgsql security definer;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created after insert on auth.users for each row execute procedure public.handle_new_user();
-
--- 4. Sincronizar usuarios existentes
-insert into public.profiles (id, email, username, avatar_url, role, created_at)
-select 
-  u.id, u.email,
-  coalesce(u.raw_user_meta_data->>'user_name', u.raw_user_meta_data->>'name', split_part(u.email, '@', 1), 'usuario'),
-  coalesce(u.raw_user_meta_data->>'avatar_url', u.raw_user_meta_data->>'picture', null),
-  case when lower(trim(coalesce(u.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else coalesce(p.role, 'user') end,
-  coalesce(u.created_at, now())
-from auth.users u
-left join public.profiles p on p.id = u.id
-on conflict (id) do update set
-  email = coalesce(excluded.email, public.profiles.email),
-  role = case when lower(trim(coalesce(excluded.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else coalesce(public.profiles.role, excluded.role) end;
-
--- 5. Función RPC get_dashboard_users para telemetría completa
-create or replace function public.get_dashboard_users()
-returns table (
-  id uuid, email text, username text, avatar_url text, role text, created_at timestamptz, last_sign_in_at timestamptz
-) security definer set search_path = public, auth language plpgsql as $$
-begin
-  return query
-  select 
-    u.id, u.email::text, coalesce(p.username, split_part(u.email, '@', 1), 'usuario'),
-    p.avatar_url, coalesce(p.role, case when lower(trim(coalesce(u.email, ''))) = 'bitszone.app@gmail.com' then 'superadmin' else 'user' end),
-    u.created_at, u.last_sign_in_at
-  from auth.users u
-  left join public.profiles p on p.id = u.id
-  order by coalesce(u.last_sign_in_at, u.created_at) desc;
-end;
-$$;
-
-grant execute on function public.get_dashboard_users() to authenticated, anon;`;
-
 export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
   const { user, profile, isAdmin, isSuperAdmin, ready } = useProfile();
 
@@ -187,13 +98,12 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const [searchUserQuery, setSearchUserQuery] = useState('');
-  const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'admin' | 'user'>('all');
+  const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'admin' | 'superadmin'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
 
   // Modals & notifications
-  const [activeModal, setActiveModal] = useState<'catalog' | 'release' | 'add_admin' | 'sql_help' | null>(null);
-  const [copiedSql, setCopiedSql] = useState(false);
+  const [activeModal, setActiveModal] = useState<'catalog' | 'release' | 'add_admin' | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
 
   // Form states for "Nuevo Lanzamiento"
@@ -232,40 +142,22 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         setRealTracksList(tracksData);
       }
 
-      // 2. Fetch users & profiles from Supabase
-      let rawUsers: Array<{
-        id: string;
-        username: string | null;
-        email?: string | null;
-        avatar_url: string | null;
-        role?: string | null;
-        created_at?: string | null;
-        last_sign_in_at?: string | null;
-      }> = [];
+      // 2. Fetch authorized admin records from app_config and profiles
+      const adminRecords = await getAdminRecords();
+      const adminEmails = await getAdminEmails();
 
-      // A. Try calling get_dashboard_users RPC (reads auth.users + profiles)
-      const { data: rpcUsers, error: rpcErr } = await supabase.rpc('get_dashboard_users');
+      // Check if current user is superadmin
+      const isCurrentSuper = isSuperAdmin || isSuperAdminUser({
+        email: user?.email,
+        username: profile?.username,
+        role: profile?.role,
+      });
 
-      if (!rpcErr && rpcUsers && Array.isArray(rpcUsers) && rpcUsers.length > 0) {
-        rawUsers = rpcUsers;
-      } else {
-        // B. Fallback to selecting from profiles table (try with email first)
-        const { data: profilesWithEmail, error: emailErr } = await supabase
-          .from('profiles')
-          .select('id, username, avatar_url, role, created_at, email');
-
-        if (!emailErr && profilesWithEmail && Array.isArray(profilesWithEmail)) {
-          rawUsers = profilesWithEmail;
-        } else {
-          const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('id, username, avatar_url, role, created_at');
-
-          if (profilesData && Array.isArray(profilesData)) {
-            rawUsers = profilesData;
-          }
-        }
-      }
+      // Also query profiles for any additional admins if available
+      const { data: adminProfiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, role, created_at')
+        .in('role', ['admin', 'superadmin', 'owner']);
 
       // 3. Check local & account downloads
       let downloadsCount = 0;
@@ -280,108 +172,101 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
       }
       setRealDownloadsCount(downloadsCount);
 
-      // Build real users list
-      const usersList: DashboardUser[] = [];
-      const seenIds = new Set<string>();
+      // Build administrators list
+      const adminList: DashboardUser[] = [];
+      const seenEmails = new Set<string>();
 
-      // Current authenticated admin
-      if (user) {
-        seenIds.add(user.id);
-        const userProfile = rawUsers.find((p) => p.id === user.id);
-        const isCurrentSuper = isSuperAdmin || isSuperAdminUser({
-          email: user.email,
-          username: userProfile?.username || profile?.username,
-          role: userProfile?.role || profile?.role,
-        });
+      // A. Superadministrador principal
+      seenEmails.add(SUPERADMIN_EMAIL);
+      adminList.push({
+        id: user && isCurrentSuper ? user.id : 'superadmin-owner',
+        username: isCurrentSuper ? (profile?.username || 'owner') : 'owner',
+        email: SUPERADMIN_EMAIL,
+        avatar_url: isCurrentSuper ? (profile?.avatar_url || user?.user_metadata?.avatar_url || null) : null,
+        role: 'superadmin',
+        status: isCurrentSuper ? 'online' : 'online',
+        playedSongsCount: tracksData ? Math.min(tracksData.length, 36) : 24,
+        downloadedCount: downloadsCount || 8,
+        lastActive: isCurrentSuper ? 'En este instante' : 'Activo',
+        joinedAt: '28 oct 2026',
+      });
 
-        usersList.push({
-          id: user.id,
-          username: userProfile?.username || profile?.username || user.email?.split('@')[0] || 'admin',
-          email: user.email || (isCurrentSuper ? 'bitszone.app@gmail.com' : undefined),
-          avatar_url: userProfile?.avatar_url || profile?.avatar_url || user.user_metadata?.avatar_url || null,
-          role: isCurrentSuper ? 'superadmin' : (userProfile?.role === 'admin' || profile?.role === 'admin' ? 'admin' : 'user'),
-          status: 'online',
-          playedSongsCount: tracksData ? Math.min(tracksData.length, 36) : 12,
-          downloadedCount: downloadsCount || 4,
-          lastActive: 'En este instante',
-          joinedAt: user.created_at
-            ? new Date(user.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-            : '28 oct 2026',
-        });
-      }
+      // B. Add admins from adminRecords
+      adminRecords.forEach((rec, idx) => {
+        const emailClean = rec.email.toLowerCase().trim();
+        if (seenEmails.has(emailClean) || rec.role === 'superadmin' || emailClean === SUPERADMIN_EMAIL) return;
+        seenEmails.add(emailClean);
 
-      // Other profiles from Supabase DB
-      rawUsers.forEach((u, idx) => {
-        if (seenIds.has(u.id)) return;
-        seenIds.add(u.id);
+        const isMe = user?.email && user.email.toLowerCase().trim() === emailClean;
+        const matchingProfile = adminProfiles?.find(
+          (p) => p.username?.toLowerCase() === rec.username?.toLowerCase() || (user && isMe && p.id === user.id)
+        );
 
-        const isSuper = isSuperAdminUser({
-          email: u.email,
-          username: u.username,
-          role: u.role,
-        });
-
-        // Prevent duplicate superadmin if current authenticated user is already the superadmin
-        if (isSuper && usersList.some((existing) => existing.role === 'superadmin')) {
-          return;
-        }
-
-        // Calculate activity and status
-        let status: 'online' | 'idle' | 'offline' = 'offline';
-        let lastActiveText = 'Reciente';
-
-        if (u.last_sign_in_at) {
-          const lastTime = new Date(u.last_sign_in_at).getTime();
-          const diffMinutes = Math.max(0, Math.round((Date.now() - lastTime) / 60000));
-          if (diffMinutes < 15) {
-            status = 'online';
-            lastActiveText = 'En este instante';
-          } else if (diffMinutes < 60) {
-            status = 'online';
-            lastActiveText = `Hace ${diffMinutes} min`;
-          } else if (diffMinutes < 1440) {
-            status = 'idle';
-            const h = Math.round(diffMinutes / 60);
-            lastActiveText = `Hace ${h} h`;
-          } else {
-            status = 'offline';
-            const d = Math.round(diffMinutes / 1440);
-            lastActiveText = d === 1 ? 'Ayer' : `Hace ${d} días`;
-          }
-        } else {
-          status = idx === 0 ? 'online' : idx % 2 === 0 ? 'idle' : 'offline';
-          lastActiveText = idx === 0 ? 'Hace 5 min' : 'Hace 1 hora';
-        }
-
-        const joinedText = u.created_at
-          ? new Date(u.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-          : 'Reciente';
-
-        usersList.push({
-          id: u.id || `user-${idx}`,
-          username: u.username || (u.email ? u.email.split('@')[0] : `usuario_${idx + 1}`),
-          email: u.email || (isSuper ? 'bitszone.app@gmail.com' : undefined),
-          avatar_url: u.avatar_url || null,
-          role: isSuper ? 'superadmin' : (u.role === 'admin' ? 'admin' : 'user'),
-          status,
-          playedSongsCount: Math.max(4, 22 - idx * 4),
-          downloadedCount: Math.max(0, 5 - idx),
-          lastActive: lastActiveText,
-          joinedAt: joinedText,
+        adminList.push({
+          id: matchingProfile?.id || `admin-${idx}`,
+          username: matchingProfile?.username || rec.username || emailClean.split('@')[0],
+          email: emailClean,
+          avatar_url: matchingProfile?.avatar_url || (isMe ? user?.user_metadata?.avatar_url : null),
+          role: 'admin',
+          status: isMe ? 'online' : (idx === 0 ? 'online' : idx % 2 === 0 ? 'idle' : 'offline'),
+          playedSongsCount: Math.max(6, 28 - idx * 4),
+          downloadedCount: Math.max(1, 6 - idx),
+          lastActive: isMe ? 'En este instante' : (idx === 0 ? 'Hace 10 min' : 'Reciente'),
+          joinedAt: rec.addedAt || 'Reciente',
         });
       });
 
-      // Guarantee at least one superadmin is explicitly identified in the list
-      const hasSuper = usersList.some((u) => u.role === 'superadmin');
-      if (!hasSuper) {
-        const ownerIdx = usersList.findIndex((u) => u.username === 'owner' || u.email === 'bitszone.app@gmail.com');
-        if (ownerIdx !== -1) {
-          usersList[ownerIdx].role = 'superadmin';
-          usersList[ownerIdx].email = 'bitszone.app@gmail.com';
-        }
+      // Also ensure any email in adminEmails not yet added is included
+      adminEmails.forEach((email, idx) => {
+        const emailClean = email.toLowerCase().trim();
+        if (seenEmails.has(emailClean) || emailClean === SUPERADMIN_EMAIL) return;
+        seenEmails.add(emailClean);
+
+        const isMe = user?.email && user.email.toLowerCase().trim() === emailClean;
+        adminList.push({
+          id: `admin-email-${idx}`,
+          username: emailClean.split('@')[0],
+          email: emailClean,
+          avatar_url: isMe ? (profile?.avatar_url || user?.user_metadata?.avatar_url || null) : null,
+          role: 'admin',
+          status: isMe ? 'online' : 'idle',
+          playedSongsCount: 18,
+          downloadedCount: 3,
+          lastActive: isMe ? 'En este instante' : 'Reciente',
+          joinedAt: 'Reciente',
+        });
+      });
+
+      // C. Include any admin from profiles
+      if (adminProfiles && Array.isArray(adminProfiles)) {
+        adminProfiles.forEach((p, idx) => {
+          if (p.role !== 'admin' && p.role !== 'superadmin') return;
+          const isSuper = isSuperAdminUser({ username: p.username, role: p.role });
+          if (isSuper) return;
+
+          const matchingExisting = adminList.find(
+            (a) => a.id === p.id || a.username.toLowerCase() === p.username?.toLowerCase()
+          );
+
+          if (!matchingExisting) {
+            const isMe = user && p.id === user.id;
+            adminList.push({
+              id: p.id,
+              username: p.username || `admin_${idx + 1}`,
+              email: isMe && user?.email ? user.email : undefined,
+              avatar_url: p.avatar_url || null,
+              role: 'admin',
+              status: isMe ? 'online' : 'idle',
+              playedSongsCount: 16,
+              downloadedCount: 3,
+              lastActive: isMe ? 'En este instante' : 'Reciente',
+              joinedAt: p.created_at ? new Date(p.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Reciente',
+            });
+          }
+        });
       }
 
-      setRealUsers(usersList);
+      setRealUsers(adminList);
       setRealLatency(Math.max(16, Math.round(performance.now() - start)));
     } catch (err) {
       console.warn('Error fetching telemetry:', err);
@@ -421,55 +306,31 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
       playedSongsCount: 842,
       downloadedCount: 124,
       lastActive: 'En este instante',
-      joinedAt: '2026-10-01',
+      joinedAt: '28 oct 2026',
     },
     {
       id: 'demo-2',
-      username: 'lucas_synthesizer',
-      email: 'lucas@cyber.io',
+      username: 'carlos_ops',
+      email: 'carlos.admin@bitszone.net',
       avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
-      role: 'user',
+      role: 'admin',
       status: 'online',
       playedSongsCount: 312,
       downloadedCount: 42,
-      lastActive: 'Escuchando Numb',
-      joinedAt: '2026-10-12',
+      lastActive: 'Hace 5 min',
+      joinedAt: '12 oct 2026',
     },
     {
       id: 'demo-3',
-      username: 'sofia_wav',
-      email: 'sofia@hifi.net',
+      username: 'sofia_content',
+      email: 'sofia.music@bitszone.net',
       avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces',
-      role: 'user',
-      status: 'online',
+      role: 'admin',
+      status: 'idle',
       playedSongsCount: 520,
       downloadedCount: 96,
-      lastActive: 'Descargando Thriller',
-      joinedAt: '2026-10-15',
-    },
-    {
-      id: 'demo-4',
-      username: 'marcos_beats',
-      email: 'marcos@audio.com',
-      avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces',
-      role: 'user',
-      status: 'idle',
-      playedSongsCount: 189,
-      downloadedCount: 28,
-      lastActive: 'Hace 18 min',
-      joinedAt: '2026-10-19',
-    },
-    {
-      id: 'demo-5',
-      username: 'elena_sound',
-      email: 'elena@vibes.fm',
-      avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=faces',
-      role: 'user',
-      status: 'offline',
-      playedSongsCount: 94,
-      downloadedCount: 15,
-      lastActive: 'Ayer',
-      joinedAt: '2026-10-21',
+      lastActive: 'Hace 2 horas',
+      joinedAt: '15 oct 2026',
     },
   ]);
 
@@ -484,7 +345,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         (u.email && u.email.toLowerCase().includes(query));
       const matchesRole = 
         userRoleFilter === 'all' ||
-        (userRoleFilter === 'admin' ? (u.role === 'admin' || u.role === 'superadmin') : u.role === 'user');
+        (userRoleFilter === 'superadmin' ? u.role === 'superadmin' : u.role === 'admin');
       return matchesSearch && matchesRole;
     });
   }, [activeUsersList, searchUserQuery, userRoleFilter]);
@@ -580,88 +441,30 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         return;
       }
 
-      // 1. Try finding in loaded realUsers first
-      const alreadyLoaded = realUsers.find(
-        (u) =>
-          u.username.toLowerCase() === target ||
-          (u.email && u.email.toLowerCase() === target) ||
-          u.id.toLowerCase() === target
-      );
-
-      if (alreadyLoaded) {
-        if (isSuperAdminUser(alreadyLoaded)) {
-          setNotification(`"${alreadyLoaded.username}" es el Superadministrador principal.`);
-          return;
-        }
-
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: alreadyLoaded.id,
-            role: 'admin',
-            username: alreadyLoaded.username,
-            avatar_url: alreadyLoaded.avatar_url,
-            ...(alreadyLoaded.email ? { email: alreadyLoaded.email } : {}),
-          }, { onConflict: 'id' });
-
-        if (!updateError) {
-          setNotification(`¡"${alreadyLoaded.username}" ahora es Administrador en Supabase!`);
+      if (dataSource === 'real') {
+        const res = await addAdminAccount(target);
+        if (res.success) {
+          setNotification(`¡"${target}" asignado como Administrador! Tendrá acceso al Dashboard al iniciar sesión.`);
           await fetchRealData();
         } else {
-          setNotification(`No se pudo actualizar el rol: ${updateError.message}`);
-        }
-        return;
-      }
-
-      // 2. Query Supabase profiles safely (validating UUID format)
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(target);
-      let query = supabase.from('profiles').select('id, username, role');
-      if (isUuid) {
-        query = query.eq('id', target);
-      } else {
-        query = query.ilike('username', `%${target}%`);
-      }
-
-      const { data: matchedProfiles, error: searchError } = await query;
-
-      if (!searchError && matchedProfiles && matchedProfiles.length > 0) {
-        const found = matchedProfiles[0];
-        if (isSuperAdminUser(found)) {
-          setNotification(`"${found.username}" es el Superadministrador principal.`);
-          return;
-        }
-
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ role: 'admin' })
-          .eq('id', found.id);
-
-        if (!updateError) {
-          setNotification(`¡"${found.username}" ahora es Administrador en Supabase!`);
-          await fetchRealData();
-        } else {
-          setNotification(`No se pudo actualizar el rol: ${updateError.message}`);
+          setNotification(`Error: ${res.error || 'No se pudo agregar el administrador'}`);
         }
       } else {
-        // Fallback for demo or custom input
-        if (dataSource === 'demo') {
-          const newDemoAdmin: DashboardUser = {
-            id: `demo-${Date.now()}`,
-            username: target.includes('@') ? target.split('@')[0] : target,
-            email: target.includes('@') ? target : undefined,
-            avatar_url: null,
-            role: 'admin',
-            status: 'online',
-            playedSongsCount: 0,
-            downloadedCount: 0,
-            lastActive: 'En este instante',
-            joinedAt: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }),
-          };
-          setDemoUsersList((prev) => [newDemoAdmin, ...prev]);
-          setNotification(`¡Administrador de demostración "${newDemoAdmin.username}" creado!`);
-        } else {
-          setNotification(`No se encontró un usuario con "${target}" en Supabase.`);
-        }
+        // Demo mode
+        const newDemoAdmin: DashboardUser = {
+          id: `demo-${Date.now()}`,
+          username: target.includes('@') ? target.split('@')[0] : target,
+          email: target.includes('@') ? target : `${target}@gmail.com`,
+          avatar_url: null,
+          role: 'admin',
+          status: 'online',
+          playedSongsCount: 0,
+          downloadedCount: 0,
+          lastActive: 'En este instante',
+          joinedAt: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }),
+        };
+        setDemoUsersList((prev) => [newDemoAdmin, ...prev]);
+        setNotification(`¡Administrador "${newDemoAdmin.username}" asignado en modo demo!`);
       }
     } catch (err: any) {
       setNotification(`Error al procesar: ${err.message || 'Error desconocido'}`);
@@ -681,36 +484,19 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
       return;
     }
 
-    const newRole = targetUser.role === 'admin' ? 'user' : 'admin';
-
     if (dataSource === 'real') {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: targetUser.id,
-          role: newRole,
-          username: targetUser.username,
-          avatar_url: targetUser.avatar_url,
-          ...(targetUser.email ? { email: targetUser.email } : {}),
-        }, { onConflict: 'id' });
-      
-      if (error) {
-        setNotification(`Error al actualizar rol: ${error.message}`);
-        setTimeout(() => setNotification(null), 4000);
-        return;
+      const email = targetUser.email || targetUser.username;
+      const res = await removeAdminAccount(email);
+      if (res.success) {
+        setNotification(`Rol de Administrador revocado a ${targetUser.username || targetUser.email}`);
+        await fetchRealData();
+      } else {
+        setNotification(`Error: ${res.error || 'No se pudo revocar el rol'}`);
       }
-      await fetchRealData();
     } else {
-      setDemoUsersList((prev) =>
-        prev.map((u) => (u.id === targetUser.id ? { ...u, role: newRole } : u))
-      );
+      setDemoUsersList((prev) => prev.filter((u) => u.id !== targetUser.id));
+      setNotification(`Rol de Administrador revocado a ${targetUser.username}`);
     }
-
-    setNotification(
-      newRole === 'admin' 
-        ? `Rol de Administrador otorgado a ${targetUser.username}` 
-        : `Rol de Administrador revocado a ${targetUser.username}`
-    );
     setTimeout(() => setNotification(null), 4000);
   };
 
@@ -796,7 +582,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         title="Dashboard"
         stats={[
           { icon: <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />, text: `Supabase ${realLatency}ms` },
-          { icon: <Users className="w-3.5 h-3.5 text-purple-300" aria-hidden="true" />, text: `${dataSource === 'real' ? realUsers.length : '18,492'} usuarios` },
+          { icon: <ShieldCheck className="w-3.5 h-3.5 text-purple-300" aria-hidden="true" />, text: `${activeUsersList.length} administradores` },
           { icon: <Music className="w-3.5 h-3.5 text-purple-300" aria-hidden="true" />, text: `${dataSource === 'real' ? realTracksCount : 380} canciones` },
           { icon: <Disc3 className="w-3.5 h-3.5 text-purple-300" aria-hidden="true" />, text: `${dataSource === 'real' ? realAlbumsCount : 24} álbumes` },
         ]}
@@ -865,7 +651,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
             tabClassName="h-full py-0 px-4 md:px-5 whitespace-nowrap text-xs sm:text-sm font-semibold tracking-wide"
             tabs={[
               { id: 'overview' as const, label: 'Visión General', icon: <Activity className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
-              { id: 'users' as const, label: `Usuarios (${activeUsersList.length})`, icon: <Users className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
+              { id: 'users' as const, label: `Administradores (${activeUsersList.length})`, icon: <ShieldCheck className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
               { id: 'music' as const, label: `Música (${dataSource === 'real' ? realTracksCount : 380})`, icon: <Music className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
               { id: 'tools' as const, label: 'Herramientas', icon: <SlidersHorizontal className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
             ]}
@@ -876,12 +662,12 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto ml-auto">
           {activeTab === 'users' && (
             <div className="h-10 rounded-full p-1 bg-white/[0.07] border border-white/10 backdrop-blur-xl flex items-center gap-1">
-              {(['all', 'admin', 'user'] as const).map((r) => {
+              {(['all', 'superadmin', 'admin'] as const).map((r) => {
                 const count = r === 'all' 
                   ? activeUsersList.length 
-                  : r === 'admin' 
-                  ? activeUsersList.filter(u => u.role === 'admin' || u.role === 'superadmin').length 
-                  : activeUsersList.filter(u => u.role === 'user').length;
+                  : r === 'superadmin' 
+                  ? activeUsersList.filter(u => u.role === 'superadmin').length 
+                  : activeUsersList.filter(u => u.role === 'admin').length;
                 return (
                   <button
                     key={r}
@@ -893,7 +679,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                         : 'text-white/60 hover:text-white'
                     }`}
                   >
-                    {r === 'all' ? `Todos (${count})` : r === 'admin' ? `Admins (${count})` : `Usuarios (${count})`}
+                    {r === 'all' ? `Todos (${count})` : r === 'superadmin' ? `Superadmin (${count})` : `Admins (${count})`}
                   </button>
                 );
               })}
@@ -924,7 +710,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
               <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-white/45 group-focus-within:text-white pointer-events-none z-10 transition-colors duration-200" />
               <input
                 type="text"
-                placeholder="Buscar usuario o correo..."
+                placeholder="Buscar administrador o correo..."
                 value={searchUserQuery}
                 onChange={(e) => setSearchUserQuery(e.target.value)}
                 className="w-full h-10 bg-white/[0.07] hover:bg-white/[0.09] backdrop-blur-xl rounded-full pl-11 pr-9 text-base md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:bg-white/[0.12] focus:ring-1 focus:ring-white/25 transition-[background-color,box-shadow] duration-300"
@@ -955,22 +741,20 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
             {/* 4 KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
               
-              {/* Card 1: Users */}
+              {/* Card 1: Administradores */}
               <div className="p-6 rounded-3xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] backdrop-blur-xl transition-all duration-300 relative group">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Usuarios Registrados</span>
+                  <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Administradores</span>
                   <div className="p-2.5 rounded-2xl bg-white/10 text-purple-300">
-                    <Users className="w-4 h-4" />
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-3xl md:text-4xl font-black text-white tracking-tight mb-1">
-                  {dataSource === 'real' ? realUsers.length : '18,492'}
+                  {activeUsersList.length}
                 </div>
                 <div className="text-xs text-white/50">
                   <span className="text-purple-300 font-semibold">
-                    {dataSource === 'real' 
-                      ? `${realUsers.filter(u => u.role === 'superadmin' || u.role === 'admin').length} Administradores` 
-                      : '+14.8% este mes'}
+                    1 Superadmin • {Math.max(0, activeUsersList.length - 1)} {activeUsersList.length === 2 ? 'Admin' : 'Admins'}
                   </span>
                 </div>
               </div>
@@ -1097,40 +881,13 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
           </motion.div>
         )}
 
-        {/* TAB 2: USUARIOS & ADMINISTRADORES */}
+        {/* TAB 2: ADMINISTRADORES */}
         {activeTab === 'users' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col">
             
-            {/* Supabase Live Telemetry Banner */}
-            {dataSource === 'real' && (
-              <div className="mb-4 p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 shrink-0">
-                    <Database className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white">
-                      Telemetría en Vivo de Supabase: <span className="font-mono text-purple-300 font-semibold">{realUsers.length}</span> {realUsers.length === 1 ? 'usuario cargado' : 'usuarios cargados'}
-                    </p>
-                    <p className="text-white/50 text-[11px] mt-0.5">
-                      Para sincronizar automáticamente registros de Supabase Auth y habilitar permisos RLS para administradores, consulta el script SQL.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('sql_help')}
-                  className="px-3.5 py-1.5 rounded-full bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-400/30 font-medium transition-colors cursor-pointer shrink-0 text-xs flex items-center gap-1.5"
-                >
-                  <Terminal className="w-3.5 h-3.5" />
-                  <span>Script SQL</span>
-                </button>
-              </div>
-            )}
-
             {/* Table Header matching DownloadsView style */}
             <div className="hidden lg:grid grid-cols-[1fr_120px_120px_100px_100px_130px] gap-4 px-4 py-2 text-white/40 text-[10px] font-bold tracking-widest uppercase mb-2">
-              <div>USUARIO</div>
+              <div>ADMINISTRADOR</div>
               <div className="text-center">ROL</div>
               <div className="text-center">ESTADO</div>
               <div className="text-center">CANCIONES</div>
@@ -1142,7 +899,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
             <div className="flex flex-col gap-1">
               {filteredUsers.length === 0 ? (
                 <div className="text-center py-16 text-white/50">
-                  No se encontraron usuarios para <span className="text-white/80 font-medium">"{searchUserQuery}"</span>
+                  No se encontraron administradores para <span className="text-white/80 font-medium">"{searchUserQuery}"</span>
                 </div>
               ) : (
                 filteredUsers.map((u) => {
@@ -1417,19 +1174,19 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 <form onSubmit={handleAddAdminSubmit} className="space-y-5 text-sm">
                   <div>
                     <label className="block text-sm font-semibold uppercase tracking-wider text-white/70 mb-2">
-                      Correo o Nombre de Usuario
+                      Correo del Administrador
                     </label>
                     <input 
                       type="text"
                       required
                       autoFocus
-                      placeholder="ej. nuevo.admin@gmail.com o usuario_1"
+                      placeholder="ej. amigo@gmail.com"
                       value={adminInput}
                       onChange={(e) => setAdminInput(e.target.value)}
                       className="w-full px-5 sm:px-6 py-3.5 rounded-2xl bg-white/[0.06] border border-white/10 text-white placeholder-white/30 text-base focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.09] transition-all"
                     />
                     <p className="text-xs text-white/55 mt-2 leading-relaxed">
-                      Si el usuario ya está registrado en Supabase, se actualizará su rol en la tabla <code>profiles</code> inmediatamente.
+                      Al agregar este correo, el usuario podrá iniciar sesión normalmente con su código OTP o Google y obtendrá automáticamente permisos de Administrador en el Dashboard.
                     </p>
                   </div>
 
@@ -1648,108 +1405,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
         document.body
       )}
 
-      {/* MODAL: SQL Telemetry Setup */}
-      {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {activeModal === 'sql_help' && (
-            <motion.div 
-              initial={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
-              animate={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(20px)' }}
-              exit={{ backgroundColor: 'rgba(0,0,0,0)', backdropFilter: 'blur(0px)' }}
-              className="fixed inset-0 z-[300] flex items-center justify-center p-4"
-              onClick={() => setActiveModal(null)}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.94, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.94, y: 16 }}
-                className="relative w-full max-w-2xl max-h-[88vh] flex flex-col rounded-3xl p-6 sm:p-8 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
-                style={cardStyle}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between mb-5 shrink-0">
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shrink-0 shadow-lg text-purple-300">
-                      <Database className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl sm:text-2xl text-white tracking-tight" style={titleStyle}>Sincronización Supabase</h3>
-                      <p className="text-xs text-white/65 mt-0.5">Sincroniza auth.users, RLS y lectura de telemetría</p>
-                    </div>
-                  </div>
-                  <button 
-                    type="button"
-                    onClick={() => setActiveModal(null)}
-                    aria-label="Cerrar modal"
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs text-white/80">
-                  <p className="leading-relaxed">
-                    Por defecto en Supabase, la seguridad a nivel de fila (RLS) impide que los usuarios lean los perfiles de otros usuarios, y los registros de autenticación residen en <code className="text-purple-300 font-mono">auth.users</code>. Ejecuta este script en tu proyecto para sincronizarlos y leerlos en vivo:
-                  </p>
-
-                  <div className="relative rounded-2xl bg-black/60 border border-white/10 p-4 font-mono text-[11px] leading-relaxed overflow-x-auto max-h-56">
-                    <pre className="text-purple-200 whitespace-pre">{USERS_SQL_SCRIPT}</pre>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-                    <a
-                      href="https://supabase.com/dashboard/project/oxloqoggjldbjjratwoh/sql"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-purple-300 hover:text-purple-200 flex items-center gap-1.5 transition-colors underline underline-offset-4"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      <span>Abrir SQL Editor en Supabase</span>
-                    </a>
-
-                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(USERS_SQL_SCRIPT);
-                          setCopiedSql(true);
-                          setTimeout(() => setCopiedSql(false), 3000);
-                        }}
-                        className="px-5 py-2.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all flex items-center gap-2 cursor-pointer"
-                      >
-                        {copiedSql ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            <span>¡Copiado!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5 text-purple-300" />
-                            <span>Copiar Script SQL</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveModal(null);
-                          fetchRealData();
-                        }}
-                        className="px-5 py-2.5 rounded-full text-xs font-semibold bg-[#8a3aed] hover:bg-[#9c55f7] text-white transition-all cursor-pointer"
-                      >
-                        Sincronizar Ahora
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-
     </div>
   );
 };
+
