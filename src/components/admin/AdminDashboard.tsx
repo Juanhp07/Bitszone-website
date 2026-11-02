@@ -648,12 +648,12 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
             value={activeTab}
             onChange={(id) => setActiveTab(id as DashboardTab)}
             className="h-full w-full"
-            tabClassName="h-full py-0 px-4 md:px-5 whitespace-nowrap text-xs sm:text-sm font-semibold tracking-wide"
+            tabClassName="h-full py-0 px-2 sm:px-3 md:px-4 whitespace-nowrap text-xs sm:text-sm font-semibold tracking-wide"
             tabs={[
-              { id: 'overview' as const, label: 'Visión General', icon: <Activity className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
-              { id: 'users' as const, label: `Administradores (${activeUsersList.length})`, icon: <ShieldCheck className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
-              { id: 'music' as const, label: `Música (${dataSource === 'real' ? realTracksCount : 380})`, icon: <Music className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
-              { id: 'tools' as const, label: 'Herramientas', icon: <SlidersHorizontal className="w-3.5 h-3.5 mr-2 shrink-0" aria-hidden="true" /> },
+              { id: 'overview' as const, label: 'Visión General', icon: <Activity className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+              { id: 'users' as const, label: `Admins (${activeUsersList.length})`, title: 'Administradores', icon: <ShieldCheck className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+              { id: 'music' as const, label: `Música (${dataSource === 'real' ? realTracksCount : 380})`, icon: <Music className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
+              { id: 'tools' as const, label: 'Herramientas', icon: <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5 shrink-0" aria-hidden="true" /> },
             ]}
           />
         </div>

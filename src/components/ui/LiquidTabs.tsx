@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 
-export type LiquidTab<T extends string> = { id: T; label: string; icon?: React.ReactNode; title?: string };
+export type LiquidTab<T extends string> = { id: T; label: React.ReactNode; icon?: React.ReactNode; title?: string };
 
 /**
  * Segmented control estilo Liquid Glass con indicador deslizante suave.
