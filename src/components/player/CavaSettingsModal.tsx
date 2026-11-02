@@ -150,7 +150,7 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
           className="relative w-full max-w-6xl h-[90dvh] md:h-[88vh] rounded-3xl overflow-hidden text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col"
-          style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)', background: 'rgba(10, 7, 18, 0.88)' }}
+          style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)', background: 'rgba(0, 0, 0, 0.3)' }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-7 md:px-10 py-5 md:py-6 border-b border-white/[0.07] shrink-0 bg-black/20">
@@ -161,11 +161,11 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="super-blur-btn w-10 h-10 rounded-full flex items-center justify-center text-white/85 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 group"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.06] hover:bg-white/[0.14] backdrop-blur-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
               title="Cerrar ajustes (Esc)"
               aria-label="Cerrar ajustes"
             >
-              <X className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 

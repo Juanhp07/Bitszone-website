@@ -1164,7 +1164,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 initial={{ opacity: 0, scale: 0.94, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
-                className="relative w-full max-w-xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden max-h-[92vh] overflow-y-auto hover-subtle-scrollbar"
+                className="relative w-full max-w-xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
                 style={cardStyle}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -1181,11 +1181,10 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                   <button 
                     type="button"
                     onClick={() => setActiveModal(null)}
-                    aria-label="Cerrar modal (Esc)"
-                    title="Cerrar (Esc)"
-                    className="super-blur-btn w-10 h-10 rounded-full flex items-center justify-center text-white/85 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 group"
+                    aria-label="Cerrar modal"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                   >
-                    <X className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
 
@@ -1247,7 +1246,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 initial={{ opacity: 0, scale: 0.94, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
-                className="relative w-full max-w-2xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden max-h-[92vh] overflow-y-auto hover-subtle-scrollbar"
+                className="relative w-full max-w-2xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
                 style={cardStyle}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -1264,11 +1263,10 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                   <button 
                     type="button"
                     onClick={() => setActiveModal(null)}
-                    aria-label="Cerrar modal (Esc)"
-                    title="Cerrar (Esc)"
-                    className="super-blur-btn w-10 h-10 rounded-full flex items-center justify-center text-white/85 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 group"
+                    aria-label="Cerrar modal"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                   >
-                    <X className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
 
@@ -1326,7 +1324,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 initial={{ opacity: 0, scale: 0.94, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
-                className="relative w-full max-w-2xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden max-h-[92vh] overflow-y-auto hover-subtle-scrollbar"
+                className="relative w-full max-w-2xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden"
                 style={cardStyle}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -1343,11 +1341,10 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                   <button 
                     type="button"
                     onClick={() => setActiveModal(null)}
-                    aria-label="Cerrar modal (Esc)"
-                    title="Cerrar (Esc)"
-                    className="super-blur-btn w-10 h-10 rounded-full flex items-center justify-center text-white/85 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 group"
+                    aria-label="Cerrar modal"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                   >
-                    <X className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
 

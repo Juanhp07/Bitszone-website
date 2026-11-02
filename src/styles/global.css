@@ -246,33 +246,7 @@ html {
   background: rgba(255, 255, 255, 0.5) !important;
 }
 
-/* Super Blur Dynamic Glass Action Button */
-.super-blur-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  /* Seamless over dark background: transparent without opaque grey patches */
-  background: rgba(0, 0, 0, 0.2) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: none !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  cursor: pointer;
-}
 
-.super-blur-btn:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4) !important;
-  transform: scale(1.06);
-}
-
-.super-blur-btn:active {
-  transform: scale(0.94);
-  background: rgba(255, 255, 255, 0.18) !important;
-}
 
 @keyframes storage-flow {
   0% { background-position: 0% 50%; }

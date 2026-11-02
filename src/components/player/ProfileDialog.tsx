@@ -133,8 +133,17 @@ export const ProfileDialog = ({
             transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-[1020px] max-h-[calc(100dvh-1.5rem)] md:h-[min(760px,calc(100vh-2.5rem))] flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
-            style={{ ...cardStyle, background: 'rgba(12, 9, 20, 0.94)' }}
+            style={cardStyle}
           >
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar"
+              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+            >
+              <X className="w-5 h-5" aria-hidden="true" />
+            </button>
+
             {/* Left: the account */}
             <div
               className="md:w-[38%] shrink-0 p-6 md:p-8 flex flex-col items-center backdrop-blur-xl md:border-r border-white/10 overflow-y-auto hover-subtle-scrollbar"
@@ -243,7 +252,7 @@ export const ProfileDialog = ({
             </div>
 
             {/* Right: listening stats */}
-            <div className="flex-1 min-w-0 p-6 md:p-8 overflow-y-auto bg-black/40 hover-subtle-scrollbar">
+            <div className="flex-1 min-w-0 p-6 md:p-8 overflow-y-auto bg-black/20 hover-subtle-scrollbar">
               <h2 className="text-2xl md:text-3xl mb-1" style={titleStyle}>Tu música</h2>
               <p className="text-sm text-white/60 mb-6">Lo que más suena en tu Bitszone.</p>
 
@@ -319,16 +328,6 @@ export const ProfileDialog = ({
                 </>
               )}
             </div>
-            {/* Super blur frosted glass close button */}
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Cerrar modal (Esc)"
-              title="Cerrar (Esc)"
-              className="super-blur-btn absolute top-5 right-5 z-30 w-10 h-10 rounded-full flex items-center justify-center text-white/85 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 group"
-            >
-              <X className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
-            </button>
           </motion.div>
         </motion.div>
       )}
