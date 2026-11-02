@@ -68,6 +68,9 @@ const STORAGE_KEY_ARTISTS = 'bz_admin_artist_overrides';
 const STORAGE_KEY_BUTTONS = 'bz_admin_button_overrides';
 const STORAGE_KEY_MODE = 'bz_admin_edit_mode_active';
 
+const ARTIST_CONFIG_PREFIX = 'artist_override:';
+const ALBUM_CONFIG_PREFIX = 'album_override:';
+
 const AdminEditContext = createContext<AdminEditContextType | null>(null);
 
 export const AdminEditProvider: React.FC<{
@@ -139,7 +142,7 @@ export const AdminEditProvider: React.FC<{
   // Realtime channel reference
   const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
 
-  // 1. Fetch remote global button/UI configs from Supabase 'app_config' table if it exists
+  // 1. Fetch remote global button/UI configs, artist overrides and album overrides from Supabase 'app_config' table
   useEffect(() => {
     let isMounted = true;
     const fetchGlobalConfig = async () => {
@@ -148,17 +151,83 @@ export const AdminEditProvider: React.FC<{
         if (error || !data || !isMounted) return;
 
         const remoteButtons: Record<string, string> = {};
+        const remoteArtists: Record<string, ArtistOverride> = {};
+        const remoteAlbums: Record<string, AlbumOverride> = {};
+
         data.forEach((row: any) => {
-          if (row.key && row.value) {
+          if (!row.key || !row.value) return;
+
+          if (row.key.startsWith(ARTIST_CONFIG_PREFIX)) {
+            const artistName = row.key.slice(ARTIST_CONFIG_PREFIX.length);
+            try {
+              const parsed = JSON.parse(row.value);
+              remoteArtists[artistName] = parsed;
+              if (parsed.name && parsed.name !== artistName) {
+                remoteArtists[parsed.name] = parsed;
+              }
+            } catch {
+              remoteArtists[artistName] = { img: row.value };
+            }
+          } else if (row.key.startsWith(ALBUM_CONFIG_PREFIX)) {
+            const albumId = row.key.slice(ALBUM_CONFIG_PREFIX.length);
+            try {
+              remoteAlbums[albumId] = JSON.parse(row.value);
+            } catch {
+              remoteAlbums[albumId] = { coverUrl: row.value };
+            }
+          } else {
             remoteButtons[row.key] = row.value;
           }
         });
 
-        if (Object.keys(remoteButtons).length > 0 && isMounted) {
-          setButtonOverrides(prev => ({
-            ...prev,
-            ...remoteButtons,
-          }));
+        if (isMounted) {
+          if (Object.keys(remoteButtons).length > 0) {
+            setButtonOverrides(prev => ({
+              ...prev,
+              ...remoteButtons,
+            }));
+          }
+          if (Object.keys(remoteArtists).length > 0) {
+            setArtistOverrides(prev => ({
+              ...prev,
+              ...remoteArtists,
+            }));
+          }
+          if (Object.keys(remoteAlbums).length > 0) {
+            setAlbumOverrides(prev => ({
+              ...prev,
+              ...remoteAlbums,
+            }));
+          }
+        }
+
+        // Auto-sync: If user is Admin, check if there are any local artist overrides in localStorage
+        // from previous sessions that haven't been saved to Supabase app_config yet.
+        // This ensures the admin's changes become visible immediately to ALL other users!
+        if (isAdmin) {
+          try {
+            const localStored = localStorage.getItem(STORAGE_KEY_ARTISTS);
+            if (localStored) {
+              const localArtists: Record<string, ArtistOverride> = JSON.parse(localStored);
+              const toSync: { key: string; value: string; updated_at: string }[] = [];
+              for (const [name, overrideData] of Object.entries(localArtists)) {
+                if (!overrideData || (!overrideData.img && !overrideData.name)) continue;
+                const remote = remoteArtists[name];
+                if (!remote || (overrideData.img && remote.img !== overrideData.img) || (overrideData.name && remote.name !== overrideData.name)) {
+                  toSync.push({
+                    key: `${ARTIST_CONFIG_PREFIX}${name}`,
+                    value: JSON.stringify(overrideData),
+                    updated_at: new Date().toISOString(),
+                  });
+                }
+              }
+              if (toSync.length > 0) {
+                await supabase.from('app_config').upsert(toSync);
+              }
+            }
+          } catch (syncErr) {
+            console.warn('Auto-sync local artist overrides to cloud error:', syncErr);
+          }
         }
       } catch (err) {
         // Table might not exist yet before SQL migration, silently fallback to local storage
@@ -167,7 +236,7 @@ export const AdminEditProvider: React.FC<{
 
     fetchGlobalConfig();
     return () => { isMounted = false; };
-  }, [supabase]);
+  }, [supabase, isAdmin]);
 
   // 2. Setup Supabase Realtime Channel: broadcast + postgres changes
   // This allows ALL active users (normal users and admin) to see changes live in <100ms without reloading!
@@ -201,6 +270,7 @@ export const AdminEditProvider: React.FC<{
           setArtistOverrides(prev => ({
             ...prev,
             [nameStr]: { ...prev[nameStr], ...change.data },
+            ...(change.data?.name ? { [change.data.name]: { ...prev[change.data.name], ...change.data } } : {}),
           }));
         } else if (change.type === 'button' && change.id) {
           const keyStr = String(change.id);
@@ -248,7 +318,38 @@ export const AdminEditProvider: React.FC<{
       // Also listen to direct database Postgres changes on 'app_config'
       .on('postgres_changes', { event: '*', schema: 'public', table: 'app_config' }, (payload: any) => {
         const record = payload.new || payload.record;
-        if (record && record.key && record.value) {
+        if (!record || !record.key) return;
+
+        if (record.key.startsWith(ARTIST_CONFIG_PREFIX)) {
+          const artistName = record.key.slice(ARTIST_CONFIG_PREFIX.length);
+          try {
+            const parsed = JSON.parse(record.value);
+            setArtistOverrides(prev => ({
+              ...prev,
+              [artistName]: { ...prev[artistName], ...parsed },
+              ...(parsed.name ? { [parsed.name]: { ...prev[parsed.name], ...parsed } } : {}),
+            }));
+          } catch {
+            setArtistOverrides(prev => ({
+              ...prev,
+              [artistName]: { ...prev[artistName], img: record.value },
+            }));
+          }
+        } else if (record.key.startsWith(ALBUM_CONFIG_PREFIX)) {
+          const albumId = record.key.slice(ALBUM_CONFIG_PREFIX.length);
+          try {
+            const parsed = JSON.parse(record.value);
+            setAlbumOverrides(prev => ({
+              ...prev,
+              [albumId]: { ...prev[albumId], ...parsed },
+            }));
+          } catch {
+            setAlbumOverrides(prev => ({
+              ...prev,
+              [albumId]: { ...prev[albumId], coverUrl: record.value },
+            }));
+          }
+        } else if (record.value) {
           setButtonOverrides(prev => ({
             ...prev,
             [record.key]: record.value,
@@ -418,16 +519,19 @@ export const AdminEditProvider: React.FC<{
     }
   }, [supabase]);
 
-  // Save album override & sync globally to Supabase tracks table + realtime broadcast
+  // Save album override & sync globally to Supabase tracks table + app_config + realtime broadcast
   const saveAlbumOverride = useCallback(async (albumId: string | number, data: AlbumOverride) => {
     const idStr = String(albumId);
+    let nextAlbumData: AlbumOverride = {};
     setAlbumOverrides(prev => {
+      const merged = {
+        ...prev[idStr],
+        ...data,
+      };
+      nextAlbumData = merged;
       const next = {
         ...prev,
-        [idStr]: {
-          ...prev[idStr],
-          ...data,
-        },
+        [idStr]: merged,
       };
       try {
         localStorage.setItem(STORAGE_KEY_ALBUMS, JSON.stringify(next));
@@ -441,6 +545,17 @@ export const AdminEditProvider: React.FC<{
       id: idStr,
       data,
     });
+
+    // Persist to Supabase 'app_config' table for guaranteed global visibility
+    try {
+      await supabase.from('app_config').upsert({
+        key: `${ALBUM_CONFIG_PREFIX}${idStr}`,
+        value: JSON.stringify(nextAlbumData),
+        updated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.warn('Supabase app_config album upsert warning:', err);
+    }
 
     // Update Supabase tracks table so changes are permanent for all users forever
     try {
@@ -498,13 +613,17 @@ export const AdminEditProvider: React.FC<{
 
   // Save artist override & sync globally
   const saveArtistOverride = useCallback(async (artistName: string, data: ArtistOverride) => {
+    let nextArtistData: ArtistOverride = {};
     setArtistOverrides(prev => {
+      const merged = {
+        ...prev[artistName],
+        ...data,
+      };
+      nextArtistData = merged;
       const next = {
         ...prev,
-        [artistName]: {
-          ...prev[artistName],
-          ...data,
-        },
+        [artistName]: merged,
+        ...(data.name ? { [data.name]: merged } : {}),
       };
       try {
         localStorage.setItem(STORAGE_KEY_ARTISTS, JSON.stringify(next));
@@ -519,8 +638,26 @@ export const AdminEditProvider: React.FC<{
       data,
     });
 
+    // Persist to Supabase 'app_config' table so it's permanent for ALL users
+    try {
+      await supabase.from('app_config').upsert({
+        key: `${ARTIST_CONFIG_PREFIX}${artistName}`,
+        value: JSON.stringify(nextArtistData),
+        updated_at: new Date().toISOString(),
+      });
+      if (data.name && data.name !== artistName) {
+        await supabase.from('app_config').upsert({
+          key: `${ARTIST_CONFIG_PREFIX}${data.name}`,
+          value: JSON.stringify(nextArtistData),
+          updated_at: new Date().toISOString(),
+        });
+      }
+    } catch (err) {
+      console.warn('Supabase app_config artist upsert warning:', err);
+    }
+
     // Sync to Supabase tracks
-    if (data.name) {
+    if (data.name && data.name !== artistName) {
       try {
         await supabase.from('tracks').update({ artist: data.name }).eq('artist', artistName);
       } catch (err) {
@@ -575,7 +712,7 @@ export const AdminEditProvider: React.FC<{
   }, []);
 
   // Reset all overrides
-  const resetAllOverrides = useCallback(() => {
+  const resetAllOverrides = useCallback(async () => {
     setAlbumOverrides({});
     setTrackOverrides({});
     setArtistOverrides({});
@@ -588,7 +725,14 @@ export const AdminEditProvider: React.FC<{
     } catch {}
 
     broadcastChange({ type: 'reset' });
-  }, [broadcastChange]);
+
+    try {
+      await supabase.from('app_config').delete().like('key', `${ARTIST_CONFIG_PREFIX}%`);
+      await supabase.from('app_config').delete().like('key', `${ALBUM_CONFIG_PREFIX}%`);
+    } catch (err) {
+      console.warn('Error clearing app_config overrides:', err);
+    }
+  }, [broadcastChange, supabase]);
 
   const totalOverridesCount = useMemo(() => {
     return (
