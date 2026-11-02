@@ -207,6 +207,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   const [cacheClearedToast, setCacheClearedToast] = useState(false);
   const [shortcutsSearch, setShortcutsSearch] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
 
   // Estado local para edición dinámica y comparación
   const [currentSettings, setCurrentSettings] = useState<GeneralSettings>(settings);
@@ -222,6 +223,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       setCurrentSettings(settings);
       setInitialSettings(settings);
       setSaveStatus('idle');
+      setShowUnsavedConfirm(false);
     }
     prevIsOpenRef.current = isOpen;
   }, [isOpen, settings]);
@@ -273,6 +275,39 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
     setRecordingAction(null);
     setShortcutConflict(null);
     setShowResetConfirm(false);
+    setShowUnsavedConfirm(false);
+    onClose();
+  };
+
+  // Solicitar cierre: si hay cambios pendientes, abre el diálogo de confirmación
+  const requestClose = () => {
+    if (isDirty) {
+      setShowUnsavedConfirm(true);
+    } else {
+      handleClose();
+    }
+  };
+
+  // Guardar y salir
+  const handleSaveAndExit = () => {
+    onUpdateSettings(() => currentSettings);
+    saveGeneralSettings(currentSettings);
+    applyGeneralSettingsToDOM(currentSettings);
+    setInitialSettings(currentSettings);
+    setShowUnsavedConfirm(false);
+    setRecordingAction(null);
+    setShortcutConflict(null);
+    setShowResetConfirm(false);
+    onClose();
+  };
+
+  // Salir sin guardar
+  const handleExitWithoutSaving = () => {
+    applyGeneralSettingsToDOM(initialSettings);
+    setShowUnsavedConfirm(false);
+    setRecordingAction(null);
+    setShortcutConflict(null);
+    setShowResetConfirm(false);
     onClose();
   };
 
@@ -296,6 +331,12 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           setShowResetConfirm(false);
           return;
         }
+        if (showUnsavedConfirm) {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          setShowUnsavedConfirm(false);
+          return;
+        }
         if (recordingAction) {
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -305,12 +346,12 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
         }
         e.stopPropagation();
         e.stopImmediatePropagation();
-        handleClose();
+        requestClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [isOpen, showResetConfirm, recordingAction, isDirty, initialSettings]);
+  }, [isOpen, showResetConfirm, showUnsavedConfirm, recordingAction, isDirty, initialSettings]);
 
   // Keep active tab in sync if initialTab changes on open
   useEffect(() => {
@@ -391,7 +432,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="general-settings-title"
-        onClick={handleClose}
+        onClick={requestClose}
       >
         {/* Modal Card */}
         <motion.div
@@ -409,7 +450,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           {/* Botón flotante X */}
           <button
             type="button"
-            onClick={handleClose}
+            onClick={requestClose}
             className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.14] active:bg-white/[0.2] border border-white/10 hover:border-white/20 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
             title="Cerrar configuración (Esc)"
             aria-label="Cerrar configuración"
@@ -1051,6 +1092,57 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       className="flex-1 py-2.5 px-4 rounded-full bg-purple-500/90 hover:bg-purple-500 text-white text-sm font-semibold shadow-md shadow-purple-600/25 transition-colors cursor-pointer"
                     >
                       Restablecer
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+
+            {/* Modal de confirmación para cambios sin guardar */}
+            {showUnsavedConfirm && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+                onClick={() => setShowUnsavedConfirm(false)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full max-w-sm rounded-3xl p-6 bg-black/45 backdrop-blur-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] text-center flex flex-col items-center border border-white/10"
+                >
+                  <div className="w-12 h-12 rounded-full bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-300 mb-3.5">
+                    <AlertTriangle className="w-6 h-6" />
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white tracking-tight">
+                    ¿Guardar cambios antes de salir?
+                  </h3>
+
+                  <p className="text-sm text-white/60 mt-1.5 mb-6">
+                    Tienes modificaciones sin guardar en tu configuración. ¿Qué deseas hacer?
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
+                    <button
+                      type="button"
+                      onClick={handleExitWithoutSaving}
+                      className="w-full sm:flex-1 py-2.5 px-3 rounded-full bg-white/[0.08] hover:bg-white/[0.15] active:bg-white/[0.2] border border-white/10 text-white/85 hover:text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                    >
+                      Salir sin guardar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleSaveAndExit}
+                      className="w-full sm:flex-1 py-2.5 px-3 rounded-full bg-purple-500/90 hover:bg-purple-500 active:bg-purple-600 text-white text-xs sm:text-sm font-semibold shadow-md shadow-purple-600/25 transition-colors cursor-pointer"
+                    >
+                      Guardar y salir
                     </button>
                   </div>
                 </motion.div>

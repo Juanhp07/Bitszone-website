@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Camera, Clock, Headphones, LogOut, Mail, Mic2, Music2, User as UserIcon, X, Pencil, RotateCcw } from 'lucide-react';
+import { Camera, Clock, Headphones, LogOut, Mail, Mic2, Music2, User as UserIcon, X, Pencil, RotateCcw, AlertTriangle } from 'lucide-react';
 import { LiquidButton } from '../ui/LiquidButton';
 import { cardStyle, inputClass, titleStyle } from '../auth/authUi';
 import { supabase } from '../../lib/supabase';
@@ -52,23 +52,77 @@ export const ProfileDialog = ({
   const [avatar, setAvatar] = useState(avatarUrl);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const [error, setError] = useState('');
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const reduce = useReducedMotion();
   const { isAdmin, isEditMode, toggleEditMode, totalOverridesCount, resetAllOverrides } = useAdminEdit();
 
+  const dirty = name.trim() !== username || avatar !== avatarUrl;
+
   useEffect(() => {
     if (!open) return;
-    setName(username); setAvatar(avatarUrl); setError(''); setStatus('idle');
+    setName(username);
+    setAvatar(avatarUrl);
+    setError('');
+    setStatus('idle');
+    setShowUnsavedConfirm(false);
+  }, [open, username, avatarUrl]);
+
+  const requestClose = () => {
+    if (dirty) {
+      setShowUnsavedConfirm(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleSaveAndExit = async () => {
+    const clean = name.trim();
+    if (!USERNAME_RE.test(clean)) {
+      setError('Usa de 3 a 20 letras, números, punto o guion bajo');
+      setShowUnsavedConfirm(false);
+      return;
+    }
+    setStatus('loading');
+    const { error: err } = await supabase.from('profiles').upsert({ id: userId, username: clean.toLowerCase(), avatar_url: avatar });
+    if (err) {
+      setStatus('idle');
+      setError(err.code === '23505' ? 'Ese nombre ya está en uso' : 'Algo salió mal. Intenta de nuevo.');
+      setShowUnsavedConfirm(false);
+      return;
+    }
+    setStatus('success');
+    onSaved();
+    setShowUnsavedConfirm(false);
+    onClose();
+  };
+
+  const handleExitWithoutSaving = () => {
+    setName(username);
+    setAvatar(avatarUrl);
+    setError('');
+    setShowUnsavedConfirm(false);
+    onClose();
+  };
+
+  useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation();
         e.stopImmediatePropagation();
-        onClose();
+        if (showUnsavedConfirm) {
+          setShowUnsavedConfirm(false);
+        } else if (dirty) {
+          setShowUnsavedConfirm(true);
+        } else {
+          onClose();
+        }
       }
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [open, onClose, username, avatarUrl]);
+  }, [open, onClose, showUnsavedConfirm, dirty]);
 
   const stats = useMemo(() => {
     if (!open) return null;
@@ -85,8 +139,6 @@ export const ProfileDialog = ({
   }, [open]);
 
   if (typeof document === 'undefined') return null;
-
-  const dirty = name.trim() !== username || avatar !== avatarUrl;
 
   const pickPhoto = async (file?: File) => {
     if (!file) return;
@@ -124,7 +176,7 @@ export const ProfileDialog = ({
           role="dialog"
           aria-modal="true"
           aria-label="Tu perfil"
-          onClick={onClose}
+          onClick={requestClose}
         >
           <motion.div
             initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 32 }}
@@ -137,7 +189,7 @@ export const ProfileDialog = ({
           >
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               aria-label="Cerrar"
               className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.14] active:bg-white/[0.2] border border-white/10 hover:border-white/20 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
             >
@@ -328,6 +380,59 @@ export const ProfileDialog = ({
                 </>
               )}
             </div>
+
+            {/* Modal de confirmación para cambios sin guardar */}
+            <AnimatePresence>
+              {showUnsavedConfirm && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+                  onClick={() => setShowUnsavedConfirm(false)}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full max-w-sm rounded-3xl p-6 bg-black/45 backdrop-blur-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] text-center flex flex-col items-center border border-white/10"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-300 mb-3.5">
+                      <AlertTriangle className="w-6 h-6" />
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white tracking-tight">
+                      ¿Guardar cambios antes de salir?
+                    </h3>
+
+                    <p className="text-sm text-white/60 mt-1.5 mb-6">
+                      Tienes modificaciones sin guardar en tu perfil. ¿Qué deseas hacer?
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
+                      <button
+                        type="button"
+                        onClick={handleExitWithoutSaving}
+                        className="w-full sm:flex-1 py-2.5 px-3 rounded-full bg-white/[0.08] hover:bg-white/[0.15] active:bg-white/[0.2] border border-white/10 text-white/85 hover:text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                      >
+                        Salir sin guardar
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleSaveAndExit}
+                        className="w-full sm:flex-1 py-2.5 px-3 rounded-full bg-purple-500/90 hover:bg-purple-500 active:bg-purple-600 text-white text-xs sm:text-sm font-semibold shadow-md shadow-purple-600/25 transition-colors cursor-pointer"
+                      >
+                        Guardar y salir
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}
