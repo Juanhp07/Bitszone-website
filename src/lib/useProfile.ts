@@ -24,6 +24,45 @@ export const isSuperAdminAccount = (user: User | null, profile: Profile | null) 
   );
 };
 
+// Global subscription manager for app_config realtime changes
+type SyncCallback = () => void;
+const adminSyncListeners = new Set<SyncCallback>();
+let globalAdminChannel: any = null;
+
+function subscribeGlobalAdminSync() {
+  if (typeof window === 'undefined') return;
+  if (globalAdminChannel) return;
+
+  try {
+    const channelName = `bz_admin_sync_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    globalAdminChannel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'app_config' },
+        () => {
+          adminSyncListeners.forEach((fn) => {
+            try { fn(); } catch (e) { console.warn(e); }
+          });
+        }
+      )
+      .subscribe();
+  } catch (err) {
+    console.warn('Realtime channel init error:', err);
+  }
+}
+
+function unsubscribeGlobalAdminSync() {
+  if (adminSyncListeners.size === 0 && globalAdminChannel) {
+    try {
+      supabase.removeChannel(globalAdminChannel);
+    } catch (e) {
+      // ignore
+    }
+    globalAdminChannel = null;
+  }
+}
+
 // Current session + its profile row. `profile` stays null if the lookup fails, so a DB hiccup never blocks the app.
 export const useProfile = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -84,23 +123,27 @@ export const useProfile = () => {
       setTimeout(() => load(session?.user ?? null), 0);
     });
 
-    // Realtime listener for admin list updates from app_config
-    const channel = supabase
-      .channel('app_config_admin_sync')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'app_config' },
-        () => {
-          supabase.auth.getSession().then(({ data: sessData }) => {
-            if (sessData.session?.user) load(sessData.session.user);
-          });
-        }
-      )
-      .subscribe();
+    const onAdminSync = () => {
+      supabase.auth.getSession().then(({ data: sessData }) => {
+        if (sessData.session?.user) load(sessData.session.user);
+      });
+    };
+
+    adminSyncListeners.add(onAdminSync);
+    subscribeGlobalAdminSync();
+
+    const handleLocalAdminEvent = () => onAdminSync();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('bz-admin-list-changed', handleLocalAdminEvent);
+    }
 
     return () => {
       data.subscription.unsubscribe();
-      supabase.removeChannel(channel);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('bz-admin-list-changed', handleLocalAdminEvent);
+      }
+      adminSyncListeners.delete(onAdminSync);
+      unsubscribeGlobalAdminSync();
     };
   }, [load]);
 

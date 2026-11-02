@@ -170,11 +170,17 @@ export async function addAdminAccount(input: string): Promise<{ success: boolean
       // ignore
     }
 
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('bz-admin-list-changed'));
+    }
     return { success: true };
   } catch (err: any) {
     // Save to local cache even if DB fails
     userStorage.setItem(STORAGE_EMAILS, JSON.stringify(newEmails));
     userStorage.setItem(STORAGE_RECORDS, JSON.stringify(newRecords));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('bz-admin-list-changed'));
+    }
     return { success: true };
   }
 }
@@ -215,10 +221,16 @@ export async function removeAdminAccount(email: string): Promise<{ success: bool
       // ignore
     }
 
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('bz-admin-list-changed'));
+    }
     return { success: true };
   } catch (err: any) {
     userStorage.setItem(STORAGE_EMAILS, JSON.stringify(newEmails));
     userStorage.setItem(STORAGE_RECORDS, JSON.stringify(newRecords));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('bz-admin-list-changed'));
+    }
     return { success: true };
   }
 }
