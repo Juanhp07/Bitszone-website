@@ -91,6 +91,13 @@ export const ProfileDialog = ({
       setShowUnsavedConfirm(false);
       return;
     }
+    try {
+      await supabase.auth.updateUser({
+        data: { full_name: clean, name: clean, display_name: clean }
+      });
+    } catch {
+      // non-blocking
+    }
     setStatus('success');
     onSaved();
     setShowUnsavedConfirm(false);
@@ -156,6 +163,13 @@ export const ProfileDialog = ({
       setStatus('idle');
       setError(err.code === '23505' ? 'Ese nombre ya está en uso' : 'Algo salió mal. Intenta de nuevo.');
       return;
+    }
+    try {
+      await supabase.auth.updateUser({
+        data: { full_name: clean, name: clean, display_name: clean }
+      });
+    } catch {
+      // non-blocking
     }
     setStatus('success');
     onSaved();
