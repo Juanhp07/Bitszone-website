@@ -302,11 +302,11 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.06] hover:bg-white/[0.14] backdrop-blur-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white/80 hover:text-white bg-white/[0.08] hover:bg-white/[0.18] active:bg-white/[0.24] border border-white/20 hover:border-white/35 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer active:scale-95 group"
               title="Cerrar configuración (Esc)"
               aria-label="Cerrar configuración"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
             </button>
           </div>
 

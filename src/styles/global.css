@@ -127,14 +127,16 @@
 
 /* Modern Scrollbar globally */
 ::-webkit-scrollbar {
-  width: 6px !important;
-  height: 6px !important;
+  width: 5px !important;
+  height: 5px !important;
   background-color: transparent !important;
+  background: transparent !important;
 }
 
 ::-webkit-scrollbar-track,
 ::-webkit-scrollbar-track-piece {
   background-color: transparent !important;
+  background: transparent !important;
   border: none !important;
   box-shadow: none !important;
 }
@@ -146,29 +148,29 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.4) !important;
+  background-color: rgba(255, 255, 255, 0.45) !important;
 }
 
-::-webkit-scrollbar-button {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
-  -webkit-appearance: none !important;
-}
-
+/* Remove all buttons, steppers, and top/bottom limiters */
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:start,
+::-webkit-scrollbar-button:end,
 ::-webkit-scrollbar-button:start:decrement,
 ::-webkit-scrollbar-button:end:increment,
 ::-webkit-scrollbar-button:vertical:start:increment,
 ::-webkit-scrollbar-button:vertical:end:decrement,
-::-webkit-scrollbar-button:single-button {
+::-webkit-scrollbar-button:single-button,
+::-webkit-scrollbar-button:double-button {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+  background: transparent !important;
+  border: none !important;
   -webkit-appearance: none !important;
 }
 
 ::-webkit-scrollbar-corner {
+  display: none !important;
   background: transparent !important;
 }
 
@@ -177,7 +179,7 @@ html {
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
 }
 
-/* Thin, subtle scrollbar that only appears on hover */
+/* Thin, subtle scrollbar that only appears on hover (zero limiters/arrows at top & bottom) */
 .hover-subtle-scrollbar {
   scrollbar-width: thin !important;
   scrollbar-color: transparent transparent !important;
@@ -185,34 +187,63 @@ html {
 }
 
 .hover-subtle-scrollbar:hover {
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent !important;
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent !important;
 }
 
 .hover-subtle-scrollbar::-webkit-scrollbar {
   width: 5px !important;
   height: 5px !important;
   background-color: transparent !important;
+  background: transparent !important;
 }
 
 .hover-subtle-scrollbar::-webkit-scrollbar-track,
 .hover-subtle-scrollbar::-webkit-scrollbar-track-piece {
   background-color: transparent !important;
+  background: transparent !important;
   border: none !important;
+  box-shadow: none !important;
+}
+
+.hover-subtle-scrollbar::-webkit-scrollbar-button,
+.hover-subtle-scrollbar::-webkit-scrollbar-button:start,
+.hover-subtle-scrollbar::-webkit-scrollbar-button:end,
+.hover-subtle-scrollbar::-webkit-scrollbar-button:start:decrement,
+.hover-subtle-scrollbar::-webkit-scrollbar-button:end:increment,
+.hover-subtle-scrollbar::-webkit-scrollbar-button:vertical:start:increment,
+.hover-subtle-scrollbar::-webkit-scrollbar-button:vertical:end:decrement,
+.hover-subtle-scrollbar::-webkit-scrollbar-button:single-button,
+.hover-subtle-scrollbar::-webkit-scrollbar-button:double-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  -webkit-appearance: none !important;
+}
+
+.hover-subtle-scrollbar::-webkit-scrollbar-corner {
+  display: none !important;
+  background: transparent !important;
 }
 
 .hover-subtle-scrollbar::-webkit-scrollbar-thumb {
   background-color: transparent !important;
+  background: transparent !important;
   border-radius: 9999px !important;
   border: none !important;
+  box-shadow: none !important;
   transition: background-color 0.25s ease;
 }
 
 .hover-subtle-scrollbar:hover::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.25) !important;
 }
 
 .hover-subtle-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
 }
 
 

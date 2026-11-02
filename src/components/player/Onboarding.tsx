@@ -151,7 +151,7 @@ export const Onboarding = ({
         style={cardStyle}
       >
         {/* Left: the steps */}
-        <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl overflow-y-auto">
+        <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center items-center relative backdrop-blur-xl overflow-y-auto hover-subtle-scrollbar">
           <div className="w-full max-w-[26rem]">
             <AnimatePresence mode="wait" initial={false}>
               {step === 'profile' && (
