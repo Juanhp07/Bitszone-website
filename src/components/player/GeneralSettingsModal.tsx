@@ -213,13 +213,17 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   const [initialSettings, setInitialSettings] = useState<GeneralSettings>(settings);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
 
+  // Referencia para capturar el snapshot inicial ÚNICAMENTE cuando el modal pasa de cerrado a abierto
+  const prevIsOpenRef = useRef(false);
+
   // Sincronizar estado cuando se abre el modal
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevIsOpenRef.current) {
       setCurrentSettings(settings);
       setInitialSettings(settings);
       setSaveStatus('idle');
     }
+    prevIsOpenRef.current = isOpen;
   }, [isOpen, settings]);
 
   // Detección dinámica de cambios:

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardStyle, titleStyle } from '../auth/authUi';
@@ -127,13 +127,17 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
   const [initialSettings, setInitialSettings] = useState<CavaSettings>(settings);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
 
+  // Referencia para capturar el snapshot inicial ÚNICAMENTE cuando el modal pasa de cerrado a abierto
+  const prevIsOpenRef = useRef(false);
+
   // Sincronizar estado cuando se abre el modal
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevIsOpenRef.current) {
       setCurrentSettings(settings);
       setInitialSettings(settings);
       setSaveStatus('idle');
     }
+    prevIsOpenRef.current = isOpen;
   }, [isOpen, settings]);
 
   // Detección dinámica de cambios
