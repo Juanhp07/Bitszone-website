@@ -290,30 +290,32 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           onClick={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
-          className="relative w-full max-w-6xl h-[90dvh] md:h-[88vh] rounded-3xl overflow-hidden text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col"
+          className="relative w-full max-w-6xl h-[90dvh] md:h-[88vh] rounded-3xl overflow-hidden text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col md:flex-row shadow-2xl"
           style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)', background: 'rgba(0, 0, 0, 0.3)' }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-7 md:px-10 py-5 md:py-6 border-b border-white/[0.07] shrink-0 bg-black/20">
-            <h2 id="general-settings-title" className="text-2xl md:text-3xl text-white font-bold tracking-tight" style={titleStyle}>
-              Configuración
-            </h2>
+          {/* Botón flotante X */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.14] active:bg-white/[0.2] border border-white/10 hover:border-white/20 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
+            title="Cerrar configuración (Esc)"
+            aria-label="Cerrar configuración"
+          >
+            <X className="w-4 h-4" />
+          </button>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.14] active:bg-white/[0.2] border border-white/10 hover:border-white/20 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
-              title="Cerrar configuración (Esc)"
-              aria-label="Cerrar configuración"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Left: Sidebar con título, navegación y botones en la parte inferior */}
+          <div className="w-full md:w-72 lg:w-80 shrink-0 border-b md:border-b-0 md:border-r border-white/[0.08] bg-black/20 p-5 md:p-6 lg:p-7 flex flex-col min-h-0 backdrop-blur-xl">
+            {/* Título en la parte superior del sidebar */}
+            <div className="mb-4 md:mb-6 shrink-0">
+              <h2 id="general-settings-title" className="text-2xl md:text-3xl text-white font-bold tracking-tight" style={titleStyle}>
+                Configuración
+              </h2>
+              <p className="text-xs md:text-sm text-white/50 mt-1">Ajustes y preferencias</p>
+            </div>
 
-          {/* Modal Content - Dual Column on desktop */}
-          <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
-            {/* Navigation Tabs (Sidebar on desktop / horizontal bar on mobile) */}
-            <div className="w-full md:w-64 lg:w-72 shrink-0 border-b md:border-b-0 md:border-r border-white/[0.07] bg-white/[0.01] p-3 md:p-4 lg:p-5 overflow-x-auto md:overflow-y-auto min-h-0 scrollbar-hide flex md:flex-col gap-1.5 md:gap-2">
+            {/* Pestañas de navegación */}
+            <div className="flex md:flex-col gap-1.5 md:gap-2 overflow-x-auto md:overflow-y-auto min-h-0 flex-1 scrollbar-hide md:hover-subtle-scrollbar pr-0 md:pr-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -321,7 +323,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-auto md:w-full flex items-center gap-3.5 pl-2.5 pr-5 py-2 md:py-2.5 rounded-full text-left transition-[background-color,color,box-shadow] duration-300 cursor-pointer whitespace-nowrap shrink-0 group ${
+                    className={`w-auto md:w-full flex items-center gap-3.5 pl-2.5 pr-4 py-2 md:py-2.5 rounded-full text-left transition-[background-color,color,box-shadow] duration-300 cursor-pointer whitespace-nowrap shrink-0 group ${
                       isActive
                         ? 'bg-white/[0.14] backdrop-blur-xl text-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]'
                         : 'hover:bg-white/[0.06] text-white/65 hover:text-white'
@@ -340,8 +342,30 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
               })}
             </div>
 
-            {/* Content Panel */}
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 md:p-9 hover-subtle-scrollbar">
+            {/* Botones de guardar y restablecer en el sidebar en la parte inferior */}
+            <div className="mt-3 md:mt-auto pt-4 md:pt-5 shrink-0 flex flex-col sm:flex-row md:flex-col gap-2 md:gap-2.5 border-t border-white/[0.08]">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 md:py-3 rounded-full bg-white/[0.10] hover:bg-white/[0.18] active:bg-white/[0.25] border border-white/25 hover:border-white/45 backdrop-blur-xl text-white text-sm md:text-base font-semibold shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all cursor-pointer"
+              >
+                <Check className="w-4 h-4 md:w-5 md:h-5 stroke-[2.5]" />
+                <span>Guardar cambios</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(true)}
+                className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-full text-xs md:text-sm font-semibold text-white/55 hover:text-white/90 hover:bg-white/[0.06] transition-colors cursor-pointer group"
+              >
+                <RotateCcw className="w-3.5 h-3.5 transition-transform duration-500 ease-out group-hover:-rotate-180" />
+                <span>Restablecer configuración</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Body / Content Panel */}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 md:p-10 md:pt-12 hover-subtle-scrollbar bg-black/10">
               <motion.div
                 key={activeTab}
                 initial={{ opacity: 0, y: 10 }}
@@ -847,28 +871,6 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                 </div>
               )}
               </motion.div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between px-7 md:px-10 py-5 border-t border-white/[0.07] shrink-0 bg-black/30">
-            <button
-              type="button"
-              onClick={() => setShowResetConfirm(true)}
-              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold text-white/60 hover:text-white bg-transparent hover:bg-white/[0.08] transition-colors duration-200 cursor-pointer group"
-            >
-              <RotateCcw className="w-4 h-4 transition-transform duration-500 ease-out group-hover:-rotate-180" />
-              <span>Restablecer configuración</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-white/[0.09] hover:bg-white/[0.17] border border-white/35 hover:border-white/55 backdrop-blur-2xl text-white text-base font-semibold shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-[background-color,border-color] duration-300 cursor-pointer"
-            >
-              <Check className="w-5 h-5 stroke-[2.5]" />
-              <span>Guardar cambios</span>
-            </button>
           </div>
 
           {/* Modal de confirmación para restablecer configuración */}
