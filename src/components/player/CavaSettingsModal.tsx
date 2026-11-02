@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardStyle, titleStyle } from '../auth/authUi';
@@ -10,6 +10,7 @@ import {
   Activity,
   RotateCcw,
   Check,
+  CheckCircle2,
 } from 'lucide-react';
 import type {
   CavaSettings,
@@ -20,6 +21,10 @@ import type {
   CavaGlow,
   CavaDistribution,
 } from './cavaTypes';
+import {
+  DEFAULT_CAVA_SETTINGS,
+  saveCavaSettings,
+} from './cavaTypes';
 
 export type CavaSettingsTabId = 'appearance' | 'geometry' | 'distribution' | 'physics';
 
@@ -29,6 +34,26 @@ interface CavaSettingsModalProps {
   settings: CavaSettings;
   onUpdateSettings: (updater: (prev: CavaSettings) => CavaSettings) => void;
   onReset: () => void;
+}
+
+// Comparador profundo para CavaSettings
+function areCavaSettingsEqual(a: CavaSettings, b: CavaSettings): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.barCount === b.barCount &&
+    a.thickness === b.thickness &&
+    a.barGap === b.barGap &&
+    a.containerWidthPercent === b.containerWidthPercent &&
+    a.colorTheme === b.colorTheme &&
+    a.fillType === b.fillType &&
+    a.roundedCaps === b.roundedCaps &&
+    a.peakCaps === b.peakCaps &&
+    Math.abs(a.sensitivity - b.sensitivity) < 0.001 &&
+    a.gravity === b.gravity &&
+    a.glow === b.glow &&
+    (a.distribution || 'distributed') === (b.distribution || 'distributed')
+  );
 }
 
 // --------------------------------------------------------------------------
@@ -97,6 +122,72 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
   const [activeTab, setActiveTab] = useState<CavaSettingsTabId>('appearance');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+  // Estado local para edición dinámica y comparación
+  const [currentSettings, setCurrentSettings] = useState<CavaSettings>(settings);
+  const [initialSettings, setInitialSettings] = useState<CavaSettings>(settings);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
+
+  // Sincronizar estado cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentSettings(settings);
+      setInitialSettings(settings);
+      setSaveStatus('idle');
+    }
+  }, [isOpen, settings]);
+
+  // Detección dinámica de cambios
+  const isDirty = useMemo(() => {
+    return !areCavaSettingsEqual(currentSettings, initialSettings);
+  }, [currentSettings, initialSettings]);
+
+  const isDifferentFromDefault = useMemo(() => {
+    return !areCavaSettingsEqual(currentSettings, DEFAULT_CAVA_SETTINGS);
+  }, [currentSettings]);
+
+  // Lógica dinámica de botones
+  const isSaveDisabled = !isDirty;
+  const isResetDisabled = !isDirty && !isDifferentFromDefault;
+
+  // Actualización local con vista previa en tiempo real
+  const updateSettings = (updater: (prev: CavaSettings) => CavaSettings) => {
+    setCurrentSettings((prev) => {
+      const next = updater(prev);
+      onUpdateSettings(() => next);
+      return next;
+    });
+  };
+
+  // Guardar cambios: persiste en el estado global y en localStorage
+  const handleSave = () => {
+    if (!isDirty) return;
+    onUpdateSettings(() => currentSettings);
+    saveCavaSettings(currentSettings);
+    setInitialSettings(currentSettings);
+    setSaveStatus('saved');
+    setTimeout(() => {
+      setSaveStatus('idle');
+    }, 1500);
+  };
+
+  // Cerrar modal: si hay cambios sin guardar, se descartan y se revierte la vista previa
+  const handleClose = () => {
+    if (isDirty) {
+      onUpdateSettings(() => initialSettings);
+      saveCavaSettings(initialSettings);
+    }
+    setShowResetConfirm(false);
+    onClose();
+  };
+
+  // Confirmar restablecimiento: devuelve a valores por defecto
+  const handleConfirmReset = () => {
+    onReset();
+    setCurrentSettings(DEFAULT_CAVA_SETTINGS);
+    setInitialSettings(DEFAULT_CAVA_SETTINGS);
+    setShowResetConfirm(false);
+  };
+
   // Close reset confirmation dialog or modal on Escape
   useEffect(() => {
     if (!isOpen) return;
@@ -106,16 +197,16 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
           e.stopPropagation();
           e.stopImmediatePropagation();
           setShowResetConfirm(false);
-        } else {
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          onClose();
+          return;
         }
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        handleClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [isOpen, showResetConfirm, onClose]);
+  }, [isOpen, showResetConfirm, isDirty, initialSettings]);
 
   const tabs: { id: CavaSettingsTabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'appearance', label: 'Color y Acabado', icon: Palette },
@@ -137,7 +228,7 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="cava-settings-title"
-        onClick={onClose}
+        onClick={handleClose}
       >
         {/* Modal Card */}
         <motion.div
@@ -149,30 +240,32 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
           onClick={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
-          className="relative w-full max-w-6xl h-[90dvh] md:h-[88vh] rounded-3xl overflow-hidden text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col"
+          className="relative w-full max-w-6xl h-[90dvh] md:h-[88vh] rounded-3xl overflow-hidden text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col md:flex-row shadow-2xl"
           style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)', background: 'rgba(0, 0, 0, 0.3)' }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-7 md:px-10 py-5 md:py-6 border-b border-white/[0.07] shrink-0 bg-black/20">
-            <h2 id="cava-settings-title" className="text-2xl md:text-3xl text-white font-bold tracking-tight" style={titleStyle}>
-              Ajustes de Inmersión
-            </h2>
+          {/* Botón flotante X */}
+          <button
+            type="button"
+            onClick={handleClose}
+            className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.14] active:bg-white/[0.2] border border-white/10 hover:border-white/20 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
+            title="Cerrar ajustes (Esc)"
+            aria-label="Cerrar ajustes"
+          >
+            <X className="w-4 h-4" />
+          </button>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.14] active:bg-white/[0.2] border border-white/10 hover:border-white/20 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
-              title="Cerrar ajustes (Esc)"
-              aria-label="Cerrar ajustes"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Left: Sidebar con título, navegación y botones en la parte inferior */}
+          <div className="w-full md:w-72 lg:w-80 shrink-0 border-b md:border-b-0 md:border-r border-white/[0.08] bg-black/20 p-5 md:p-6 lg:p-7 flex flex-col min-h-0 backdrop-blur-xl">
+            {/* Título en la parte superior del sidebar */}
+            <div className="mb-4 md:mb-6 shrink-0">
+              <h2 id="cava-settings-title" className="text-2xl md:text-3xl text-white font-bold tracking-tight" style={titleStyle}>
+                Ajustes de Inmersión
+              </h2>
+              <p className="text-xs md:text-sm text-white/50 mt-1">Personaliza el visualizador</p>
+            </div>
 
-          {/* Modal Content - Dual Column on desktop */}
-          <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
-            {/* Navigation Tabs (Sidebar on desktop / horizontal bar on mobile) */}
-            <div className="w-full md:w-64 lg:w-72 shrink-0 border-b md:border-b-0 md:border-r border-white/[0.07] bg-white/[0.01] p-3 md:p-4 lg:p-5 overflow-x-auto md:overflow-y-auto min-h-0 scrollbar-hide flex md:flex-col gap-1.5 md:gap-2">
+            {/* Pestañas de navegación */}
+            <div className="flex md:flex-col gap-1.5 md:gap-2 overflow-x-auto md:overflow-y-auto min-h-0 flex-1 scrollbar-hide md:hover-subtle-scrollbar pr-0 md:pr-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -180,7 +273,7 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-auto md:w-full flex items-center gap-3.5 pl-2.5 pr-5 py-2 md:py-2.5 rounded-full text-left transition-[background-color,color,box-shadow] duration-300 cursor-pointer whitespace-nowrap shrink-0 group ${
+                    className={`w-auto md:w-full flex items-center gap-3.5 pl-2.5 pr-4 py-2 md:py-2.5 rounded-full text-left transition-[background-color,color,box-shadow] duration-300 cursor-pointer whitespace-nowrap shrink-0 group ${
                       isActive
                         ? 'bg-white/[0.14] backdrop-blur-xl text-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]'
                         : 'hover:bg-white/[0.06] text-white/65 hover:text-white'
@@ -199,428 +292,447 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
               })}
             </div>
 
-            {/* Content Panel */}
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 md:p-9 hover-subtle-scrollbar">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                className="space-y-8"
+            {/* Botones de guardar y restablecer en el sidebar en la parte inferior */}
+            <div className="mt-3 md:mt-auto pt-4 md:pt-5 shrink-0 flex flex-col sm:flex-row md:flex-col gap-2 md:gap-2.5 border-t border-white/[0.08]">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isSaveDisabled}
+                className={`w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 md:py-3 rounded-full text-sm md:text-base font-semibold transition-all duration-300 ${
+                  isSaveDisabled
+                    ? 'bg-white/[0.04] border border-white/[0.08] text-white/30 cursor-not-allowed shadow-none'
+                    : 'bg-white/[0.12] hover:bg-white/[0.20] active:bg-white/[0.26] border border-white/30 hover:border-white/50 backdrop-blur-xl text-white shadow-[0_8px_24px_rgba(0,0,0,0.3)] cursor-pointer hover:scale-[1.01]'
+                }`}
               >
-                {/* ========================================================= */}
-                {/* 1. COLOR Y ACABADO */}
-                {/* ========================================================= */}
-                {activeTab === 'appearance' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
-                        <Palette className="w-6 h-6 text-purple-400" />
-                        Paleta de Color y Relleno
-                      </h3>
-                      <p className="text-sm md:text-base text-white/60 mt-1">
-                        Personaliza los gradientes cromáticos, resplandor neón y acabado visual de las varitas.
-                      </p>
-                    </div>
-
-                    {/* Temas de Color */}
-                    <div className="space-y-3">
-                      <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                        Temas de Color
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {[
-                          { id: 'dynamic' as CavaColorTheme, label: 'Dinámico del Álbum', desc: 'Sincronizado con la portada', preview: 'from-purple-500 via-pink-400 to-white' },
-                          { id: 'bitszone' as CavaColorTheme, label: 'Lila Bitszone', desc: 'Neón morado característico', preview: 'from-purple-600 via-fuchsia-500 to-white' },
-                          { id: 'cyan' as CavaColorTheme, label: 'Ciberpunk Cyan', desc: 'Aguamarina eléctrico', preview: 'from-sky-600 via-cyan-400 to-white' },
-                          { id: 'fire' as CavaColorTheme, label: 'Fuego Solar', desc: 'Rojo y ámbar radiante', preview: 'from-red-600 via-amber-500 to-yellow-200' },
-                          { id: 'emerald' as CavaColorTheme, label: 'Esmeralda', desc: 'Verde menta jade', preview: 'from-emerald-700 via-emerald-400 to-white' },
-                          { id: 'monochrome' as CavaColorTheme, label: 'Monocromo CAVA', desc: 'Blanco puro minimalista', preview: 'from-zinc-600 via-zinc-300 to-white' },
-                        ].map((th) => {
-                          const active = settings.colorTheme === th.id;
-                          return (
-                            <button
-                              key={th.id}
-                              onClick={() => onUpdateSettings(prev => ({ ...prev, colorTheme: th.id }))}
-                              className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                                active
-                                  ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
-                                  : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
-                              }`}
-                            >
-                              <div className={`w-full h-3 rounded-full bg-gradient-to-r ${th.preview} mb-3 shadow-sm`} />
-                              <div className="flex items-center justify-between w-full">
-                                <span className="text-sm sm:text-base font-bold text-white">{th.label}</span>
-                                {active && <Check className="w-4 h-4 text-purple-300 shrink-0" />}
-                              </div>
-                              <p className="text-xs sm:text-sm text-white/60 mt-1">{th.desc}</p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Tipo de acabado */}
-                    <div className="space-y-3 pt-1">
-                      <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                        Tipo de Acabado
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {[
-                          { id: 'gradient' as CavaFillType, label: 'Degradado', desc: 'Transición luminosa con desvanecimiento suave' },
-                          { id: 'solid' as CavaFillType, label: 'Color Sólido', desc: 'Color uniforme, nítido y de alta definición' },
-                        ].map((f) => {
-                          const active = settings.fillType === f.id;
-                          return (
-                            <button
-                              key={f.id}
-                              onClick={() => onUpdateSettings(prev => ({ ...prev, fillType: f.id }))}
-                              className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                                active
-                                  ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
-                                  : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm sm:text-base font-bold text-white">{f.label}</span>
-                                {active && <Check className="w-4 h-4 text-purple-300" />}
-                              </div>
-                              <p className="text-xs sm:text-sm text-white/60 mt-1">{f.desc}</p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Resplandor Neón */}
-                    <div className="space-y-3 pt-1">
-                      <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                        Resplandor Neón
-                      </label>
-                      <div className="grid grid-cols-3 gap-3">
-                        {[
-                          { id: 'none' as CavaGlow, label: 'Apagado', desc: 'Sin aura' },
-                          { id: 'subtle' as CavaGlow, label: 'Sutil', desc: 'Aura recomendada' },
-                          { id: 'intense' as CavaGlow, label: 'Intenso', desc: 'Brillo alto' },
-                        ].map((g) => {
-                          const active = settings.glow === g.id;
-                          return (
-                            <button
-                              key={g.id}
-                              onClick={() => onUpdateSettings(prev => ({ ...prev, glow: g.id }))}
-                              className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                                active
-                                  ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
-                                  : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
-                              }`}
-                            >
-                              <div className="text-sm sm:text-base font-semibold">{g.label}</div>
-                              <div className="text-xs text-white/50 font-mono mt-0.5">{g.desc}</div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
+                {saveStatus === 'saved' ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 stroke-[2.5]" />
+                    <span className="text-emerald-300">¡Cambios guardados!</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 md:w-5 md:h-5 stroke-[2.5]" />
+                    <span>Guardar cambios</span>
+                  </>
                 )}
+              </button>
 
-                {/* ========================================================= */}
-                {/* 2. GEOMETRÍA Y VARITAS */}
-                {/* ========================================================= */}
-                {activeTab === 'geometry' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
-                        <Sliders className="w-6 h-6 text-purple-400" />
-                        Geometría y Grosor de las Varitas
-                      </h3>
-                      <p className="text-sm md:text-base text-white/60 mt-1">
-                        Configura el grosor, número de barras y la anchura horizontal del visualizador.
-                      </p>
-                    </div>
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(true)}
+                disabled={isResetDisabled}
+                className={`w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-full text-xs md:text-sm font-semibold transition-colors duration-200 group ${
+                  isResetDisabled
+                    ? 'text-white/25 cursor-not-allowed'
+                    : 'text-white/60 hover:text-white hover:bg-white/[0.06] cursor-pointer'
+                }`}
+              >
+                <RotateCcw className={`w-3.5 h-3.5 transition-transform duration-500 ease-out ${!isResetDisabled ? 'group-hover:-rotate-180' : ''}`} />
+                <span>Restablecer configuración</span>
+              </button>
+            </div>
+          </div>
 
-                    {/* Grosor de las varitas */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                          Grosor de las varitas
-                        </label>
-                        <span className="text-xs text-white/50 uppercase font-mono">{settings.thickness}</span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {[
-                          { id: 'thin' as CavaBarThickness, label: 'Delgado', desc: 'Líneas finas' },
-                          { id: 'medium' as CavaBarThickness, label: 'Medio', desc: 'Equilibrado' },
-                          { id: 'thick' as CavaBarThickness, label: 'Grueso', desc: 'Predeterminado' },
-                          { id: 'ultra' as CavaBarThickness, label: 'Extra Grueso', desc: 'Impacto fuerte' },
-                        ].map((th) => {
-                          const active = settings.thickness === th.id;
-                          return (
-                            <button
-                              key={th.id}
-                              onClick={() => onUpdateSettings(prev => ({ ...prev, thickness: th.id }))}
-                              className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                                active
-                                  ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
-                                  : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
-                              }`}
-                            >
-                              <div className="text-sm sm:text-base font-semibold">{th.label}</div>
-                              <div className="text-xs text-white/50 font-mono mt-0.5">{th.desc}</div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Cantidad de varitas en pantalla */}
-                    <div className="space-y-3 pt-1">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                          Cantidad de varitas en pantalla
-                        </label>
-                        <span className="text-xs text-purple-300 font-mono font-bold">{settings.barCount} barras</span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {[24, 32, 40, 56].map((count) => {
-                          const active = settings.barCount === count;
-                          return (
-                            <button
-                              key={count}
-                              onClick={() => onUpdateSettings(prev => ({ ...prev, barCount: count }))}
-                              className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                                active
-                                  ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
-                                  : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
-                              }`}
-                            >
-                              <div className="text-sm sm:text-base font-semibold">{count}</div>
-                              <div className="text-xs text-white/50 font-mono mt-0.5">varitas</div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Ancho horizontal general */}
-                    <div className="space-y-3 pt-1">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                          Ancho horizontal general
-                        </label>
-                        <span className="text-xs text-purple-300 font-mono font-bold">{settings.containerWidthPercent}%</span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {[88, 92, 96, 100].map((w) => {
-                          const active = settings.containerWidthPercent === w;
-                          return (
-                            <button
-                              key={w}
-                              onClick={() => onUpdateSettings(prev => ({ ...prev, containerWidthPercent: w }))}
-                              className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                                active
-                                  ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
-                                  : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
-                              }`}
-                            >
-                              <div className="text-sm sm:text-base font-semibold">{w === 100 ? 'Pantalla Completa' : `${w}%`}</div>
-                              <div className="text-xs text-white/50 font-mono mt-0.5">{w === 100 ? '100% ancho' : 'cobertura'}</div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Puntas redondeadas */}
-                    <div className="pt-2">
-                      <ToggleSwitch
-                        checked={settings.roundedCaps}
-                        onChange={(checked) => onUpdateSettings(prev => ({ ...prev, roundedCaps: checked }))}
-                        label="Puntas redondeadas"
-                        description="Forma de cápsula suave y aerodinámica en la parte superior de las varitas."
-                      />
-                    </div>
+          {/* Right: Body / Content Panel */}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 md:p-10 md:pt-12 hover-subtle-scrollbar bg-black/10">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-8"
+            >
+              {/* ========================================================= */}
+              {/* 1. COLOR Y ACABADO */}
+              {/* ========================================================= */}
+              {activeTab === 'appearance' && (
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+                      <Palette className="w-6 h-6 text-purple-400" />
+                      Paleta de Color y Relleno
+                    </h3>
+                    <p className="text-sm md:text-base text-white/60 mt-1">
+                      Personaliza los gradientes cromáticos, resplandor neón y acabado visual de las varitas.
+                    </p>
                   </div>
-                )}
 
-                {/* ========================================================= */}
-                {/* 3. DISTRIBUCIÓN Y MEZCLA */}
-                {/* ========================================================= */}
-                {activeTab === 'distribution' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
-                        <Layers className="w-6 h-6 text-purple-400" />
-                        Distribución y Mezcla de Barras
-                      </h3>
-                      <p className="text-sm md:text-base text-white/60 mt-1">
-                        Distribuye los bajos y la energía acústica a lo largo de las barras para evitar acumulaciones o saturación en un solo lado.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Temas de Color */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
+                      Temas de Color
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {[
-                        {
-                          id: 'distributed' as CavaDistribution,
-                          label: 'Marea Orgánica',
-                          badge: 'Recomendado',
-                          desc: 'Asimetría viva: lados fluctuantes entre bombos, voces y cajas con movimiento natural',
-                        },
-                        {
-                          id: 'center' as CavaDistribution,
-                          label: 'Espejo Centrado',
-                          desc: 'Graves potentes en el centro expandiéndose armónicamente a los laterales',
-                        },
-                        {
-                          id: 'interleaved' as CavaDistribution,
-                          label: 'Alternado Dinámico',
-                          desc: 'Barras de graves y agudos intercaladas rítmicamente con alto contraste',
-                        },
-                        {
-                          id: 'linear' as CavaDistribution,
-                          label: 'Clásico (Izq a Der)',
-                          desc: 'De graves a agudos lineal con compresión suave anti-saturación',
-                        },
-                      ].map((dist) => {
-                        const active = (settings.distribution || 'distributed') === dist.id;
+                        { id: 'dynamic' as CavaColorTheme, label: 'Dinámico del Álbum', desc: 'Sincronizado con la portada', preview: 'from-purple-500 via-pink-400 to-white' },
+                        { id: 'bitszone' as CavaColorTheme, label: 'Lila Bitszone', desc: 'Neón morado característico', preview: 'from-purple-600 via-fuchsia-500 to-white' },
+                        { id: 'cyan' as CavaColorTheme, label: 'Ciberpunk Cyan', desc: 'Aguamarina eléctrico', preview: 'from-sky-600 via-cyan-400 to-white' },
+                        { id: 'fire' as CavaColorTheme, label: 'Fuego Solar', desc: 'Rojo y ámbar radiante', preview: 'from-red-600 via-amber-500 to-yellow-200' },
+                        { id: 'emerald' as CavaColorTheme, label: 'Esmeralda', desc: 'Verde menta jade', preview: 'from-emerald-700 via-emerald-400 to-white' },
+                        { id: 'monochrome' as CavaColorTheme, label: 'Monocromo CAVA', desc: 'Blanco puro minimalista', preview: 'from-zinc-600 via-zinc-300 to-white' },
+                      ].map((th) => {
+                        const active = currentSettings.colorTheme === th.id;
                         return (
                           <button
-                            key={dist.id}
-                            onClick={() => onUpdateSettings(prev => ({ ...prev, distribution: dist.id }))}
+                            key={th.id}
+                            onClick={() => updateSettings(prev => ({ ...prev, colorTheme: th.id }))}
                             className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
                               active
                                 ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
                                 : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
                             }`}
                           >
+                            <div className={`w-full h-3 rounded-full bg-gradient-to-r ${th.preview} mb-3 shadow-sm`} />
                             <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm sm:text-base font-bold text-white">{dist.label}</span>
-                                {dist.badge && (
-                                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wider uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                                    {dist.badge}
-                                  </span>
-                                )}
-                              </div>
+                              <span className="text-sm sm:text-base font-bold text-white">{th.label}</span>
                               {active && <Check className="w-4 h-4 text-purple-300 shrink-0" />}
                             </div>
-                            <p className="text-xs sm:text-sm text-white/60 mt-1 leading-relaxed">{dist.desc}</p>
+                            <p className="text-xs sm:text-sm text-white/60 mt-1">{th.desc}</p>
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                )}
 
-                {/* ========================================================= */}
-                {/* 4. FÍSICA Y RESPUESTA */}
-                {/* ========================================================= */}
-                {activeTab === 'physics' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
-                        <Activity className="w-6 h-6 text-purple-400" />
-                        Física de Rebote y Caída CAVA
-                      </h3>
-                      <p className="text-sm md:text-base text-white/60 mt-1">
-                        Modela la respuesta acústica, amortiguación de picos y velocidad de retorno por gravedad.
-                      </p>
-                    </div>
-
-                    {/* Sensibilidad de respuesta */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                          Sensibilidad de respuesta
-                        </label>
-                        <span className="text-xs text-purple-300 font-mono font-bold">{settings.sensitivity.toFixed(2)}x</span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {[
-                          { val: 0.85, label: 'Suave', desc: '0.85x ganancia' },
-                          { val: 1.0, label: 'Normal', desc: '1.00x estándar' },
-                          { val: 1.25, label: 'Dinámico', desc: '1.25x reactivo' },
-                          { val: 1.55, label: 'Potente', desc: '1.55x máximo' },
-                        ].map((s) => {
-                          const active = Math.abs(settings.sensitivity - s.val) < 0.05;
-                          return (
-                            <button
-                              key={s.val}
-                              onClick={() => onUpdateSettings(prev => ({ ...prev, sensitivity: s.val }))}
-                              className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                                active
-                                  ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
-                                  : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
-                              }`}
-                            >
-                              <div className="text-sm sm:text-base font-semibold">{s.label}</div>
-                              <div className="text-xs text-white/50 font-mono mt-0.5">{s.desc}</div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Inercia de caída */}
-                    <div className="space-y-3 pt-1">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                          Inercia de caída
-                        </label>
-                        <span className="text-xs text-white/50 uppercase font-mono">{settings.gravity}</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {[
-                          { id: 'fluid' as CavaGravity, label: 'Fluida (Recomendada)', desc: 'Movimiento orgánico y natural' },
-                          { id: 'fast' as CavaGravity, label: 'Rápida', desc: 'Rebote instantáneo y ágil' },
-                          { id: 'slow' as CavaGravity, label: 'Sedosa / Lenta', desc: 'Descenso suave y flotante' },
-                        ].map((g) => {
-                          const active = settings.gravity === g.id;
-                          return (
-                            <button
-                              key={g.id}
-                              onClick={() => onUpdateSettings(prev => ({ ...prev, gravity: g.id }))}
-                              className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                                active
-                                  ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
-                                  : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm sm:text-base font-bold text-white">{g.label}</span>
-                                {active && <Check className="w-4 h-4 text-purple-300" />}
-                              </div>
-                              <p className="text-xs sm:text-sm text-white/60 mt-1">{g.desc}</p>
-                            </button>
-                          );
-                        })}
-                      </div>
+                  {/* Tipo de acabado */}
+                  <div className="space-y-3 pt-1">
+                    <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
+                      Tipo de Acabado
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        { id: 'gradient' as CavaFillType, label: 'Degradado', desc: 'Transición luminosa con desvanecimiento suave' },
+                        { id: 'solid' as CavaFillType, label: 'Color Sólido', desc: 'Color uniforme, nítido y de alta definición' },
+                      ].map((f) => {
+                        const active = currentSettings.fillType === f.id;
+                        return (
+                          <button
+                            key={f.id}
+                            onClick={() => updateSettings(prev => ({ ...prev, fillType: f.id }))}
+                            className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
+                              active
+                                ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                                : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm sm:text-base font-bold text-white">{f.label}</span>
+                              {active && <Check className="w-4 h-4 text-purple-300" />}
+                            </div>
+                            <p className="text-xs sm:text-sm text-white/60 mt-1">{f.desc}</p>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
-                )}
-              </motion.div>
-            </div>
-          </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between px-7 md:px-10 py-5 border-t border-white/[0.07] shrink-0 bg-black/30">
-            <button
-              type="button"
-              onClick={() => setShowResetConfirm(true)}
-              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold text-white/60 hover:text-white bg-transparent hover:bg-white/[0.08] transition-colors duration-200 cursor-pointer group"
-            >
-              <RotateCcw className="w-4 h-4 transition-transform duration-500 ease-out group-hover:-rotate-180" />
-              <span>Restablecer configuración</span>
-            </button>
+                  {/* Resplandor Neón */}
+                  <div className="space-y-3 pt-1">
+                    <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
+                      Resplandor Neón
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { id: 'none' as CavaGlow, label: 'Apagado', desc: 'Sin aura' },
+                        { id: 'subtle' as CavaGlow, label: 'Sutil', desc: 'Aura recomendada' },
+                        { id: 'intense' as CavaGlow, label: 'Intenso', desc: 'Brillo alto' },
+                      ].map((g) => {
+                        const active = currentSettings.glow === g.id;
+                        return (
+                          <button
+                            key={g.id}
+                            onClick={() => updateSettings(prev => ({ ...prev, glow: g.id }))}
+                            className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
+                              active
+                                ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                                : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
+                            }`}
+                          >
+                            <div className="text-sm sm:text-base font-semibold">{g.label}</div>
+                            <div className="text-xs text-white/50 font-mono mt-0.5">{g.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-white/[0.09] hover:bg-white/[0.17] border border-white/35 hover:border-white/55 backdrop-blur-2xl text-white text-base font-semibold shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-[background-color,border-color] duration-300 cursor-pointer"
-            >
-              <Check className="w-5 h-5 stroke-[2.5]" />
-              <span>Guardar cambios</span>
-            </button>
+              {/* ========================================================= */}
+              {/* 2. GEOMETRÍA Y VARITAS */}
+              {/* ========================================================= */}
+              {activeTab === 'geometry' && (
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+                      <Sliders className="w-6 h-6 text-purple-400" />
+                      Geometría y Grosor de las Varitas
+                    </h3>
+                    <p className="text-sm md:text-base text-white/60 mt-1">
+                      Configura el grosor, número de barras y la anchura horizontal del visualizador.
+                    </p>
+                  </div>
+
+                  {/* Grosor de las varitas */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
+                        Grosor de las varitas
+                      </label>
+                      <span className="text-xs text-white/50 uppercase font-mono">{currentSettings.thickness}</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { id: 'thin' as CavaBarThickness, label: 'Delgado', desc: 'Líneas finas' },
+                        { id: 'medium' as CavaBarThickness, label: 'Medio', desc: 'Equilibrado' },
+                        { id: 'thick' as CavaBarThickness, label: 'Grueso', desc: 'Predeterminado' },
+                        { id: 'ultra' as CavaBarThickness, label: 'Extra Grueso', desc: 'Impacto fuerte' },
+                      ].map((th) => {
+                        const active = currentSettings.thickness === th.id;
+                        return (
+                          <button
+                            key={th.id}
+                            onClick={() => updateSettings(prev => ({ ...prev, thickness: th.id }))}
+                            className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
+                              active
+                                ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                                : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
+                            }`}
+                          >
+                            <div className="text-sm sm:text-base font-semibold">{th.label}</div>
+                            <div className="text-xs text-white/50 font-mono mt-0.5">{th.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Cantidad de varitas en pantalla */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
+                        Cantidad de varitas en pantalla
+                      </label>
+                      <span className="text-xs text-purple-300 font-mono font-bold">{currentSettings.barCount} barras</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[24, 32, 40, 56].map((count) => {
+                        const active = currentSettings.barCount === count;
+                        return (
+                          <button
+                            key={count}
+                            onClick={() => updateSettings(prev => ({ ...prev, barCount: count }))}
+                            className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
+                              active
+                                ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                                : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
+                            }`}
+                          >
+                            <div className="text-sm sm:text-base font-semibold">{count}</div>
+                            <div className="text-xs text-white/50 font-mono mt-0.5">varitas</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Ancho horizontal general */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
+                        Ancho horizontal general
+                      </label>
+                      <span className="text-xs text-purple-300 font-mono font-bold">{currentSettings.containerWidthPercent}%</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[88, 92, 96, 100].map((w) => {
+                        const active = currentSettings.containerWidthPercent === w;
+                        return (
+                          <button
+                            key={w}
+                            onClick={() => updateSettings(prev => ({ ...prev, containerWidthPercent: w }))}
+                            className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
+                              active
+                                ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                                : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
+                            }`}
+                          >
+                            <div className="text-sm sm:text-base font-semibold">{w === 100 ? 'Pantalla Completa' : `${w}%`}</div>
+                            <div className="text-xs text-white/50 font-mono mt-0.5">{w === 100 ? '100% ancho' : 'cobertura'}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Puntas redondeadas */}
+                  <div className="pt-2">
+                    <ToggleSwitch
+                      checked={currentSettings.roundedCaps}
+                      onChange={(checked) => updateSettings(prev => ({ ...prev, roundedCaps: checked }))}
+                      label="Puntas redondeadas"
+                      description="Forma de cápsula suave y aerodinámica en la parte superior de las varitas."
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================= */}
+              {/* 3. DISTRIBUCIÓN Y MEZCLA */}
+              {/* ========================================================= */}
+              {activeTab === 'distribution' && (
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+                      <Layers className="w-6 h-6 text-purple-400" />
+                      Distribución y Mezcla de Barras
+                    </h3>
+                    <p className="text-sm md:text-base text-white/60 mt-1">
+                      Distribuye los bajos y la energía acústica a lo largo de las barras para evitar acumulaciones o saturación en un solo lado.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      {
+                        id: 'distributed' as CavaDistribution,
+                        label: 'Marea Orgánica',
+                        badge: 'Recomendado',
+                        desc: 'Asimetría viva: lados fluctuantes entre bombos, voces y cajas con movimiento natural',
+                      },
+                      {
+                        id: 'center' as CavaDistribution,
+                        label: 'Espejo Centrado',
+                        desc: 'Graves potentes en el centro expandiéndose armónicamente a los laterales',
+                      },
+                      {
+                        id: 'interleaved' as CavaDistribution,
+                        label: 'Alternado Dinámico',
+                        desc: 'Barras de graves y agudos intercaladas rítmicamente con alto contraste',
+                      },
+                      {
+                        id: 'linear' as CavaDistribution,
+                        label: 'Clásico (Izq a Der)',
+                        desc: 'De graves a agudos lineal con compresión suave anti-saturación',
+                      },
+                    ].map((dist) => {
+                      const active = (currentSettings.distribution || 'distributed') === dist.id;
+                      return (
+                        <button
+                          key={dist.id}
+                          onClick={() => updateSettings(prev => ({ ...prev, distribution: dist.id }))}
+                          className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
+                            active
+                              ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                              : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm sm:text-base font-bold text-white">{dist.label}</span>
+                              {dist.badge && (
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wider uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                  {dist.badge}
+                                </span>
+                              )}
+                            </div>
+                            {active && <Check className="w-4 h-4 text-purple-300 shrink-0" />}
+                          </div>
+                          <p className="text-xs sm:text-sm text-white/60 mt-1 leading-relaxed">{dist.desc}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================= */}
+              {/* 4. FÍSICA Y RESPUESTA */}
+              {/* ========================================================= */}
+              {activeTab === 'physics' && (
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+                      <Activity className="w-6 h-6 text-purple-400" />
+                      Física de Rebote y Caída CAVA
+                    </h3>
+                    <p className="text-sm md:text-base text-white/60 mt-1">
+                      Modela la respuesta acústica, amortiguación de picos y velocidad de retorno por gravedad.
+                    </p>
+                  </div>
+
+                  {/* Sensibilidad de respuesta */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
+                        Sensibilidad de respuesta
+                      </label>
+                      <span className="text-xs text-purple-300 font-mono font-bold">{currentSettings.sensitivity.toFixed(2)}x</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { val: 0.85, label: 'Suave', desc: '0.85x ganancia' },
+                        { val: 1.0, label: 'Normal', desc: '1.00x estándar' },
+                        { val: 1.25, label: 'Dinámico', desc: '1.25x reactivo' },
+                        { val: 1.55, label: 'Potente', desc: '1.55x máximo' },
+                      ].map((s) => {
+                        const active = Math.abs(currentSettings.sensitivity - s.val) < 0.05;
+                        return (
+                          <button
+                            key={s.val}
+                            onClick={() => updateSettings(prev => ({ ...prev, sensitivity: s.val }))}
+                            className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
+                              active
+                                ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                                : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
+                            }`}
+                          >
+                            <div className="text-sm sm:text-base font-semibold">{s.label}</div>
+                            <div className="text-xs text-white/50 font-mono mt-0.5">{s.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Inercia de caída */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-semibold uppercase tracking-wider text-white/70">
+                        Inercia de caída
+                      </label>
+                      <span className="text-xs text-white/50 uppercase font-mono">{currentSettings.gravity}</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[
+                        { id: 'fluid' as CavaGravity, label: 'Fluida (Recomendada)', desc: 'Movimiento orgánico y natural' },
+                        { id: 'fast' as CavaGravity, label: 'Rápida', desc: 'Rebote instantáneo y ágil' },
+                        { id: 'slow' as CavaGravity, label: 'Sedosa / Lenta', desc: 'Descenso suave y flotante' },
+                      ].map((g) => {
+                        const active = currentSettings.gravity === g.id;
+                        return (
+                          <button
+                            key={g.id}
+                            onClick={() => updateSettings(prev => ({ ...prev, gravity: g.id }))}
+                            className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
+                              active
+                                ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
+                                : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm sm:text-base font-bold text-white">{g.label}</span>
+                              {active && <Check className="w-4 h-4 text-purple-300" />}
+                            </div>
+                            <p className="text-xs sm:text-sm text-white/60 mt-1">{g.desc}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
 
           {/* Modal de confirmación para restablecer configuración */}
@@ -665,10 +777,7 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
 
                     <button
                       type="button"
-                      onClick={() => {
-                        onReset();
-                        setShowResetConfirm(false);
-                      }}
+                      onClick={handleConfirmReset}
                       className="flex-1 py-2.5 px-4 rounded-full bg-purple-500/90 hover:bg-purple-500 text-white text-sm font-semibold shadow-md shadow-purple-600/25 transition-colors cursor-pointer"
                     >
                       Restablecer
