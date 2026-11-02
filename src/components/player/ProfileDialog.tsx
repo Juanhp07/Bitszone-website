@@ -139,7 +139,8 @@ export const ProfileDialog = ({
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.14] active:bg-white/[0.2] border border-white/10 hover:border-white/20 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
+              className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.08] hover:bg-white/[0.16] active:bg-white/[0.22] border border-white/12 hover:border-white/25 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
+              style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
             >
               <X className="w-4 h-4" aria-hidden="true" />
             </button>
