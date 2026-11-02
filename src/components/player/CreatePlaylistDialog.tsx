@@ -77,9 +77,9 @@ export const CreatePlaylistDialog = ({
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 cursor-pointer"
+              className="absolute top-5 right-5 w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.14] active:bg-white/[0.2] border border-white/10 hover:border-white/20 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
             >
-              <X className="w-5 h-5" aria-hidden="true" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
             <Heading title="Nueva lista" subtitle="Elige una portada y ponle nombre a tu colección." />
 
