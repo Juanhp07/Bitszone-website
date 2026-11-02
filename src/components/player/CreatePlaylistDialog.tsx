@@ -71,7 +71,7 @@ export const CreatePlaylistDialog = ({
             transition={{ type: 'spring', stiffness: 170, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-[32rem] rounded-3xl overflow-hidden shadow-2xl text-white p-9 sm:p-11 backdrop-blur-xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
-            style={{ ...cardStyle, backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+            style={cardStyle}
           >
             <button
               type="button"

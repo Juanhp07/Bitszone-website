@@ -150,7 +150,7 @@ export const CavaSettingsModal: React.FC<CavaSettingsModalProps> = ({
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
           className="relative w-full max-w-6xl h-[90dvh] md:h-[88vh] rounded-3xl overflow-hidden text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] flex flex-col"
-          style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)', background: 'rgba(0, 0, 0, 0.3)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+          style={{ ...cardStyle, border: 'none', boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.65)', background: 'rgba(10, 7, 18, 0.88)' }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-7 md:px-10 py-5 md:py-6 border-b border-white/[0.07] shrink-0 bg-black/20">

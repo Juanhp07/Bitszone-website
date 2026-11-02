@@ -133,7 +133,7 @@ export const ProfileDialog = ({
             transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-[1020px] max-h-[calc(100dvh-1.5rem)] md:h-[min(760px,calc(100vh-2.5rem))] flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
-            style={{ ...cardStyle, backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+            style={{ ...cardStyle, background: 'rgba(12, 9, 20, 0.94)' }}
           >
             {/* Left: the account */}
             <div
@@ -243,7 +243,7 @@ export const ProfileDialog = ({
             </div>
 
             {/* Right: listening stats */}
-            <div className="flex-1 min-w-0 p-6 md:p-8 overflow-y-auto bg-black/20 hover-subtle-scrollbar">
+            <div className="flex-1 min-w-0 p-6 md:p-8 overflow-y-auto bg-black/40 hover-subtle-scrollbar">
               <h2 className="text-2xl md:text-3xl mb-1" style={titleStyle}>Tu música</h2>
               <p className="text-sm text-white/60 mb-6">Lo que más suena en tu Bitszone.</p>
 

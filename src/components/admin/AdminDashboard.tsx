@@ -1165,7 +1165,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
                 className="relative w-full max-w-xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden max-h-[92vh] overflow-y-auto hover-subtle-scrollbar"
-                style={{ ...cardStyle, backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+                style={cardStyle}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-7">
@@ -1248,7 +1248,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
                 className="relative w-full max-w-2xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden max-h-[92vh] overflow-y-auto hover-subtle-scrollbar"
-                style={{ ...cardStyle, backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+                style={cardStyle}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-7">
@@ -1327,7 +1327,7 @@ export const AdminDashboard = ({ onBack }: { onBack?: () => void }) => {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
                 className="relative w-full max-w-2xl rounded-3xl p-8 sm:p-10 text-left text-white shadow-2xl [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] overflow-hidden max-h-[92vh] overflow-y-auto hover-subtle-scrollbar"
-                style={{ ...cardStyle, backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+                style={cardStyle}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-7">
