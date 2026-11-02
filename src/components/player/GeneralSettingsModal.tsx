@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cardStyle, titleStyle } from '../auth/authUi';
@@ -33,7 +33,43 @@ import {
   DEFAULT_SHORTCUTS,
   SHORTCUT_DEFINITIONS,
   formatKeyName,
+  saveGeneralSettings,
+  applyGeneralSettingsToDOM,
 } from './generalSettingsTypes';
+
+// Comparador profundo para GeneralSettings
+function areSettingsEqual(a: GeneralSettings, b: GeneralSettings): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (
+    a.textScale !== b.textScale ||
+    a.fontFamily !== b.fontFamily ||
+    a.interfaceDensity !== b.interfaceDensity ||
+    a.colorBlindness !== b.colorBlindness ||
+    a.highContrast !== b.highContrast ||
+    a.underlineLinks !== b.underlineLinks ||
+    a.reduceTransparency !== b.reduceTransparency ||
+    a.enhancedFocus !== b.enhancedFocus ||
+    a.reduceMotion !== b.reduceMotion ||
+    a.disableBlur !== b.disableBlur ||
+    a.disableGlows !== b.disableGlows ||
+    a.ambientBackground !== b.ambientBackground ||
+    a.crossfadeDuration !== b.crossfadeDuration ||
+    a.smoothVolumeTransitions !== b.smoothVolumeTransitions ||
+    a.streamingQuality !== b.streamingQuality ||
+    a.volumeNormalization !== b.volumeNormalization ||
+    a.trackChangeToasts !== b.trackChangeToasts
+  ) {
+    return false;
+  }
+  const sA = a.shortcuts || {};
+  const sB = b.shortcuts || {};
+  const allKeys = Array.from(new Set([...Object.keys(sA), ...Object.keys(sB)])) as (keyof CustomShortcuts)[];
+  for (const k of allKeys) {
+    if (sA[k] !== sB[k]) return false;
+  }
+  return true;
+}
 
 export type SettingsTabId = 'appearance' | 'accessibility' | 'performance' | 'shortcuts' | 'playback' | 'system';
 
@@ -172,6 +208,79 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
   const [shortcutsSearch, setShortcutsSearch] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+  // Estado local para edición dinámica y comparación
+  const [currentSettings, setCurrentSettings] = useState<GeneralSettings>(settings);
+  const [initialSettings, setInitialSettings] = useState<GeneralSettings>(settings);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
+
+  // Sincronizar estado cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentSettings(settings);
+      setInitialSettings(settings);
+      setSaveStatus('idle');
+    }
+  }, [isOpen, settings]);
+
+  // Detección dinámica de cambios:
+  // isDirty: si el usuario modificó algún ajuste con respecto a lo guardado inicialmente
+  const isDirty = useMemo(() => {
+    return !areSettingsEqual(currentSettings, initialSettings);
+  }, [currentSettings, initialSettings]);
+
+  // isDifferentFromDefault: si los ajustes actuales difieren de los valores por defecto
+  const isDifferentFromDefault = useMemo(() => {
+    return !areSettingsEqual(currentSettings, DEFAULT_GENERAL_SETTINGS);
+  }, [currentSettings]);
+
+  // Lógica de deshabilitación solicitada:
+  // - "Guardar cambios" siempre deshabilitado hasta que noten cambios con respecto al estado inicial
+  const isSaveDisabled = !isDirty;
+  // - "Restablecer" deshabilitado si no hay cambios y además todo ya está por defecto
+  const isResetDisabled = !isDirty && !isDifferentFromDefault;
+
+  // Actualización local con vista previa en tiempo real en el DOM
+  const updateSettings = (updater: (prev: GeneralSettings) => GeneralSettings) => {
+    setCurrentSettings(prev => {
+      const next = updater(prev);
+      applyGeneralSettingsToDOM(next);
+      return next;
+    });
+  };
+
+  // Guardar cambios: persiste en el estado global y en localStorage
+  const handleSave = () => {
+    if (!isDirty) return;
+    onUpdateSettings(() => currentSettings);
+    saveGeneralSettings(currentSettings);
+    applyGeneralSettingsToDOM(currentSettings);
+    setInitialSettings(currentSettings);
+    setSaveStatus('saved');
+    setTimeout(() => {
+      setSaveStatus('idle');
+    }, 1500);
+  };
+
+  // Cerrar modal: si hay cambios sin guardar, se descartan y se revierte la vista previa del DOM
+  const handleClose = () => {
+    if (isDirty) {
+      applyGeneralSettingsToDOM(initialSettings);
+    }
+    setRecordingAction(null);
+    setShortcutConflict(null);
+    setShowResetConfirm(false);
+    onClose();
+  };
+
+  // Confirmar restablecimiento: devuelve a valores por defecto y actualiza estado
+  const handleConfirmReset = () => {
+    onResetAll();
+    setCurrentSettings(DEFAULT_GENERAL_SETTINGS);
+    setInitialSettings(DEFAULT_GENERAL_SETTINGS);
+    applyGeneralSettingsToDOM(DEFAULT_GENERAL_SETTINGS);
+    setShowResetConfirm(false);
+  };
+
   // Close reset confirmation dialog, recording, or modal on Escape
   useEffect(() => {
     if (!isOpen) return;
@@ -192,12 +301,12 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
         }
         e.stopPropagation();
         e.stopImmediatePropagation();
-        onClose();
+        handleClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [isOpen, showResetConfirm, recordingAction, onClose]);
+  }, [isOpen, showResetConfirm, recordingAction, isDirty, initialSettings]);
 
   // Keep active tab in sync if initialTab changes on open
   useEffect(() => {
@@ -227,7 +336,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       }
 
       // Check for conflict with another action
-      const conflictEntry = Object.entries(settings.shortcuts).find(
+      const conflictEntry = Object.entries(currentSettings.shortcuts).find(
         ([act, code]) => act !== recordingAction && code === e.code
       );
 
@@ -239,7 +348,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
       }
 
       // Update shortcut
-      onUpdateSettings(prev => ({
+      updateSettings(prev => ({
         ...prev,
         shortcuts: {
           ...prev.shortcuts,
@@ -252,7 +361,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
 
     window.addEventListener('keydown', handleCapture, { capture: true });
     return () => window.removeEventListener('keydown', handleCapture, { capture: true });
-  }, [recordingAction, settings.shortcuts, onUpdateSettings]);
+  }, [recordingAction, currentSettings.shortcuts]);
 
   if (!isOpen) return null;
 
@@ -278,7 +387,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="general-settings-title"
-        onClick={onClose}
+        onClick={handleClose}
       >
         {/* Modal Card */}
         <motion.div
@@ -296,7 +405,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
           {/* Botón flotante X */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center text-white/75 hover:text-white bg-white/[0.07] hover:bg-white/[0.14] active:bg-white/[0.2] border border-white/10 hover:border-white/20 backdrop-blur-xl shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 cursor-pointer"
             title="Cerrar configuración (Esc)"
             aria-label="Cerrar configuración"
@@ -346,19 +455,38 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
             <div className="mt-3 md:mt-auto pt-4 md:pt-5 shrink-0 flex flex-col sm:flex-row md:flex-col gap-2 md:gap-2.5 border-t border-white/[0.08]">
               <button
                 type="button"
-                onClick={onClose}
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 md:py-3 rounded-full bg-white/[0.10] hover:bg-white/[0.18] active:bg-white/[0.25] border border-white/25 hover:border-white/45 backdrop-blur-xl text-white text-sm md:text-base font-semibold shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all cursor-pointer"
+                onClick={handleSave}
+                disabled={isSaveDisabled}
+                className={`w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 md:py-3 rounded-full text-sm md:text-base font-semibold transition-all duration-300 ${
+                  isSaveDisabled
+                    ? 'bg-white/[0.04] border border-white/[0.08] text-white/30 cursor-not-allowed shadow-none'
+                    : 'bg-white/[0.12] hover:bg-white/[0.20] active:bg-white/[0.26] border border-white/30 hover:border-white/50 backdrop-blur-xl text-white shadow-[0_8px_24px_rgba(0,0,0,0.3)] cursor-pointer hover:scale-[1.01]'
+                }`}
               >
-                <Check className="w-4 h-4 md:w-5 md:h-5 stroke-[2.5]" />
-                <span>Guardar cambios</span>
+                {saveStatus === 'saved' ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 stroke-[2.5]" />
+                    <span className="text-emerald-300">¡Cambios guardados!</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 md:w-5 md:h-5 stroke-[2.5]" />
+                    <span>Guardar cambios</span>
+                  </>
+                )}
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowResetConfirm(true)}
-                className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-full text-xs md:text-sm font-semibold text-white/55 hover:text-white/90 hover:bg-white/[0.06] transition-colors cursor-pointer group"
+                disabled={isResetDisabled}
+                className={`w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-full text-xs md:text-sm font-semibold transition-colors duration-200 group ${
+                  isResetDisabled
+                    ? 'text-white/25 cursor-not-allowed'
+                    : 'text-white/60 hover:text-white hover:bg-white/[0.06] cursor-pointer'
+                }`}
               >
-                <RotateCcw className="w-3.5 h-3.5 transition-transform duration-500 ease-out group-hover:-rotate-180" />
+                <RotateCcw className={`w-3.5 h-3.5 transition-transform duration-500 ease-out ${!isResetDisabled ? 'group-hover:-rotate-180' : ''}`} />
                 <span>Restablecer configuración</span>
               </button>
             </div>
@@ -395,12 +523,12 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                     </span>
                     <p
                       className="text-white font-medium leading-relaxed transition-all"
-                      style={{ fontSize: `${settings.textScale}%` }}
+                      style={{ fontSize: `${currentSettings.textScale}%` }}
                     >
                       Bitszone — Música ilimitada con la mejor experiencia visual y acústica.
                     </p>
                     <span className="text-xs text-white/50 font-mono">
-                      Escala actual: {settings.textScale}%
+                      Escala actual: {currentSettings.textScale}%
                     </span>
                   </div>
 
@@ -417,9 +545,9 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       ].map((p) => (
                         <button
                           key={p.scale}
-                          onClick={() => onUpdateSettings(prev => ({ ...prev, textScale: p.scale }))}
+                          onClick={() => updateSettings(prev => ({ ...prev, textScale: p.scale }))}
                           className={`py-3.5 px-4 rounded-2xl border text-center transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                            settings.textScale === p.scale
+                            currentSettings.textScale === p.scale
                               ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
                               : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
                           }`}
@@ -444,16 +572,16 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       ].map((font) => (
                         <button
                           key={font.id}
-                          onClick={() => onUpdateSettings(prev => ({ ...prev, fontFamily: font.id }))}
+                          onClick={() => updateSettings(prev => ({ ...prev, fontFamily: font.id }))}
                           className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                            settings.fontFamily === font.id
+                            currentSettings.fontFamily === font.id
                               ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
                               : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-sm sm:text-base font-bold text-white">{font.label}</span>
-                            {settings.fontFamily === font.id && <Check className="w-4 h-4 text-purple-300" />}
+                            {currentSettings.fontFamily === font.id && <Check className="w-4 h-4 text-purple-300" />}
                           </div>
                           <p className="text-xs sm:text-sm text-white/60 mt-1">{font.desc}</p>
                         </button>
@@ -493,16 +621,16 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       ].map((item) => (
                         <button
                           key={item.id}
-                          onClick={() => onUpdateSettings(prev => ({ ...prev, colorBlindness: item.id }))}
+                          onClick={() => updateSettings(prev => ({ ...prev, colorBlindness: item.id }))}
                           className={`p-4 rounded-2xl border text-left transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                            settings.colorBlindness === item.id
+                            currentSettings.colorBlindness === item.id
                               ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
                               : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-sm sm:text-base font-bold text-white">{item.label}</span>
-                            {settings.colorBlindness === item.id && <Check className="w-4 h-4 text-purple-300" />}
+                            {currentSettings.colorBlindness === item.id && <Check className="w-4 h-4 text-purple-300" />}
                           </div>
                           <p className="text-xs sm:text-sm text-white/60 mt-1">{item.desc}</p>
                         </button>
@@ -545,23 +673,23 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                     <ToggleSwitch
                       label="Modo de Alto Contraste"
                       description="Bordes definidos y texto en blanco puro para máxima legibilidad"
-                      checked={settings.highContrast}
-                      onChange={(v) => onUpdateSettings(prev => ({ ...prev, highContrast: v }))}
+                      checked={currentSettings.highContrast}
+                      onChange={(v) => updateSettings(prev => ({ ...prev, highContrast: v }))}
                       badge="WCAG AAA"
                     />
 
                     <ToggleSwitch
                       label="Subrayar Elementos Interactivos"
                       description="Subraya enlaces, canciones y botones para identificarlos al instante"
-                      checked={settings.underlineLinks}
-                      onChange={(v) => onUpdateSettings(prev => ({ ...prev, underlineLinks: v }))}
+                      checked={currentSettings.underlineLinks}
+                      onChange={(v) => updateSettings(prev => ({ ...prev, underlineLinks: v }))}
                     />
 
                     <ToggleSwitch
                       label="Reducir Transparencias"
                       description="Usa fondos sólidos en lugar de efectos de cristal translúcido"
-                      checked={settings.reduceTransparency}
-                      onChange={(v) => onUpdateSettings(prev => ({ ...prev, reduceTransparency: v }))}
+                      checked={currentSettings.reduceTransparency}
+                      onChange={(v) => updateSettings(prev => ({ ...prev, reduceTransparency: v }))}
                     />
                   </div>
                 </div>
@@ -586,31 +714,31 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                     <ToggleSwitch
                       label="Reducir Animaciones"
                       description="Desactiva transiciones y movimientos para mayor rapidez y menor carga"
-                      checked={settings.reduceMotion}
-                      onChange={(v) => onUpdateSettings(prev => ({ ...prev, reduceMotion: v }))}
+                      checked={currentSettings.reduceMotion}
+                      onChange={(v) => updateSettings(prev => ({ ...prev, reduceMotion: v }))}
                       badge="Fluidez"
                     />
 
                     <ToggleSwitch
                       label="Desactivar Desenfoque de Cristal"
                       description="Elimina el efecto de blur para reducir el consumo de tarjeta gráfica"
-                      checked={settings.disableBlur}
-                      onChange={(v) => onUpdateSettings(prev => ({ ...prev, disableBlur: v }))}
+                      checked={currentSettings.disableBlur}
+                      onChange={(v) => updateSettings(prev => ({ ...prev, disableBlur: v }))}
                       badge="Ahorro GPU"
                     />
 
                     <ToggleSwitch
                       label="Desactivar Luces y Resplandores"
                       description="Apaga efectos de brillo y sombras difusas de alta intensidad"
-                      checked={settings.disableGlows}
-                      onChange={(v) => onUpdateSettings(prev => ({ ...prev, disableGlows: v }))}
+                      checked={currentSettings.disableGlows}
+                      onChange={(v) => updateSettings(prev => ({ ...prev, disableGlows: v }))}
                     />
 
                     <ToggleSwitch
                       label="Fondo Dinámico de Portada"
                       description="Aura de color ambiental basada en la carátula en reproducción"
-                      checked={settings.ambientBackground}
-                      onChange={(v) => onUpdateSettings(prev => ({ ...prev, ambientBackground: v }))}
+                      checked={currentSettings.ambientBackground}
+                      onChange={(v) => updateSettings(prev => ({ ...prev, ambientBackground: v }))}
                     />
                   </div>
                 </div>
@@ -633,7 +761,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                     </div>
 
                     <button
-                      onClick={onResetShortcuts}
+                      onClick={() => updateSettings(prev => ({ ...prev, shortcuts: DEFAULT_SHORTCUTS }))}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.13] backdrop-blur-xl text-white/80 hover:text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer self-start sm:self-auto"
                     >
                       <RotateCcw className="w-4 h-4" />
@@ -681,7 +809,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       s.label.toLowerCase().includes(shortcutsSearch.toLowerCase()) ||
                       s.description.toLowerCase().includes(shortcutsSearch.toLowerCase())
                     ).map((sc) => {
-                      const currentKey = settings.shortcuts[sc.id] || sc.defaultKey;
+                      const currentKey = currentSettings.shortcuts[sc.id] || sc.defaultKey;
                       const isRecording = recordingAction === sc.id;
 
                       return (
@@ -764,7 +892,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                         </div>
                       </div>
                       <span className="font-mono text-sm text-purple-300 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30 font-bold">
-                        {settings.crossfadeDuration === 0 ? 'Desactivado' : `${settings.crossfadeDuration}s`}
+                        {currentSettings.crossfadeDuration === 0 ? 'Desactivado' : `${currentSettings.crossfadeDuration}s`}
                       </span>
                     </div>
 
@@ -772,9 +900,9 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                       {([0, 2, 4, 6] as CrossfadeDuration[]).map((dur) => (
                         <button
                           key={dur}
-                          onClick={() => onUpdateSettings(prev => ({ ...prev, crossfadeDuration: dur }))}
+                          onClick={() => updateSettings(prev => ({ ...prev, crossfadeDuration: dur }))}
                           className={`py-2.5 px-3 rounded-full text-sm font-semibold text-center border transition-[background-color,border-color,color] duration-300 cursor-pointer ${
-                            settings.crossfadeDuration === dur
+                            currentSettings.crossfadeDuration === dur
                               ? 'bg-white/[0.14] border-white/40 text-white backdrop-blur-xl'
                               : 'bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] text-white/70'
                           }`}
@@ -789,16 +917,16 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
                   <ToggleSwitch
                     label="Fade al Pausar y Reanudar"
                     description="Transición suave de volumen para evitar cortes bruscos"
-                    checked={settings.smoothVolumeTransitions}
-                    onChange={(v) => onUpdateSettings(prev => ({ ...prev, smoothVolumeTransitions: v }))}
+                    checked={currentSettings.smoothVolumeTransitions}
+                    onChange={(v) => updateSettings(prev => ({ ...prev, smoothVolumeTransitions: v }))}
                   />
 
                   {/* Volume Normalization */}
                   <ToggleSwitch
                     label="Normalización Automática de Volumen"
                     description="Nivela los picos de volumen para que todas las pistas suenen parejo"
-                    checked={settings.volumeNormalization}
-                    onChange={(v) => onUpdateSettings(prev => ({ ...prev, volumeNormalization: v }))}
+                    checked={currentSettings.volumeNormalization}
+                    onChange={(v) => updateSettings(prev => ({ ...prev, volumeNormalization: v }))}
                     badge="Nivelado"
                   />
                 </div>
@@ -915,10 +1043,7 @@ export const GeneralSettingsModal: React.FC<GeneralSettingsModalProps> = ({
 
                     <button
                       type="button"
-                      onClick={() => {
-                        onResetAll();
-                        setShowResetConfirm(false);
-                      }}
+                      onClick={handleConfirmReset}
                       className="flex-1 py-2.5 px-4 rounded-full bg-purple-500/90 hover:bg-purple-500 text-white text-sm font-semibold shadow-md shadow-purple-600/25 transition-colors cursor-pointer"
                     >
                       Restablecer
