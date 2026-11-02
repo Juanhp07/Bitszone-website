@@ -246,6 +246,59 @@ html {
   background: rgba(255, 255, 255, 0.5) !important;
 }
 
+/* Super Blur Frosted Glass Action Button */
+.super-blur-btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(32, 24, 48, 0.72) 100%) !important;
+  backdrop-filter: blur(28px) saturate(200%) brightness(115%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(115%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  box-shadow: 
+    0 8px 24px -4px rgba(0, 0, 0, 0.55),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.55),
+    inset 0 0 10px rgba(255, 255, 255, 0.08),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.35) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer;
+}
+
+.super-blur-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.06) 70%, transparent 100%);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.super-blur-btn > * {
+  position: relative;
+  z-index: 10;
+}
+
+.super-blur-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(48, 36, 72, 0.85) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  box-shadow: 
+    0 12px 30px -4px rgba(0, 0, 0, 0.65),
+    inset 0 1px 2px rgba(255, 255, 255, 0.75),
+    inset 0 0 16px rgba(255, 255, 255, 0.16) !important;
+  transform: scale(1.06);
+}
+
+.super-blur-btn:hover::before {
+  background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.12) 70%, transparent 100%);
+}
+
+.super-blur-btn:active {
+  transform: scale(0.94);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(60, 46, 88, 0.92) 100%) !important;
+}
 
 @keyframes storage-flow {
   0% { background-position: 0% 50%; }

@@ -133,18 +133,8 @@ export const ProfileDialog = ({
             transition={{ type: 'spring', stiffness: 160, damping: 22, mass: 0.9, opacity: { duration: 0.35 } }}
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-[1020px] max-h-[calc(100dvh-1.5rem)] md:h-[min(760px,calc(100vh-2.5rem))] flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.45)]"
-            style={cardStyle}
+            style={{ ...cardStyle, backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
           >
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Cerrar modal (Esc)"
-              title="Cerrar (Esc)"
-              className="absolute top-5 right-5 z-20 w-10 h-10 rounded-full flex items-center justify-center text-white/80 hover:text-white bg-white/[0.08] hover:bg-white/[0.18] active:bg-white/[0.24] border border-white/20 hover:border-white/35 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 active:scale-95 group"
-            >
-              <X className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
-            </button>
-
             {/* Left: the account */}
             <div
               className="md:w-[38%] shrink-0 p-6 md:p-8 flex flex-col items-center backdrop-blur-xl md:border-r border-white/10 overflow-y-auto hover-subtle-scrollbar"
@@ -329,6 +319,16 @@ export const ProfileDialog = ({
                 </>
               )}
             </div>
+            {/* Super blur frosted glass close button */}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar modal (Esc)"
+              title="Cerrar (Esc)"
+              className="super-blur-btn absolute top-5 right-5 z-30 w-10 h-10 rounded-full flex items-center justify-center text-white/85 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 group"
+            >
+              <X className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
+            </button>
           </motion.div>
         </motion.div>
       )}
